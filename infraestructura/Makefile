@@ -66,7 +66,7 @@ nuke: clean clean_images
 
 clean_images:
 	@for image in $(IMAGES); do \
-	  docker rmi vigilamos/$$image ; \
+	  docker rmi citibike/$$image ; \
 	done
 
 clean_containers:

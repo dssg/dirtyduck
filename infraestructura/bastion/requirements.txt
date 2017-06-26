@@ -1,1 +1,16 @@
-ipython
+boto3
+Click
+python-dotenv
+psycopg2
+SQLALchemy
+pymc3
+pandas
+numpy
+seaborn
+scikit-learn
+## DSaPP stuff
+git+https://github.com/dssg/triage.git@master
+git+https://github.com/dssg/timechop.git@master
+git+https://github.com/dssg/collate.git@master
+git+https://github.com/dssg/architect.git@master
+git+https://github.com/dssg/metta-data.git@master

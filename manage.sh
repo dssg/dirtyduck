@@ -10,7 +10,7 @@ cd $INFRAESTRUCTURA_HOME
 
 case "$1" in
     start)
-        docker-compose --project-name ${PROJECT} up reverseproxy api db rabbitmq redis
+        docker-compose --project-name ${PROJECT} up -d reverseproxy api db rabbitmq redis
         ;;
     stop)
         docker-compose  --project-name ${PROJECT} stop
@@ -20,6 +20,9 @@ case "$1" in
         ;;
     rebuild)
         docker-compose  --project-name ${PROJECT} build --no-cache
+        ;;
+    logs)
+        docker-compose --project-name ${PROJECT} logs -f -t
         ;;
     run)
         if [ "$#" -lt  "2" ]
@@ -35,7 +38,7 @@ case "$1" in
         docker-compose  --project-name ${PROJECT} run bastion
         ;;
     *)
-        echo $"Usage: $0 {start|stop|build|rebuild|run}"
+        echo $"Usage: $0 {start|stop|build|rebuild|run|logs}"
         RETVAL=1
 esac
 
