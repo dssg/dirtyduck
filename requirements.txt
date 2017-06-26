@@ -1,0 +1,10 @@
+boto3
+Click
+python-dotenv
+psycopg2
+SQLALchemy
+pymc3
+pandas
+numpy
+seaborn
+scikit-learn
