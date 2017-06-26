@@ -7,7 +7,7 @@ RUN mv /tmp/docker/* /usr/bin && rm docker.tgz
 RUN chmod 755 /usr/bin/docker
 
 
-ENV BASE /vigilamos
+ENV BASE /citibike
 ARG PROJECT_NAME
 
 WORKDIR $BASE

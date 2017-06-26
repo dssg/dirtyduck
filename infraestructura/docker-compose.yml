@@ -4,85 +4,51 @@ services:
   db:
     build:
       context: ./db
-    image: vigilamos/db
-    container_name: vigilamos_db
-    env_file: ../vigilamos/.env
+    image: citibike/db
+    container_name: citibike_db
+    env_file: ../.env
     ports:
       - "5433:5432"
-    volumes:
-      - vigilamos_db:/vigilamos
-    networks:
-      vigilamos_net:
-        aliases:
-          - postgres_db
 
   bastion:
     build:
       context: ./bastion
-    image: vigilamos/bastion
-    container_name: vigilamos_bastion
-    volumes:
-      - vigilamos_data:/data
+    image: citibike/bastion
+    container_name: citibike_bastion
     #working_dir: /app
     command: bash
     environment:
       DB_URL: 'postgres://db:5432'
       REDIS_URL: 'redis://redis:6379'
       RABBITMQ:URL:  ''
-    networks:
-      - vigilamos_net
-    #ports:
-    #  - '8080:8080'
 
   rabbitmq:
     image: rabbitmq
     ports:
       - '5672:5672'
-    networks:
-      - vigilamos_net
 
   redis:
     image: redis
     ports:
       - '6379:6379'
-    networks:
-      - vigilamos_net
 
   reverseproxy:
     build:
       context: ./reverseproxy
-    image: vigilamos/reverseproxy
-    container_name: vigilamos_reverseproxy
+    image: citibike/reverseproxy
+    container_name: citibike_reverseproxy
     depends_on:
       - api
     ports:
       - 8090:8090
       - 8081:8081
-    networks:
-      - vigilamos_net
-#    restart: always
 
   api:
     build:
       context: ./api
-    image: vigilamos/api
-    container_name: vigilamos_api
+    image: citibike/api
+    container_name: citibike_api
     volumes:
       - "./api:/app"
     ports:
       - 5000
-    networks:
-      - vigilamos_net
-
-volumes:
-  vigilamos_data:
-    external:
-      name: vigilamos_data
-
-  vigilamos_db:
-    external:
-      name: vigilamos_db
-
-networks:
-  vigilamos_net:
-    external: true
