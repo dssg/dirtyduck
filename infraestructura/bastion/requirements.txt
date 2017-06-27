@@ -8,6 +8,7 @@ pandas
 numpy
 seaborn
 scikit-learn
+ipython
 ## DSaPP stuff
 git+https://github.com/dssg/triage.git@master
 git+https://github.com/dssg/timechop.git@master
