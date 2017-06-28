@@ -1,0 +1,13 @@
+#+TITLE: Triage: A guided tour
+
+* Intro
+
+* Description of the problem to solve
+
+* Data
+
+* Using triage (finally)
+
+* Looking the results at Tyra
+
+* What's next?

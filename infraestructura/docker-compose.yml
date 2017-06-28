@@ -7,6 +7,8 @@ services:
     image: citibike/db
     container_name: citibike_db
     env_file: ../.env
+    volumes:
+      - "../data:/tmp/raw-data"
     ports:
       - "5433:5432"
 
