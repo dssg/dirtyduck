@@ -1,13 +1,442 @@
 #+TITLE: Triage: A guided tour
-
+#+AUTHOR: Adolfo De Unánue
+#+EMAIL: adolfo@uchicago.edu
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5433
+#+PROPERTY: header-args:sql+ :dbuser citibike
+#+PROPERTY: header-args:sql+ :dbpassword goli0808
+#+PROPERTY: header-args:sql+ :database citibike
+#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:ipython   :session citibike
 * Intro
+
+The [[https://www.citibikenyc.com/system-data][Citi Bike NYC Trip data]] is a well know dataset ...
+
+
+* What do you need for this tutorial?
+
 
 * Description of the problem to solve
 
+We want to predict if a bike station will be full or empty the next
+$\Delta t$ (where $\Delta t could be minute, hour) . So, we need to transform
+the original data set from citi bike, which are trips, to a new data
+set that represents a time series for each bike station.
+
+Why this instead of predicting the number of bikes in an station?
+Well, at this moment =triage= only supports /classifiers/, so we can not
+tackle a /regression/ problem.
+
+* Infrastructure
+
+We are proving a little script for managing all the infrastructure in
+a (hopefully) transparent way.
+
+#+BEGIN_SRC shell
+./manage.sh
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Usage: ./manage.sh {start|stop|build|rebuild|run|logs|status}
+:END:
+
+We need to create the infrastructure so, =start= it
+
+#+BEGIN_SRC shell
+./manage.sh start
+#+END_SRC
+
+#+RESULTS:
+
+You can check that everything is running smoothly with =status=
+
+#+BEGIN_SRC shell
+./manage.sh status
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+          Name                         Command               State                           Ports
+---------------------------------------------------------------------------------------------------------------------------
+citibike_api                python app.py                    Up      0.0.0.0:32768->5000/tcp
+citibike_db                 docker-entrypoint.sh postgres    Up      0.0.0.0:5433->5432/tcp
+citibike_reverseproxy       nginx -g daemon off;             Up      80/tcp, 0.0.0.0:8081->8081/tcp, 0.0.0.0:8090->8090/tcp
+triagecitibike_rabbitmq_1   docker-entrypoint.sh rabbi ...   Up      25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5672->5672/tcp
+triagecitibike_redis_1      docker-entrypoint.sh redis ...   Up      0.0.0.0:6379->6379/tcp
+:END:
+
+The database is named =citibike=, the main table is =trips=
+
+Let's check the =schema= of =trips= table using the following command in =psql=
+
+#+BEGIN_SRC sql
+\dS+ trips
+#+END_SRC
+
+#+RESULTS:
+| Table "public.trips"  |                             |           |          |              |             |
+|-----------------------+-----------------------------+-----------+----------+--------------+-------------|
+| Column                | Type                        | Modifiers | Storage  | Stats target | Description |
+| trip_duration          | numeric                     |           | main     |              |             |
+| start_time             | timestamp without time zone |           | plain    |              |             |
+| stop_time              | timestamp without time zone |           | plain    |              |             |
+| start_station_id        | integer                     |           | plain    |              |             |
+| start_station_name      | character varying           |           | extended |              |             |
+| start_station_latitude  | numeric                     |           | main     |              |             |
+| start_station_longitude | numeric                     |           | main     |              |             |
+| end_station_id          | integer                     |           | plain    |              |             |
+| end_station_name        | character varying           |           | extended |              |             |
+| end_station_latitude    | numeric                     |           | main     |              |             |
+| end_station_longitude   | numeric                     |           | main     |              |             |
+| bike_id                | integer                     |           | plain    |              |             |
+| user_type              | character varying           |           | extended |              |             |
+| birth_year             | character varying           |           | extended |              |             |
+| gender                | character varying           |           | extended |              |             |
+
+
 * Data
+
+** Downloading
+
+Ok, the data is now in =/data=
+
+#+BEGIN_SRC shell
+ls -lh data
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+total 217M
+-rw-rw-r-- 1 nanounanue nanounanue 186M jun 27 08:23 2013-08-Citi-Bike-trip-data.csv
+-rw-rw-r-- 1 nanounanue nanounanue  31M ene 18 16:23 201308-citibike-tripdata.zip
+:END:
+
+
+
+** Uploading to our database
+
+#+BEGIN_SRC ipython
+  import psycopg2
+
+  conn = psycopg2.connect("host='0.0.0.0' port='5433' dbname='citibike' user='citibike' password='goli0808'")
+  cur = conn.cursor()
+
+  COPY_SQL = """COPY %s FROM STDIN WITH CSV HEADER"""
+
+  with open('data/2013-08-Citi-Bike-trip-data.csv') as f:
+     cur.copy_expert(sql=COPY_SQL % 'trips', file=f)
+
+  conn.commit()
+
+  conn.close()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+
+:END:
+
+Later we will modify that file to load all the files to the
+database. But, let's continue and check that all the data is in the
+=trips= table
+
+#+BEGIN_SRC sql
+select count(*) from trips;
+#+END_SRC
+
+#+RESULTS:
+|   count |
+|---------|
+| 1001957 |
+
+
+Let's look the data inside the table
+
+#+BEGIN_SRC sql
+select trip_duration, start_time, stop_time, start_station_id, end_station_id,
+bike_id, user_type, birth_year, gender from trips limit 5;
+#+END_SRC
+
+#+RESULTS:
+| trip_duration | start_time           | stop_time            | start_station_id | end_station_id | bike_id | user_type   | birth_year | gender |
+|--------------+---------------------+---------------------+----------------+--------------+--------+------------+-----------+--------|
+|         2115 | 2013-08-01 00:00:01 | 2013-08-01 00:35:16 |            254 |          195 |  17095 | Subscriber | 1974      |      1 |
+|          385 | 2013-08-01 00:00:03 | 2013-08-01 00:06:28 |            460 |         2002 |  18197 | Customer   | \N        |      0 |
+|          653 | 2013-08-01 00:00:10 | 2013-08-01 00:11:03 |            398 |          398 |  17080 | Customer   | \N        |      0 |
+|          954 | 2013-08-01 00:00:11 | 2013-08-01 00:16:05 |            319 |          336 |  17967 | Customer   | \N        |      0 |
+|          145 | 2013-08-01 00:00:37 | 2013-08-01 00:03:02 |            521 |          512 |  16299 | Subscriber | 1974      |      1 |
+
+Ok, everything seems correct. =:)=
+
+
+** Transforming the data
+
+For tackling a Machine Learning problem you need to identify the
+*entities* of your problem domain, and if your problem involves time,
+how those entities changes.
+
+In the problem at hand, the entity in which we are interested  is the
+=station=, and the characteristic that evolves is the number of bikes
+that are on it. The original data set describes /trips/, so we need to
+transform our data, so it describes stations.
+
+#+BEGIN_SRC sql
+select
+#+END_SRC
 
 * Using triage (finally)
 
+With the data sitting in our database, we can start our analysis.
+
+** The =config.yaml= file
+:PROPERTIES:
+:header-args:yaml: :tangle citibike-training.yaml
+:END:
+
+This is the unique point of entry for using =triage=, basically in this
+file, you will specify,  how you want to do the temporal
+cross-validation, how to generate the labels, how to generate the
+features, which models you want to run, and finally,  which are the
+metrics you are interested.
+
+You can check the final configuration in =citibike-training.yaml=
+
+Let's go by piece by piece
+
+
+*** Experiment metadata
+
+#+BEGIN_SRC yaml
+# EXPERIMENT METADATA
+# model_comment (optional) will end up in the model_comment column of the
+# models table for each model created in this experiment
+model_comment: 'test'
+#+END_SRC
+
+*** Time splitting
+
+For this section we will need get some info about the time span of our
+data,
+
+
+#+BEGIN_SRC sql
+select
+min(start_time)::date as modeling_start_time,
+max(stop_time)::date as modeling_end_time
+from trips;
+#+END_SRC
+
+#+RESULTS:
+| modeling_start_time | modeling_end_time |
+|-------------------+-----------------|
+|        2013-08-01 |      2013-09-04 |
+
+
+
+#+BEGIN_SRC yaml
+# TIME SPLITTING
+# The time window to look at, and how to divide the window into
+# train/test splits
+temporal_config:
+    beginning_of_time: '2013-01-01' # earliest date included in features
+    modeling_start_time: '2013-08-01' # earliest date in any model
+    modeling_end_time: '2013-09-01' # all dates in any model are < this date
+    update_window: '1week' # how frequently to retrain models
+    train_example_frequency: '1day' # time between rows for same entity in train matrix
+    test_example_frequency: '1day' # time between rows for same entity in test matrix
+    train_durations: ['3week'] # length of time included in a train matrix
+    test_durations: ['1day'] # length of time included in a test matrix
+    train_label_windows: ['1d'] # time period across which outcomes are labeled in train matrices
+    test_label_windows: ['1d'] # time period across which outcomes are labeled in test matrices
+#+END_SRC
+
+*** Label generation
+
+#+BEGIN_SRC yaml
+# LABEL GENERATION
+# Information needed to generate labels
+#
+# An events table is expected, with the columns:
+#   entity_id - an identifier for which the labels are applied to
+#   outcome_date - The date at which some outcome was known
+#   outcome - A boolean outcome
+# These are used to generate appropriate labels for each train/test split
+events_table: 'trips'
+#+END_SRC
+
+*** Feature generation
+
+#+BEGIN_SRC yaml :tangle no
+# FEATURE GENERATION
+# The aggregate features to generate for each train/test split
+#
+# Implemented by wrapping collate: https://github.com/dssg/collate
+# Most terminology here is taken directly from collate
+#
+# Each entry describes a collate.SpacetimeAggregation object, and the
+# arguments needed to create it. Generally, each of these entries controls
+# the features from one source table, though in the case of multiple groups
+# may result in multiple output tables
+feature_aggregations:
+    -
+        # prefix given to the resultant tables
+        prefix: 'prefix'
+        # from_obj is usually a source table but can be an expression, such as
+        # a join (ie 'cool_stuff join other_stuff using (stuff_id)')
+        from_obj: 'cool_stuff'
+        # The date column to use for specifying which records to include
+        # in temporal features. It is important that the column used specifies
+        # the date at which the event is known about, which may be different
+        # from the date the event happened.
+        knowledge_date_column: 'open_date'
+
+        # aggregates and categoricals define the actual features created. So
+        # at least one is required
+        #
+        # Aggregates of numerical columns. Each quantity is a number of some
+        # sort, and the list of metrics are applied to each quantity
+        aggregates:
+            -
+                quantity: 'homeless::INT'
+                metrics:
+                    - 'count'
+                    - 'sum'
+        # Categorical features. The column given can be of any type, but the
+        # choices must comparable to that type for equality within SQL
+        # The result will be one feature for each choice/metric combination
+        categoricals:
+            -
+                column: 'color'
+                choices:
+                    - 'red'
+                    - 'blue'
+                    - 'green'
+                metrics:
+                    - 'sum'
+            -
+                column: 'shape'
+                choice_query: 'select distinct shape from cool_stuff'
+                metrics:
+                    - 'sum'
+        # The time intervals over which to aggregate features
+        intervals:
+            - '1 year'
+            - '2 years'
+            - 'all'
+        # A list of different columns to separately group by
+        groups:
+            - 'entity_id'
+#+END_SRC
+
+*** Feature grouping
+
+#+BEGIN_SRC yaml :tangle no
+# FEATURE GROUPING
+# define how to group features and generate combinations
+# feature_group_definition allows you to create groups/subset of your features
+# by different criteria.
+# for instance, 'tables' allows you to send a list of collate feature tables
+# 'prefix' allows you to specify a list of feature name prefixes
+feature_group_definition:
+    tables: ['prefix_entity_id']
+
+# strategies for generating combinations of groups
+# available: all, leave-one-out, leave-one-in
+feature_group_strategies: ['all']
+#+END_SRC
+
+*** State management
+
+#+BEGIN_SRC yaml
+# STATE MANAGEMENT
+# If you want to only include rows in your matrices in a specific state,
+# provide:
+# 1. a dense state table that defines when entities were in specific states
+#   should have columns entity_id/state/start/end
+# 2. a list of state filtering SQL clauses to iterate through. Assuming the
+#   states are boolean columns (the pipeline will convert the one you pass in
+#   to this format), write a SQL expression for each state
+#   configuration you want, ie '(permitted OR suspended) AND licensed'
+state_config:
+    table_name:
+    state_filters:
+
+#+END_SRC
+
+*** Model grouping
+
+#+BEGIN_SRC yaml
+# MODEL GROUPING
+# Model groups are aimed at defining models which are equivalent across time splits.
+# By default, the classifier module name, hyperparameters, and feature names are used.
+#
+# model_group_keys defines a list of *additional* matrix metadata keys that
+# should be considered when creating a model group
+model_group_keys:
+    - 'train_duration'
+    - 'train_label_window'
+    - 'train_example_frequency'
+#+END_SRC
+
+*** Grid configuration
+#+BEGIN_SRC yaml
+# GRID CONFIGURATION
+# The classifier/hyperparameter combinations that should be trained
+#
+# Each top-level key should be a class name, importable from triage. sklearn is
+# available, and if you have another classifier package you would like available,
+# contribute it to requirements.txt
+#
+# Each lower-level key is a hyperparameter name for the given classifier, and
+# each value is a list of potential values. All possible combinations of
+# classifiers and hyperparameters are trained.
+grid_config:
+    'sklearn.ensemble.ExtraTreesClassifier':
+        n_estimators: [100,100]
+        criterion: [gini, entropy]
+        max_depth: [1,5,10,20,50]
+        max_features: [sqrt,log2]
+        min_samples_split: [2,5,10]
+#+END_SRC
+
+*** Model scoring
+
+#+BEGIN_SRC yaml
+# MODEL SCORING
+# How each trained model is scored
+#
+# Each entry in 'metric_groups' needs a list of one of the metrics defined in
+# triage.scoring.ModelScorer.available_metrics (contributions welcome!)
+# Depending on the metric, either thresholds or parameters
+#
+# Parameters specify any hyperparameters needed. For most metrics,
+# which are simply wrappers of sklearn functions, these
+# are passed directly to sklearn.
+#
+# Thresholds are more specific: The list is subset and only the
+# top percentile or top n entities are scored
+#
+# sort_seed, if passed, will seed the random number generator for each model's
+# metric creation phase. This affects how entities with the same probabilities
+# are sorted
+scoring:
+    metric_groups:
+        -
+            metrics: ['precision@', 'recall@', 'fpr@']
+            thresholds:
+                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0]
+                top_n: [25, 75, 150, 300, 500, 1000, 1500]
+
+#+END_SRC
+
+
 * Looking the results at Tyra
 
+
 * What's next?
+
+* Appendix: What are all those files?
+
+* Appendix: Getting help

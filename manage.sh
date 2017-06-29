@@ -24,6 +24,9 @@ case "$1" in
     logs)
         docker-compose --project-name ${PROJECT} logs -f -t
         ;;
+    status)
+        docker-compose --project-name ${PROJECT} ps
+        ;;
     run)
         if [ "$#" -lt  "2" ]
         then
@@ -38,7 +41,7 @@ case "$1" in
         docker-compose  --project-name ${PROJECT} run bastion
         ;;
     *)
-        echo $"Usage: $0 {start|stop|build|rebuild|run|logs}"
+        echo $"Usage: $0 {start|stop|build|rebuild|run|logs|status}"
         RETVAL=1
 esac
 
