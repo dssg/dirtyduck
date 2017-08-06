@@ -4,13 +4,13 @@ set -e
 
 PROJECT="$(cat .project-name)"
 PROJECT_HOME="$( cd "$( dirname "$0" )" && pwd )"
-INFRAESTRUCTURA_HOME="${PROJECT_HOME}/infraestructura"
+INFRAESTRUCTURA_HOME="${PROJECT_HOME}/infrastructure"
 
 cd $INFRAESTRUCTURA_HOME
 
 case "$1" in
     start)
-        docker-compose --project-name ${PROJECT} up -d reverseproxy api db rabbitmq redis
+        docker-compose --project-name ${PROJECT} up -d reverseproxy api food_db
         ;;
     stop)
         docker-compose  --project-name ${PROJECT} stop
@@ -34,11 +34,11 @@ case "$1" in
             RETVAL=1
         else
             shift
-            docker-compose  --project-name ${PROJECT} run bastion "$@"
+            docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion "$@"
         fi
         ;;
     bastion)
-        docker-compose  --project-name ${PROJECT} run bastion
+        docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
         ;;
     *)
         echo $"Usage: $0 {start|stop|build|rebuild|run|logs|status}"
