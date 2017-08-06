@@ -1,32 +1,51 @@
-#+TITLE: Triage: A guided tour
+#+TITLE: Dirty duck: A triage's guided tour
 #+AUTHOR: Adolfo De Unánue
 #+EMAIL: adolfo@uchicago.edu
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
-#+PROPERTY: header-args:sql+ :dbport 5433
-#+PROPERTY: header-args:sql+ :dbuser citibike
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
 #+PROPERTY: header-args:sql+ :dbpassword goli0808
-#+PROPERTY: header-args:sql+ :database citibike
+#+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:shell     :results drawer
-#+PROPERTY: header-args:ipython   :session citibike
+#+PROPERTY: header-args:ipython   :session food_inspections
+
 * Intro
 
-The [[https://www.citibikenyc.com/system-data][Citi Bike NYC Trip data]] is a well know dataset ...
+The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
+used in several examples around the web.
 
 
 * What do you need for this tutorial?
 
+[[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed.
+Use the links for installing instructions for your operating system.
 
-* Description of the problem to solve
+* ▶ TODO Description of the problem to solve
+:PROPERTIES:
+- Describe the EIS problem and the Inspections problem
+- Describe the technical problems that could happen: temporal data,
+  leaking, etc.
+:END:
 
-We want to predict if a bike station will be full or empty the next
-$\Delta t$ (where $\Delta t could be minute, hour) . So, we need to transform
-the original data set from citi bike, which are trips, to a new data
-set that represents a time series for each bike station.
+Actually, We want to solve two problems: an /Early intervention system/ (*EIS*)
+and a /Inspection prioritization/.
 
-Why this instead of predicting the number of bikes in an station?
-Well, at this moment =triage= only supports /classifiers/, so we can not
-tackle a /regression/ problem.
+
+We will use the /same/ data set, first, we will be the restaurant's
+owner, and we want to know: /Will my restaurant be inspected in the/
+/next X period of time?/ Where $X$ could be 1 month, 1 week, 1 year,
+etc.
+
+Knowing the answer to this question, allows me (as the restaurant's
+owner) to be prepared and take the pertinent actions.
+
+
+The second scenario, you work for the Chicago government, and you try
+to prioritize your resources (i.e. your inspection workforce), since
+they are limited. So, you will use the data for answering the next
+question: /Which restaurants will make the violations?/  In this case
+maybe you are interested not in all the violations but in the more grave.
 
 * Infrastructure
 
@@ -49,6 +68,8 @@ We need to create the infrastructure so, =start= it
 #+END_SRC
 
 #+RESULTS:
+:RESULTS:
+:END:
 
 You can check that everything is running smoothly with =status=
 
@@ -67,111 +88,119 @@ triagecitibike_rabbitmq_1   docker-entrypoint.sh rabbi ...   Up      25672/tcp, 
 triagecitibike_redis_1      docker-entrypoint.sh redis ...   Up      0.0.0.0:6379->6379/tcp
 :END:
 
-The database is named =citibike=, the main table is =trips=
+The database is named =food_db=, the main table is =inspections=
 
 Let's check the =schema= of =trips= table using the following command in =psql=
 
 #+BEGIN_SRC sql
-\dS+ trips
+\dS+ inspections
 #+END_SRC
 
 #+RESULTS:
-| Table "public.trips"  |                             |           |          |              |             |
-|-----------------------+-----------------------------+-----------+----------+--------------+-------------|
-| Column                | Type                        | Modifiers | Storage  | Stats target | Description |
-| trip_duration          | numeric                     |           | main     |              |             |
-| start_time             | timestamp without time zone |           | plain    |              |             |
-| stop_time              | timestamp without time zone |           | plain    |              |             |
-| start_station_id        | integer                     |           | plain    |              |             |
-| start_station_name      | character varying           |           | extended |              |             |
-| start_station_latitude  | numeric                     |           | main     |              |             |
-| start_station_longitude | numeric                     |           | main     |              |             |
-| end_station_id          | integer                     |           | plain    |              |             |
-| end_station_name        | character varying           |           | extended |              |             |
-| end_station_latitude    | numeric                     |           | main     |              |             |
-| end_station_longitude   | numeric                     |           | main     |              |             |
-| bike_id                | integer                     |           | plain    |              |             |
-| user_type              | character varying           |           | extended |              |             |
-| birth_year             | character varying           |           | extended |              |             |
-| gender                | character varying           |           | extended |              |             |
-
+| Table "public.inspections" |                   |           |          |              |             |
+|----------------------------+-------------------+-----------+----------+--------------+-------------|
+| Column                     | Type              | Modifiers | Storage  | Stats target | Description |
+| inspection                 | character varying | not null  | extended |              |             |
+| dba_name                    | character varying |           | extended |              |             |
+| aka_name                    | character varying |           | extended |              |             |
+| license_num                 | numeric           |           | main     |              |             |
+| facility_type               | character varying |           | extended |              |             |
+| risk                       | character varying |           | extended |              |             |
+| address                    | character varying |           | extended |              |             |
+| city                       | character varying |           | extended |              |             |
+| state                      | character varying |           | extended |              |             |
+| zip                        | character varying |           | extended |              |             |
+| date                       | date              |           | plain    |              |             |
+| type                       | character varying |           | extended |              |             |
+| results                    | character varying |           | extended |              |             |
+| violations                 | character varying |           | extended |              |             |
+| latitude                   | numeric           |           | main     |              |             |
+| longitude                  | numeric           |           | main     |              |             |
+| location                   | character varying |           | extended |              |             |
 
 * Data
 
 ** Downloading
 
-Ok, the data is now in =/data=
-
-#+BEGIN_SRC shell
-ls -lh data
+#+BEGIN_SRC shell :dir data
+  curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > inspections.csv
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-total 217M
--rw-rw-r-- 1 nanounanue nanounanue 186M jun 27 08:23 2013-08-Citi-Bike-trip-data.csv
--rw-rw-r-- 1 nanounanue nanounanue  31M ene 18 16:23 201308-citibike-tripdata.zip
 :END:
+
+#+BEGIN_SRC shell :dir data
+  wc -l inspections.csv
+#+END_SRC
+
+Ok, the data is now in =/data=, we can check how many rows the dataset contains
+
+#+RESULTS:
+:RESULTS:
+374918 inspections.csv
+:END:
+
 
 
 
 ** Uploading to our database
+Assuming that you are already inside =bastion=, run the following
 
-#+BEGIN_SRC ipython
-  import psycopg2
 
-  conn = psycopg2.connect("host='0.0.0.0' port='5433' dbname='citibike' user='citibike' password='goli0808'")
-  cur = conn.cursor()
-
-  COPY_SQL = """COPY %s FROM STDIN WITH CSV HEADER"""
-
-  with open('data/2013-08-Citi-Bike-trip-data.csv') as f:
-     cur.copy_expert(sql=COPY_SQL % 'trips', file=f)
-
-  conn.commit()
-
-  conn.close()
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+psql ${FOOD_DB_URL} -c 'select count(*) from inspections'
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
+ count
+--------
+ 152252
+(1 row)
 
 :END:
 
-Later we will modify that file to load all the files to the
-database. But, let's continue and check that all the data is in the
-=trips= table
 
-#+BEGIN_SRC sql
-select count(*) from trips;
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+ls -la /data
 #+END_SRC
 
 #+RESULTS:
-|   count |
-|---------|
-| 1001957 |
+:RESULTS:
+total 399976
+drwxrwxr-x  2 1000 1000      4096 Jul 27 15:07 .
+drwxr-xr-x 68 root root      4096 Jul 28 16:35 ..
+-rw-rw-r--  1 1000 1000         0 Jun 27 03:48 .gitkeep
+-rw-rw-r--  1 1000 1000 194520987 Jun 27 13:23 2013-08-Citi-Bike-trip-data.csv
+-rw-rw-r--  1 1000 1000  32090869 Jan 18  2017 201308-citibike-tripdata.zip
+-rw-rw-r--  1 1000 1000 182944074 Jul 27 15:39 inspections.csv
+:END:
 
-
-Let's look the data inside the table
-
-#+BEGIN_SRC sql
-select trip_duration, start_time, stop_time, start_station_id, end_station_id,
-bike_id, user_type, birth_year, gender from trips limit 5;
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
+psql ${FOOD_DB_URL} -c "\copy inspections FROM '/data/inspections.csv' WITH HEADER CSV"
 #+END_SRC
 
 #+RESULTS:
-| trip_duration | start_time           | stop_time            | start_station_id | end_station_id | bike_id | user_type   | birth_year | gender |
-|--------------+---------------------+---------------------+----------------+--------------+--------+------------+-----------+--------|
-|         2115 | 2013-08-01 00:00:01 | 2013-08-01 00:35:16 |            254 |          195 |  17095 | Subscriber | 1974      |      1 |
-|          385 | 2013-08-01 00:00:03 | 2013-08-01 00:06:28 |            460 |         2002 |  18197 | Customer   | \N        |      0 |
-|          653 | 2013-08-01 00:00:10 | 2013-08-01 00:11:03 |            398 |          398 |  17080 | Customer   | \N        |      0 |
-|          954 | 2013-08-01 00:00:11 | 2013-08-01 00:16:05 |            319 |          336 |  17967 | Customer   | \N        |      0 |
-|          145 | 2013-08-01 00:00:37 | 2013-08-01 00:03:02 |            521 |          512 |  16299 | Subscriber | 1974      |      1 |
+: COPY 152252
 
-Ok, everything seems correct. =:)=
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+psql ${FOOD_DB_URL} -c 'select * from inspections limit 1'
+#+END_SRC
 
+#+RESULTS:
+:RESULTS:
+inspection |      dba_name      |      aka_name      | license_num | facility_type |     risk      |     address     |  city   | state |  zip  |    date    |         type          | results | violations |      latitude      |     longitude      |                 location
+------------+--------------------+--------------------+-------------+---------------+---------------+-----------------+---------+-------+-------+------------+-----------------------+---------+------------+--------------------+--------------------+------------------------------------------
+2071411    | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE |     2517130 | Restaurant    | Risk 1 (High) | 901 S STATE ST  | CHICAGO | IL    | 60605 | 2017-07-25 | License Re-Inspection | Pass    |            | 41.870502077951755 | -87.62734617773437 | (41.870502077951755, -87.62734617773437)
+(1 row)
 
-** Transforming the data
+:END:
+
+You could see the meaning of the columns [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]].
+
+** ▶ TODO Transforming the data
 
 For tackling a Machine Learning problem you need to identify the
 *entities* of your problem domain, and if your problem involves time,
@@ -182,17 +211,123 @@ In the problem at hand, the entity in which we are interested  is the
 that are on it. The original data set describes /trips/, so we need to
 transform our data, so it describes stations.
 
-#+BEGIN_SRC sql
-select
-#+END_SRC
+*** ▶ TODO The experiment concept
+
+*** ▶ TODO Cross temporal validation and Timechop
+
+
+ #+BEGIN_SRC sql :results table drawer
+   select
+   results, count(*)
+   from
+   inspections
+   group by
+   results;
+ #+END_SRC
+
+ #+RESULTS:
+ :RESULTS:
+ | results              | count |
+ |----------------------+-------|
+ | Fail                 | 29508 |
+ | Pass w/ Conditions   | 14412 |
+ | Not Ready            |   773 |
+ | No Entry             |  4185 |
+ | Out of Business      | 13692 |
+ | Business Not Located |    60 |
+ | Pass                 | 89622 |
+ :END:
+
+We will map =Fail=, =Not Ready=, =No Entry= to a =Violation= , we will remove
+=Out of Business= and =Business Not Located= from the database, and all
+the other options (=Pass w/Condition= and =Pass)=  will become =True=.
+
+ #+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
+   drop table if exists violations;
+
+   create table violations as
+          select inspection::int  as entity_id,
+                 date as outcome_date,
+                 zip,
+                 risk,
+                 type as inspection_type,
+                 facility_type,
+                 license_num::varchar as license,
+                 dba_name as business_name,
+                 aka_name as aka,
+                 results,
+                 case
+                      when left(results, 4) = 'Pass' then FALSE
+                      else TRUE
+                 end as outcome,
+                 (regexp_matches(violation[1],'^(\d+)\.'))[1]::varchar as violation_type ,
+                 violation[1] as violation_description,
+                 violation[2] as violation_comment
+          from
+                        (
+          select
+                 inspection,
+                 date, zip, risk, facility_type, dba_name, aka_name, results, license_num, type,
+                 regexp_split_to_array(regexp_split_to_table(violations, '\| '),'- Comments') as violation
+           from inspections
+           where lower(results) !~ '.*business*.'
+          ) b;
+ #+END_SRC
+
+
+ Now we will create a =violations= table, for this we will use the
+
+ #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+   psql ${FOOD_DB_URL} < /code/create_violations_table.sql
+ #+END_SRC
+
+ #+RESULTS:
+ :RESULTS:
+ DROP TABLE
+ SELECT 562853
+ :END:
+
+ #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+   psql ${FOOD_DB_URL} -c 'select count(*) from violations'
+ #+END_SRC
+
+ #+RESULTS:
+ :RESULTS:
+  count
+ --------
+  562853
+ (1 row)
+
+ :END:
+
+
+ #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+   psql ${FOOD_DB_URL} -c 'select * from violations limit 5'
+ #+END_SRC
+
+ #+RESULTS:
+ :RESULTS:
+  entity_id | outcome_date |  zip  |      risk       |    inspection_type    | facility_type | license |   business_name    |        aka         | results | outcome | violation_type |                                                            violation_description                                                            |                                                                           violation_comment
+ -----------+--------------+-------+-----------------+-----------------------+---------------+---------+--------------------+--------------------+---------+---------+----------------+---------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    2071410 | 2017-07-25   | 60605 | Risk 1 (High)   | License Re-Inspection | Restaurant    | 2517129 | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE | Pass    | f       | 8              | 8. SANITIZING RINSE FOR EQUIPMENT AND UTENSILS:  CLEAN, PROPER TEMPERATURE, CONCENTRATION, EXPOSURE TIME                                    | : ABATED. DISH MACHINES SANITIZES AT 100PPM OF CHLORINE.
+    2071410 | 2017-07-25   | 60605 | Risk 1 (High)   | License Re-Inspection | Restaurant    | 2517129 | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE | Pass    | f       | 9              | 9. WATER SOURCE: SAFE, HOT & COLD UNDER CITY PRESSURE                                                                                       | : ABATED. HOT WATER WAS PROVIDED.
+    2071410 | 2017-07-25   | 60605 | Risk 1 (High)   | License Re-Inspection | Restaurant    | 2517129 | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE | Pass    | f       | 18             | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS  | : ABATED. DOOR IS RODENT/INSECT PROOFED.
+    2071412 | 2017-07-25   | 60640 | Risk 2 (Medium) | License               | Grocery Store | 2542856 | WILSON GROCERY     | WILSON GROCERY     | Pass    | f       | 32             | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                        | : MUST NOT USE TAPE AS A MEANS OF REPAIR ON THE EXTERIOR OF THE MEAT DISPLAY COOLER.
+    2071412 | 2017-07-25   | 60640 | Risk 2 (Medium) | License               | Grocery Store | 2542856 | WILSON GROCERY     | WILSON GROCERY     | Pass    | f       | 34             | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                   | : FLOOR UNDER THE KITCHEN THREE COMPARTMENT SINK GREASE TRAP WITH EXCESSIVE GREASE. FLOOR OF THE WALK-IN COOLER WITH DIRT AND FOOD SPILLAGE. MUST CLEAN AND MAINTAIN.
+ (5 rows)
+
+ :END:
+
+ Ok, everything seems correct. =:)=
+
 
 * Using triage (finally)
 
 With the data sitting in our database, we can start our analysis.
 
-** The =config.yaml= file
+** The =inspections-training.yaml= file
 :PROPERTIES:
-:header-args:yaml: :tangle citibike-training.yaml
+:header-args:yaml: :tangle ./src/inspections-training.yaml
 :END:
 
 This is the unique point of entry for using =triage=, basically in this
@@ -201,7 +336,7 @@ cross-validation, how to generate the labels, how to generate the
 features, which models you want to run, and finally,  which are the
 metrics you are interested.
 
-You can check the final configuration in =citibike-training.yaml=
+You can check the final configuration in =./src/inspections-training.yaml=
 
 Let's go by piece by piece
 
@@ -223,15 +358,15 @@ data,
 
 #+BEGIN_SRC sql
 select
-min(start_time)::date as modeling_start_time,
-max(stop_time)::date as modeling_end_time
-from trips;
+min(date)::date as modeling_start_time,
+max(date)::date as modeling_end_time
+from inspections;
 #+END_SRC
 
 #+RESULTS:
 | modeling_start_time | modeling_end_time |
 |-------------------+-----------------|
-|        2013-08-01 |      2013-09-04 |
+|        2010-01-04 |      2017-07-25 |
 
 
 
@@ -240,16 +375,16 @@ from trips;
 # The time window to look at, and how to divide the window into
 # train/test splits
 temporal_config:
-    beginning_of_time: '2013-01-01' # earliest date included in features
-    modeling_start_time: '2013-08-01' # earliest date in any model
-    modeling_end_time: '2013-09-01' # all dates in any model are < this date
-    update_window: '1week' # how frequently to retrain models
-    train_example_frequency: '1day' # time between rows for same entity in train matrix
-    test_example_frequency: '1day' # time between rows for same entity in test matrix
-    train_durations: ['3week'] # length of time included in a train matrix
-    test_durations: ['1day'] # length of time included in a test matrix
-    train_label_windows: ['1d'] # time period across which outcomes are labeled in train matrices
-    test_label_windows: ['1d'] # time period across which outcomes are labeled in test matrices
+    beginning_of_time: '2010-01-04' # earliest date included in features
+    modeling_start_time: '2016-01-04' # earliest date in any model
+    modeling_end_time: '2017-07-25' # all dates in any model are < this date
+    update_window: '3month' # how frequently to retrain models
+    train_example_frequency: '1month' # time between rows for same entity in train matrix
+    test_example_frequency: '1month' # time between rows for same entity in test matrix
+    train_durations: ['6month'] # length of time included in a train matrix
+    test_durations: ['1month'] # length of time included in a test matrix
+    train_label_windows: ['1month'] # time period across which outcomes are labeled in train matrices
+    test_label_windows: ['1month'] # time period across which outcomes are labeled in test matrices
 #+END_SRC
 
 *** Label generation
@@ -263,142 +398,115 @@ temporal_config:
 #   outcome_date - The date at which some outcome was known
 #   outcome - A boolean outcome
 # These are used to generate appropriate labels for each train/test split
-events_table: 'trips'
+events_table: 'violations'
 #+END_SRC
 
 *** Feature generation
 
-#+BEGIN_SRC yaml :tangle no
-# FEATURE GENERATION
-# The aggregate features to generate for each train/test split
-#
-# Implemented by wrapping collate: https://github.com/dssg/collate
-# Most terminology here is taken directly from collate
-#
-# Each entry describes a collate.SpacetimeAggregation object, and the
-# arguments needed to create it. Generally, each of these entries controls
-# the features from one source table, though in the case of multiple groups
-# may result in multiple output tables
-feature_aggregations:
-    -
-        # prefix given to the resultant tables
-        prefix: 'prefix'
-        # from_obj is usually a source table but can be an expression, such as
-        # a join (ie 'cool_stuff join other_stuff using (stuff_id)')
-        from_obj: 'cool_stuff'
-        # The date column to use for specifying which records to include
-        # in temporal features. It is important that the column used specifies
-        # the date at which the event is known about, which may be different
-        # from the date the event happened.
-        knowledge_date_column: 'open_date'
+#+BEGIN_SRC yaml
+  # FEATURE GENERATION
+  # The aggregate features to generate for each train/test split
+  #
+  # Implemented by wrapping collate: https://github.com/dssg/collate
+  # Most terminology here is taken directly from collate
+  #
+  # Each entry describes a collate.SpacetimeAggregation object, and the
+  # arguments needed to create it. Generally, each of these entries controls
+  # the features from one source table, though in the case of multiple groups
+  # may result in multiple output tables
+  feature_aggregations:
+      -
+          # prefix given to the resultant tables
+          prefix: 'violation_type'
+          # from_obj is usually a source table but can be an expression, such as
+          # a join (ie 'cool_stuff join other_stuff using (stuff_id)')
+          from_obj: 'violations'
+          # The date column to use for specifying which records to include
+          # in temporal features. It is important that the column used specifies
+          # the date at which the event is known about, which may be different
+          # from the date the event happened.
+          knowledge_date_column: 'outcome_date'
 
-        # aggregates and categoricals define the actual features created. So
-        # at least one is required
-        #
-        # Aggregates of numerical columns. Each quantity is a number of some
-        # sort, and the list of metrics are applied to each quantity
-        aggregates:
-            -
-                quantity: 'homeless::INT'
-                metrics:
-                    - 'count'
-                    - 'sum'
-        # Categorical features. The column given can be of any type, but the
-        # choices must comparable to that type for equality within SQL
-        # The result will be one feature for each choice/metric combination
-        categoricals:
-            -
-                column: 'color'
-                choices:
-                    - 'red'
-                    - 'blue'
-                    - 'green'
-                metrics:
-                    - 'sum'
-            -
-                column: 'shape'
-                choice_query: 'select distinct shape from cool_stuff'
-                metrics:
-                    - 'sum'
-        # The time intervals over which to aggregate features
-        intervals:
-            - '1 year'
-            - '2 years'
-            - 'all'
-        # A list of different columns to separately group by
-        groups:
-            - 'entity_id'
+          # aggregates and categoricals define the actual features created. So
+          # at least one is required
+          #
+          # Aggregates of numerical columns. Each quantity is a number of some
+          # sort, and the list of metrics are applied to each quantity
+          # aggregates:
+          #     -
+          #         quantity: 'homeless::INT'
+          #         metrics:
+          #             - 'count'
+          #             - 'sum'
+          #
+          # Categorical features. The column given can be of any type, but the
+          # choices must comparable to that type for equality within SQL
+          # The result will be one feature for each choice/metric combination
+          categoricals:
+              -
+                  column: 'violation_type'
+                  choice_query: 'select distinct violation_type from violations'
+                  metrics:
+                      - 'count'
+          # The time intervals over which to aggregate features
+          intervals:
+              - '1 week'
+          # A list of different columns to separately group by
+          groups:
+              - 'entity_id'   ## This is the ID of the entity
 #+END_SRC
 
 *** Feature grouping
 
-#+BEGIN_SRC yaml :tangle no
-# FEATURE GROUPING
-# define how to group features and generate combinations
-# feature_group_definition allows you to create groups/subset of your features
-# by different criteria.
-# for instance, 'tables' allows you to send a list of collate feature tables
-# 'prefix' allows you to specify a list of feature name prefixes
-feature_group_definition:
-    tables: ['prefix_entity_id']
-
-# strategies for generating combinations of groups
-# available: all, leave-one-out, leave-one-in
-feature_group_strategies: ['all']
-#+END_SRC
-
-*** State management
-
 #+BEGIN_SRC yaml
-# STATE MANAGEMENT
-# If you want to only include rows in your matrices in a specific state,
-# provide:
-# 1. a dense state table that defines when entities were in specific states
-#   should have columns entity_id/state/start/end
-# 2. a list of state filtering SQL clauses to iterate through. Assuming the
-#   states are boolean columns (the pipeline will convert the one you pass in
-#   to this format), write a SQL expression for each state
-#   configuration you want, ie '(permitted OR suspended) AND licensed'
-state_config:
-    table_name:
-    state_filters:
+  # FEATURE GROUPING
+  # define how to group features and generate combinations
+  # feature_group_definition allows you to create groups/subset of your features
+  # by different criteria.
+  # for instance, 'tables' allows you to send a list of collate feature tables
+  # 'prefix' allows you to specify a list of feature name prefixes
+  feature_group_definition:
+      tables: ['violation_type_entity_id']
 
+  # strategies for generating combinations of groups
+  # available: all, leave-one-out, leave-one-in
+  feature_group_strategies: ['all']
 #+END_SRC
 
 *** Model grouping
 
 #+BEGIN_SRC yaml
-# MODEL GROUPING
-# Model groups are aimed at defining models which are equivalent across time splits.
-# By default, the classifier module name, hyperparameters, and feature names are used.
-#
-# model_group_keys defines a list of *additional* matrix metadata keys that
-# should be considered when creating a model group
-model_group_keys:
-    - 'train_duration'
-    - 'train_label_window'
-    - 'train_example_frequency'
+  # MODEL GROUPING
+  # Model groups are aimed at defining models which are equivalent across time splits.
+  # By default, the classifier module name, hyperparameters, and feature names are used.
+  #
+  # model_group_keys defines a list of *additional* matrix metadata keys that
+  # should be considered when creating a model group
+  model_group_keys: []
+  #    - 'train_duration'
+  #    - 'train_label_window'
+  #    - 'train_example_frequency'
 #+END_SRC
 
 *** Grid configuration
 #+BEGIN_SRC yaml
-# GRID CONFIGURATION
-# The classifier/hyperparameter combinations that should be trained
-#
-# Each top-level key should be a class name, importable from triage. sklearn is
-# available, and if you have another classifier package you would like available,
-# contribute it to requirements.txt
-#
-# Each lower-level key is a hyperparameter name for the given classifier, and
-# each value is a list of potential values. All possible combinations of
-# classifiers and hyperparameters are trained.
-grid_config:
-    'sklearn.ensemble.ExtraTreesClassifier':
-        n_estimators: [100,100]
-        criterion: [gini, entropy]
-        max_depth: [1,5,10,20,50]
-        max_features: [sqrt,log2]
-        min_samples_split: [2,5,10]
+  # GRID CONFIGURATION
+  # The classifier/hyperparameter combinations that should be trained
+  #
+  # Each top-level key should be a class name, importable from triage. sklearn is
+  # available, and if you have another classifier package you would like available,
+  # contribute it to requirements.txt
+  #
+  # Each lower-level key is a hyperparameter name for the given classifier, and
+  # each value is a list of potential values. All possible combinations of
+  # classifiers and hyperparameters are trained.
+  grid_config:
+      'sklearn.ensemble.RandomForestClassifier':
+          max_features: ['sqrt']
+          criterion: ['gini', 'entropy']
+          n_estimators: [100, 1000, 5000]
+          min_samples_split: [10, 20, 50, 100]
+          max_depth: [10, 20, 50, 100]
 #+END_SRC
 
 *** Model scoring
@@ -432,6 +540,36 @@ scoring:
 #+END_SRC
 
 
+#+BEGIN_SRC ipython :tangle ./src/run.py
+  import sqlalchemy
+  import yaml
+
+  from catwalk.storage import FSModelStorageEngine
+  from triage.experiments import SingleThreadedExperiment
+
+  with open('inspections-training.yaml') as f:
+      experiment_config = yaml.load(f)
+
+  experiment = SingleThreadedExperiment(
+      config=experiment_config,
+      db_engine=sqlalchemy.create_engine('postgresql://food_user:goli0808@food_db:5432/food'),
+      model_storage_class=FSModelStorageEngine,
+      project_path='./triage-generated'
+  )
+
+  experiment.run()
+#+END_SRC
+
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/code :results org drawer
+  python run.py
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
 * Looking the results at Tyra
 
 
@@ -440,3 +578,25 @@ scoring:
 * Appendix: What are all those files?
 
 * Appendix: Getting help
+
+* Additional DBs
+
+- [[https://data.cityofchicago.org/Community-Economic-Development/Business-Licenses/r5kz-chrr][Business Licenses]]
+- Food Inspections
+- [[https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2][Crime]]
+- Garbage Cart Complaints
+- [[https://data.cityofchicago.org/Service-Requests/311-Service-Requests-Sanitation-Code-Complaints/me59-5fac][Sanitation Complaints]]
+- Weather
+- Sanitarian Information
+
+
+* Questions
+
+- How do I control the logging? I just want to see the info messages,
+  not all
+
+- How to interpret the table "event"?
+
+- How to use additional tables?
+
+- Could you draw an example of the temporal setting?
