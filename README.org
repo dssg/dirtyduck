@@ -49,44 +49,43 @@ maybe you are interested not in all the violations but in the more grave.
 
 * Infrastructure
 
+Besides data, you will need some other tools
+
+
 We are proving a little script for managing all the infrastructure in
 a (hopefully) transparent way.
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :results raw
 ./manage.sh
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
 Usage: ./manage.sh {start|stop|build|rebuild|run|logs|status}
-:END:
+
 
 We need to create the infrastructure so, =start= it
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :results raw
 ./manage.sh start
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-:END:
+
+This will take some minutes the first time.
 
 You can check that everything is running smoothly with =status=
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :results raw
 ./manage.sh status
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-          Name                         Command               State                           Ports
----------------------------------------------------------------------------------------------------------------------------
-citibike_api                python app.py                    Up      0.0.0.0:32768->5000/tcp
-citibike_db                 docker-entrypoint.sh postgres    Up      0.0.0.0:5433->5432/tcp
-citibike_reverseproxy       nginx -g daemon off;             Up      80/tcp, 0.0.0.0:8081->8081/tcp, 0.0.0.0:8090->8090/tcp
-triagecitibike_rabbitmq_1   docker-entrypoint.sh rabbi ...   Up      25672/tcp, 4369/tcp, 5671/tcp, 0.0.0.0:5672->5672/tcp
-triagecitibike_redis_1      docker-entrypoint.sh redis ...   Up      0.0.0.0:6379->6379/tcp
-:END:
+        Name                       Command              State                           Ports
+----------------------------------------------------------------------------------------------------------------------
+food_db                 docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
+tutorial_api            python app.py                   Up      0.0.0.0:32769->5000/tcp
+tutorial_reverseproxy   nginx -g daemon off;            Up      80/tcp, 0.0.0.0:8081->8081/tcp, 0.0.0.0:8090->8090/tcp
+
 
 The database is named =food_db=, the main table is =inspections=
 
@@ -570,10 +569,13 @@ scoring:
 :END:
 
 
-* Looking the results at Tyra
+* ▶ TODO Looking the results at Tyra
 
 
 * What's next?
+
+- Routing based on the inspection list?
+- Add more data sources?
 
 * Appendix: What are all those files?
 
