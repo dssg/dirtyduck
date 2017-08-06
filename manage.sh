@@ -4,9 +4,9 @@ set -e
 
 PROJECT="$(cat .project-name)"
 PROJECT_HOME="$( cd "$( dirname "$0" )" && pwd )"
-INFRAESTRUCTURA_HOME="${PROJECT_HOME}/infrastructure"
+INFRASTRUCTURE_HOME="${PROJECT_HOME}/infrastructure"
 
-cd $INFRAESTRUCTURA_HOME
+cd $INFRASTRUCTURE_HOME
 
 case "$1" in
     start)
