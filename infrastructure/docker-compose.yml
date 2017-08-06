@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  food_db:
+    build:
+      context: ./food_db
+    image: food/db
+    container_name: food_db
+    env_file: ./food_db/.env
+    volumes:
+      - "../data:/tmp/raw-data"
+    ports:
+      - "5434:5432"
+
+  bastion:
+    build:
+      context: ./bastion
+    image: tutorial/bastion
+    container_name: tutorial_bastion
+    #working_dir: /app
+    command: bash
+    env_file: ./food_db/.env
+    environment:
+      CITIBIKE_DB_URL: 'postgresql://db:5432'
+      REDIS_URL: 'redis://redis:6379'
+      RABBITMQ:URL:  ''
+    volumes:
+      - "../data:/data"
+      - "../src:/code"
+      - "../triage-generated:/triage-generated"
+
+
+  reverseproxy:
+    build:
+      context: ./reverseproxy
+    image: tutorial/reverseproxy
+    container_name: tutorial_reverseproxy
+    depends_on:
+      - api
+    ports:
+      - 8090:8090
+      - 8081:8081
+
+  api:
+    build:
+      context: ./api
+    image: tutorial/api
+    container_name: tutorial_api
+    volumes:
+      - "./api:/app"
+    ports:
+      - 5000
