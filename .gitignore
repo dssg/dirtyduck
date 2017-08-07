@@ -157,3 +157,8 @@ site/
 
 **/*development*
 **/*staging*
+
+**/triage-generated/*
+**/matrices/*
+**/trained_models/*
+

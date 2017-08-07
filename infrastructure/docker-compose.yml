@@ -49,7 +49,7 @@ services:
     volumes:
       - "./api:/app"
     ports:
-      - 5000
+      - "5000:5000"
 
 
   tyra:
