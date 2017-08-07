@@ -369,9 +369,10 @@ We will check the result of the inspections:
  | Pass                 | 89622 |
  :END:
 
-We will map =Fail=, =Not Ready=, =No Entry= to a =Violation= , we will remove
-=Out of Business= and =Business Not Located= from the database, and all
-the other options (=Pass w/Condition= and =Pass)=  will become =True=.
+We will map =Fail=, =Not Ready=, =No Entry= to a =True= (i.e. a violation was
+discovered), we will remove =Out of Business= and =Business Not Located=
+from the database, and all the other options (=Pass w/Condition= and
+=Pass)=  will become =False= (i.e. no violation was discovered).
 
  #+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
    drop table if exists violations;
