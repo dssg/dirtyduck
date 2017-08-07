@@ -5,7 +5,7 @@
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
 #+PROPERTY: header-args:sql+ :dbuser food_user
-#+PROPERTY: header-args:sql+ :dbpassword goli0808
+#+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
@@ -210,7 +210,7 @@ You can check that everything is running smoothly with =status=
         Name                       Command              State                           Ports
 ----------------------------------------------------------------------------------------------------------------------
 food_db                 docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
-tutorial_api            python app.py                   Up      0.0.0.0:32769->5000/tcp
+tutorial_api            python app.py                   Up      0.0.0.0:32770->5000/tcp
 tutorial_reverseproxy   nginx -g daemon off;            Up      80/tcp, 0.0.0.0:8081->8081/tcp, 0.0.0.0:8090->8090/tcp
 tutorial_tyra           python run_webapp.py            Up      0.0.0.0:5001->5001/tcp
 :END:
@@ -218,8 +218,8 @@ tutorial_tyra           python run_webapp.py            Up      0.0.0.0:5001->50
 
 
 
-
-The database is named =food_db=, the main table is =inspections=
+Now the database is running, its named =food_db=, the single table in
+there is called =inspections=
 
 Let's check the =schema= of =trips= table using the following command in =psql=
 
@@ -265,15 +265,12 @@ Let's check the =schema= of =trips= table using the following command in =psql=
   wc -l inspections.csv
 #+END_SRC
 
-Ok, the data is now in =/data=, we can check how many rows the dataset contains
-
 #+RESULTS:
 :RESULTS:
 374918 inspections.csv
 :END:
 
-
-
+Ok, the data is now in =/data=, we can check how many rows the dataset contains
 
 ** Uploading to our database
 Assuming that you are already inside =bastion=, run the following
@@ -286,8 +283,8 @@ psql ${FOOD_DB_URL} -c 'select count(*) from inspections'
 #+RESULTS:
 :RESULTS:
  count
---------
- 152252
+-------
+     0
 (1 row)
 
 :END:
@@ -302,7 +299,7 @@ ls -la /data
 :RESULTS:
 total 399976
 drwxrwxr-x  2 1000 1000      4096 Jul 27 15:07 .
-drwxr-xr-x 68 root root      4096 Jul 28 16:35 ..
+drwxr-xr-x 68 root root      4096 Aug  7 02:08 ..
 -rw-rw-r--  1 1000 1000         0 Jun 27 03:48 .gitkeep
 -rw-rw-r--  1 1000 1000 194520987 Jun 27 13:23 2013-08-Citi-Bike-trip-data.csv
 -rw-rw-r--  1 1000 1000  32090869 Jan 18  2017 201308-citibike-tripdata.zip
@@ -322,9 +319,9 @@ psql ${FOOD_DB_URL} -c 'select * from inspections limit 1'
 
 #+RESULTS:
 :RESULTS:
-inspection |      dba_name      |      aka_name      | license_num | facility_type |     risk      |     address     |  city   | state |  zip  |    date    |         type          | results | violations |      latitude      |     longitude      |                 location
+ inspection |      dba_name      |      aka_name      | license_num | facility_type |     risk      |     address     |  city   | state |  zip  |    date    |         type          | results | violations |      latitude      |     longitude      |                 location
 ------------+--------------------+--------------------+-------------+---------------+---------------+-----------------+---------+-------+-------+------------+-----------------------+---------+------------+--------------------+--------------------+------------------------------------------
-2071411    | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE |     2517130 | Restaurant    | Risk 1 (High) | 901 S STATE ST  | CHICAGO | IL    | 60605 | 2017-07-25 | License Re-Inspection | Pass    |            | 41.870502077951755 | -87.62734617773437 | (41.870502077951755, -87.62734617773437)
+ 2071411    | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE |     2517130 | Restaurant    | Risk 1 (High) | 901 S STATE ST  | CHICAGO | IL    | 60605 | 2017-07-25 | License Re-Inspection | Pass    |            | 41.870502077951755 | -87.62734617773437 | (41.870502077951755, -87.62734617773437)
 (1 row)
 
 :END:
@@ -337,14 +334,10 @@ For tackling a Machine Learning problem you need to identify the
 *entities* of your problem domain, and if your problem involves time,
 how those entities changes.
 
-In the problem at hand, the entity in which we are interested  is the
-=station=, and the characteristic that evolves is the number of bikes
-that are on it. The original data set describes /trips/, so we need to
-transform our data, so it describes stations.
+In this tutorial, we have two different goals: an *EIS* and an
+*Inpections prioritization*, the entity in which we are interested in
+both cases is the *restaurant*, ...
 
-*** ▶ TODO The experiment concept
-
-*** ▶ TODO Cross temporal validation and Timechop
 
 
  #+BEGIN_SRC sql :results table drawer
@@ -455,6 +448,14 @@ the other options (=Pass w/Condition= and =Pass)=  will become =True=.
 * Using triage (finally)
 
 With the data sitting in our database, we can start our analysis.
+
+** ▶ TODO The experiment concept
+
+** ▶ TODO Cross temporal validation and Timechop
+
+/We need to add some images here/
+
+
 
 ** The =inspections-training.yaml= file
 :PROPERTIES:
