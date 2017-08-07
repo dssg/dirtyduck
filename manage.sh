@@ -10,7 +10,7 @@ cd $INFRASTRUCTURE_HOME
 
 case "$1" in
     start)
-        docker-compose --project-name ${PROJECT} up -d reverseproxy api food_db
+        docker-compose --project-name ${PROJECT} up -d reverseproxy api food_db tyra
         ;;
     stop)
         docker-compose  --project-name ${PROJECT} stop

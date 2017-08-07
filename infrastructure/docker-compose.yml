@@ -50,3 +50,12 @@ services:
       - "./api:/app"
     ports:
       - 5000
+
+
+  tyra:
+    build:
+      context: ./tyra
+    image: tutorial/tyra
+    container_name: tutorial_tyra
+    ports:
+      - "5001:5001"
