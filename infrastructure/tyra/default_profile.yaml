@@ -1,0 +1,5 @@
+PGPORT: 5432
+PGHOST: food_db
+PGDATABASE: food
+PGUSER: food_user
+PGPASSWORD: some_password
