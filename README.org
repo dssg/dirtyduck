@@ -338,7 +338,14 @@ In this tutorial, we have two different goals: an *EIS* and an
 *Inpections prioritization*, the entity in which we are interested in
 both cases is the *restaurant*, ...
 
+The *outcome* is what differ between those two projects. For *EIS* the
+outcome is *inspected*, for *Inspections*, the outcome is *violation found*.
 
+Let's see the data and try to see how it needs to be transformed.
+
+
+Remember that the data that we have is one inspection per row.
+We will check the result of the inspections:
 
  #+BEGIN_SRC sql :results table drawer
    select
