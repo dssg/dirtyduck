@@ -216,6 +216,8 @@ tutorial_tyra           python run_webapp.py            Up      0.0.0.0:5001->50
 :END:
 
 
+You can type in your browser [[http://0.0.0.0:5001]] and you will see the
+login page from *Tyra*.
 
 
 Now the database is running, its named =food_db=, the single table in
