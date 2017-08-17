@@ -16,10 +16,12 @@ The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn
 used in several examples around the web.
 
 
+
+
 * What do you need for this tutorial?
 
-[[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed.
-Use the links for installing instructions for your operating system.
+[[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
+Use the links for installing instructions.
 
 * ▶ TODO Description of the problem to solve
 :PROPERTIES:
@@ -37,23 +39,26 @@ owner, and we want to know: /Will my restaurant be inspected in the/
 /next X period of time?/ Where $X$ could be 1 month, 1 week, 1 year,
 etc.
 
-Knowing the answer to this question, allows me (as the restaurant's
+Knowing the answer to this question, allows you (as the restaurant's
 owner) to be prepared and take the pertinent actions.
 
 
-The second scenario, you work for the Chicago government, and you try
+The second scenario, is the following:  you work for the Chicago's
+government, and you try
 to prioritize your resources (i.e. your inspection workforce), since
-they are limited. So, you will use the data for answering the next
-question: /Which restaurants will make the violations?/  In this case
-maybe you are interested not in all the violations but in the more grave.
+they are limited. So, you will use the data (the same data set,
+remember) for answering the next
+question: /Which X restaurants are likely to violate some rule in the
+following Y period of time?/  In this case maybe you are interested not
+in all the violations but in the more grave.
 
 * Infrastructure
 
 Besides data, in most of the data science projects you will need some
-other tools, for example a place to store the data (a database), a way
+other tools, for example a place to store the data (a database
+management system), a way
 for putting your model to work (an API) and a interface for looking
-the performace of your train models (for this tutorial we are proposing [[https://github.com/dssg/tyra][tyra]])
-
+the performace of your trained models (for this tutorial we are proposing [[https://github.com/dssg/tyra][tyra]])
 
 We are proving a little script for managing all the infrastructure in
 a (hopefully) transparent way.
