@@ -63,6 +63,22 @@ the performace of your trained models (for this tutorial we are proposing [[http
 We are proving a little script for managing all the infrastructure in
 a (hopefully) transparent way.
 
+Before creating the infrastructure, change the `your_password`s of the file
+`infrastructure/food_db/.env_example`
+
+#+BEGIN_SRC shell :tangle infrastructure/food_db/env_example
+POSTGRES_DB=food
+POSTGRES_HOST=0.0.0.0
+POSTGRES_USER=food_user
+POSTGRES_DB=food
+POSTGRES_PORT=5434
+POSTGRES_PASSWORD=your_password
+
+FOOD_DB_URL=postgresql://food_user:your_password@0.0.0.0:5434/food
+#+END_SRC
+
+And change the name of the file to `.env`. Next run the following command
+
 #+BEGIN_SRC shell
 ./manage.sh
 #+END_SRC
