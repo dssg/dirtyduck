@@ -3,10 +3,8 @@ Click
 python-dotenv
 psycopg2
 SQLALchemy
-pymc3
 pandas
 numpy
-seaborn
 scikit-learn
 ## DSaPP stuff
 git+https://github.com/dssg/triage.git@master
