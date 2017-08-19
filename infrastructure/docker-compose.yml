@@ -6,7 +6,7 @@ services:
       context: ./food_db
     image: food/db
     container_name: food_db
-    env_file: ./food_db/.env
+    env_file: .env
     volumes:
       - "../data:/tmp/raw-data"
     ports:
@@ -19,15 +19,13 @@ services:
     container_name: tutorial_bastion
     #working_dir: /app
     command: bash
-    env_file: ./food_db/.env
+    user: ${UID}:${GID}
+    env_file: .env
     environment:
-      CITIBIKE_DB_URL: 'postgresql://db:5432'
-      REDIS_URL: 'redis://redis:6379'
-      RABBITMQ:URL:  ''
+      FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
     volumes:
       - "../data:/data"
       - "../src:/code"
-      - "../triage-generated:/triage-generated"
 
 
   reverseproxy:
@@ -57,5 +55,6 @@ services:
       context: ./tyra
     image: tutorial/tyra
     container_name: tutorial_tyra
+    env_file: .env
     ports:
       - "5001:5001"
