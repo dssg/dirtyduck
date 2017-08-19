@@ -242,16 +242,57 @@ You can type in your browser [[http://0.0.0.0:5001]] and you will see the
 login page from *Tyra*.
 
 
-Now the database is running, its named =food_db=, the single table in
-there is called =inspections=
+Login to the docker container using
 
-Let's check the =schema= of =trips= table using the following command in =psql=
+#+BEGIN_EXAMPLE shel
+./manage.sh bastion
+#+END_EXAMPLE
+
+You will see something like:
+
+#+BEGIN_EXAMPLE shell
+I have no name!@485373fb3c64:/$
+#+END_EXAMPLE
+
+Now the database is running, its named =food_db=, the single table in
+there named =inspections=
+
+Let's check the =schema= of =inspections= table, first, type the next
+command to connect to the database
+
+#+BEGIN_EXAMPLE shell
+psql ${FOOD_DB_URL}
+#+END_EXAMPLE
+
+and then, type the following command:
 
 #+BEGIN_SRC sql
 \dS+ inspections
 #+END_SRC
 
 #+RESULTS:
+| Table "public.inspections" |                   |           |          |              |             |
+|----------------------------+-------------------+-----------+----------+--------------+-------------|
+| Column                     | Type              | Modifiers | Storage  | Stats target | Description |
+| inspection                 | character varying | not null  | extended |              |             |
+| dba_name                    | character varying |           | extended |              |             |
+| aka_name                    | character varying |           | extended |              |             |
+| license_num                 | numeric           |           | main     |              |             |
+| facility_type               | character varying |           | extended |              |             |
+| risk                       | character varying |           | extended |              |             |
+| address                    | character varying |           | extended |              |             |
+| city                       | character varying |           | extended |              |             |
+| state                      | character varying |           | extended |              |             |
+| zip                        | character varying |           | extended |              |             |
+| date                       | date              |           | plain    |              |             |
+| type                       | character varying |           | extended |              |             |
+| results                    | character varying |           | extended |              |             |
+| violations                 | character varying |           | extended |              |             |
+| latitude                   | numeric           |           | main     |              |             |
+| longitude                  | numeric           |           | main     |              |             |
+| location                   | character varying |           | extended |              |             |
+
+Now, you can disconnect from the database typing =\q=
 
 * Data
 
@@ -271,7 +312,7 @@ Let's check the =schema= of =trips= table using the following command in =psql=
 
 #+RESULTS:
 :RESULTS:
-374918 inspections.csv
+377168 inspections.csv
 :END:
 
 Ok, the data is now in =/data=, we can check how many rows the dataset contains
@@ -293,21 +334,27 @@ psql ${FOOD_DB_URL} -c 'select count(*) from inspections'
 
 :END:
 
+(If you are connected to the database, you could just type =select count(*) from inspections=
+
+#+RESULTS:
+:RESULTS:
+ count
+-------
+     0
+(1 row)
+
+:END:
+
 
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
-ls -la /data
+ls -lh /data
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-total 399976
-drwxrwxr-x  2 1000 1000      4096 Jul 27 15:07 .
-drwxr-xr-x 68 root root      4096 Aug  7 02:08 ..
--rw-rw-r--  1 1000 1000         0 Jun 27 03:48 .gitkeep
--rw-rw-r--  1 1000 1000 194520987 Jun 27 13:23 2013-08-Citi-Bike-trip-data.csv
--rw-rw-r--  1 1000 1000  32090869 Jan 18  2017 201308-citibike-tripdata.zip
--rw-rw-r--  1 1000 1000 182944074 Jul 27 15:39 inspections.csv
+total 176M
+-rw-rw-r-- 1 1000 1000 176M Aug 19 14:16 inspections.csv
 :END:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
@@ -315,7 +362,7 @@ psql ${FOOD_DB_URL} -c "\copy inspections FROM '/data/inspections.csv' WITH HEAD
 #+END_SRC
 
 #+RESULTS:
-: COPY 152252
+: COPY 153465
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
 psql ${FOOD_DB_URL} -c 'select * from inspections limit 1'
@@ -323,9 +370,10 @@ psql ${FOOD_DB_URL} -c 'select * from inspections limit 1'
 
 #+RESULTS:
 :RESULTS:
- inspection |      dba_name      |      aka_name      | license_num | facility_type |     risk      |     address     |  city   | state |  zip  |    date    |         type          | results | violations |      latitude      |     longitude      |                 location
-------------+--------------------+--------------------+-------------+---------------+---------------+-----------------+---------+-------+-------+------------+-----------------------+---------+------------+--------------------+--------------------+------------------------------------------
- 2071411    | BULL DOG ALE HOUSE | BULL DOG ALE HOUSE |     2517130 | Restaurant    | Risk 1 (High) | 901 S STATE ST  | CHICAGO | IL    | 60605 | 2017-07-25 | License Re-Inspection | Pass    |            | 41.870502077951755 | -87.62734617773437 | (41.870502077951755, -87.62734617773437)
+ inspection |    dba_name     |    aka_name     | license_num | facility_type |      risk       |          address          |  city   | state |  zip  |    date    |  type   | results |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |      latitude      |     longitude      |                 location
+------------+-----------------+-----------------+-------------+---------------+-----------------+---------------------------+---------+-------+-------+------------+---------+---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------+--------------------+------------------------------------------
+ 2078651    | D AND Y GROCERY | D AND Y GROCERY |     1477137 | Grocery Store | Risk 2 (Medium) | 8200 S COTTAGE GROVE AVE  | CHICAGO | IL    | 60619 | 2017-08-18 | Canvass | Fail    | 12. HAND WASHING FACILITIES: WITH SOAP AND SANITARY HAND DRYING DEVICES, CONVENIENT AND ACCESSIBLE TO FOOD PREP AREA - Comments: INADEQUATE TOILET FACILITIES ON SITE. INOPERABLE TOILET ON SITE, UNABLE TO USE/OPERATE PROPERLY. NO SOAP OR SANITARY HAND DRYING DEVICE AT EXPOSED HANDSINK IN PREP AREA. INSTD TO PROVIDE AT ALL TIMES. STAFF TOILET ROOM NOT CLEAN, CAT FECES AND CAT LITTER ON FLOOR, SOILED TOILET PAPER ON PILE ON STAFF TOILET ROOM FLOOR. EXTREME FOUL SMELL IN STAFF TOILET ROOM. VIOLATION 7-38-030 CRITICAL. INSTD TO MAINTAIN CLEAN TOILET ROOM AND OPERABLE TOILET FACILITIES. | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: MUST ORGANIZE AND MAINTAIN THE STORAGE AREA BY THE FURNACE IN THE REAR PREP AREA, ORGANIZE BEHIND FRONT COUNTER. ORGANIZE WALK-IN COOLER USED FOR STORAGE OF SODA POP.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              +| 41.745704140078026 | -87.60522820363809 | (41.745704140078026, -87.60522820363809)
+            |                 |                 |             |               |                 |                           |         |       |       |            |         |         |  | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS UNDER AROUND AND BEHIND SHELVES, COUNTERS AND , FRONT COUNTER AREA, PREP AREA AND INSIDE OF THE WALK-IN COOLER. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED THE STORAGE SHELVES NOT CLEAN IN DRY STORAGE AREA, AND IN REACH IN COOLERS, INSTRUCTED TO CLEAN. ALSO CLEAN AND SANITZE CHEESE CONTAINER FRONT PREP AREA. | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED INNER DOOR OF THE SODA MACHINE CRACKED GLASS, INSTRUCTED TO REPLACE. | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: TOILET ROOM VENTILATION IN POOR REPAIR. INSTD TO REPAIR. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: WALLS AND CEILING IN STAFF TOILET ROOM IN POOR REPAIR, GAPS AND HOLES. INSTD TO REPAIR SAME. CEILING ON PREMISES ABOVE FRONT DISPLAY  IN POOR REPAIR, PEELING PAINT, UNEVEN SURFACE. INSTD TO REPAIR. | 22. DISH MACHINES: PROVIDED WITH ACCURATE THERMOMETERS, CHEMICAL TEST KITS AND SUITABLE GAUGE COCK - Comments: NO CHEMICAL TEST KIT ON SITE FOR SANITIZER AT 3-COMPARTMENT SINK. INSTD TO PROVIDE SAME. VIOLATION 7-38-030 CRITICAL.  | 3. POTENTIALLY HAZARDOUS FOOD MEETS TEMPERATURE REQUIREMENT DURING STORAGE, PREPARATION DISPLAY AND SERVICE - Comments: POTENTIALLY HAZARDOUS FOOD AT IMPROPER TEMPERATURE. COOKED GROUND BEEF AT 90.8F IN HOT HOLDING UNIT. VIOLATION 7-38-005A CRITICAL. PRODUCT VOLUNTARILY DISPOSED OF AND DENATURED AT THIS TIME. APPROX 5LBS. $20 VALUE. VIOLATIONS 7-38-005A CRITICAL. | 13. NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS - Comments: LIVE CAT ON SITE, WALKING IN AISLES. VIOLATION 7-38-020 CRITICAL. LIVE ANIMALS ON SITE ARE PROHIBITED. | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FRONT DOOR NOT RODENT PROOF, APPROX 1/2 INCH GAP AT TOP OF DOOR. INSTD TO RODENT PROOF DOOR AND HAVE TIGHT FITTING. LIVE ROACH IN STAFF TOILET ROOM. INSTD TO REMOVE ROACH, CLEAN AND SANITIZE AFFECTED AREAS. VIOLATION 7-38-020 SERIOUS. |                    |                    |
 (1 row)
 
 :END:
@@ -336,17 +384,16 @@ You could see the meaning of the columns [[https://data.cityofchicago.org/api/as
 
 For tackling a Machine Learning problem you need to identify the
 *entities* of your problem domain, and if your problem involves time,
-how those entities changes.
+how those entities change over time.
 
-In this tutorial, we have two different goals: an *EIS* and an
-*Inpections prioritization*, the entity in which we are interested in
-both cases is the *restaurant*, ...
+In this tutorial, we have two different goals: (1) an *EIS* and
+(2) *prioritize inspections*, the entity in which we are interested in
+both cases is the  ...
 
 The *outcome* is what differ between those two projects. For *EIS* the
 outcome is *inspected*, for *Inspections*, the outcome is *violation found*.
 
 Let's see the data and try to see how it needs to be transformed.
-
 
 Remember that the data that we have is one inspection per row.
 We will check the result of the inspections:
@@ -364,13 +411,13 @@ We will check the result of the inspections:
  :RESULTS:
  | results              | count |
  |----------------------+-------|
- | Fail                 | 29508 |
- | Pass w/ Conditions   | 14412 |
- | Not Ready            |   773 |
- | No Entry             |  4185 |
- | Out of Business      | 13692 |
+ | Fail                 | 29770 |
+ | Pass w/ Conditions   | 14507 |
+ | Not Ready            |   805 |
+ | No Entry             |  4240 |
+ | Out of Business      | 13773 |
  | Business Not Located |    60 |
- | Pass                 | 89622 |
+ | Pass                 | 90310 |
  :END:
 
 We will map =Fail=, =Not Ready=, =No Entry= to a =True= (i.e. a violation was
