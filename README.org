@@ -17,7 +17,10 @@
 
 - [ ] Add an introduction
 - [ ] Define the entities for both "projects" (*EIS* and *Inspection prioritization*)
-- [ ] Define the outcomes for each "project" (*EIS* and *Inspection prioritization*)
+- [ ] Define the outcomes for each "project" (*EIS* and *Inspection
+  prioritization*)
+- [ ] Add some exploration using =sql=
+- [ ] Add some visualizations using =python=
 - [ ] Explain the concept of a Machine Learning project
 - [ ] Explain the concept of Temporal Cross-validation and why it is
   important
@@ -65,7 +68,7 @@ government, and you try
 to prioritize your resources (i.e. your inspection workforce), since
 they are limited. So, you will use the data (the same data set,
 remember) for answering the next
-question: /Which X restaurants are likely to violate some rule in the
+question: /Which X restaurants (facilities) are likely to violate some rule in the
 following Y period of time?/  In this case maybe you are interested not
 in all the violations but in the more grave.
 
@@ -116,122 +119,6 @@ We need to create the infrastructure so, =start= it
 
 #+RESULTS:
 :RESULTS:
-Step 1/6 : FROM python:3.6
- ---> 41397f4f2887
-Step 2/6 : RUN apt-get -y update &&     apt-get install unzip &&     wget https://github.com/dssg/tyra/archive/master.zip &&     unzip master.zip
- ---> Using cache
- ---> e1143f2a9899
-Step 3/6 : WORKDIR /tyra-master
- ---> Using cache
- ---> 6af515bb7df4
-Step 4/6 : ADD default_profile.yaml /tyra-master
- ---> 2b1d62cbcaeb
-Removing intermediate container b4e6d66f09d6
-Step 5/6 : RUN pip install -r requirements.txt
- ---> Running in 1f3e7aa3dc07
-Collecting Flask==0.10.1 (from -r requirements.txt (line 1))
-  Downloading Flask-0.10.1.tar.gz (544kB)
-Collecting SQLAlchemy==1.0.14 (from -r requirements.txt (line 2))
-  Downloading SQLAlchemy-1.0.14.tar.gz (4.8MB)
-Collecting pandas==0.18.1 (from -r requirements.txt (line 3))
-  Downloading pandas-0.18.1.tar.gz (7.3MB)
-Collecting PyYAML==3.11 (from -r requirements.txt (line 4))
-  Downloading PyYAML-3.11.zip (371kB)
-Collecting psycopg2==2.5 (from -r requirements.txt (line 5))
-  Downloading psycopg2-2.5.tar.gz (703kB)
-Collecting testing.postgresql (from -r requirements.txt (line 6))
-  Downloading testing.postgresql-1.3.0-py2.py3-none-any.whl
-Collecting pytest==2.9.2 (from -r requirements.txt (line 7))
-  Downloading pytest-2.9.2-py2.py3-none-any.whl (162kB)
-Collecting numpy (from -r requirements.txt (line 8))
-  Downloading numpy-1.13.1-cp36-cp36m-manylinux1_x86_64.whl (17.0MB)
-Collecting scipy (from -r requirements.txt (line 9))
-  Downloading scipy-0.19.1-cp36-cp36m-manylinux1_x86_64.whl (48.2MB)
-Collecting scikit-learn (from -r requirements.txt (line 10))
-  Downloading scikit_learn-0.18.2-cp36-cp36m-manylinux1_x86_64.whl (11.8MB)
-Collecting flask_sqlalchemy (from -r requirements.txt (line 11))
-  Downloading Flask_SQLAlchemy-2.2-py2.py3-none-any.whl
-Collecting flask-login (from -r requirements.txt (line 12))
-  Downloading Flask_Login-0.4.0-py2.py3-none-any.whl
-Collecting codecov (from -r requirements.txt (line 13))
-  Downloading codecov-2.0.9-py2.py3-none-any.whl
-Collecting pytest-cov (from -r requirements.txt (line 14))
-  Downloading pytest_cov-2.5.1-py2.py3-none-any.whl
-Collecting tox (from -r requirements.txt (line 15))
-  Downloading tox-2.7.0-py2.py3-none-any.whl (49kB)
-Collecting gunicorn (from -r requirements.txt (line 16))
-  Downloading gunicorn-19.7.1-py2.py3-none-any.whl (111kB)
-Collecting Werkzeug>=0.7 (from Flask==0.10.1->-r requirements.txt (line 1))
-  Downloading Werkzeug-0.12.2-py2.py3-none-any.whl (312kB)
-Collecting Jinja2>=2.4 (from Flask==0.10.1->-r requirements.txt (line 1))
-  Downloading Jinja2-2.9.6-py2.py3-none-any.whl (340kB)
-Collecting itsdangerous>=0.21 (from Flask==0.10.1->-r requirements.txt (line 1))
-  Downloading itsdangerous-0.24.tar.gz (46kB)
-Collecting python-dateutil>=2 (from pandas==0.18.1->-r requirements.txt (line 3))
-  Downloading python_dateutil-2.6.1-py2.py3-none-any.whl (194kB)
-Collecting pytz>=2011k (from pandas==0.18.1->-r requirements.txt (line 3))
-  Downloading pytz-2017.2-py2.py3-none-any.whl (484kB)
-Collecting pg8000>=1.10 (from testing.postgresql->-r requirements.txt (line 6))
-  Downloading pg8000-1.10.6-py2.py3-none-any.whl
-Collecting testing.common.database (from testing.postgresql->-r requirements.txt (line 6))
-  Downloading testing.common.database-2.0.1-py2.py3-none-any.whl
-Collecting py>=1.4.29 (from pytest==2.9.2->-r requirements.txt (line 7))
-  Downloading py-1.4.34-py2.py3-none-any.whl (84kB)
-Collecting coverage (from codecov->-r requirements.txt (line 13))
-  Downloading coverage-4.4.1-cp36-cp36m-manylinux1_x86_64.whl (196kB)
-Collecting requests>=2.7.9 (from codecov->-r requirements.txt (line 13))
-  Downloading requests-2.18.3-py2.py3-none-any.whl (88kB)
-Collecting virtualenv>=1.11.2; python_version != "3.2" (from tox->-r requirements.txt (line 15))
-  Downloading virtualenv-15.1.0-py2.py3-none-any.whl (1.8MB)
-Collecting pluggy<1.0,>=0.3.0 (from tox->-r requirements.txt (line 15))
-  Downloading pluggy-0.4.0-py2.py3-none-any.whl
-Collecting MarkupSafe>=0.23 (from Jinja2>=2.4->Flask==0.10.1->-r requirements.txt (line 1))
-  Downloading MarkupSafe-1.0.tar.gz
-Collecting six>=1.5 (from python-dateutil>=2->pandas==0.18.1->-r requirements.txt (line 3))
-  Downloading six-1.10.0-py2.py3-none-any.whl
-Collecting chardet<3.1.0,>=3.0.2 (from requests>=2.7.9->codecov->-r requirements.txt (line 13))
-  Downloading chardet-3.0.4-py2.py3-none-any.whl (133kB)
-Collecting idna<2.6,>=2.5 (from requests>=2.7.9->codecov->-r requirements.txt (line 13))
-  Downloading idna-2.5-py2.py3-none-any.whl (55kB)
-Collecting certifi>=2017.4.17 (from requests>=2.7.9->codecov->-r requirements.txt (line 13))
-  Downloading certifi-2017.7.27.1-py2.py3-none-any.whl (349kB)
-Collecting urllib3<1.23,>=1.21.1 (from requests>=2.7.9->codecov->-r requirements.txt (line 13))
-  Downloading urllib3-1.22-py2.py3-none-any.whl (132kB)
-Building wheels for collected packages: Flask, SQLAlchemy, pandas, PyYAML, psycopg2, itsdangerous, MarkupSafe
-  Running setup.py bdist_wheel for Flask: started
-  Running setup.py bdist_wheel for Flask: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/b6/09/65/5fcf16f74f334a215447c26769e291c41883862fe0dc7c1430
-  Running setup.py bdist_wheel for SQLAlchemy: started
-  Running setup.py bdist_wheel for SQLAlchemy: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/b6/33/08/eb7224f6053d6abd5bbdd41628505b5af881a6b7828060a6b3
-  Running setup.py bdist_wheel for pandas: started
-  Running setup.py bdist_wheel for pandas: still running...
-  Running setup.py bdist_wheel for pandas: still running...
-  Running setup.py bdist_wheel for pandas: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/9a/8c/95/ceb8f988caf19dd90c4c587eea0ee1665c3bb6af73b3ca8264
-  Running setup.py bdist_wheel for PyYAML: started
-  Running setup.py bdist_wheel for PyYAML: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/4a/bf/14/d79994d19a59d4f73efdafb8682961f582d45ed6b459420346
-  Running setup.py bdist_wheel for psycopg2: started
-  Running setup.py bdist_wheel for psycopg2: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/8a/cd/5c/07cb5d2af9c2272b98e721b16dd065254429b943ab408abc7f
-  Running setup.py bdist_wheel for itsdangerous: started
-  Running setup.py bdist_wheel for itsdangerous: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/fc/a8/66/24d655233c757e178d45dea2de22a04c6d92766abfb741129a
-  Running setup.py bdist_wheel for MarkupSafe: started
-  Running setup.py bdist_wheel for MarkupSafe: finished with status 'done'
-  Stored in directory: /root/.cache/pip/wheels/88/a7/30/e39a54a87bcbe25308fa3ca64e8ddc75d9b3e5afa21ee32d57
-Successfully built Flask SQLAlchemy pandas PyYAML psycopg2 itsdangerous MarkupSafe
-Installing collected packages: Werkzeug, MarkupSafe, Jinja2, itsdangerous, Flask, SQLAlchemy, six, python-dateutil, pytz, numpy, pandas, PyYAML, psycopg2, pg8000, testing.common.database, testing.postgresql, py, pytest, scipy, scikit-learn, flask-sqlalchemy, flask-login, coverage, chardet, idna, certifi, urllib3, requests, codecov, pytest-cov, virtualenv, pluggy, tox, gunicorn
-Successfully installed Flask-0.10.1 Jinja2-2.9.6 MarkupSafe-1.0 PyYAML-3.11 SQLAlchemy-1.0.14 Werkzeug-0.12.2 certifi-2017.7.27.1 chardet-3.0.4 codecov-2.0.9 coverage-4.4.1 flask-login-0.4.0 flask-sqlalchemy-2.2 gunicorn-19.7.1 idna-2.5 itsdangerous-0.24 numpy-1.13.1 pandas-0.18.1 pg8000-1.10.6 pluggy-0.4.0 psycopg2-2.5 py-1.4.34 pytest-2.9.2 pytest-cov-2.5.1 python-dateutil-2.6.1 pytz-2017.2 requests-2.18.3 scikit-learn-0.18.2 scipy-0.19.1 six-1.10.0 testing.common.database-2.0.1 testing.postgresql-1.3.0 tox-2.7.0 urllib3-1.22 virtualenv-15.1.0
- ---> 5d98e6fb6417
-Removing intermediate container 1f3e7aa3dc07
-Step 6/6 : ENTRYPOINT python run_webapp.py
- ---> Running in 76b4117d23ef
- ---> 54beb6b5c802
-Removing intermediate container 76b4117d23ef
-Successfully built 54beb6b5c802
-Successfully tagged tutorial/tyra:latest
 :END:
 
 
@@ -397,6 +284,47 @@ psql ${FOOD_DB_URL} -c 'select * from inspections limit 1'
 
 You could see the meaning of each column [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]].
 
+
+#+BEGIN_QUOTE
+Risk category of facility: Each establishment is categorized as to its risk of adversely
+affecting the public’s health, with 1 being the highest and 3 the lowest. The frequency of
+inspection is tied to this risk, with risk 1 establishments inspected most frequently and
+risk 3 least frequently.
+#+END_QUOTE
+
+
+#+BEGIN_QUOTE
+Inspection type: An inspection can be one of the following types: canvass, the most
+common type of inspection performed at a frequency relative to the risk of the
+establishment; consultation, when the inspection is  done at the request of the owner
+prior to the opening of the establishment; complaint, when  the inspection is done in
+response to a complaint against the establishment; license, when the inspection is done
+as a requirement for the establishment to receive its license to operate; suspect food
+poisoning, when the inspection is done in response to one or more persons claiming to
+have gotten ill as a result of eating at the establishment (a specific type of complaint-
+based inspection); task-force inspection, when an inspection of a bar or tavern is done.
+Re-inspections can occur for most types of these inspections and are indicated as such
+#+END_QUOTE
+
+#+BEGIN_QUOTE
+Results: An inspection can pass, pass with conditions or fail. Establishments receiving a
+‘pass’ were found to have no critical or serious violations (violation number 1-14 and 15-
+29, respectively). Establishments receiving a ‘pass  with conditions’ were found to have
+critical or serious violations, but these were corrected during the inspection.
+Establishments receiving a ‘fail’ were found to have critical or serious violations that
+were not correctable during the inspection. An establishment receiving a ‘fail’ does not
+necessarily mean the establishment’s licensed is suspended. Establishments found to
+be out of business or not located are indicated as such.
+#+END_QUOTE
+
+#+BEGIN_QUOTE
+Violations: An establishment can receive one or more of 45 distinct violations (violation
+numbers 1-44 and 70). For each violation number listed for a given establishment, the
+requirement the establishment must meet in order for it to NOT receive a violation is
+noted, followed by a specific description of the findings that caused the violation to be
+issued.
+#+END_QUOTE
+
 ** Transforming the data
 
 For tackling a Machine Learning problem you need to identify the
@@ -412,6 +340,14 @@ outcome is *inspected*, for *Inspections*, the outcome is *violation found*.
 
 ** Some data exploration
 
+*TODO* We could add explanations about the fact that most of the
+analysis stops in this step
+
+*NOTE:* We will be using =SQL= for the exploration of the data, the
+following pages: functions to [[https://www.postgresql.org/docs/current/static/functions-string.html][manipulate strings]]
+and functions for [[https://www.postgresql.org/docs/current/static/functions-datetime.html][manipulate dates and time]]
+will be handy, keep them close!
+
 
 Let's see the data and try to see how it needs to be transformed.
 
@@ -420,24 +356,26 @@ We will check the result of the inspections:
 
  #+BEGIN_SRC sql :results table drawer
    select
-   results, count(*)
+   results, count(*) as total_number
    from
    inspections
    group by
-   results;
+   results
+   order by total_number desc;
+
  #+END_SRC
 
  #+RESULTS:
  :RESULTS:
- | results              | count |
- |----------------------+-------|
- | Fail                 | 29770 |
- | Pass w/ Conditions   | 14507 |
- | Not Ready            |   805 |
- | No Entry             |  4240 |
- | Out of Business      | 13773 |
- | Business Not Located |    60 |
- | Pass                 | 90310 |
+ | results              | total_number |
+ |----------------------+-------------|
+ | Pass                 |       90310 |
+ | Fail                 |       29770 |
+ | Pass w/ Conditions   |       14507 |
+ | Out of Business      |       13773 |
+ | No Entry             |        4240 |
+ | Not Ready            |         805 |
+ | Business Not Located |          60 |
  :END:
 
 We will map =Fail=, =Not Ready=, =No Entry= to a =True= (i.e. a violation was
@@ -445,11 +383,593 @@ discovered), we will remove =Out of Business= and =Business Not Located=
 from the database, and all the other options (=Pass w/Condition= and
 =Pass)=  will become =False= (i.e. no violation was discovered).
 
-We also, could ask
+
+
+
+We also, could ask some interesting questions such as:
+
+
+/What are the top 30 restaurants with more inspections?/
 
 #+BEGIN_SRC sql :results table drawer
+  select
+  dba_name, count(*) as total_inspections
+  from inspections
+  group by dba_name
+  order by total_inspections desc
+  limit 30;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| dba_name                        | total_inspections |
+|--------------------------------+------------------|
+| SUBWAY                         |             2140 |
+| DUNKIN DONUTS                  |             1089 |
+| MCDONALD'S                     |              475 |
+| 7-ELEVEN                       |              373 |
+| MCDONALDS                      |              278 |
+| CHIPOTLE MEXICAN GRILL         |              256 |
+| POTBELLY SANDWICH WORKS LLC    |              219 |
+| CORNER BAKERY CAFE             |              192 |
+| POTBELLY SANDWICH WORKS        |              184 |
+| SPORTSERVICE SOLDIER FIELD     |              176 |
+| DUNKIN DONUTS/BASKIN ROBBINS   |              172 |
+| DOMINO'S PIZZA                 |              169 |
+| AU BON PAIN                    |              161 |
+| SUBWAY SANDWICHES              |              159 |
+| FRESHII                        |              157 |
+| HAROLD'S CHICKEN SHACK         |              155 |
+| WHOLE FOODS MARKET             |              155 |
+| KFC                            |              146 |
+| Subway                         |              144 |
+| SEE THRU CHINESE KITCHEN       |              129 |
+| SHARKS FISH & CHICKEN          |              128 |
+| J & J FISH                     |              117 |
+| MC DONALD'S                    |              117 |
+| PIZZA HUT                      |              116 |
+| DUNKIN DONUTS / BASKIN ROBBINS |              106 |
+| JIMMY JOHNS                    |              105 |
+| PAPA JOHN'S PIZZA              |              105 |
+| CITGO                          |              102 |
+| STARBUCKS                      |              102 |
+| ILLINOIS SPORTSERVICE INC      |              100 |
+:END:
+
+
+As we will see through all this tutorial, /data is always messy/, to
+begin with we have several different spellings (e.g. =SUBWAY= and
+=Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
+=DUNKIN DONUTS / BASKIN ROBBINS=, etc)
+
+We could try a very simple cleaning for example, convert all the
+names to uppercase, remove the trailing spaces, remove the apostrophe
+"='"= and remove the spaces around "=/=". The problem with this approach
+is that we will be fixing the names that we just saw, but there are
+several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
+but that will create a lot of mismatches. The real workaround is apply
+some /machine learning/ to /deduplicate/ the entities [fn:3].  We wont
+follow that path here.
+
+
+If we go back to the columns of the table, maybe there is another way
+to solve this: we could try with the column =license_num=  (assume that one
+license represents one establishment) and the column =address= (assume that one restaurant is
+in one place).
+
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  count(distinct dba_name) as total_names,
+  count(distinct license_num) as total_licenses,
+  count(distinct address) as total_addresses
+  from inspections
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| total_names | total_licenses | total_addresses |
+|------------+---------------+----------------|
+|      24646 |         32780 |          17002 |
+:END:
+
+This doesn't look promising...
+
+
+Let's check those hypothesis
+
+/What are the top 5 locations with more inspections?/
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  address, count(*) as total_inspections
+  from inspections
+  group by address
+  order by total_inspections desc
+  limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| address           | total_inspections |
+|-------------------+------------------|
+| 11601 W TOUHY AVE |             1873 |
+| 5700 S CICERO AVE |              379 |
+| 500 W MADISON ST  |              346 |
+| 324 N LEAVITT ST  |              335 |
+| 100 W RANDOLPH ST |              255 |
+:END:
+
+The /location hypothesis/ also has problems, in particular could be *more*
+than one establishment per location (the first row is *O'Hare International Airport*)
+
+So, our last hope is the /license number/
+
+We could get, even more information if we check /How many of those inspections result in a 'Fail'/?
+
+/What are the top 5 licenses with more inspections?/
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  license_num, count(*) as total_inspections
+  from inspections
+  group by license_num
+  order by total_inspections desc
+  limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | total_inspections |
+|------------+------------------|
+|          0 |              436 |
+|    1354323 |              198 |
+|      14616 |              172 |
+|    1574001 |               79 |
+|    1974745 |               58 |
+:END:
+
+
+Even this columns has some problems, let's investigate a little about
+the =license_num= = =0=.
+
+
+#+BEGIN_SRC sql :results table drawer
+    select
+    facility_type, count(*) as total_inspections
+    from inspections
+    where license_num=0
+    group by  facility_type
+    order by total_inspections desc
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| facility_type                | total_inspections |
+|-----------------------------+------------------|
+| Restaurant                  |               95 |
+| Special Event               |               72 |
+| [NULL]                      |               45 |
+| Shelter                     |               31 |
+| Navy Pier Kiosk             |               30 |
+| CHURCH                      |               24 |
+| Grocery Store               |               16 |
+| CHURCH KITCHEN              |               12 |
+| PRIVATE SCHOOL              |               11 |
+| CHURCH/SPECIAL EVENTS       |               10 |
+| Long Term Care              |                9 |
+| Church                      |                8 |
+| AFTER SCHOOL PROGRAM        |                8 |
+| Catering                    |                6 |
+| Mobile Food Dispenser       |                5 |
+| Illegal Vendor              |                3 |
+| SOCIAL CLUB                 |                3 |
+| School                      |                3 |
+| HERBAL LIFE SHOP            |                3 |
+| NON -PROFIT                 |                3 |
+| NOT FOR PROFIT              |                2 |
+| FOOD PANTRY/CHURCH          |                2 |
+| Hospital                    |                2 |
+| CHURCH/SPECIAL EVENT        |                2 |
+| RESTAURANT/GROCERY          |                2 |
+| BOYS AND GIRLS CLUB         |                2 |
+| Social Club                 |                2 |
+| SOUP KITCHEN                |                2 |
+| Bakery                      |                2 |
+| SUMMER FEEDING              |                2 |
+| SUMMER FEEDING PREP AREA    |                2 |
+| religious                   |                1 |
+| FOOD PANTRY                 |                1 |
+| RESTAURANT AND LIQUOR       |                1 |
+| WAREHOUSE                   |                1 |
+| RETAIL                      |                1 |
+| Food Pantry                 |                1 |
+| Wholesale                   |                1 |
+| Daycare (2 - 6 Years)       |                1 |
+| FARMER'S MARKET             |                1 |
+| KIDS CAFE                   |                1 |
+| CHICAGO PARK DISTRICT       |                1 |
+| NEWSSTAND                   |                1 |
+| NON-FOR PROFIT BASEMENT KIT |                1 |
+| incubator                   |                1 |
+| UNLICENSED FACILITY         |                1 |
+| NP-KIOSK                    |                1 |
+| AFTER SCHOOL CARE           |                1 |
+:END:
+
+Most of these are related to /special events/, /churchs/, /festivals/
+etc. We could research deeply the =restaurants= which have =license_num= =
+=0=, but we will skip that for the moment.
+
+
+Finally, we can conclude that, except for some details, =license_num= is
+the way to go, for the identification of the establishments.
+
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  license_num, dba_name, address, count(*) as total_inspections
+  from inspections
+  group by license_num, dba_name, address
+  order by count(*)  desc
+  limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | dba_name                           | address                 | total_inspections |
+|------------+-----------------------------------+-------------------------+------------------|
+|    1354323 | SPORTSERVICE SOLDIER FIELD        | 1410 S MUSEUM CAMPUS DR |              176 |
+|      14616 | ILLINOIS SPORTSERVICE INC         | 333 W 35TH ST           |               99 |
+|    1574001 | LEVY RESTAURANTS AT WRIGLEY FIELD | 1060 W ADDISON ST       |               68 |
+|    1974745 | THE UNITED CENTER                 | 1901 W MADISON ST       |               47 |
+|    1490035 | MCDONALD'S                        | 6900 S LAFAYETTE AVE    |               45 |
+:END:
+
+
+Other interesting questions to ask are:
+
+
+/Which is the spatial distribution of inspections?/
+
+
+#+BEGIN_SRC sql :results table drawer
+    select
+    zip, count(*) as total_inspections
+    from inspections
+    group by zip
+    order by total_inspections desc;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|    zip | total_inspections |
+|--------+------------------|
+|  60614 |             5593 |
+|  60647 |             5500 |
+|  60657 |             5136 |
+|  60611 |             4905 |
+|  60622 |             4843 |
+|  60618 |             4768 |
+|  60608 |             4552 |
+|  60625 |             4280 |
+|  60639 |             3979 |
+|  60640 |             3866 |
+|  60623 |             3782 |
+|  60632 |             3739 |
+|  60607 |             3736 |
+|  60616 |             3613 |
+|  60609 |             3430 |
+|  60654 |             3278 |
+|  60659 |             3278 |
+|  60613 |             3266 |
+|  60619 |             3225 |
+|  60634 |             3075 |
+|  60610 |             3035 |
+|  60617 |             3013 |
+|  60641 |             2970 |
+|  60629 |             2957 |
+|  60620 |             2822 |
+|  60628 |             2813 |
+|  60601 |             2625 |
+|  60606 |             2550 |
+|  60605 |             2427 |
+|  60612 |             2404 |
+|  60626 |             2374 |
+|  60651 |             2316 |
+|  60660 |             2217 |
+|  60643 |             2118 |
+|  60630 |             2065 |
+|  60661 |             2062 |
+|  60636 |             2034 |
+|  60644 |             1968 |
+|  60638 |             1961 |
+|  60649 |             1923 |
+|  60637 |             1899 |
+|  60666 |             1899 |
+|  60615 |             1797 |
+|  60624 |             1726 |
+|  60642 |             1701 |
+|  60603 |             1506 |
+|  60652 |             1366 |
+|  60621 |             1356 |
+|  60653 |             1346 |
+|  60646 |             1147 |
+|  60631 |             1146 |
+|  60645 |             1124 |
+|  60602 |             1122 |
+|  60604 |             1051 |
+|  60707 |              893 |
+|  60655 |              649 |
+|  60656 |              623 |
+|  60633 |              282 |
+|  60827 |              104 |
+| [NULL] |               98 |
+|  60193 |               18 |
+|  60153 |               15 |
+|  60007 |               12 |
+|  60201 |                6 |
+|  60804 |                6 |
+|  60126 |                5 |
+|  60482 |                5 |
+|  60077 |                5 |
+|  60302 |                4 |
+|  60409 |                4 |
+|  60501 |                4 |
+|  60429 |                3 |
+|  60076 |                3 |
+|  60714 |                3 |
+|  60803 |                3 |
+|  60176 |                3 |
+|  60107 |                2 |
+|  60406 |                2 |
+|  60015 |                2 |
+|  60540 |                2 |
+|  60411 |                2 |
+|  60627 |                2 |
+|  60402 |                2 |
+|  60461 |                2 |
+|  60044 |                1 |
+|  60047 |                1 |
+|  60018 |                1 |
+|  60155 |                1 |
+|  60453 |                1 |
+|  60477 |                1 |
+|  60202 |                1 |
+|  60706 |                1 |
+|  60440 |                1 |
+|  60559 |                1 |
+|  60423 |                1 |
+|  60108 |                1 |
+|  60805 |                1 |
+|  60148 |                1 |
+|  60022 |                1 |
+|  60458 |                1 |
+|  60478 |                1 |
+:END:
+
+/Which is the temporal distribution of the inspections?/
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  date_trunc('month', date) as year_month,
+  count(*) as total_inspections
+  from inspections
+  group by year_month
+  order by year_month desc;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| year_month              | total_inspections |
+|------------------------+------------------|
+| 2017-08-01 00:00:00+00 |              418 |
+| 2017-07-01 00:00:00+00 |              846 |
+| 2017-06-01 00:00:00+00 |             1523 |
+| 2017-05-01 00:00:00+00 |             1703 |
+| 2017-04-01 00:00:00+00 |             1677 |
+| 2017-03-01 00:00:00+00 |             2074 |
+| 2017-02-01 00:00:00+00 |             1559 |
+| 2017-01-01 00:00:00+00 |             1762 |
+| 2016-12-01 00:00:00+00 |             1621 |
+| 2016-11-01 00:00:00+00 |             1776 |
+| 2016-10-01 00:00:00+00 |             1955 |
+| 2016-09-01 00:00:00+00 |             2304 |
+| 2016-08-01 00:00:00+00 |             2198 |
+| 2016-07-01 00:00:00+00 |             1571 |
+| 2016-06-01 00:00:00+00 |             2220 |
+| 2016-05-01 00:00:00+00 |             2082 |
+| 2016-04-01 00:00:00+00 |             1926 |
+| 2016-03-01 00:00:00+00 |             2173 |
+| 2016-02-01 00:00:00+00 |             1440 |
+| 2016-01-01 00:00:00+00 |             1551 |
+| 2015-12-01 00:00:00+00 |             1693 |
+| 2015-11-01 00:00:00+00 |             1776 |
+| 2015-10-01 00:00:00+00 |             2090 |
+| 2015-09-01 00:00:00+00 |             2105 |
+| 2015-08-01 00:00:00+00 |             1840 |
+| 2015-07-01 00:00:00+00 |             1642 |
+| 2015-06-01 00:00:00+00 |             1805 |
+| 2015-05-01 00:00:00+00 |             1658 |
+| 2015-04-01 00:00:00+00 |             1601 |
+| 2015-03-01 00:00:00+00 |             1714 |
+| 2015-02-01 00:00:00+00 |             1390 |
+| 2015-01-01 00:00:00+00 |             1598 |
+| 2014-12-01 00:00:00+00 |             1898 |
+| 2014-11-01 00:00:00+00 |             1557 |
+| 2014-10-01 00:00:00+00 |             2085 |
+| 2014-09-01 00:00:00+00 |             2134 |
+| 2014-08-01 00:00:00+00 |             2030 |
+| 2014-07-01 00:00:00+00 |             1744 |
+| 2014-06-01 00:00:00+00 |             1838 |
+| 2014-05-01 00:00:00+00 |             1951 |
+| 2014-04-01 00:00:00+00 |             1861 |
+| 2014-03-01 00:00:00+00 |             1630 |
+| 2014-02-01 00:00:00+00 |             1470 |
+| 2014-01-01 00:00:00+00 |             1342 |
+| 2013-12-01 00:00:00+00 |             1459 |
+| 2013-11-01 00:00:00+00 |             1705 |
+| 2013-10-01 00:00:00+00 |             2143 |
+| 2013-09-01 00:00:00+00 |             2168 |
+| 2013-08-01 00:00:00+00 |             1806 |
+| 2013-07-01 00:00:00+00 |             1546 |
+| 2013-06-01 00:00:00+00 |             1614 |
+| 2013-05-01 00:00:00+00 |             1940 |
+| 2013-04-01 00:00:00+00 |             1798 |
+| 2013-03-01 00:00:00+00 |             1616 |
+| 2013-02-01 00:00:00+00 |             1464 |
+| 2013-01-01 00:00:00+00 |             1691 |
+| 2012-12-01 00:00:00+00 |             1304 |
+| 2012-11-01 00:00:00+00 |             1635 |
+| 2012-10-01 00:00:00+00 |             1687 |
+| 2012-09-01 00:00:00+00 |             1678 |
+| 2012-08-01 00:00:00+00 |             1774 |
+| 2012-07-01 00:00:00+00 |             1500 |
+| 2012-06-01 00:00:00+00 |             1596 |
+| 2012-05-01 00:00:00+00 |             1941 |
+| 2012-04-01 00:00:00+00 |             1444 |
+| 2012-03-01 00:00:00+00 |             1475 |
+| 2012-02-01 00:00:00+00 |             1341 |
+| 2012-01-01 00:00:00+00 |             1491 |
+| 2011-12-01 00:00:00+00 |             1349 |
+| 2011-11-01 00:00:00+00 |             1651 |
+| 2011-10-01 00:00:00+00 |             1590 |
+| 2011-09-01 00:00:00+00 |             1568 |
+| 2011-08-01 00:00:00+00 |             1624 |
+| 2011-07-01 00:00:00+00 |             1407 |
+| 2011-06-01 00:00:00+00 |             1798 |
+| 2011-05-01 00:00:00+00 |             1768 |
+| 2011-04-01 00:00:00+00 |             1512 |
+| 2011-03-01 00:00:00+00 |             1792 |
+| 2011-02-01 00:00:00+00 |             1350 |
+| 2011-01-01 00:00:00+00 |             1341 |
+| 2010-12-01 00:00:00+00 |             1278 |
+| 2010-11-01 00:00:00+00 |             1293 |
+| 2010-10-01 00:00:00+00 |             1814 |
+| 2010-09-01 00:00:00+00 |             1788 |
+| 2010-08-01 00:00:00+00 |             1667 |
+| 2010-07-01 00:00:00+00 |             1324 |
+| 2010-06-01 00:00:00+00 |             1764 |
+| 2010-05-01 00:00:00+00 |             1542 |
+| 2010-04-01 00:00:00+00 |             1440 |
+| 2010-03-01 00:00:00+00 |             1480 |
+| 2010-02-01 00:00:00+00 |             1398 |
+| 2010-01-01 00:00:00+00 |             1280 |
+:END:
+
+The number of inspections per month, are very stable.
+
+
+We could also explore the =violations= column:
+
+#+BEGIN_SRC sql :results table drawer
+  select violations
+  from inspections
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 12. HAND WASHING FACILITIES: WITH SOAP AND SANITARY HAND DRYING DEVICES, CONVENIENT AND ACCESSIBLE TO FOOD PREP AREA - Comments: INADEQUATE TOILET FACILITIES ON SITE. INOPERABLE TOILET ON SITE, UNABLE TO USE/OPERATE PROPERLY. NO SOAP OR SANITARY HAND DRYING DEVICE AT EXPOSED HANDSINK IN PREP AREA. INSTD TO PROVIDE AT ALL TIMES. STAFF TOILET ROOM NOT CLEAN, CAT FECES AND CAT LITTER ON FLOOR, SOILED TOILET PAPER ON PILE ON STAFF TOILET ROOM FLOOR. EXTREME FOUL SMELL IN STAFF TOILET ROOM. VIOLATION 7-38-030 CRITICAL. INSTD TO MAINTAIN CLEAN TOILET ROOM AND OPERABLE TOILET FACILITIES. | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: MUST ORGANIZE AND MAINTAIN THE STORAGE AREA BY THE FURNACE IN THE REAR PREP AREA, ORGANIZE BEHIND FRONT COUNTER. ORGANIZE WALK-IN COOLER USED FOR STORAGE OF SODA POP.                                                                                                                                                                                                                                                                                                                       |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS UNDER AROUND AND BEHIND SHELVES, COUNTERS AND , FRONT COUNTER AREA, PREP AREA AND INSIDE OF THE WALK-IN COOLER.                                                                                                                                                                                                                                                                                                                                                         | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED THE STORAGE SHELVES NOT CLEAN IN DRY STORAGE AREA, AND IN REACH IN COOLERS, INSTRUCTED TO CLEAN. ALSO CLEAN AND SANITZE CHEESE CONTAINER FRONT PREP AREA.                                                                                      | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED INNER DOOR OF THE SODA MACHINE CRACKED GLASS, INSTRUCTED TO REPLACE.                                                                                                                                                                                                                                                                                                                                                     | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: TOILET ROOM VENTILATION IN POOR REPAIR. INSTD TO REPAIR.                                                         | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: WALLS AND CEILING IN STAFF TOILET ROOM IN POOR REPAIR, GAPS AND HOLES. INSTD TO REPAIR SAME. CEILING ON PREMISES ABOVE FRONT DISPLAY  IN POOR REPAIR, PEELING PAINT, UNEVEN SURFACE. INSTD TO REPAIR. | 22. DISH MACHINES: PROVIDED WITH ACCURATE THERMOMETERS, CHEMICAL TEST KITS AND SUITABLE GAUGE COCK - Comments: NO CHEMICAL TEST KIT ON SITE FOR SANITIZER AT 3-COMPARTMENT SINK. INSTD TO PROVIDE SAME. VIOLATION 7-38-030 CRITICAL.                                                                                                                                                                             | 3. POTENTIALLY HAZARDOUS FOOD MEETS TEMPERATURE REQUIREMENT DURING STORAGE, PREPARATION DISPLAY AND SERVICE - Comments: POTENTIALLY HAZARDOUS FOOD AT IMPROPER TEMPERATURE. COOKED GROUND BEEF AT 90.8F IN HOT HOLDING UNIT. VIOLATION 7-38-005A CRITICAL. PRODUCT VOLUNTARILY DISPOSED OF AND DENATURED AT THIS TIME. APPROX 5LBS. $20 VALUE. VIOLATIONS 7-38-005A CRITICAL. | 13. NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS - Comments: LIVE CAT ON SITE, WALKING IN AISLES. VIOLATION 7-38-020 CRITICAL. LIVE ANIMALS ON SITE ARE PROHIBITED.                                                                                                                                                                   | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FRONT DOOR NOT RODENT PROOF, APPROX 1/2 INCH GAP AT TOP OF DOOR. INSTD TO RODENT PROOF DOOR AND HAVE TIGHT FITTING. LIVE ROACH IN STAFF TOILET ROOM. INSTD TO REMOVE ROACH, CLEAN AND SANITIZE AFFECTED AREAS. VIOLATION 7-38-020 SERIOUS. |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 16. FOOD PROTECTED DURING STORAGE, PREPARATION, DISPLAY, SERVICE AND TRANSPORTATION - Comments: FOOD NOT PROTECTED DURING STORAGE, FLY STRIPS WITH DEAD FLIES OVER FOOD PREP/MEAT PREP AREA. INSTD TO USE PROPER PEST CONTROL MEASURES. VIOLATION 7-38-005A SERIOUS                                                                                                                                                                                                                                                                                                                                         | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: OVER 10 LIVE HOUSE FLIES AND 25 LIVE FRUIT FLIES NOTED IN MEAT PREP AREA. MICE DROPPINGS (OVER 100) NOTED ON THE FLOOR AND SHELVES IN REAR STORAGE AREAS, BASEMENT FLOOR, AND DISPLAY SHELVES. MUST REMOVE ALL FLIES, DROPPINGS, CLEAN AND SANITIZE ALL AFFECTED AREAS. CONTACT PEST CONTROL FOR SERVICE. FRONT DOOR NOT RODENT PROOF, APPROX 1/2 INCH GAP AT DOORS. INSTD TO RODENT PROOF SAME AND HAVE TIGHT FITTING. VIOLATION 7-38-020 SERIOUS. | 19. OUTSIDE GARBAGE WASTE GREASE AND STORAGE AREA; CLEAN, RODENT PROOF, ALL CONTAINERS COVERED - Comments: OUTSIDE GARBAGE AREA NOT MAINTAINED. EXTERIOR OF GREASE INTERCEPTOR ENRUSTED WITH GREASE. MUST CLEAN AND MAINTAIN. VIOLATION 7-38-020 SERIOUS.                                                                                               | 1. SOURCE SOUND CONDITION, NO SPOILAGE, FOODS PROPERLY LABELED, SHELLFISH TAGS IN PLACE - Comments: UNWHOLESOME, SPOILED  RAW MEAT PRODUCTS NOTED IN WALK IN COOLER, BEING OFFERED FOR SALE. LARGE SOLID BLOCK OF VARIETY OF MEATS (BEEF, PORK, CHICKEN CLUMPED TOGETHER) WITH FOUL SMELL,  BLACK, GREEN, AND GRAY IN COLOR. ALSO NOTED LIVE FLIES ON GROUND BEEF IN MEAT PREP AREA  WITH FOUL SMELL AND BROWN IN COLOR. VIOLATION 7-38-005B CRITICAL. APPROX 100LBS $500 VALUE. ALL PRODUCT DISCARDED AND DENATURED AT THIS TIME. | 17. POTENTIALLY HAZARDOUS FOOD PROPERLY THAWED - Comments: IMPROPER THAWING OF CHICKEN NOTED. CHICKEN IN STANDING WATER IN BASIN OF 3-COMPARTMENT SINK. INSTD ON PROPER THAWING TECHNIQUES. VIOLATION 7-38-005A SERIOUS. | 12. HAND WASHING FACILITIES: WITH SOAP AND SANITARY HAND DRYING DEVICES, CONVENIENT AND ACCESSIBLE TO FOOD PREP AREA - Comments: NO SOAP NOTED AT EXPOSED HANDSINK IN MEAT PREP AREA. MUST PROVIDE AT ALL TIMES. VIOLATION 7-38-030 CRITICAL.                                                                                              | 3. POTENTIALLY HAZARDOUS FOOD MEETS TEMPERATURE REQUIREMENT DURING STORAGE, PREPARATION DISPLAY AND SERVICE - Comments: THE FOLLOWING POTENTIALLY HAZARDOUS FOODS AT IMPROPER TEMPERATURES ON COUNTERTOP: GROUND SAUSAGE AT 60.8F, RAW CHICKEN AT 49.2F. ALL PRODUCT DISPOSED OF AND DENATURED AT THIS TIME. VIOLATION 7-38-005A CRITICAL. APPROX 30LBS, $100 VALUE.                                             | 13. NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS - Comments: 2 LIVE KITTENS NOTED IN BASEMENT. LIVE ANIMALS ARE PROHIBITED ON SITE. VIOLATION 7-38-020 CRITICAL.                                                                                                                                                                           | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: ALL FOOD AND NON FOOD CONTACT EQUIPMENT NOT CLEAN, EXCESSIVE DEBRIS: INTERIOR/EXTERIOR OF ALL COOLERS/FREEZERS, MICROWAVE, OVEN, FRYERS, STORAGE SHELVES, MEAT DISPLAY CASE, PREP TABLES, MEAT SAW, MEAT GRINDER, BASINS OF ALL SINKS. INSTD TO CLEAN AND MAINTAIN SAME. | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: WALK IN FREEZER ENCRUSTED WITH ICE THROUGH OUT. WALK IN COOLER CONDENSOR LINE IN POOR REPAIR, LEAKING. INSTD TO REPAIR SAME. CUTTING BOARDS PITTED, WITH DEEP, DARK GROOVES, WORN BEYOND REPAIR. INSTD TO REPLACE AND MAINTAIN CUTTING BOARDS.                                                   | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FLOORS THROUGH OUT NOT CLEAN, DEBRIS. INSTD TO CLEAN AND MAINTAIN AT ALL TIMES, | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: WALLS AND LIGHTSHIELDS THROUGH OUT NOT CLEAN, DEBRIS, DEAD FLIES. INSTD TO CLEAN AND MAINTAIN. | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: EXTEME CLUTTER IN ALL STORAGE AREAS AND BASEMENT. INSTD TO REMOVE CLUTTER AND ORGANIZE AREAS. | 22. DISH MACHINES: PROVIDED WITH ACCURATE THERMOMETERS, CHEMICAL TEST KITS AND SUITABLE GAUGE COCK - Comments: NO CHEMICAL TEST KIT ON SITE FOR SANITIZER FOR 3-COMPARTMENT SINK. VIOLATION 7-38-030 SERIOUS. |
+| 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: INTERIOR OF WALK IN COOLER NOT CLEAN OF DEBRIS. MUST CLEAN/MAINTAIN. ALSO LOWER DISPLAY SHELVES NOT CLEAN OF DEBRIS. MUST CLEAN/MAINTAIN.                                                                                                                                                                                                                                                                                                                                                                   | 42. APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN - Comments:  EMPLOYEES NOT WEARING  HAIR RESTRAINT IN FOOD PREP AREA.MUST PROVIDE.                                                                                                                                                                                                                                                                                                                                                                                                                                 | 45. FOOD HANDLER REQUIREMENTS MET - Comments: NO PROOF OF THE NEW FOOD HANDLERS TRAINING FOR EMPLOYEES. MUST PROVIDE FOR EMPLOYEES.                                                                                                                                                                                                                     | 40. REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS - Comments: NO METAL STEM THERMOMETER FOR EMPLOYEES AND MISSING THERMOMETER INSIDE REACH IN COOLER BEHIND COUNTER. MUST PROVIDE.                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: INSTRUCTED MANAGER TO ORGANIZE EXCESSIVE CLUTTER IN THE REAR STORAGE AREA TO PREVENT HARBORAGE.                                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 24. DISH WASHING FACILITIES: PROPERLY DESIGNED, CONSTRUCTED, MAINTAINED, INSTALLED, LOCATED AND OPERATED - Comments: ALL COFFEE BREWING AND FROZEN DRINK MAKER/DISPENSER EQUIPMENT HAS BEEN REMOVED. BUSINESS SELLING ONLY PRE-PACKAGED BEVERAGES ONLY. NO THREE COMPARTMENT SINK REQUIRED AT THIS TIME.                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| [NULL]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: COOLER AT PROPER TEMPERATURE.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 9. WATER SOURCE: SAFE, HOT & COLD UNDER CITY PRESSURE - Comments: RUNNING HOT WATER AT ALL SINKS.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: EXPOSED HAND SINK INSTALLED AT DISHWASHING AREAS.                                                                                                                                                                                                                     | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: EXTERIOR DOORS RODENT PROOFED.                                                                                                                                                                                                                                                                                                                                              | 24. DISH WASHING FACILITIES: PROPERLY DESIGNED, CONSTRUCTED, MAINTAINED, INSTALLED, LOCATED AND OPERATED - Comments: 3 COMPARTMENT SINK INSTALLED.(PLUMBING REPAIRED).                                                   | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: Observed untreated concrete flooring in lower level, dry storage. Open seams in dining room floor. Instructed operator to seal and maintain floors, to ensure surface is smooth and easily cleanable.                | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments:  Observed unfinished ceiling and exposed waste plumbing pipes in the following areas: men and women washroom, liquor storage room and basement dry storage areas. Instructed operator to install a drop or finished ceiling and encase expose plumping pipes in said areas. | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND A SMALL AMOUNT OF STANDING WATER ON THE FLOOR OF THE WALK-IN COOLER IN THE MEAT PREP AREA; REMOVE STANDING WATER.                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| THE FLOORS NEED CLEANING UNDER VARIOUS STORAGE SHELVES ON THE SELLING FLOOR; CLEAN FLOORS WHERE NEEDED.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: OBSERVED OUTER OPENINGS NOT RODENT PROOFED: THE SERVICE WINDOW DOES NOT CONTAIN SCREENS TO RODENT PROOF TRUCK WHILE IN BETWEEN SERVING CUSTOMERS. MANAGER INSTRUCTED TO SEAL TRUCK AND SERVICE WINDOW BY INSTALLING SLIDING SCREEN WINDOWS. SERIOUS VIOLATION 7-38-020                                                                                                                                                                               | 40. REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS - Comments: MUST PROVIDE METAL STEMMED THERMOMETER TO USE ON THE TRUCK WITH DAILY CALIBRATIONS.                                                                                                                                                                                                                                                                                                                                                                                                                                     | 12. HAND WASHING FACILITIES: WITH SOAP AND SANITARY HAND DRYING DEVICES, CONVENIENT AND ACCESSIBLE TO FOOD PREP AREA - Comments: NO HAND SOAP AND PAPER TOWELS PROVIDED AT THE HAND SINK LOCATED ON THE TRUCK. MUST PROVIDE PROPER HAND SOAP AND PAPER TOWELS WITH HOT/COLD RUNNING WATER UNDER CITY PRESSURE AT ALL TIMES. CRITICAL VIOLATION 7-38-030 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+| 16. FOOD PROTECTED DURING STORAGE, PREPARATION, DISPLAY, SERVICE AND TRANSPORTATION - Comments: CORRECTED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 37. TOILET ROOM DOORS SELF CLOSING: DRESSING ROOMS WITH LOCKERS PROVIDED: COMPLETE SEPARATION FROM LIVING/SLEEPING QUARTERS - Comments: CORRECTED                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED                                                                                                                                                                                                                                              |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                   |                                                                                                                                                                                                       |                                                                                                                                                                                                                                     |                                                                                                                                                                                                             |                                                                                                                                                                                                               |
+:END:
+
+
+We could note that this column is structured in the following form:
+- If there are several violations reported, those violations will be separated by ='|'=
+- Every violation begins with a code and  a description
+- Every violation could have *comments*, those comments appear after the
+  string =- Comments:=
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  --inspection,
+  --violations,
+   btrim(split_part(s.token,'- Comments:', 1)) as violation, count(*)
+  --split_part(s.token,'- Comments:', 2) as comments
+  from inspections as t, unnest(string_to_array(violations, '|')) s(token)
+  group by violation
+  order by violation asc
 
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| violation                                                                                                                                  | count |
+|--------------------------------------------------------------------------------------------------------------------------------------------+-------|
+| 10. SEWAGE AND WASTE WATER DISPOSAL, NO BACK SIPHONAGE, CROSS  CONNECTION AND/OR BACK FLOW                                                 |  1233 |
+| 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED                                                                      |  4786 |
+| 12. HAND WASHING FACILITIES: WITH SOAP AND SANITARY HAND DRYING DEVICES, CONVENIENT AND ACCESSIBLE TO FOOD PREP AREA                       |  3256 |
+| 13. NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS                                                        |   831 |
+| 14. PREVIOUS SERIOUS VIOLATION CORRECTED, 7-42-090                                                                                         |  1895 |
+| 15. UNWRAPPED AND POTENTIALLY HAZARDOUS FOOD NOT RE-SERVED                                                                                 |     4 |
+| 16. FOOD PROTECTED DURING STORAGE, PREPARATION, DISPLAY, SERVICE AND TRANSPORTATION                                                        |  6701 |
+| 17. POTENTIALLY HAZARDOUS FOOD PROPERLY THAWED                                                                                             |   112 |
+| 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS | 28092 |
+| 19. OUTSIDE GARBAGE WASTE GREASE AND STORAGE AREA; CLEAN, RODENT PROOF, ALL CONTAINERS COVERED                                             |  6787 |
+| 1. SOURCE SOUND CONDITION, NO SPOILAGE, FOODS PROPERLY LABELED, SHELLFISH TAGS IN PLACE                                                    |   655 |
+| 20. INSIDE CONTAINERS OR RECEPTACLES: ADEQUATE NUMBER, PROPERLY COVERED AND INSECT/RODENT PROOF                                            |   180 |
+| 21. * CERTIFIED FOOD MANAGER ON SITE WHEN POTENTIALLY HAZARDOUS FOODS ARE  PREPARED AND SERVED                                             | 10537 |
+| 22. DISH MACHINES: PROVIDED WITH ACCURATE THERMOMETERS, CHEMICAL TEST KITS AND SUITABLE GAUGE COCK                                         |  1487 |
+| 23. DISHES AND UTENSILS FLUSHED, SCRAPED, SOAKED                                                                                           |     3 |
+| 24. DISH WASHING FACILITIES: PROPERLY DESIGNED, CONSTRUCTED, MAINTAINED, INSTALLED, LOCATED AND OPERATED                                   |  5228 |
+| 25. TOXIC ITEMS PROPERLY STORED, LABELED AND USED                                                                                          |   234 |
+| 26. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, PROPERLY DESIGNED AND INSTALLED                                                               |  2370 |
+| 27. TOILET ROOMS ENCLOSED CLEAN, PROVIDED WITH HAND CLEANSER, SANITARY HAND DRYING DEVICES AND PROPER WASTE RECEPTACLES                    |   554 |
+| 28. * INSPECTION REPORT SUMMARY DISPLAYED AND VISIBLE TO ALL CUSTOMERS                                                                     |  1349 |
+| 29. PREVIOUS MINOR VIOLATION(S) CORRECTED 7-42-090                                                                                         |  9427 |
+| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE                                                                                               |  7565 |
+| 30. FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | 16505 |
+| 31. CLEAN MULTI-USE UTENSILS AND SINGLE SERVICE ARTICLES PROPERLY STORED: NO REUSE OF SINGLE SERVICE ARTICLES                              | 10550 |
+| 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                       | 55775 |
+| 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS                                                        | 65865 |
+| 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                  | 74572 |
+| 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS                   | 66183 |
+| 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED                                                           | 27344 |
+| 37. TOILET ROOM DOORS SELF CLOSING: DRESSING ROOMS WITH LOCKERS PROVIDED: COMPLETE SEPARATION FROM LIVING/SLEEPING QUARTERS                |  8166 |
+| 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED                                                | 56502 |
+| 39. LINEN: CLEAN AND SOILED PROPERLY STORED                                                                                                |   695 |
+| 3. POTENTIALLY HAZARDOUS FOOD MEETS TEMPERATURE REQUIREMENT DURING STORAGE, PREPARATION DISPLAY AND SERVICE                                |  8058 |
+| 40. REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS                                                                     | 16805 |
+| 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED                                          | 35790 |
+| 42. APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN                                                    |  6913 |
+| 43. FOOD (ICE) DISPENSING UTENSILS, WASH CLOTHS PROPERLY STORED                                                                            |  8667 |
+| 44. ONLY AUTHORIZED PERSONNEL IN THE FOOD-PREP AREA                                                                                        |   437 |
+| 45. FOOD HANDLER REQUIREMENTS MET                                                                                                          |  6700 |
+| 4. SOURCE OF CROSS CONTAMINATION CONTROLLED I.E. CUTTING BOARDS, FOOD  HANDLERS, UTENSILS, ETC                                             |   602 |
+| 5. PERSONNEL WITH INFECTIONS RESTRICTED: NO OPEN SORES, WOUNDS, ETC                                                                        |    15 |
+| 6. HANDS WASHED AND CLEANED, GOOD HYGIENIC PRACTICES; NO BARE HAND CONTACT WITH READY-TO-EAT FOODS.                                        |  1573 |
+| 70. NO SMOKING REGULATIONS                                                                                                                 |   785 |
+| 7. WASH AND RINSE WATER: CLEAN AND PROPER TEMPERATURE                                                                                      |   160 |
+| 8. SANITIZING RINSE FOR EQUIPMENT AND UTENSILS:  CLEAN, PROPER TEMPERATURE, CONCENTRATION, EXPOSURE TIME                                   |  2974 |
+| 9. WATER SOURCE: SAFE, HOT & COLD UNDER CITY PRESSURE                                                                                      |  2464 |
+:END:
+
+** Transforming the data
+
+We will create a new schema ...
+
+We will add the following columns
+- month
+- quarter
+- day of week
+- weekend
+- number of violations (maybe number of violations per type?)
+
+
+
 
 
 *NOTE*: You could also split between, /major violation found/ and /minor violation found/,
@@ -542,7 +1062,6 @@ With the data sitting in our database, we can start our analysis.
 ** Cross temporal validation and Timechop
 
 /We need to add some images here/
-
 
 
 ** The =inspections-training.yaml= file
@@ -830,6 +1349,75 @@ scoring:
 
 * Footnotes
 
+[fn:3] This problem is
+related to the process of /deduplication/ and there is another tutorial
+for that that uses anothe DSaPP tool: =pgdedup=.
+
 [fn:1] [[https://youtu.be/lyDLAutA88s][David Beazley | Keynote: Built in Super Heroes]]
 
 [fn:2] [[https://youtu.be/1dKonIT-Yak][Nicole Donnelly | Forecasting critical food violations at restaurants using open data]]
+
+
+
+
+* Temp stuff
+
+
+Before doing that, let's check how many different =dba_name= we have.
+
+#+BEGIN_SRC sql :results table drawer
+  select
+  count(distinct dba_name) as different_names
+  from inspections;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| different_names |
+|----------------|
+|          24646 |
+:END:
+
+#+BEGIN_SRC sql :results table drawer
+  select
+   dba_name,
+   btrim(upper(regexp_replace(replace(dba_name, '''', ''), '[^a-zA-Z0-9 ]', '', 'g'))) as cleaned_name
+  from inspections
+  limit 30
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| dba_name                                      | cleaned_name                                 |
+|----------------------------------------------+---------------------------------------------|
+| D AND Y GROCERY                              | D AND Y GROCERY                             |
+| ONE STOP FOOD MARKET                         | ONE STOP FOOD MARKET                        |
+| CITGO                                        | CITGO                                       |
+| KHAN DOLLAR STATION                          | KHAN DOLLAR STATION                         |
+| FOSTER & BROADWAY BP/AUTOTECH                | FOSTER  BROADWAY BPAUTOTECH                 |
+| Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
+| Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
+| SAVE-A-LOT #882                              | SAVEALOT 882                                |
+| MEDITERRANEAN EXPRESS                        | MEDITERRANEAN EXPRESS                       |
+| SWEET FREAKS                                 | SWEET FREAKS                                |
+| MINGHIN CUISINE KITCHEN                      | MINGHIN CUISINE KITCHEN                     |
+| HAPPY GROCERY & DOLLAR                       | HAPPY GROCERY  DOLLAR                       |
+| ARDEN RESTAURANT                             | ARDEN RESTAURANT                            |
+| TBD                                          | TBD                                         |
+| MAGGIE GYROS & CHICKEN                       | MAGGIE GYROS  CHICKEN                       |
+| WOLCOTT TAP                                  | WOLCOTT TAP                                 |
+| WOLCOTT TAP                                  | WOLCOTT TAP                                 |
+| 3JJJ'S BETTER TASTE JAMAICAN JERK RESTAURANT | 3JJJS BETTER TASTE JAMAICAN JERK RESTAURANT |
+| THE HARDING TAVERN                           | THE HARDING TAVERN                          |
+| ZACATACOS, II. INC                           | ZACATACOS II INC                            |
+| ONESTI PIZZERIA INC                          | ONESTI PIZZERIA INC                         |
+| 3JJJ'S BETTER TASTE JAMAICAN JERK RESTAURANT | 3JJJS BETTER TASTE JAMAICAN JERK RESTAURANT |
+| NORMAN'S                                     | NORMANS                                     |
+| MCCB                                         | MCCB                                        |
+| CHECKERS DRIVE-IN RESTAURANTS, INC           | CHECKERS DRIVEIN RESTAURANTS INC            |
+| Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
+| GRILL 87                                     | GRILL 87                                    |
+| KFC                                          | KFC                                         |
+| PACO'S TACOS 2                               | PACOS TACOS 2                               |
+| MARTINI CLUB                                 | MARTINI CLUB                                |
+:END:
