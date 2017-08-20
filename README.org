@@ -1636,7 +1636,7 @@ scoring:
 
 * Footnotes
 
-[fn:4] https://chicago.github.io/food-inspections-evaluation/
+[fn:4] [[https://chicago.github.io/food-inspections-evaluation/][Food Inspection Forecasting - Optimizing Inspections with Analytics]]
 
 [fn:3] This problem is
 related to the process of /deduplication/ and there is another tutorial
