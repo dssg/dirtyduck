@@ -1,6 +1,8 @@
 #+TITLE: Dirty duck: A triage's guided tour
 #+AUTHOR: Adolfo De Unánue
 #+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
@@ -9,6 +11,26 @@
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
+
+
+* TODOs [0%]
+
+- [ ] Add an introduction
+- [ ] Define the entities for both "projects" (*EIS* and *Inspection prioritization*)
+- [ ] Define the outcomes for each "project" (*EIS* and *Inspection prioritization*)
+- [ ] Explain the concept of a Machine Learning project
+- [ ] Explain the concept of Temporal Cross-validation and why it is
+  important
+- [ ] Explain a little bit of =timechop=
+- [ ] SQL for transforming the data in *EIS*
+- [ ] SQL for transforming the data in *Inspection prioritization*
+- [ ] Define one or two features for *EIS*
+- [ ] Define one or two features for *Inspection prioritization*
+- [ ] Explain a little bit of =collate=
+- [ ] Run one experiment for *EIS*
+- [ ] Run one experiment for *Inspection prioritization*
+- [ ] Show the results in =tyra=
+
 
 * Intro
 
@@ -23,12 +45,7 @@ used in several examples around the web.
 [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
 Use the links for installing instructions.
 
-* ▶ TODO Description of the problem to solve
-:PROPERTIES:
-- Describe the EIS problem and the Inspections problem
-- Describe the technical problems that could happen: temporal data,
-  leaking, etc.
-:END:
+* Description of the problem to solve
 
 Actually, We want to solve two problems: an /Early intervention system/ (*EIS*)
 and a /Inspection prioritization/.
@@ -378,9 +395,9 @@ psql ${FOOD_DB_URL} -c 'select * from inspections limit 1'
 
 :END:
 
-You could see the meaning of the columns [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]].
+You could see the meaning of each column [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]].
 
-** ▶ TODO Transforming the data
+** Transforming the data
 
 For tackling a Machine Learning problem you need to identify the
 *entities* of your problem domain, and if your problem involves time,
@@ -425,6 +442,9 @@ discovered), we will remove =Out of Business= and =Business Not Located=
 from the database, and all the other options (=Pass w/Condition= and
 =Pass)=  will become =False= (i.e. no violation was discovered).
 
+*NOTE*: You could also split between, /major violation found/ and /minor violation found/,
+but we will keep this simple for the moment.
+
  #+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
    drop table if exists violations;
 
@@ -456,7 +476,6 @@ from the database, and all the other options (=Pass w/Condition= and
            where lower(results) !~ '.*business*.'
           ) b;
  #+END_SRC
-
 
  Now we will create a =violations= table, for this we will use the
 
@@ -508,9 +527,9 @@ from the database, and all the other options (=Pass w/Condition= and
 
 With the data sitting in our database, we can start our analysis.
 
-** ▶ TODO The experiment concept
+** The experiment concept
 
-** ▶ TODO Cross temporal validation and Timechop
+** Cross temporal validation and Timechop
 
 /We need to add some images here/
 
@@ -761,7 +780,7 @@ scoring:
 :END:
 
 
-* ▶ TODO Looking the results at Tyra
+* Looking the results at Tyra
 
 
 * What's next?
