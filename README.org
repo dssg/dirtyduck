@@ -35,7 +35,7 @@
 * Intro
 
 The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
-used in several examples around the web.
+used in several examples around the web (e.g. [fn:1], [fn:2])
 
 
 
@@ -813,3 +813,9 @@ scoring:
 - How to use additional tables?
 
 - Could you draw an example of the temporal setting?
+
+* Footnotes
+
+[fn:1] [[https://youtu.be/lyDLAutA88s][David Beazley | Keynote: Built in Super Heroes]]
+
+[fn:2] [[https://youtu.be/1dKonIT-Yak][Nicole Donnelly | Forecasting critical food violations at restaurants using open data]]
