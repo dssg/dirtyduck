@@ -1,5 +1,5 @@
 #+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Adolfo De Unánue
+#+AUTHOR: Center of Data Science for Public Policy
 #+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
@@ -23,9 +23,9 @@
   important
 - [ ] Explain a little bit of =timechop=
 - [ ] SQL for transforming the data in *EIS*
-- [ ] SQL for transforming the data in *Inspection prioritization*
 - [ ] Define one or two features for *EIS*
 - [ ] Define one or two features for *Inspection prioritization*
+- [ ] SQL for transforming the data in *Inspection prioritization*
 - [ ] Explain a little bit of =collate=
 - [ ] Run one experiment for *EIS*
 - [ ] Run one experiment for *Inspection prioritization*
@@ -315,8 +315,8 @@ Now, you can disconnect from the database typing =\q=
 
 ** Downloading
 
-#+BEGIN_SRC shell :dir data
-  curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > inspections.csv
+#+BEGIN_SRC shell
+  curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > data/inspections.csv
 #+END_SRC
 
 #+RESULTS:
@@ -410,6 +410,9 @@ both cases is the  ...
 The *outcome* is what differ between those two projects. For *EIS* the
 outcome is *inspected*, for *Inspections*, the outcome is *violation found*.
 
+** Some data exploration
+
+
 Let's see the data and try to see how it needs to be transformed.
 
 Remember that the data that we have is one inspection per row.
@@ -441,6 +444,13 @@ We will map =Fail=, =Not Ready=, =No Entry= to a =True= (i.e. a violation was
 discovered), we will remove =Out of Business= and =Business Not Located=
 from the database, and all the other options (=Pass w/Condition= and
 =Pass)=  will become =False= (i.e. no violation was discovered).
+
+We also, could ask
+
+#+BEGIN_SRC sql :results table drawer
+
+#+END_SRC
+
 
 *NOTE*: You could also split between, /major violation found/ and /minor violation found/,
 but we will keep this simple for the moment.
@@ -785,6 +795,10 @@ scoring:
 
 * What's next?
 
+
+- Add the shape file
+  https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&format=Shapefile
+- Text analysis?
 - Routing based on the inspection list?
 - Add more data sources?
 
