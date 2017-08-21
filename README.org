@@ -14,13 +14,13 @@
 #+PROPERTY: header-args:ipython   :session food_inspections
 
 
-* TODOs [0%]
+* TODOs [6%]
 
   - [ ] Add an introduction
   - [ ] Define the entities for both "projects" (*EIS* and *Inspection prioritization*)
   - [ ] Define the outcomes for each "project" (*EIS* and *Inspection
     prioritization*)
-  - [ ] Add some exploration using =sql=
+  - [X] Add some exploration using =sql=
   - [ ] Add some visualizations using =python=
   - [ ] Explain the concept of a Machine Learning project
   - [ ] Explain the concept of Temporal Cross-validation and why it is
@@ -122,7 +122,24 @@
     GID=1000
   #+END_SRC
 
-  And change the name of the file to =.env=. Next run the following command
+  And change the name of the file to =.env=.
+
+  Also, adjust the =tyra= credentials file (We will explain what is =tyra=
+  later). That file is located inside the folder =infrastructure/tyra/example_users.json=
+
+  #+BEGIN_SRC shell :tangle infrastructure/tyra/example_users.json
+    {
+        "tyra@example.com":
+        {
+            "pw": "topmodels"
+        }
+    }
+  #+END_SRC
+
+  Change =tyra@example.com= for whatever you want (it will be your
+  username), and change =topmodels= too (it will be the password).
+
+  Next run the following command
 
   #+BEGIN_SRC shell
     ./manage.sh
@@ -428,7 +445,7 @@
    #+RESULTS:
 
    #+BEGIN_SRC sql :results table drawer :tangle ./src/create_cleaned_inspections_table.sql
-     drop table if exists cleaned.inspections ;
+     drop table if exists cleaned.inspections cascade;
 
      create table cleaned.inspections as (
      select
@@ -455,7 +472,7 @@
      extract(quarter from date) as quarter,
      ST_SetSRID(ST_MakePoint(longitude, latitude),4326) as location
      from inspections
-     where results in ('Fail', 'Pass', 'Pass w/ Conditions')
+     where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
      )
    #+END_SRC
 
@@ -480,9 +497,11 @@
    #+END_SRC
 
    #+RESULTS:
+   :RESULTS:
    |  count |
    |--------|
-   | 134587 |
+   | 134573 |
+   :END:
 
 
    Let's look closer the column =violations=:
@@ -523,12 +542,12 @@
    - violation_comments
 
    #+BEGIN_SRC sql :results table drawer :tangle ./src/create_violations_table.sql
-     drop table if exists cleaned.violations;
+     drop table if exists cleaned.violations cascade;
 
      create table cleaned.violations as (
      select
      inspection,
-     license_num,
+     license_num as entity_id, -- This is a requirement of triage
      date as knowledge_date,
      btrim(tuple[1]) as violation_code,
      btrim(tuple[2]) as violation_description,
@@ -539,10 +558,10 @@
      license_num,
      date,
      regexp_split_to_array(
-     regexp_split_to_table(violations, '\|'),
+     regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
      '\.|- Comments:') as tuple
      from inspections
-     where results in ('Fail', 'Pass', 'Pass w/ Conditions')
+     where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
      ) as t
      )
    #+END_SRC
@@ -554,9 +573,11 @@
    #+END_SRC
 
    #+RESULTS:
+   :RESULTS:
    |  count |
    |--------|
-   | 122379 |
+   | 134573 |
+   :END:
 
 
    Note that this table contains less rows, since some rows in
@@ -742,7 +763,6 @@
 
    Even this columns has some problems, let's investigate a little about
    the =license_num= = =0=.
-
 
    #+BEGIN_SRC sql :results table drawer
      select
@@ -1371,36 +1391,36 @@
 
 
 
-/How often change the risk in a facility?/
+   /How often change the risk in a facility?/
 
-#+BEGIN_SRC sql
-  select
-  license_num, risk || '->' || previous_risk, count(*)
-  from
-  (
-  select date, license_num,risk, lag(risk) over w as previous_risk
-  from cleaned.inspections
-  window w as (partition by license_num order by date asc)
-  ) as t
-  where (risk <>  previous_risk) and license_num != '0'
-  group by license_num, risk || '->' || previous_risk
-  order by  count(*) desc, license_num
-  limit 10
-#+END_SRC
+   #+BEGIN_SRC sql
+     select
+     license_num, risk || '->' || previous_risk, count(*)
+     from
+     (
+     select date, license_num,risk, lag(risk) over w as previous_risk
+     from cleaned.inspections
+     window w as (partition by license_num order by date asc)
+     ) as t
+     where (risk <>  previous_risk) and license_num != '0'
+     group by license_num, risk || '->' || previous_risk
+     order by  count(*) desc, license_num
+     limit 10
+   #+END_SRC
 
-#+RESULTS:
-| license_num | ?column?     | count |
-|------------+--------------+-------|
-|    1574001 | High->Medium |     9 |
-|      20481 | Medium->High |     8 |
-|      20481 | High->Medium |     8 |
-|    1574001 | Medium->High |     8 |
-|      14616 | Medium->Low  |     7 |
-|      14616 | Low->Medium  |     7 |
-|      51011 | High->Medium |     7 |
-|      23041 | Medium->High |     6 |
-|      23041 | High->Medium |     6 |
-|      23051 | Medium->High |     6 |
+   #+RESULTS:
+   | license_num | ?column?     | count |
+   |------------+--------------+-------|
+   |    1574001 | High->Medium |     9 |
+   |      20481 | Medium->High |     8 |
+   |      20481 | High->Medium |     8 |
+   |    1574001 | Medium->High |     8 |
+   |      14616 | Medium->Low  |     7 |
+   |      14616 | Low->Medium  |     7 |
+   |      51011 | High->Medium |     7 |
+   |      23041 | Medium->High |     6 |
+   |      23041 | High->Medium |     6 |
+   |      23051 | Medium->High |     6 |
 
 
 
@@ -1409,34 +1429,34 @@
 
   With the data sitting in our database, we can start our analysis.
 
-[[https://github.com/dssg/triage][Triage]] make the followings assumptions:
+  [[https://github.com/dssg/triage][Triage]] make the followings assumptions:
 
 
-At the end, =triage= will create the following in your database:
+  At the end, =triage= will create the following in your database:
 
-- A =features= schema
-- A =results= schema
-- A table named =labels= in =public= schema
+  - A =features= schema
+  - A =results= schema
+  - A table named =labels= in =public= schema
 
-And it will create, several files that contains the matrices for
-training your model
+  And it will create, several files that contains the matrices for
+  training your model
 
 
 ** The experiment concept
 
-Typically, a in a supervised learning problem you need to do the
-following:
+   Typically, a in a supervised learning problem you need to do the
+   following:
 
-- Get some /labeled/ data
-- Prepare the data
-- Set some questions
-- Set the metric
-- Set the baseline
-- Adjust the /labels/ to the question
-- Generate features
-- Train several models using cross-validation
-- Chose the best model (using the metric)
-- Put that model "in production"
+   - Get some /labeled/ data
+   - Prepare the data
+   - Set some questions
+   - Set the metric
+   - Set the baseline
+   - Adjust the /labels/ to the question
+   - Generate features
+   - Train several models using cross-validation
+   - Chose the best model (using the metric)
+   - Put that model "in production"
 
 ** Cross temporal validation and Timechop
 
@@ -1460,24 +1480,24 @@ following:
 
 
 
-First, =triage= needs a special table at this moment, we call this table =inspections_events=
+   First, =triage= needs a special table at this moment, we call this table =inspections_events=
 
 
-#+BEGIN_SRC sql
-  create or replace view inspections_events
-  as
-  select
-   license_num as entity_id,
-   date as outcome_date,
-   case
-   when results = 'Fail' then True
-   else False
-   end
-   as outcome
-  from cleaned.inspections
-#+END_SRC
+   #+BEGIN_SRC sql
+     create or replace view inspections_events
+     as
+     select
+     license_num as entity_id,
+     date as outcome_date,
+     case
+     when results = 'Fail' then True
+     else False
+     end
+     as outcome
+     from cleaned.inspections
+   #+END_SRC
 
-#+RESULTS:
+   #+RESULTS:
 
 
 *** Experiment metadata
@@ -1506,31 +1526,31 @@ First, =triage= needs a special table at this moment, we call this table =inspec
 
 
     #+BEGIN_SRC yaml
-      temporal_config:
-        beginning_of_time: '2010-01-04' # earliest date included in features
-        modeling_start_time: '2014-01-01' # earliest date in any model
-        modeling_end_time: '2017-01-01' # all dates in any model are < this date
+        temporal_config:
+          beginning_of_time: '2010-01-04' # earliest date included in features
+          modeling_start_time: '2014-01-01' # earliest date in any model
+          modeling_end_time: '2017-01-01' # all dates in any model are < this date
 
-        update_window: '3 month' # how frequently to retrain models
+          update_window: '3 month' # how frequently to retrain models
 
-        train_example_frequency: '1 d' # time between rows for same entity in train matrix
-        train_durations: ['1 y'] # length of time included in a train matrix
-        train_label_windows: ['1 month'] # time period across which outcomes are labeled in train matrices
+          train_example_frequency: '1 d' # time between rows for same entity in train matrix
+          train_durations: ['1 y'] # length of time included in a train matrix
+          train_label_windows: ['1 month'] # time period across which outcomes are labeled in train matrices
 
-        test_example_frequency: '1 d' # time between rows for same entity in test matrix
-        test_durations: ['1 d'] # length of time included in a test matrix
-        test_label_windows: ['3 month'] # time period across which outcomes are labeled in test matrices
+          test_example_frequency: '1 d' # time between rows for same entity in test matrix
+          test_durations: ['1 d'] # length of time included in a test matrix
+          test_label_windows: ['3 month'] # time period across which outcomes are labeled in test matrices
     #+END_SRC
 
 
-We will refer the reader to the image in section [[Cross temporal validation and Timechop]]
+    We will refer the reader to the image in section [[Cross temporal validation and Timechop]]
 
-*QUESTION:* How do we specify here: /...in the next X months/?
+    *QUESTION:* How do we specify here: /...in the next X months/?
 
 *** Label generation
 
     #+BEGIN_SRC yaml
-        events_table: 'inspections_events'
+      events_table: 'inspections_events'
     #+END_SRC
 
 *** Feature generation
@@ -1548,51 +1568,51 @@ We will refer the reader to the image in section [[Cross temporal validation and
     - etc.
 
     #+BEGIN_SRC yaml
-      feature_aggregations:
-        -
-          # prefix given to the resultant tables
-          prefix: 'violations'
-          from_obj: 'cleaned.violations'
-          knowledge_date_column: 'knowledge_date'
-          aggregates:
-            -
-              quantiy: 'violation_code'
-              metrics: ['count']
-          intervals:
-            - ['1y']
-          groups:
-            - 'license_num'
+        feature_aggregations:
+          -
+            # prefix given to the resultant tables
+            prefix: 'violations'
+            from_obj: 'cleaned.violations'
+            knowledge_date_column: 'knowledge_date'
+            aggregates:
+              -
+                quantity: 'violation_code'
+                metrics:
+                  - 'count'
+                  intervals:
+                    - '1 year'
+                    groups:
+                      - 'entity_id'
     #+END_SRC
 
 *** Feature grouping
 
     #+BEGIN_SRC yaml
-        feature_group_strategies: ['all']
+      feature_group_strategies: ['all']
     #+END_SRC
 
 
 *** Grid configuration
     #+BEGIN_SRC yaml
-
       model_group_keys: []
 
       grid_config:
-          'sklearn.tree.DecisionTreeClassifier':
-              criterion: ['gini']
-              max_depth: [3]
-              min_samples_split: [10]
+        'sklearn.tree.DecisionTreeClassifier':
+          criterion: ['gini']
+          max_depth: [3]
+          min_samples_split: [10]
     #+END_SRC
 
 *** Model scoring
 
     #+BEGIN_SRC yaml
-      scoring:
-        metric_groups:
-          -
-            metrics: ['precision@', 'recall@', 'fpr@']
-            thresholds:
-              percentiles: [1.0, 2.0, 5.0, 10.0, 25.0]
-              top_n: [25, 75, 150, 300, 500, 1000, 1500]
+        scoring:
+          metric_groups:
+            -
+              metrics: ['precision@', 'recall@', 'fpr@']
+              thresholds:
+                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0]
+                top_n: [25, 75, 150, 300, 500, 1000, 1500]
 
     #+END_SRC
 
@@ -1643,9 +1663,7 @@ We will refer the reader to the image in section [[Cross temporal validation and
 
 * Looking the results at Tyra
 
-*QUESTION*: How can I set the credentials in =tyra=?
-
-*TODO:* /Add some images/
+  *TODO:* /Add some images/
 
 * What's next?
 

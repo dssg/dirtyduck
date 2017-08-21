@@ -1,4 +1,4 @@
-drop table if exists cleaned.inspections ;
+drop table if exists cleaned.inspections cascade;
 
 create table cleaned.inspections as (
 select
@@ -25,5 +25,5 @@ extract(week from date) as week_of_year,
 extract(quarter from date) as quarter,
 ST_SetSRID(ST_MakePoint(longitude, latitude),4326) as location
 from inspections
-where results in ('Fail', 'Pass', 'Pass w/ Conditions')
+where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
 )

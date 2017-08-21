@@ -25,12 +25,13 @@ feature_aggregations:
     knowledge_date_column: 'knowledge_date'
     aggregates:
       -
-        quantiy: 'violation_code'
-        metrics: ['count']
+        quantity: 'violation_code'
+        metrics:
+          - 'count'
     intervals:
-      - ['1y']
+      - '1 year'
     groups:
-      - 'license_num'
+      - 'entity_id'
 
 feature_group_strategies: ['all']
 
