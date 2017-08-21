@@ -526,13 +526,18 @@
      drop table if exists cleaned.violations;
 
      create table cleaned.violations as (
-     select inspection,
+     select
+     inspection,
+     license_num,
+     date as knowledge_date,
      btrim(tuple[1]) as violation_code,
      btrim(tuple[2]) as violation_description,
      btrim(tuple[3]) as violation_comment from
      (
      select
      inspection,
+     license_num,
+     date,
      regexp_split_to_array(
      regexp_split_to_table(violations, '\|'),
      '\.|- Comments:') as tuple
@@ -1368,10 +1373,35 @@
 
 /How often change the risk in a facility?/
 
-
 #+BEGIN_SRC sql
-
+  select
+  license_num, risk || '->' || previous_risk, count(*)
+  from
+  (
+  select date, license_num,risk, lag(risk) over w as previous_risk
+  from cleaned.inspections
+  window w as (partition by license_num order by date asc)
+  ) as t
+  where (risk <>  previous_risk) and license_num != '0'
+  group by license_num, risk || '->' || previous_risk
+  order by  count(*) desc, license_num
+  limit 10
 #+END_SRC
+
+#+RESULTS:
+| license_num | ?column?     | count |
+|------------+--------------+-------|
+|    1574001 | High->Medium |     9 |
+|      20481 | Medium->High |     8 |
+|      20481 | High->Medium |     8 |
+|    1574001 | Medium->High |     8 |
+|      14616 | Medium->Low  |     7 |
+|      14616 | Low->Medium  |     7 |
+|      51011 | High->Medium |     7 |
+|      23041 | Medium->High |     6 |
+|      23041 | High->Medium |     6 |
+|      23051 | Medium->High |     6 |
+
 
 
 
@@ -1379,13 +1409,38 @@
 
   With the data sitting in our database, we can start our analysis.
 
+[[https://github.com/dssg/triage][Triage]] make the followings assumptions:
+
+
+At the end, =triage= will create the following in your database:
+
+- A =features= schema
+- A =results= schema
+- A table named =labels= in =public= schema
+
+And it will create, several files that contains the matrices for
+training your model
+
+
 ** The experiment concept
+
+Typically, a in a supervised learning problem you need to do the
+following:
+
+- Get some /labeled/ data
+- Prepare the data
+- Set some questions
+- Set the metric
+- Set the baseline
+- Adjust the /labels/ to the question
+- Generate features
+- Train several models using cross-validation
+- Chose the best model (using the metric)
+- Put that model "in production"
 
 ** Cross temporal validation and Timechop
 
    /We need to add some images here/
-
-
 
 
 ** The =inspections-training.yaml= file
@@ -1404,13 +1459,31 @@
    Let's go by piece by piece
 
 
+
+First, =triage= needs a special table at this moment, we call this table =inspections_events=
+
+
+#+BEGIN_SRC sql
+  create or replace view inspections_events
+  as
+  select
+   license_num as entity_id,
+   date as outcome_date,
+   case
+   when results = 'Fail' then True
+   else False
+   end
+   as outcome
+  from cleaned.inspections
+#+END_SRC
+
+#+RESULTS:
+
+
 *** Experiment metadata
 
     #+BEGIN_SRC yaml
-      # EXPERIMENT METADATA
-      # model_comment (optional) will end up in the model_comment column of the
-      # models table for each model created in this experiment
-      model_comment: 'test'
+      model_comment: 'inspections'
     #+END_SRC
 
 *** Time splitting
@@ -1418,50 +1491,46 @@
     For this section we will need get some info about the time span of our
     data,
 
-
     #+BEGIN_SRC sql
       select
-      min(date)::date as modeling_start_time,
-      max(date)::date as modeling_end_time
-      from inspections;
+      min(date) as modeling_start_time,
+      max(date) as modeling_end_time
+      from cleaned.inspections;
     #+END_SRC
 
     #+RESULTS:
     | modeling_start_time | modeling_end_time |
     |-------------------+-----------------|
-    |        2010-01-04 |      2017-07-25 |
+    |        2010-01-04 |      2017-08-18 |
 
 
 
     #+BEGIN_SRC yaml
-      # TIME SPLITTING
-      # The time window to look at, and how to divide the window into
-      # train/test splits
       temporal_config:
         beginning_of_time: '2010-01-04' # earliest date included in features
-        modeling_start_time: '2016-01-04' # earliest date in any model
-        modeling_end_time: '2017-07-25' # all dates in any model are < this date
-        update_window: '3month' # how frequently to retrain models
-        train_example_frequency: '1month' # time between rows for same entity in train matrix
-        test_example_frequency: '1month' # time between rows for same entity in test matrix
-        train_durations: ['6month'] # length of time included in a train matrix
-        test_durations: ['1month'] # length of time included in a test matrix
-        train_label_windows: ['1month'] # time period across which outcomes are labeled in train matrices
-        test_label_windows: ['1month'] # time period across which outcomes are labeled in test matrices
+        modeling_start_time: '2014-01-01' # earliest date in any model
+        modeling_end_time: '2017-01-01' # all dates in any model are < this date
+
+        update_window: '3 month' # how frequently to retrain models
+
+        train_example_frequency: '1 d' # time between rows for same entity in train matrix
+        train_durations: ['1 y'] # length of time included in a train matrix
+        train_label_windows: ['1 month'] # time period across which outcomes are labeled in train matrices
+
+        test_example_frequency: '1 d' # time between rows for same entity in test matrix
+        test_durations: ['1 d'] # length of time included in a test matrix
+        test_label_windows: ['3 month'] # time period across which outcomes are labeled in test matrices
     #+END_SRC
+
+
+We will refer the reader to the image in section [[Cross temporal validation and Timechop]]
+
+*QUESTION:* How do we specify here: /...in the next X months/?
 
 *** Label generation
 
     #+BEGIN_SRC yaml
-      # LABEL GENERATION
-      # Information needed to generate labels
-      #
-      # An events table is expected, with the columns:
-        #   entity_id - an identifier for which the labels are applied to
-        #   outcome_date - The date at which some outcome was known
-        #   outcome - A boolean outcome
-        # These are used to generate appropriate labels for each train/test split
-        events_table: 'violations'
+        events_table: 'inspections_events'
     #+END_SRC
 
 *** Feature generation
@@ -1479,131 +1548,44 @@
     - etc.
 
     #+BEGIN_SRC yaml
-      # FEATURE GENERATION
-      # The aggregate features to generate for each train/test split
-      #
-      # Implemented by wrapping collate: https://github.com/dssg/collate
-      # Most terminology here is taken directly from collate
-      #
-      # Each entry describes a collate.SpacetimeAggregation object, and the
-      # arguments needed to create it. Generally, each of these entries controls
-      # the features from one source table, though in the case of multiple groups
-      # may result in multiple output tables
       feature_aggregations:
         -
           # prefix given to the resultant tables
-          prefix: 'violation_type'
-          # from_obj is usually a source table but can be an expression, such as
-          # a join (ie 'cool_stuff join other_stuff using (stuff_id)')
-          from_obj: 'violations'
-          # The date column to use for specifying which records to include
-          # in temporal features. It is important that the column used specifies
-          # the date at which the event is known about, which may be different
-          # from the date the event happened.
-          knowledge_date_column: 'outcome_date'
-
-          # aggregates and categoricals define the actual features created. So
-          # at least one is required
-          #
-          # Aggregates of numerical columns. Each quantity is a number of some
-          # sort, and the list of metrics are applied to each quantity
-          # aggregates:
-            #     -
-            #         quantity: 'homeless::INT'
-            #         metrics:
-              #             - 'count'
-              #             - 'sum'
-              #
-              # Categorical features. The column given can be of any type, but the
-              # choices must comparable to that type for equality within SQL
-              # The result will be one feature for each choice/metric combination
-              categoricals:
-                -
-                  column: 'violation_type'
-                  choice_query: 'select distinct violation_type from violations'
-                  metrics:
-                    - 'count'
-                    # The time intervals over which to aggregate features
-                    intervals:
-                      - '1 week'
-                      # A list of different columns to separately group by
-                      groups:
-                        - 'entity_id'   ## This is the ID of the entity
+          prefix: 'violations'
+          from_obj: 'cleaned.violations'
+          knowledge_date_column: 'knowledge_date'
+          aggregates:
+            -
+              quantiy: 'violation_code'
+              metrics: ['count']
+          intervals:
+            - ['1y']
+          groups:
+            - 'license_num'
     #+END_SRC
 
 *** Feature grouping
 
     #+BEGIN_SRC yaml
-      # FEATURE GROUPING
-      # define how to group features and generate combinations
-      # feature_group_definition allows you to create groups/subset of your features
-      # by different criteria.
-      # for instance, 'tables' allows you to send a list of collate feature tables
-      # 'prefix' allows you to specify a list of feature name prefixes
-      feature_group_definition:
-        tables: ['violation_type_entity_id']
-
-        # strategies for generating combinations of groups
-        # available: all, leave-one-out, leave-one-in
         feature_group_strategies: ['all']
     #+END_SRC
 
-*** Model grouping
-
-    #+BEGIN_SRC yaml
-      # MODEL GROUPING
-      # Model groups are aimed at defining models which are equivalent across time splits.
-      # By default, the classifier module name, hyperparameters, and feature names are used.
-      #
-      # model_group_keys defines a list of *additional* matrix metadata keys that
-      # should be considered when creating a model group
-      model_group_keys: []
-      #    - 'train_duration'
-      #    - 'train_label_window'
-      #    - 'train_example_frequency'
-    #+END_SRC
 
 *** Grid configuration
     #+BEGIN_SRC yaml
-      # GRID CONFIGURATION
-      # The classifier/hyperparameter combinations that should be trained
-      #
-      # Each top-level key should be a class name, importable from triage. sklearn is
-      # available, and if you have another classifier package you would like available,
-      # contribute it to requirements.txt
-      #
-      # Each lower-level key is a hyperparameter name for the given classifier, and
-      # each value is a list of potential values. All possible combinations of
-      # classifiers and hyperparameters are trained.
+
+      model_group_keys: []
+
       grid_config:
-        'sklearn.ensemble.RandomForestClassifier':
-          max_features: ['sqrt']
-          criterion: ['gini', 'entropy']
-          n_estimators: [100, 1000, 5000]
-          min_samples_split: [10, 20, 50, 100]
-          max_depth: [10, 20, 50, 100]
+          'sklearn.tree.DecisionTreeClassifier':
+              criterion: ['gini']
+              max_depth: [3]
+              min_samples_split: [10]
     #+END_SRC
 
 *** Model scoring
 
     #+BEGIN_SRC yaml
-      # MODEL SCORING
-      # How each trained model is scored
-      #
-      # Each entry in 'metric_groups' needs a list of one of the metrics defined in
-      # triage.scoring.ModelScorer.available_metrics (contributions welcome!)
-      # Depending on the metric, either thresholds or parameters
-      #
-      # Parameters specify any hyperparameters needed. For most metrics,
-      # which are simply wrappers of sklearn functions, these
-      # are passed directly to sklearn.
-      #
-      # Thresholds are more specific: The list is subset and only the
-      # top percentile or top n entities are scored
-      #
-      # sort_seed, if passed, will seed the random number generator for each model's
-      # metric creation phase. This affects how entities with the same probabilities
-      # are sorted
       scoring:
         metric_groups:
           -
@@ -1614,20 +1596,26 @@
 
     #+END_SRC
 
+*** Running the experiment
 
     #+BEGIN_SRC ipython :tangle ./src/run.py
+      import os
       import sqlalchemy
       import yaml
 
       from catwalk.storage import FSModelStorageEngine
       from triage.experiments import SingleThreadedExperiment
 
+      food_db = os.environ.get('FOOD_DB_URL')
+
+      print(food_db)
+
       with open('inspections-training.yaml') as f:
           experiment_config = yaml.load(f)
 
       experiment = SingleThreadedExperiment(
           config=experiment_config,
-          db_engine=sqlalchemy.create_engine('postgresql://food_user:goli0808@food_db:5432/food'),
+          db_engine=sqlalchemy.create_engine(food_db),
           model_storage_class=FSModelStorageEngine,
           project_path='./triage-generated'
       )
@@ -1655,8 +1643,9 @@
 
 * Looking the results at Tyra
 
+*QUESTION*: How can I set the credentials in =tyra=?
 
-/Add some images/
+*TODO:* /Add some images/
 
 * What's next?
 
