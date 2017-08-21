@@ -2,7 +2,7 @@ FROM postgres:9.6
 
 ## PostGIS activation
 RUN apt-get -y update \
-    && apt-get -y  install wget less \
+    && apt-get -y  install wget \
     && wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | apt-key add - \
     && apt-get -y update \
     && apt-get -y install postgresql-9.6-postgis-2.3 postgis postgresql-9.6-pgrouting
