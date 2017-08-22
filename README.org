@@ -1568,21 +1568,30 @@
     - etc.
 
     #+BEGIN_SRC yaml
-        feature_aggregations:
-          -
-            # prefix given to the resultant tables
-            prefix: 'violations'
-            from_obj: 'cleaned.violations'
-            knowledge_date_column: 'knowledge_date'
-            aggregates:
-              -
-                quantity: 'violation_code'
-                metrics:
-                  - 'count'
-                  intervals:
-                    - '1 year'
-                    groups:
-                      - 'entity_id'
+      feature_aggregations:
+        -
+          # prefix given to the resultant tables
+          prefix: 'violations'
+          from_obj: 'cleaned.violations'
+          knowledge_date_column: 'knowledge_date'
+          aggregates:
+            -
+              quantity: 'violation_code'
+              metrics:
+                - 'sum'
+
+          categoricals:
+            -
+              column: 'violation_code'
+              choice_query: 'select distinct violation_code from cleaned.violations'
+              metrics:
+                - 'count'
+
+          intervals:
+            - '1 y'
+
+          groups:
+            - 'entity_id'
     #+END_SRC
 
 *** Feature grouping
