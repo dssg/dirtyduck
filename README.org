@@ -129,9 +129,9 @@
 
   #+BEGIN_SRC shell :tangle infrastructure/tyra/example_users.json
     {
-        "tyra@example.com":
+        "tyra_user":
         {
-            "pw": "topmodels"
+            "pw": "tutorial"
         }
     }
   #+END_SRC
@@ -1574,11 +1574,6 @@
           prefix: 'violations'
           from_obj: 'cleaned.violations'
           knowledge_date_column: 'knowledge_date'
-          aggregates:
-            -
-              quantity: 'violation_code'
-              metrics:
-                - 'sum'
 
           categoricals:
             -
@@ -1592,6 +1587,8 @@
 
           groups:
             - 'entity_id'
+
+
     #+END_SRC
 
 *** Feature grouping
