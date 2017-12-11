@@ -19,7 +19,8 @@ services:
     container_name: tutorial_bastion
     #working_dir: /app
     command: bash
-    user: ${UID}:${GID}
+    #user: ${UID}:${GID}
+    tty: true
     env_file: .env
     environment:
       FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'

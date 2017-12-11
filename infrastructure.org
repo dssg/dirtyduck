@@ -1,0 +1,161 @@
+#+TITLE: Dirty duck: A triage's guided tour
+#+AUTHOR: Center of Data Science for Public Policy
+#+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:ipython   :session food_inspections
+
+* Infrastructure
+
+  Besides data, in most of the data science projects you will need some
+  other tools, for example a place to store the data (a database
+  management system), a way
+  for putting your model to work (an API) and a interface for looking
+  the performace of your trained models (for this tutorial we are proposing [[https://github.com/dssg/tyra][tyra]])
+
+  We are proving a little script for managing all the infrastructure in
+  a (hopefully) transparent way.
+
+  Before creating the infrastructure, change the string =your_password=
+  for something else in the file
+  =infrastructure/food_db/.env_example=
+
+  #+BEGIN_SRC shell :tangle infrastructure/env_example
+    POSTGRES_DB=food
+    POSTGRES_HOST=0.0.0.0
+    POSTGRES_USER=food_user
+    POSTGRES_DB=food
+    POSTGRES_PORT=5434
+    POSTGRES_PASSWORD=your_password
+
+    UID=1000
+    GID=1000
+  #+END_SRC
+
+  And change the name of the file to =.env=.
+
+  Also, adjust the =tyra= credentials file (We will explain what is =tyra=
+  later). That file is located inside the folder =infrastructure/tyra/example_users.json=
+
+  #+BEGIN_SRC shell :tangle infrastructure/tyra/example_users.json
+    {
+        "tyra_user":
+        {
+            "pw": "tutorial"
+        }
+    }
+  #+END_SRC
+
+  Change =tyra_user= for whatever you want (it will be your
+  username), and change =tutorial= too (it will be the password).
+
+  Next run the following command
+
+  #+BEGIN_SRC shell
+    ./manage.sh
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  Usage: ./manage.sh {start|stop|build|rebuild|run|logs|status}
+  :END:
+
+
+
+  We need to create the infrastructure so, =start= it
+
+  #+BEGIN_SRC shell
+    ./manage.sh start
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  :END:
+
+
+
+  This will take some minutes the first time.
+
+  You can check that everything is running smoothly with =status=
+
+  #+BEGIN_SRC shell
+    ./manage.sh status
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+          Name                       Command              State                           Ports
+  ----------------------------------------------------------------------------------------------------------------------
+  food_db                 docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
+  tutorial_api            python app.py                   Up      0.0.0.0:5000->5000/tcp
+  tutorial_bastion        bash                            Up
+  tutorial_reverseproxy   nginx -g daemon off;            Up      80/tcp, 0.0.0.0:8081->8081/tcp, 0.0.0.0:8090->8090/tcp
+  tutorial_tyra           python run_webapp.py            Up      0.0.0.0:5001->5001/tcp
+  :END:
+
+
+  You can type in your browser [[http://0.0.0.0:5001]] and you will see the
+  login page from *Tyra*.
+
+
+  Login to the docker container using
+
+  #+BEGIN_EXAMPLE shel
+  ./manage.sh bastion
+  #+END_EXAMPLE
+
+  You will see something like:
+
+  #+BEGIN_EXAMPLE shell
+  root@485373fb3c64:/$
+  #+END_EXAMPLE
+
+  Now the database is running, its named =food_db=, the single table in
+  there named =inspections=
+
+  Let's check the =schema= of =inspections= table, first, type the next
+  command to connect to the database
+
+  #+BEGIN_EXAMPLE shell
+  psql ${FOOD_DB_URL}
+  #+END_EXAMPLE
+
+  and then, type the following command:
+
+  #+BEGIN_SRC sql
+    \dS+ inspections
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  | Table "public.inspections" |                   |           |          |              |             |
+  |----------------------------+-------------------+-----------+----------+--------------+-------------|
+  | Column                     | Type              | Modifiers | Storage  | Stats target | Description |
+  | inspection                 | character varying | not null  | extended |              |             |
+  | dba_name                    | character varying |           | extended |              |             |
+  | aka_name                    | character varying |           | extended |              |             |
+  | license_num                 | numeric           |           | main     |              |             |
+  | facility_type               | character varying |           | extended |              |             |
+  | risk                       | character varying |           | extended |              |             |
+  | address                    | character varying |           | extended |              |             |
+  | city                       | character varying |           | extended |              |             |
+  | state                      | character varying |           | extended |              |             |
+  | zip                        | character varying |           | extended |              |             |
+  | date                       | date              |           | plain    |              |             |
+  | type                       | character varying |           | extended |              |             |
+  | results                    | character varying |           | extended |              |             |
+  | violations                 | character varying |           | extended |              |             |
+  | latitude                   | numeric           |           | main     |              |             |
+  | longitude                  | numeric           |           | main     |              |             |
+  | location                   | character varying |           | extended |              |             |
+  :END:
+
+  Now, you can disconnect from the database typing =\q=
