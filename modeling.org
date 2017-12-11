@@ -1,0 +1,490 @@
+#+TITLE: Dirty duck: A triage's guided tour
+#+AUTHOR: Center of Data Science for Public Policy
+#+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:ipython   :session food_inspections
+
+
+* Using triage (finally)
+
+  With the data sitting in our database, we can start our analysis.
+
+  [[https://github.com/dssg/triage][Triage]] make the followings assumptions:
+
+
+  At the end, =triage= will create the following in your database:
+
+  - A =features= schema
+  - A =results= schema
+  - A table named =labels= in =public= schema
+
+  And it will create, several files that contains the matrices for
+  training your model
+
+
+** The experiment concept
+
+   Typically, a in a supervised learning problem you need to do the
+   following:
+
+   - Get some /labeled/ data
+   - Prepare the data
+   - Set some questions
+   - Set the metric
+   - Set the baseline
+   - Adjust the /labels/ to the question
+   - Generate features
+   - Train several models using cross-validation
+   - Chose the best model (using the metric)
+   - Put that model "in production"
+
+** Cross temporal validation and Timechop
+
+   /We need to add some images here/
+
+
+** The =inspections-training.yaml= file
+   :PROPERTIES:
+   :header-args:yaml: :tangle ./src/inspections-training.yaml
+   :END:
+
+   This is the unique point of entry for using =triage=, basically in this
+   file, you will specify,  how you want to do the temporal
+   cross-validation, how to generate the labels, how to generate the
+   features, which models you want to run, and finally,  which are the
+   metrics you are interested.
+
+   You can check the final configuration in =./src/inspections-training.yaml=
+
+   Let's go by piece by piece
+
+
+
+   First, =triage= needs a special table at this moment, we call this table =inspections_events=
+
+
+   #+BEGIN_SRC sql
+     create or replace view inspections_events
+     as
+     select
+     license_num as entity_id,
+     date as outcome_date,
+     case
+     when results = 'Fail' then True
+     else False
+     end
+     as outcome
+     from cleaned.inspections
+   #+END_SRC
+
+   #+RESULTS:
+
+
+*** Experiment metadata
+
+    #+BEGIN_SRC yaml
+      model_comment: 'inspections'
+    #+END_SRC
+
+*** Time splitting
+
+    For this section we will need get some info about the time span of our
+    data,
+
+    #+BEGIN_SRC sql
+      select
+      min(date) as modeling_start_time,
+      max(date) as modeling_end_time
+      from cleaned.inspections;
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    | modeling_start_time | modeling_end_time |
+    |-------------------+-----------------|
+    |        2010-01-04 |      2017-08-18 |
+    :END:
+
+
+
+    #+BEGIN_SRC yaml
+        temporal_config:
+          beginning_of_time: '2010-01-04' # earliest date included in features
+          modeling_start_time: '2014-01-01' # earliest date in any model
+          modeling_end_time: '2017-01-01' # all dates in any model are < this date
+
+          update_window: '1 y' # how frequently to retrain models
+
+          train_example_frequency: '1 d' # time between rows for same entity in train matrix
+          train_durations: ['1 y'] # length of time included in a train matrix
+          train_label_windows: ['3 month'] # time period across which outcomes are labeled in train matrices
+
+          test_example_frequency: '1 d' # time between rows for same entity in test matrix
+          test_durations: ['1 d'] # length of time included in a test matrix
+          test_label_windows: ['3 month'] # time period across which outcomes are labeled in test matrices
+    #+END_SRC
+
+
+    We will refer the reader to the image in section [[Cross temporal validation and Timechop]]
+
+*** Label generation
+
+    #+BEGIN_SRC yaml
+      events_table: 'inspections_events'
+    #+END_SRC
+
+*** Feature generation
+
+    We could create the following features:
+
+    Spatial (=zip_code=, /nearby/,  ) and temporal ( /last/ X =week= s
+    =month= s)
+
+    - inspections types to the facility, to the facility type
+    - violation codes in the facility, to related facilities
+
+    - =count=, =avg=, max
+
+    - etc.
+
+    #+BEGIN_SRC yaml
+      feature_aggregations:
+        -
+          # Number of violations of a specific code and proportion, grouped by entity
+          prefix: 'violations'
+          from_obj: 'cleaned.violations'
+          knowledge_date_column: 'knowledge_date'
+
+          categoricals:
+            -
+              column: 'violation_code'
+              choice_query: 'select distinct violation_code from cleaned.violations'
+              metrics:
+                - 'sum'
+                - 'avg'
+
+          intervals:
+            - '1 y'
+
+          groups:
+            - 'entity_id'
+
+        -  # inspections in the last year associated with this entity
+          prefix: 'inspections'
+          from_obj: 'cleaned.inspections'
+          knowledge_date_column: 'date'
+          aggregates:
+            -
+                quantity: '*'
+                metrics:
+                    - 'count'
+          intervals:
+            - '1 y'
+
+          groups:
+            - 'license_num'
+
+        - # inspections that happened in the last year grouped  by type of facility
+          prefix: 'inspections'
+          from_obj: 'cleaned.inspections'
+          knowledge_date_column: 'date'
+
+          aggregates:
+            -
+                quantity: '*'
+                metrics:
+                    - 'count'
+          intervals:
+            - '1 y'
+
+          groups:
+            - 'facility_type'
+
+        - # inspections that happened in the last year grouped  by zip code
+          prefix: 'inspections'
+          from_obj: 'cleaned.inspections'
+          knowledge_date_column: 'date'
+
+          aggregates:
+            -
+                quantity: '*'
+                metrics:
+                    - 'count'
+          intervals:
+            - '1 y'
+
+          groups:
+            - 'zip_code'
+    #+END_SRC
+
+
+#+BEGIN_QUOTE
+Initial matrix end time 2016-01-01 00:00:00
+train end: 2015-01-01 00:00:00
+train start: 2014-01-01 00:00:00
+train end: 2016-01-01 00:00:00
+train start: 2015-01-01 00:00:00
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/elements.py:4323: SAWarning: Textual column expression 'entity_id' should be explicitly declared with text('entity_id'), or use column('entity_id') for more specificity (this warning may be suppressed after 10 occurrences)
+if guess_is_literal else "column"
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/elements.py:4323: SAWarning: Textual column expression "['facility_type', 'zip_co..." should be explicitly declared with text("['facility_type', 'zip_co..."), or use literal_column("['facility_type', 'zip_co...") for more specificity (this warning may be suppressed after 10 occurrences)
+if guess_is_literal else "column"
+#+END_QUOTE
+
+
+#+BEGIN_QUOTE
+{'beginning_of_time': datetime.datetime(2010, 1, 4, 0, 0), 'end_time':
+datetime.datetime(2015, 1, 1, 0, 0), 'indices': ['entity_id',
+'as_of_date'], 'feature_names': ['facility_type',
+'inspections_facility_type_1 y_*_count', 'inspections_license_num_1 y_*_count',
+'inspections_zip_code_1 y_*_count', 'license_num', 'violations_entity_id_1
+y_violation_code_10_avg', 'violations_entity_id_1 y_violation_code_10_sum',
+'violations_entity_id_1 y_violation_code_11_avg', 'violations_entity_id_1
+y_violation_code_11_sum', 'violations_entity_id_1 y_violation_code_12_avg',
+'violations_entity_id_1 y_violation_code_12_sum', 'violations_entity_id_1
+y_violation_code_13_avg', 'violations_entity_id_1 y_violation_code_13_sum',
+'violations_entity_id_1 y_violation_code_14_avg', 'violations_entity_id_1
+y_violation_code_14_sum', 'violations_entity_id_1 y_violation_code_15_avg',
+'violations_entity_id_1 y_violation_code_15_sum', 'violations_entity_id_1
+y_violation_code_16_avg', 'violations_entity_id_1 y_violation_code_16_sum',
+'violations_entity_id_1 y_violation_code_17_avg', 'violations_entity_id_1
+y_violation_code_17_sum', 'violations_entity_id_1 y_violation_code_18_avg',
+'violations_entity_id_1 y_violation_code_18_sum', 'violations_entity_id_1
+y_violation_code_19_avg', 'violations_entity_id_1 y_violation_code_19_sum',
+'violations_entity_id_1 y_violation_code_1_avg', 'violations_entity_id_1
+y_violation_code_1_sum', 'violations_entity_id_1 y_violation_code_20_avg',
+'violations_entity_id_1 y_violation_code_20_sum', 'violations_entity_id_1
+y_violation_code_21_avg', 'violations_entity_id_1 y_violation_code_21_sum',
+'violations_entity_id_1 y_violation_code_22_avg', 'violations_entity_id_1
+y_violation_code_22_sum', 'violations_entity_id_1 y_violation_code_23_avg',
+'violations_entity_id_1 y_violation_code_23_sum', 'violations_entity_id_1
+y_violation_code_24_avg', 'violations_entity_id_1 y_violation_code_24_sum',
+'violations_entity_id_1 y_violation_code_25_avg', 'violations_entity_id_1
+y_violation_code_25_sum', 'violations_entity_id_1 y_violation_code_26_avg',
+'violations_entity_id_1 y_violation_code_26_sum', 'violations_entity_id_1
+y_violation_code_27_avg', 'violations_entity_id_1 y_violation_code_27_sum',
+'violations_entity_id_1 y_violation_code_28_avg', 'violations_entity_id_1
+y_violation_code_28_sum', 'violations_entity_id_1 y_violation_code_29_avg',
+'violations_entity_id_1 y_violation_code_29_sum', 'violations_entity_id_1
+y_violation_code_2_avg', 'violations_entity_id_1 y_violation_code_2_sum',
+'violations_entity_id_1 y_violation_code_30_avg', 'violations_entity_id_1
+y_violation_code_30_sum', 'violations_entity_id_1 y_violation_code_31_avg',
+'violations_entity_id_1 y_violation_code_31_sum', 'violations_entity_id_1
+y_violation_code_32_avg', 'violations_entity_id_1 y_violation_code_32_sum',
+'violations_entity_id_1 y_violation_code_33_avg', 'violations_entity_id_1
+y_violation_code_33_sum', 'violations_entity_id_1 y_violation_code_34_avg',
+'violations_entity_id_1 y_violation_code_34_sum', 'violations_entity_id_1
+y_violation_code_35_avg', 'violations_entity_id_1 y_violation_code_35_sum',
+'violations_entity_id_1 y_violation_code_36_avg', 'violations_entity_id_1
+y_violation_code_36_sum', 'violations_entity_id_1 y_violation_code_37_avg',
+'violations_entity_id_1 y_violation_code_37_sum', 'violations_entity_id_1
+y_violation_code_38_avg', 'violations_entity_id_1 y_violation_code_38_sum',
+'violations_entity_id_1 y_violation_code_39_avg', 'violations_entity_id_1
+y_violation_code_39_sum', 'violations_entity_id_1 y_violation_code_3_avg',
+'violations_entity_id_1 y_violation_code_3_sum', 'violations_entity_id_1
+y_violation_code_40_avg', 'violations_entity_id_1 y_violation_code_40_sum',
+'violations_entity_id_1 y_violation_code_41_avg', 'violations_entity_id_1
+y_violation_code_41_sum', 'violations_entity_id_1 y_violation_code_42_avg',
+'violations_entity_id_1 y_violation_code_42_sum', 'violations_entity_id_1
+y_violation_code_43_avg', 'violations_entity_id_1 y_violation_code_43_sum',
+'violations_entity_id_1 y_violation_code_44_avg', 'violations_entity_id_1
+y_violation_code_44_sum', 'violations_entity_id_1 y_violation_code_45_avg',
+'violations_entity_id_1 y_violation_code_45_sum', 'violations_entity_id_1
+y_violation_code_4_avg', 'violations_entity_id_1 y_violation_code_4_sum',
+'violations_entity_id_1 y_violation_code_5_avg', 'violations_entity_id_1
+y_violation_code_5_sum', 'violations_entity_id_1 y_violation_code_6_avg',
+'violations_entity_id_1 y_violation_code_6_sum', 'violations_entity_id_1
+y_violation_code_70_avg', 'violations_entity_id_1 y_violation_code_70_sum',
+'violations_entity_id_1 y_violation_code_7_avg', 'violations_entity_id_1
+y_violation_code_7_sum', 'violations_entity_id_1 y_violation_code_8_avg',
+'violations_entity_id_1 y_violation_code_8_sum', 'violations_entity_id_1
+y_violation_code_9_avg', 'violations_entity_id_1 y_violation_code_9_sum',
+'violations_entity_id_1 y_violation_code__avg', 'violations_entity_id_1
+y_violation_code__sum', 'zip_code'], 'label_name': 'outcome', 'label_type':
+'binary', 'state': 'active', 'matrix_id': 'outcome_binary_2014-01-01
+00:00:00_2015-01-01 00:00:00', 'matrix_type': 'train',
+'matrix_start_time': datetime.datetime(2014, 1, 1, 0, 0),
+'matrix_end_time': datetime.datetime(2015, 1, 1, 0, 0), 'as_of_times':
+#+END_QUOTE
+
+#+BEGIN_QUOTE
+{'beginning_of_time': datetime.datetime(2010, 1, 4, 0, 0), 'end_time':
+datetime.datetime(2016, 1, 1, 0, 0), 'indices': ['entity_id',
+'as_of_date'], 'feature_names': ['facility_type',
+'inspections_facility_type_1 y_*_count', 'inspections_license_num_1 y_*_count',
+'inspections_zip_code_1 y_*_count', 'license_num', 'violations_entity_id_1
+y_violation_code_10_avg', 'violations_entity_id_1 y_violation_code_10_sum',
+'violations_entity_id_1 y_violation_code_11_avg', 'violations_entity_id_1
+y_violation_code_11_sum', 'violations_entity_id_1 y_violation_code_12_avg',
+'violations_entity_id_1 y_violation_code_12_sum', 'violations_entity_id_1
+y_violation_code_13_avg', 'violations_entity_id_1 y_violation_code_13_sum',
+'violations_entity_id_1 y_violation_code_14_avg', 'violations_entity_id_1
+y_violation_code_14_sum', 'violations_entity_id_1 y_violation_code_15_avg',
+'violations_entity_id_1 y_violation_code_15_sum', 'violations_entity_id_1
+y_violation_code_16_avg', 'violations_entity_id_1 y_violation_code_16_sum',
+'violations_entity_id_1 y_violation_code_17_avg', 'violations_entity_id_1
+y_violation_code_17_sum', 'violations_entity_id_1 y_violation_code_18_avg',
+'violations_entity_id_1 y_violation_code_18_sum', 'violations_entity_id_1
+y_violation_code_19_avg', 'violations_entity_id_1 y_violation_code_19_sum',
+'violations_entity_id_1 y_violation_code_1_avg', 'violations_entity_id_1
+y_violation_code_1_sum', 'violations_entity_id_1 y_violation_code_20_avg',
+'violations_entity_id_1 y_violation_code_20_sum', 'violations_entity_id_1
+y_violation_code_21_avg', 'violations_entity_id_1 y_violation_code_21_sum',
+'violations_entity_id_1 y_violation_code_22_avg', 'violations_entity_id_1
+y_violation_code_22_sum', 'violations_entity_id_1 y_violation_code_23_avg',
+'violations_entity_id_1 y_violation_code_23_sum', 'violations_entity_id_1
+y_violation_code_24_avg', 'violations_entity_id_1 y_violation_code_24_sum',
+'violations_entity_id_1 y_violation_code_25_avg', 'violations_entity_id_1
+y_violation_code_25_sum', 'violations_entity_id_1 y_violation_code_26_avg',
+'violations_entity_id_1 y_violation_code_26_sum', 'violations_entity_id_1
+y_violation_code_27_avg', 'violations_entity_id_1 y_violation_code_27_sum',
+'violations_entity_id_1 y_violation_code_28_avg', 'violations_entity_id_1
+y_violation_code_28_sum', 'violations_entity_id_1 y_violation_code_29_avg',
+'violations_entity_id_1 y_violation_code_29_sum', 'violations_entity_id_1
+y_violation_code_2_avg', 'violations_entity_id_1 y_violation_code_2_sum',
+'violations_entity_id_1 y_violation_code_30_avg', 'violations_entity_id_1
+y_violation_code_30_sum', 'violations_entity_id_1 y_violation_code_31_avg',
+'violations_entity_id_1 y_violation_code_31_sum', 'violations_entity_id_1
+y_violation_code_32_avg', 'violations_entity_id_1 y_violation_code_32_sum',
+'violations_entity_id_1 y_violation_code_33_avg', 'violations_entity_id_1
+y_violation_code_33_sum', 'violations_entity_id_1 y_violation_code_34_avg',
+'violations_entity_id_1 y_violation_code_34_sum', 'violations_entity_id_1
+y_violation_code_35_avg', 'violations_entity_id_1 y_violation_code_35_sum',
+'violations_entity_id_1 y_violation_code_36_avg', 'violations_entity_id_1
+y_violation_code_36_sum', 'violations_entity_id_1 y_violation_code_37_avg',
+'violations_entity_id_1 y_violation_code_37_sum', 'violations_entity_id_1
+y_violation_code_38_avg', 'violations_entity_id_1 y_violation_code_38_sum',
+'violations_entity_id_1 y_violation_code_39_avg', 'violations_entity_id_1
+y_violation_code_39_sum', 'violations_entity_id_1 y_violation_code_3_avg',
+'violations_entity_id_1 y_violation_code_3_sum', 'violations_entity_id_1
+y_violation_code_40_avg', 'violations_entity_id_1 y_violation_code_40_sum',
+'violations_entity_id_1 y_violation_code_41_avg', 'violations_entity_id_1
+y_violation_code_41_sum', 'violations_entity_id_1 y_violation_code_42_avg',
+'violations_entity_id_1 y_violation_code_42_sum', 'violations_entity_id_1
+y_violation_code_43_avg', 'violations_entity_id_1 y_violation_code_43_sum',
+'violations_entity_id_1 y_violation_code_44_avg', 'violations_entity_id_1
+y_violation_code_44_sum', 'violations_entity_id_1 y_violation_code_45_avg',
+'violations_entity_id_1 y_violation_code_45_sum', 'violations_entity_id_1
+y_violation_code_4_avg', 'violations_entity_id_1 y_violation_code_4_sum',
+'violations_entity_id_1 y_violation_code_5_avg', 'violations_entity_id_1
+y_violation_code_5_sum', 'violations_entity_id_1 y_violation_code_6_avg',
+'violations_entity_id_1 y_violation_code_6_sum', 'violations_entity_id_1
+y_violation_code_70_avg', 'violations_entity_id_1 y_violation_code_70_sum',
+'violations_entity_id_1 y_violation_code_7_avg', 'violations_entity_id_1
+y_violation_code_7_sum', 'violations_entity_id_1 y_violation_code_8_avg',
+'violations_entity_id_1 y_violation_code_8_sum', 'violations_entity_id_1
+y_violation_code_9_avg', 'violations_entity_id_1 y_violation_code_9_sum',
+'violations_entity_id_1 y_violation_code__avg', 'violations_entity_id_1
+y_violation_code__sum', 'zip_code'], 'label_name': 'outcome', 'label_type':
+'binary', 'state': 'active', 'matrix_id': 'outcome_binary_2015-01-01
+00:00:00_2016-01-01 00:00:00', 'matrix_type': 'train',
+'matrix_start_time': datetime.datetime(2015, 1, 1, 0, 0),
+'matrix_end_time': datetime.datetime(2016, 1, 1, 0, 0), 'as_of_times':
+#+END_QUOTE
+
+
+#+BEGIN_QUOTE
+Traceback (most recent call last):
+  File "run.py", line 22, in <module>
+    experiment.run()
+  File "/usr/local/lib/python3.6/site-packages/triage/experiments/base.py", line 333, in run
+    self.build_matrices()
+  File "/usr/local/lib/python3.6/site-packages/triage/experiments/singlethreaded.py", line 18, in build_matrices
+    self.planner.build_all_matrices(self.matrix_build_tasks)
+  File "/usr/local/lib/python3.6/site-packages/architect/planner.py", line 180, in build_all_matrices
+    self.builder.build_all_matrices(*args, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/architect/builders.py", line 19, in build_all_matrices
+    self.build_matrix(**task_arguments)
+  File "/usr/local/lib/python3.6/site-packages/architect/builders.py", line 256, in build_matrix
+    matrix_uuid
+  File "/usr/local/lib/python3.6/site-packages/architect/builders.py", line 391, in write_features_data
+    self.write_to_csv(features_query, csv_name)
+  File "/usr/local/lib/python3.6/site-packages/architect/builders.py", line 418, in write_to_csv
+    cur.copy_expert(copy_sql, matrix_csv)
+psycopg2.ProgrammingError: column r.entity_id does not exist
+LINE 14:             ON ed.entity_id = r.entity_id AND
+                                       ^
+HINT:  Perhaps you meant to reference the column "ed.entity_id".
+
+#+END_QUOTE
+
+*** Feature grouping
+
+    #+BEGIN_SRC yaml
+      feature_group_strategies: ['all']
+    #+END_SRC
+
+
+*** Grid configuration
+    #+BEGIN_SRC yaml
+      model_group_keys: []
+
+      grid_config:
+        'sklearn.tree.DecisionTreeClassifier':
+          criterion: ['gini']
+          max_depth: [3]
+          min_samples_split: [10]
+    #+END_SRC
+
+*** Model scoring
+
+    #+BEGIN_SRC yaml
+        scoring:
+          metric_groups:
+            -
+              metrics: ['precision@', 'recall@', 'fpr@']
+              thresholds:
+                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0]
+                top_n: [25, 75, 150, 300, 500, 1000, 1500]
+
+    #+END_SRC
+
+*** Running the experiment
+
+    #+BEGIN_SRC ipython :tangle ./src/run.py
+      import os
+      import sqlalchemy
+      import yaml
+
+      from catwalk.storage import FSModelStorageEngine
+      from triage.experiments import SingleThreadedExperiment
+
+      food_db = os.environ.get('FOOD_DB_URL')
+
+      print(food_db)
+
+      with open('inspections-training.yaml') as f:
+          experiment_config = yaml.load(f)
+
+      experiment = SingleThreadedExperiment(
+          config=experiment_config,
+          db_engine=sqlalchemy.create_engine(food_db),
+          model_storage_class=FSModelStorageEngine,
+          project_path='./triage-generated'
+      )
+
+      experiment.run()
+    #+END_SRC
+
+
+    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/code :results org drawer
+      python run.py
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    :END:
+
+
+** The =eis-training.yaml= file
+   :PROPERTIES:
+   :header-args:yaml: :tangle ./src/eis-training.yaml
+   :END:
