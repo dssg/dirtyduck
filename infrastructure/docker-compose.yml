@@ -29,33 +29,33 @@ services:
       - "../src:/code"
 
 
-  reverseproxy:
-    build:
-      context: ./reverseproxy
-    image: tutorial/reverseproxy
-    container_name: tutorial_reverseproxy
-    depends_on:
-      - api
-    ports:
-      - 8090:8090
-      - 8081:8081
+  # reverseproxy:
+  #   build:
+  #     context: ./reverseproxy
+  #   image: tutorial/reverseproxy
+  #   container_name: tutorial_reverseproxy
+  #   depends_on:
+  #     - api
+  #   ports:
+  #     - 8090:8090
+  #     - 8081:8081
 
-  api:
-    build:
-      context: ./api
-    image: tutorial/api
-    container_name: tutorial_api
-    volumes:
-      - "./api:/app"
-    ports:
-      - "5000:5000"
+  # api:
+  #   build:
+  #     context: ./api
+  #   image: tutorial/api
+  #   container_name: tutorial_api
+  #   volumes:
+  #     - "./api:/app"
+  #   ports:
+  #     - "5000:5000"
 
 
-  tyra:
-    build:
-      context: ./tyra
-    image: tutorial/tyra
-    container_name: tutorial_tyra
-    env_file: .env
-    ports:
-      - "5001:5001"
+  # tyra:
+  #   build:
+  #     context: ./tyra
+  #   image: tutorial/tyra
+  #   container_name: tutorial_tyra
+  #   env_file: .env
+  #   ports:
+  #     - "5001:5001"
