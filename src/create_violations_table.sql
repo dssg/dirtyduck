@@ -3,11 +3,18 @@ drop table if exists cleaned.violations cascade;
 create table cleaned.violations as (
 select
 inspection,
-license_num as entity_id, -- This is a requirement of triage
-date as knowledge_date,
-btrim(tuple[1]) as violation_code,
-btrim(tuple[2]) as violation_description,
-btrim(tuple[3]) as violation_comment from
+license_num, -- This is a requirement of triage
+date,
+btrim(tuple[1]) as code,
+btrim(tuple[2]) as description,
+btrim(tuple[3]) as comment,
+(case
+  when btrim(tuple[1]) = '' then NULL
+  when btrim(tuple[1])::int between 1 and 14 then 'critical'
+  when btrim(tuple[1])::int between 15 and 29  then 'serious'
+  else 'minor'
+end
+) as severity from
 (
 select
 inspection,

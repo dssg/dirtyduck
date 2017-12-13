@@ -1,0 +1,84 @@
+#+TITLE: Dirty duck: A triage's guided tour
+#+AUTHOR: Center of Data Science for Public Policy
+#+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+STARTUP: indent
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:ipython   :session food_inspections
+
+* Problem description
+
+#+begin_quote
+Will my restaurant be inspected in the
+/next X period of time?/
+#+end_quote
+
+Where $X$ could be 1 month, 1 week, 1 year,
+etc.
+
+  Knowing the answer to this question, allows you (as the restaurant's
+  owner) to be prepared and take the pertinent actions.
+
+
+* ▶ TODO Creating the labels
+
+ #+begin_src sql
+ select * from semantic.events limit 1
+ #+end_src
+
+ #+RESULTS:
+ :RESULTS:
+ | inspection | type    | license_num | facility_type | zip_code | city    |       date | risk   | results | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+ |------------+---------+------------+--------------+---------+---------+------------+--------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+ |     100209 | CANVASS |    1226806 | Liquor       |   60622 | CHICAGO | 2010-01-20 | Medium | Fail    | [{"code" : "13", "description" : "NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS", "comment" : "All necessary control measures shall be used to effectively minimize or eliminate the presence of rodents, roaches, and other vermin/insect infestations"}, {"code" : "32", "description" : "FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED", "comment" : "All food and non-food contact equipment and utensils shall be smooth, easily cleanable, and durable, and shall be in good repair"}, {"code" : "33", "description" : "FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS", "comment" : "All food and non-food contact surfaces of equipment and all food storage utensils shall be thoroughly cleaned and sanitized daily"}, {"code" : "34", "description" : "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED", "comment" : "The floors shall be constructed per code, be smooth and easily cleaned, and be kept clean and in good repair"}, {"code" : "38", "description" : "VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED", "comment" : "Ventilation: All plumbing fixtures, such as toilets, sinks, washbasins, etc"}, {"code" : "41", "description" : "PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED", "comment" : "All parts of the food establishment and all parts of the property used in connection with the operation of the establishment shall be kept neat and clean and should not produce any offensive odors"}, {"code" : "42", "description" : "APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN", "comment" : "All employees shall be required to use effective hair restraints to confine hair"}] |
+ :END:
+
+
+
+** Which facilities are likely to fail an inspection?
+
+
+
+** Which facilities are likely  to fail an inspection with a major  violation?
+
+Critical violations are coded between =1-14=, serious violations between
+=15-29=, everything above =30= is assumed to be a minor violation.
+
+
+
+* ▶ TODO Temporal crossvalidation
+
+/There are three different ways of doing it/...
+
+
+/It will easy to explain if we show this with only one facility/...
+
+Enter =timechop=
+
+* ▶ TODO Feature engineering
+
+/We will show how to create features, we will use the same subset (one facility) and only one variable .../
+
+Enter =collate=
+
+
+
+  feature_start_time: '2010-01-04' # earliest date included in features
+      feature_end_time: '2010-01-04' # latest date included in features
+      label_start_time: '2014-01-01' # earliest event date included in any label (event date >= label_start_time)
+      label_end_time: '2017-01-01' #  event date < label_end_time to be included in any label
+      model_update_frequency: '3 month' # how frequently to retrain models (days, months, years)
+      training_data_frequency: '1 d' # list - time between rows for same entity in train matrix
+      max_training_history: ['1 y'] # max length of time for labels included in a train matrix - default = max (label_start_time to now)
+     training_prediction_span : ['1 month'] # time period across which outcomes are determined in train matrices
+      test_data_frequency: '1 d' # time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
+      test_span: ['1 d'] # length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
+      test_prediction_span: ['3 month'] # time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)

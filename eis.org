@@ -1,0 +1,52 @@
+#+TITLE: Dirty duck: A triage's guided tour
+#+AUTHOR: Center of Data Science for Public Policy
+#+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+STARTUP: indent
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:ipython   :session food_inspections
+
+
+* ▶ TODO Problem description
+
+#+begin_quote
+Will my restaurant be inspected in the
+/next X period of time?/
+#+end_quote
+
+Where $X$ could be 1 month, 1 week, 1 year,
+etc.
+
+  Knowing the answer to this question, allows you (as the restaurant's
+  owner) to be prepared and take the pertinent actions.
+
+
+* ▶ TODO The task as a multientity/multivariate time series problem
+
+
+* ▶ TODO Creating the labels
+
+
+* ▶ TODO Temporal crossvalidation
+
+/There are three different ways of doing it/...
+
+
+/It will easy to explain if we show this with only one facility/...
+
+Enter =timechop=
+
+
+* ▶ TODO Feature engineering
+
+/We will show how to create features, we will use the same subset (one facility) and only one variable .../
+
+Enter =collate=
