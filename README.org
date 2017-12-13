@@ -3,6 +3,7 @@
 #+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
+#+STARTUP: indent
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
@@ -12,7 +13,6 @@
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
-
 
 
 * Intro
@@ -26,7 +26,10 @@ Inspection the join starts from outcomes (outcome centric) (if you haven't been 
 
 EIS the join starts from entity (entity centric) (if you don't have an outcome you are doing good)
 
+* What do you need for this tutorial?
 
+  [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
+  Use the links for installing instructions.
 
 
 
@@ -37,9 +40,15 @@ EIS the join starts from entity (entity centric) (if you don't have an outcome y
 
 
   We will use the /same/ data set, first, we will be the restaurant's
-  owner, and we want to know: /Will my restaurant be inspected in the/
-  /next X period of time?/ Where $X$ could be 1 month, 1 week, 1 year,
-  etc.
+  owner, and we want to know:
+
+#+begin_quote
+Will my restaurant be inspected in the
+/next X period of time?/
+#+end_quote
+
+Where $X$ could be 1 month, 1 week, 1 year,
+etc.
 
   Knowing the answer to this question, allows you (as the restaurant's
   owner) to be prepared and take the pertinent actions.
@@ -50,8 +59,14 @@ EIS the join starts from entity (entity centric) (if you don't have an outcome y
   to prioritize your resources (i.e. your inspection workforce), since
   they are limited. So, you will use the data (the same data set,
   remember) for answering the next
-  question: /Which X restaurants (facilities) are likely to violate some rule in the
-  following Y period of time?/  In this case maybe you are interested not
+  question:
+
+#+begin_quote
+Which X facilities are likely to violate some rule in the
+  following Y period of time?
+#+end_quote
+
+  In this case maybe you are interested not
   in all the violations but in the more grave.
 
   There are other questions that help to define the goal:
@@ -69,21 +84,10 @@ EIS the join starts from entity (entity centric) (if you don't have an outcome y
   violation given that (or conditioned to) an inspection occurred, but
   the thing that is interesting is $P(V)$ the probability of a violation
   ...
-
+w
   - /Write more about using bayes theorem/
 
   - /Write more about how this problem is related to send police to areas with crime and how this perpetuate some discrimination/
-
-
-* What do you need for this tutorial?
-
-  [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
-  Use the links for installing instructions.
-
-
-
-
-
 
 
 
@@ -99,6 +103,9 @@ EIS the join starts from entity (entity centric) (if you don't have an outcome y
   - Run =pgdedup=
   - Routing based on the inspection list?
   - Add more data sources?
+  - Postmodeling?
+  - Bias analysis?
+
 
 * Appendix: What are all those files?
 
@@ -145,7 +152,7 @@ for that that uses anothe DSaPP tool: =pgdedup=.
   :RESULTS:
   | different_names |
   |----------------|
-  |          24646 |
+  |          25107 |
   :END:
 
   #+BEGIN_SRC sql :results table drawer
