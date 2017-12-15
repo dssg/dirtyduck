@@ -12,7 +12,7 @@
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
-#+PROPERTY: header-args:ipython   :session food_inspections
+#+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
 
 * Problem description
 
@@ -28,7 +28,7 @@ etc.
   owner) to be prepared and take the pertinent actions.
 
 
-* ▶ TODO Creating the labels
+* Creating the labels
 
  #+begin_src sql
  select * from semantic.events limit 1
@@ -124,16 +124,109 @@ on e.inspection = l.inspection
 
 /There are three different ways of doing it/...
 
+Avoid leakage ...
 
 /It will easy to explain if we show this with only one facility/...
 
 Enter =timechop=
+
+Timechop requires the following parameters:
+
+- =feature_start_time= - data aggregated into features begins at this point
+# earliest date included in features
+- =feature_end_time= - data aggregated into features is from before this
+  point
+# latest date included in features
+- =label_start_time= - data aggregated into labels begins at this point
+# earliest event date included in any label (event date >= label_start_time)
+- =label_end_time= - data aggregated is from before this point
+# event date < label_end_time to be included in any label
+- =model_update_frequency= - amount of time between train/test splits
+# how frequently to retrain models (days, months, years)
+- =training_as_of_date_frequencies= - how much time between rows for a
+  single entity in a training matrix
+# list - time between rows for same entity in train matrix
+- =max_training_histories= - the maximum amount of history for each
+  entity to train on (early matrices may contain less than this time
+  if it goes past label/feature start times)
+# max length of time for labels included in a train matrix - default = max (label_start_time to now)
+- =training_label_timespans= - how much time is covered by training
+  labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+  (training prediction span)
+# time period across which outcomes are determined in train matrices
+- =test_as_of_date_frequencies= - how much time between rows for a
+  single entity in a test matrix
+# time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
+- =test_durations= - how far into the future should a model be used to
+  make predictions (in the typical case of wanting a single prediction
+  set immediately after model training, this should be set to 0 days)
+(test span)
+# length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
+- =test_label_timespans= - how much time is covered by test predictions
+  (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+(test prediction span)
+# time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
+
+In the particular case of *inspections*,
+
+- =test_as_of_date_frequencies= is planning/scheduling frequency
+- =test_durations= is how far out are you scheduling for?
+- =test_label_timespan= is equal to =test_durations=
+
+#+begin_src ipython
+%matplotlib inline
+import matplotlib.pyplot as plt
+import numpy as np
+
+a = plt.hist(np.random.randn(1000), bins=20)
+#+end_src
+
+
+#+begin_src ipython
+
+fig, ax = plt.subplots()
+
+ax.hlines(
+      [x - 0.2 for x in range(len(train_as_of_times))],
+      [x.date() for x in train_as_of_times],
+      [x.date() + dt.timedelta(days=365) for x in train_as_of_times],
+      linewidth=3, color='black', label='train')
+
+ax.xaxis.set_major_formatter(md.DateFormatter('%Y%m'))
+
+ax.xaxis.set_major_locator(md.MonthLocator())
+ax.xaxis.set_minor_locator(md.WeekdayLocator(byweekday=md.MO))
+ax.xaxis.grid(b=True)
+
+
+ax.legend(loc='lower left')
+
+fig.autofmt_xdate()
+
+plt.show()
+#+end_src
+
+#+RESULTS:
+
+
+
+
 
 * ▶ TODO Feature engineering
 
 /We will show how to create features, we will use the same subset (one facility) and only one variable .../
 
 Enter =collate=
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -148,3 +241,16 @@ Enter =collate=
       test_data_frequency: '1 d' # time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
       test_span: ['1 d'] # length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
       test_prediction_span: ['3 month'] # time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
+
+
+feature_start_time - data aggregated into features begins at this point
+feature_end_time - data aggregated into features is from before this point
+label_start_time - data aggregated into labels begins at this point
+label_end_time - data aggregated is from before this point
+model_update_frequency - amount of time between train/test splits
+training_as_of_date_frequencies - how much time between rows for a single entity in a training matrix
+max_training_histories - the maximum amount of history for each entity to train on (early matrices may contain less than this time if it goes past label/feature start times)
+training_label_timespans - how much time is covered by training labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+test_as_of_date_frequencies - how much time between rows for a single entity in a test matrix
+test_durations - how far into the future should a model be used to make predictions (in the typical case of wanting a single prediction set immediately after model training, this should be set to 0 days)
+test_label_timespans - how much time is covered by test predictions (e.g., outcomes in the next 1 year? 3 days? 2 months?)
