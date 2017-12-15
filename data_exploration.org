@@ -1249,8 +1249,8 @@ create table semantic.events as (
 
 select i.inspection, type, i.license_num, facility_type, zip_code, city,
        i.date, risk, result,
-json_agg(
-    json_build_object(
+jsonb_agg(
+    jsonb_build_object(
         'code', v.code,
         'severity', v.severity,
 	'description', v.description,

@@ -6,10 +6,7 @@ SQLALchemy
 pandas
 numpy
 scikit-learn
+python-dateutil
+
 ## DSaPP stuff
 git+https://github.com/dssg/triage.git@master
-git+https://github.com/dssg/catwalk.git@master
-git+https://github.com/dssg/timechop.git@master
-git+https://github.com/dssg/collate.git@master
-git+https://github.com/dssg/architect.git@master
-git+https://github.com/dssg/metta-data.git@master

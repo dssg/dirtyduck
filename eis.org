@@ -35,14 +35,64 @@ etc.
 * ▶ TODO Creating the labels
 
 
+
+
+
 * ▶ TODO Temporal crossvalidation
 
 /There are three different ways of doing it/...
 
+Avoid leakage ...
 
 /It will easy to explain if we show this with only one facility/...
 
 Enter =timechop=
+
+Timechop requires the following parameters:
+
+
+- =feature_start_time= - data aggregated into features begins at this point
+# earliest date included in features
+- =feature_end_time= - data aggregated into features is from before this
+  point
+# latest date included in features
+- =label_start_time= - data aggregated into labels begins at this point
+# earliest event date included in any label (event date >= label_start_time)
+- =label_end_time= - data aggregated is from before this point
+# event date < label_end_time to be included in any label
+- =model_update_frequency= - amount of time between train/test splits
+# how frequently to retrain models (days, months, years)
+- =training_as_of_date_frequencies= - how much time between rows for a
+  single entity in a training matrix
+# list - time between rows for same entity in train matrix
+- =max_training_histories= - the maximum amount of history for each
+  entity to train on (early matrices may contain less than this time
+  if it goes past label/feature start times)
+# max length of time for labels included in a train matrix - default = max (label_start_time to now)
+- =training_label_timespans= - how much time is covered by training
+  labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+  (training prediction span)
+# time period across which outcomes are determined in train matrices
+- =test_as_of_date_frequencies= - how much time between rows for a
+  single entity in a test matrix
+# time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
+- =test_durations= - how far into the future should a model be used to
+  make predictions (in the typical case of wanting a single prediction
+  set immediately after model training, this should be set to 0 days)
+(test span)
+# length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
+- =test_label_timespans= - how much time is covered by test predictions
+  (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+(test prediction span)
+# time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
+
+In the particular case of *early intervention/warning systems*,
+
+- =test_as_of_date_frequencies= is reviewing frequency
+- =test_durations= is equal to =model_update_frequency=
+- =test_label_timespans= is equal to =training_label_timespan=
+
+
 
 
 * ▶ TODO Feature engineering

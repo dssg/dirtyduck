@@ -10,3 +10,4 @@ mock
 colorama
 ipython
 jupyter
+httpie
