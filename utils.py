@@ -46,6 +46,8 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True):
 
     chops = chopper.chop_time()
 
+    chops.reverse()
+
     fig, ax = plt.subplots(len(chops), sharex=True, sharey=True, figsize=FIG_SIZE)
 
 
@@ -75,8 +77,6 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True):
               label=f"test_{idx}"
             )
 
-            ax[idx].yaxis.set_major_locator(plt.NullLocator())
-            ax[idx].set_ylabel(f"Block {idx}")
 
         if(show_boundaries):
             # Limits: train
@@ -104,10 +104,13 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True):
 
             ax[idx].axvline(chop['test_matrices'][0]['matrix_info_end_time'],color='k', linestyle='--')
 
-            ax[idx].xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-            ax[idx].xaxis.set_major_locator(md.MonthLocator())
+        ax[idx].yaxis.set_major_locator(plt.NullLocator())
+        ax[idx].set_ylabel(f"Block {idx}")
 
-            fig.autofmt_xdate()
+        ax[idx].xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+        ax[idx].xaxis.set_major_locator(md.MonthLocator())
+
+        fig.autofmt_xdate()
 
     ax[0].set_title('Timechop blocks')
     fig.subplots_adjust(hspace=0)
