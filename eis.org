@@ -100,3 +100,35 @@ In the particular case of *early intervention/warning systems*,
 /We will show how to create features, we will use the same subset (one facility) and only one variable .../
 
 Enter =collate=
+
+
+* Modeling using Machine Learning
+
+
+** ▶ TODO Creating a simple experiment
+
+Using the same subset as before, we will try one of the simplest
+machine learning algorithms: a Decision Tree Classifier
+
+We began with this data set:
+
+Our train matrices look like:
+
+And the test matrices:
+
+We can check the results of the experiment here:
+
+
+Now let's do a real model
+
+** Defining a baseline
+It is always a good idea define a baseline, we will use
+
+** The grid
+
+** How can I pick the best one?
+
+
+We are working in ...
+
+But meanwhile, you can try the following

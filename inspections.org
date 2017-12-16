@@ -16,6 +16,13 @@
 
 * Problem description
 
+ /What are you inspecting?/ (people, places, other)
+ /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /What do you want to optimize for?/ (e.g. efficiency, long term
+ compliance, novelty)
+
+
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/
@@ -173,43 +180,6 @@ In the particular case of *inspections*,
 - =test_durations= is how far out are you scheduling for?
 - =test_label_timespan= is equal to =test_durations=
 
-#+begin_src ipython
-%matplotlib inline
-import matplotlib.pyplot as plt
-import numpy as np
-
-a = plt.hist(np.random.randn(1000), bins=20)
-#+end_src
-
-
-#+begin_src ipython
-
-fig, ax = plt.subplots()
-
-ax.hlines(
-      [x - 0.2 for x in range(len(train_as_of_times))],
-      [x.date() for x in train_as_of_times],
-      [x.date() + dt.timedelta(days=365) for x in train_as_of_times],
-      linewidth=3, color='black', label='train')
-
-ax.xaxis.set_major_formatter(md.DateFormatter('%Y%m'))
-
-ax.xaxis.set_major_locator(md.MonthLocator())
-ax.xaxis.set_minor_locator(md.WeekdayLocator(byweekday=md.MO))
-ax.xaxis.grid(b=True)
-
-
-ax.legend(loc='lower left')
-
-fig.autofmt_xdate()
-
-plt.show()
-#+end_src
-
-#+RESULTS:
-
-
-
 
 
 * ▶ TODO Feature engineering
@@ -219,14 +189,36 @@ plt.show()
 Enter =collate=
 
 
+* Modeling using Machine Learning
 
 
+** ▶ TODO Creating a simple experiment
+
+Using the same subset as before, we will try one of the simplest
+machine learning algorithms: a Decision Tree Classifier
+
+We began with this data set:
+
+Our train matrices look like:
+
+And the test matrices:
+
+We can check the results of the experiment here:
 
 
+Now let's do a real model
+
+** Defining a baseline
+It is always a good idea define a baseline, we will use
+
+** The grid
+
+** How can I pick the best one?
 
 
+We are working in ...
 
-
+But meanwhile, you can try the following
 
 
 
