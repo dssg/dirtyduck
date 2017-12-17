@@ -181,12 +181,77 @@ In the particular case of *inspections*,
 - =test_label_timespan= is equal to =test_durations=
 
 
+  /What are you inspecting?/ (people, places, other)
+  /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+  /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+  /What do you want to optimize for?/ (e.g. efficiency, long term
+  compliance, novelty)
+
+
+
+#+BEGIN_EXAMPLE
+    model_update_frequency='1year',
+    training_label_timespans='3month',
+    training_as_of_date_frequencies='3month',
+    max_training_histories='2year',
+
+    test_durations='3month',
+    test_label_timespans='3month',
+    test_as_of_date_frequencies='1month'
+#+END_EXAMPLE
+
+
+With that configuration our time splits looks like:
+
+[[file:timechop.png][Timechop blocks for inspection]]
+
+
 
 * ▶ TODO Feature engineering
 
-/We will show how to create features, we will use the same subset (one facility) and only one variable .../
+/We will show how to create features, we will use the same subset (one
+facility) and only one variable, and some spatial and temporal
+dimensions.
 
-Enter =collate=
+For this, we will create a new =schema=
+
+#+BEGIN_SRC sql
+create schema if not exists triage
+#+END_SRC
+
+#+RESULTS:
+
+
+Almost all the components of =triage= works with =SQL= tables stored  in
+=PostgreSQL= (this is very important to remember), so, let's create our
+test table with the =license_num= =1974745=:
+
+#+BEGIN_SRC  sql
+create table triage.test as (
+select
+license_num, type, date, zip_code,
+failed, failed_major_violation
+from inspections.events
+where license_num = 1974745
+)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC sql
+select * from triage.test order by date asc limit 5
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | type      |       date | zip_code | failed | failed_major_violation |
+|------------+-----------+------------+---------+--------+----------------------|
+|    1974745 | canvass   | 2011-02-08 |   60612 | f      | f                    |
+|    1974745 | complaint | 2011-02-08 |   60612 | f      | f                    |
+|    1974745 | canvass   | 2011-02-25 |   60612 | f      | f                    |
+|    1974745 | canvass   | 2011-02-25 |   60612 | f      | f                    |
+|    1974745 | canvass   | 2011-02-25 |   60612 | f      | f                    |
+:END:
 
 
 * Modeling using Machine Learning
