@@ -40,7 +40,7 @@ chopper = timechop.Timechop(
     test_as_of_date_frequencies='1month'
 )
 
-def show_timechop(chopper, show_as_of_times=True, show_boundaries=True):
+def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_name=None):
 
     plt.close('all')
 
@@ -115,4 +115,8 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True):
     ax[0].set_title('Timechop blocks')
     fig.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
+
+    if file_name is not None:
+        fig.savefig(file_name)
+
     plt.show()
