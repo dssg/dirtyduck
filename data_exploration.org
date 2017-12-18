@@ -192,122 +192,14 @@ Let's check that we have *only* three different classifications for the
 :END:
 
 #+BEGIN_SRC sql
-  select distinct type from inspections
+  select count(distinct type) from inspections
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| type                                      |
-|-------------------------------------------|
-| [NULL]                                    |
-| CHANGED COURT DATE                        |
-| License Re-Inspection                     |
-| CORRECTIVE ACTION                         |
-| REINSPECTION OF 48 HOUR NOTICE            |
-| Task force liquor inspection 1474         |
-| RE-INSPECTION OF CLOSE-UP                 |
-| LICENSE                                   |
-| sfp/complaint                             |
-| TASK FORCE LIQUOR 1474                    |
-| Business Not Located                      |
-| task force                                |
-| Canvass Re-Inspection                     |
-| CANVASS RE INSPECTION OF CLOSE UP         |
-| Duplicated                                |
-| CANVASS SPECIAL EVENTS                    |
-| fire complaint                            |
-| ADDENDUM                                  |
-| Task Force Liquor Catering                |
-| POSSIBLE FBI                              |
-| License consultation                      |
-| error save                                |
-| TASKFORCE                                 |
-| license task 1474                         |
-| out ofbusiness                            |
-| RECALL INSPECTION                         |
-| Kids Cafe'                                |
-| finish complaint inspection from 5-18-10  |
-| SPECIAL TASK FORCE                        |
-| LICENSE CONSULTATION                      |
-| CANVAS                                    |
-| TASK FORCE LIQUOR 1470                    |
-| License                                   |
-| Sample Collection                         |
-| REINSPECTION                              |
-| TASK FORCE LIQUOR (1481)                  |
-| Special Task Force                        |
-| TASK FORCE PACKAGE GOODS 1474             |
-| SFP RECENTLY INSPECTED                    |
-| Pre-License Consultation                  |
-| No Entry                                  |
-| SFP/Complaint                             |
-| LICENSE REQUEST                           |
-| CITF                                      |
-| License-Task Force                        |
-| FIRE/COMPLAIN                             |
-| citation re-issued                        |
-| Complaint Re-Inspection                   |
-| FIRE                                      |
-| LIQOUR TASK FORCE NOT READY               |
-| Consultation                              |
-| Tag Removal                               |
-| expansion                                 |
-| Complaint-Fire Re-inspection              |
-| LIQUOR CATERING                           |
-| Recent Inspection                         |
-| Non-Inspection                            |
-| Complaint-Fire                            |
-| NO ENTRY-SHORT COMPLAINT)                 |
-| Canvass                                   |
-| SFP                                       |
-| Special Events (Festivals)                |
-| TWO PEOPLE ATE AND GOT SICK.              |
-| SFP/COMPLAINT                             |
-| CANVASS FOR RIB FEST                      |
-| LICENSE TASK FORCE / NOT -FOR-PROFIT CLUB |
-| KITCHEN CLOSED FOR RENOVATION             |
-| SMOKING COMPLAINT                         |
-| Short Form Complaint                      |
-| Short Form Fire-Complaint                 |
-| O.B.                                      |
-| LICENSE CANCELED BY OWNER                 |
-| Package Liquor 1474                       |
-| LICENSE WRONG ADDRESS                     |
-| LICENSE RENEWAL FOR DAYCARE               |
-| Suspected Food Poisoning Re-inspection    |
-| Recent inspection                         |
-| OWNER SUSPENDED OPERATION/LICENSE         |
-| TASK FORCE PACKAGE LIQUOR                 |
-| CANVASS/SPECIAL EVENT                     |
-| Out of Business                           |
-| TASK FORCE NOT READY                      |
-| No entry                                  |
-| Illegal Operation                         |
-| DAY CARE LICENSE RENEWAL                  |
-| LICENSE/NOT READY                         |
-| CANVASS                                   |
-| license                                   |
-| TASTE OF CHICAGO                          |
-| TASK FORCE NIGHT                          |
-| KIDS CAFE                                 |
-| Complaint                                 |
-| LICENSE RENEWAL INSPECTION FOR DAYCARE    |
-| CLOSE-UP/COMPLAINT REINSPECTION           |
-| 1315 license reinspection                 |
-| no entry                                  |
-| Task Force for liquor 1474                |
-| Not Ready                                 |
-| TAVERN 1470                               |
-| NO ENTRY                                  |
-| CANVASS SCHOOL/SPECIAL EVENT              |
-| LICENSE DAYCARE 1586                      |
-| task force(1470) liquor tavern            |
-| HACCP QUESTIONAIRE                        |
-| LICENSE TASK FORCE / NOT -FOR-PROFIT CLU  |
-| Task Force Liquor 1475                    |
-| Suspected Food Poisoning                  |
-| OUT OF BUSINESS                           |
-| Summer Feeding                            |
+| count |
+|-------|
+|   108 |
 :END:
 
 #+BEGIN_SRC  sql
@@ -1242,13 +1134,12 @@ We are ready for creating our events table
 
 #+begin_src sql :tangle ./src/create_events_table.sql
 
-
 drop table if exists semantic.events cascade;
 
 create table semantic.events as (
 
 select i.inspection, type, i.license_num, facility_type, zip_code, city,
-       i.date, risk, result,
+       i.date, risk, result, location,
 jsonb_agg(
     jsonb_build_object(
         'code', v.code,
@@ -1262,8 +1153,38 @@ from cleaned.inspections as i
 inner join
 cleaned.violations as v
 on i.inspection = v.inspection
-group by i.inspection, type, i.license_num, facility_type, zip_code, city, i.date, risk, result
-)
+group by i.inspection, type, i.license_num, facility_type, zip_code, city, i.date, risk, result, location
+);
+
+-- Add some indexes
+create index events_inspection_ix on semantic.events (inspection);
+create index events_type_ix on semantic.events (type);
+create index events_date_ix on semantic.events(date desc null last);
+create index events_license_num_ix on semantic.events (license_num);
+create index events_facility_type_ix on semantic.events  (facility_type);
+create index events_zip_code_ix on semantic.events  (zip_code);
+
+create index events_location_gix on semantic.events using gist (location);
+
+create index events_violation_severity_idx on semantic.events using btree ((violations ->> 'severity'));
+create index events_violation_code_idx on semantic.events using btree ((violations ->> 'code'));
+
+
+drop table if exists semantic.entities cascade;
+
+create table semantic.entities as (
+select distinct license_num, facility_type, location
+from cleaned.inspections
+);
+
+create index entities_license_num_ix on semantic.entities (license_num);
+create index entities_facility_type_ix on semantic.entities (facility_type);
+create index entities_location_gix on semantic.entities using gist (location);
+
+create index entities_license_num_facility_type_ix on semantic.entities (license_num, facility_type);
+create index entities_license_num_location_ix on semantic.entities (license_num, location);
+create index entities_facility_type_location_ix on semantic.entities (facility_type, location);
+create index entities_license_num_facility_type_location_ix on semantic.entities (license_num desc, facility_type desc, location);
 #+end_src
 
 #+RESULTS:
@@ -1273,17 +1194,21 @@ group by i.inspection, type, i.license_num, facility_type, zip_code, city, i.dat
 select * from semantic.events limit 1
 #+end_src
 
+#+RESULTS:
+:RESULTS:
+| inspection | type    | license_num | facility_type | zip_code | city    |       date | risk   | result | location                                           | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|------------+---------+------------+--------------+---------+---------+------------+--------+--------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     100209 | canvass |    1226806 | liquor       |   60622 | chicago | 2010-01-20 | medium | fail   | 0101000020E6100000D64F99B653EB55C05D6CC3F681F44440 | [{"code": "13", "comment": "All necessary control measures shall be used to effectively minimize or eliminate the presence of rodents, roaches, and other vermin/insect infestations", "severity": "critical", "description": "NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS"}, {"code": "32", "comment": "All food and non-food contact equipment and utensils shall be smooth, easily cleanable, and durable, and shall be in good repair", "severity": "minor", "description": "FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED"}, {"code": "33", "comment": "All food and non-food contact surfaces of equipment and all food storage utensils shall be thoroughly cleaned and sanitized daily", "severity": "minor", "description": "FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS"}, {"code": "34", "comment": "The floors shall be constructed per code, be smooth and easily cleaned, and be kept clean and in good repair", "severity": "minor", "description": "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED"}, {"code": "38", "comment": "Ventilation: All plumbing fixtures, such as toilets, sinks, washbasins, etc", "severity": "minor", "description": "VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED"}, {"code": "41", "comment": "All parts of the food establishment and all parts of the property used in connection with the operation of the establishment shall be kept neat and clean and should not produce any offensive odors", "severity": "minor", "description": "PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED"}, {"code": "42", "comment": "All employees shall be required to use effective hair restraints to confine hair", "severity": "minor", "description": "APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN"}] |
+:END:
 
 
-
+#+BEGIN_SRC sql
+select * from semantic.entities limit 1
+#+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| inspection | type    | license_num | facility_type | zip_code | city    |       date | risk   | result | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-|------------+---------+------------+--------------+---------+---------+------------+--------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     100209 | canvass |    1226806 | liquor       |   60622 | chicago | 2010-01-20 | medium | fail   | [{"code" : "13", "severity" : "critical", "description" : "NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS", "comment" : "All necessary control measures shall be used to effectively minimize or eliminate the presence of rodents, roaches, and other vermin/insect infestations"}, {"code" : "32", "severity" : "minor", "description" : "FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED", "comment" : "All food and non-food contact equipment and utensils shall be smooth, easily cleanable, and durable, and shall be in good repair"}, {"code" : "33", "severity" : "minor", "description" : "FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS", "comment" : "All food and non-food contact surfaces of equipment and all food storage utensils shall be thoroughly cleaned and sanitized daily"}, {"code" : "34", "severity" : "minor", "description" : "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED", "comment" : "The floors shall be constructed per code, be smooth and easily cleaned, and be kept clean and in good repair"}, {"code" : "38", "severity" : "minor", "description" : "VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED", "comment" : "Ventilation: All plumbing fixtures, such as toilets, sinks, washbasins, etc"}, {"code" : "41", "severity" : "minor", "description" : "PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED", "comment" : "All parts of the food establishment and all parts of the property used in connection with the operation of the establishment shall be kept neat and clean and should not produce any offensive odors"}, {"code" : "42", "severity" : "minor", "description" : "APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN", "comment" : "All employees shall be required to use effective hair restraints to confine hair"}] |
+| license_num | facility_type      | location                                           |
+|------------+-------------------+----------------------------------------------------|
+|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
 :END:
-
-* ▶ TODO Add number of violations by type
-
-* ▶ TODO Add number of facilities in 1km, 2km, 5km
