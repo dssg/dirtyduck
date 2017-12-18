@@ -120,3 +120,9 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
         fig.savefig(file_name)
 
     plt.show()
+
+
+def show_features_queries(st):
+    for sql_list in st.get_selects().values():
+        for sql in sql_list:
+            print(str(sql))

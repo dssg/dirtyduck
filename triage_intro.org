@@ -21,7 +21,23 @@
  - [X] Describe Collate
  - [ ] Describe the results schema
 
+Predictive analytics projects require the coordination of many
+different tasks, such as feature generation, classifier training,
+evaluation, and list generation. These tasks are complicated in their
+own right, but in addition have to be combined in different ways
+throughout the course of the project.
+
+Triage aims to provide interfaces to these different phases of a
+project, such as an Experiment. Each phase is defined by configuration
+specific to the needs of the project, and an arrangement of core data
+science components that work together to produce the output of that
+phase.
+
+
 ** The problem to solve
+
+The most acute problems are avoiding leakage and feature generation in
+a temporal setting
 
 ** Temporal crossvalidation
 
@@ -77,8 +93,6 @@ In the particular case of *inspections*,
 /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
 
 
-
-
 #+BEGIN_EXAMPLE
     model_update_frequency='1year',
     training_label_timespans='3month',
@@ -128,7 +142,7 @@ will assume that all the facilities are active in *every inspection*
 
 
 #+BEGIN_SRC sql
-drop table if exists triage.all_facilities;
+drop table if exists triage.all_facilities cascade;
 
 create table triage.all_facilities as (
     select license_num, date
@@ -188,9 +202,8 @@ create table triage.test as (
 select
 license_num,  -- entity
 type as inspection_type, risk, -- variables
-date, zip_code, -- spatio temporal dimensions
-failed, failed_major_violation -- labels
-from inspections.events
+date, location, zip_code -- spatio temporal dimensions
+from semantic.events
 where license_num = 1974745
 )
 #+END_SRC
@@ -203,15 +216,18 @@ select * from triage.test order by date desc  limit 5
 
 #+RESULTS:
 :RESULTS:
-| license_num | inspection_type | risk |       date | zip_code | failed | failed_major_violation |
-|------------+----------------+------+------------+---------+--------+----------------------|
-|    1974745 | canvass        | high | 2016-10-17 |   60612 | f      | f                    |
-|    1974745 | canvass        | high | 2015-10-20 |   60612 | f      | f                    |
-|    1974745 | complaint      | high | 2015-01-12 |   60612 | f      | f                    |
-|    1974745 | canvass        | high | 2014-10-08 |   60612 | f      | f                    |
-|    1974745 | canvass        | high | 2014-10-06 |   60612 | t      | t                    |
+| license_num | inspection_type | risk |       date | location                                           | zip_code |
+|------------+----------------+------+------------+----------------------------------------------------+---------|
+|    1974745 | canvass        | high | 2016-10-17 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
+|    1974745 | canvass        | high | 2015-10-20 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
+|    1974745 | complaint      | high | 2015-01-12 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
+|    1974745 | canvass        | high | 2014-10-08 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
+|    1974745 | canvass        | high | 2014-10-06 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
 :END:
 
+=triage.test= contains two categorical variables (=inspection_type,risk=),
+two differnent groups for aggregation (=location, zip_code=), and the date
+when the inspection happened (=date=).
 
 =Collate= is the python library that we will use (and =triage= also) for
 controlling the generation of features (including the imputation rules
@@ -219,46 +235,72 @@ for each feature generated). =Collate= helps the modeler to
 create features based on /spatio-temporal aggregations/ (which is what
 we need in our modeling strategy based on *events*)
 
-Let's start with an example of an aggregate feature is the number of failed inspections.
+As a first feature we want to know in a given interval of time, given
+one specific date, how many inspections and the flag resulted in "high risk"
+after the previous inspection (the =risk= column), happened to the
+facility and in the zip code in which the facility operates.
+
+Let's try to construct that in =SQL=:
 
 #+BEGIN_SRC sql
-select license_num,
---count(*) filter (where  inspection_type = 'complaint') as complaints
-sum((inspection_type = 'complaint')::int) as complaints
+select license_num, zip_code,
+count(*) as inspections,
+count(*) filter (where risk='high') as flagged_as_high_risk
 from triage.test
-group by license_num
+group by grouping sets(license_num, zip_code)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | complaints |
-|------------+------------|
-|    1974745 |          3 |
+| license_num | zip_code | inspections | flagged_as_high_risk |
+|------------+---------+-------------+-------------------|
+| 1974745    | [NULL]  |          57 |                14 |
+| [NULL]     | 60612   |          57 |                14 |
 :END:
 
-This =SQL= query is composed by three parts:
-- The filter (=inspection_type = 'complaint'=)
-- The aggregation function (=sum()=)
-- The name of the resulting transformation (=complaints=)
+What about if we want to add the proportion of all the inspections
+that resulted in be flagged as "high risk"?
+
+#+BEGIN_SRC sql
+select license_num, zip_code,
+count(*) as inspections,
+count(*) filter (where risk='high') as flagged_as_high_risk,
+avg((risk='high')::int) as proportion_of_flags_as_high_risk
+from triage.test
+group by grouping sets(license_num, zip_code)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | zip_code | inspections | flagged_as_high_risk | proportion_of_flags_as_high_risk |
+|------------+---------+-------------+-------------------+-----------------------------|
+| 1974745    | [NULL]  |          57 |                14 |      0.24561403508771929825 |
+| [NULL]     | 60612   |          57 |                14 |      0.24561403508771929825 |
+:END:
+
+But, what if we want to add also "medium" and "low" risk? And note
+that we didn't add the temporal interval neither. You can see that the
+event this simple set of features will require a very complex =SQL= to
+be constructed. For this problem, =collate= has the =Categorical= object.
+
+First note that the previous =SQL= query is composed by three parts:
+- The filter ((=risk = 'high')::int=)
+- The aggregation function (=avg()=)
+- The name of the resulting transformation (=proportion_of_flags_as_high_risk=)
 
 In collate, this aggregated column would be defined as:
 
-#+BEGIN_SRC python :session
-from  triage.component.collate import Aggregate, SpacetimeAggregation
 
-complaints = Aggregate({"complaints": "(inspection_type = 'complaint')::int"}, # column name and filter
-                      "sum", # aggregation function
-                      {'coltype':'aggregate', 'all': {'type': 'mean'}} # imputation rules
+#+BEGIN_SRC python
+from  triage.component.collate import Categorical
+
+risks = Categorical("risk", # the column
+                    ["high", "medium", "low"], # compare to, i.e. 'risk = high', 'risk=low', etc
+                    "avg", # aggregation function
+                    {'coltype':'aggregate', 'all': {'type': 'mean'}} # imputation rules
 )
-
 #+END_SRC
 
-#+RESULTS:
-:RESULTS:
-:END:
-
-The aggregation function (in the example =sum=) is confusing, but =sum=
-means "count" or "how many" and =avg= means proportion.
 
 
 Note also that we specify the imputation strategy for how to handle
@@ -269,56 +311,35 @@ We are not still ready for use this aggregated variable as a feature,
 we need to take in account the spatio and temporal context.
 
 
-Let's add first the spatial context:
-
-#+BEGIN_SRC sql
-select license_num,
---count(*) filter (where  inspection_type = 'complaint') as complaints
-sum((inspection_type = 'complaint')::int) as complaints
-from triage.test
-group by license_num
-#+END_SRC
-
-
 #+BEGIN_SRC python
+
 import sqlalchemy
+from triage.component.collate import  SpacetimeAggregation
 
+# We need a connection to the data base
 db_url = f"postgresql://food_user:some_password@0.0.0.0:5434/food"
-
 engine = sqlalchemy.create_engine(db_url, client_encoding='utf8')
-#+END_SRC
 
-#+RESULTS:
-:RESULTS:
-:END:
+db_connection = engine.connect()
 
 
-Aggregations in collate easily aggregate this single feature across
-different spatiotemporal groups
-
-#+BEGIN_SRC python
-st = SpacetimeAggregation([complaints],
+st = SpacetimeAggregation([risks], # The Categorical object
                           from_obj='triage.test', # FROM
                           groups=['license_num','zip_code'],  # GROUP BY
-                          intervals={"license_num": ["1 year"], "zip_code": ["1 year", "2months"]},
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
+                          intervals={"license_num": ["1 year"], "zip_code": ["1 year", "2 year"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
                           state_table='triage.all_facilities', # State table name
                           state_group='license_num', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
-                          prefix='test'
+                          prefix='test_risks'
 )
 #+END_SRC
-
-#+RESULTS:
-:RESULTS:
-:END:
-
 
 The =SpacetimeAggregation= object is in charge of create the
 agregations, another way of see it, is that it encapsulates the FROM section of the
@@ -340,18 +361,37 @@ grouping given by the =license_num= nad for the =zip_code=, and
 additionally  will give an extra grouping statistic of two months for
 the =zip_code=.
 
-
 Before execute the queries, you could actually look them using the following
 
 #+BEGIN_SRC python
-for sql_list in st.get_selects().values():
-    for sql in sql_list:
-        print(str(sql))
+import utils
+
+utils.show_features_queries(st)
 #+END_SRC
 
+This will execute queries as the following:
+
+#+BEGIN_EXAMPLE sql
+
+...
+SELECT zip_code, '2016-10-17'::date AS date,
+avg((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_high_avg",
+avg((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_medium_avg",
+avg((risk = 'low')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_low_avg",
+avg((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_high_avg",
+avg((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_medium_avg",
+avg((risk = 'low')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_low_avg"
+FROM triage.test
+WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1 year',interval '2 year') GROUP BY zip_code
+
+...
+
+#+END_EXAMPLE
+
+You can create the features tables executing the following:
 
 #+BEGIN_SRC python
-st.execute(engine.connect()) # with a SQLAlchemy engine object
+st.execute(db_connection) # with a SQLAlchemy engine object
 #+END_SRC
 
 
@@ -369,130 +409,14 @@ The names of the generated tables are constructed as follows:
 schema.prefix_{group, aggregation}
 #+END_EXAMPLE
 
-
-The =triage.test_zip_code= table
+The =triage.test_risks_zip_code= table
 have two feature columns for every zip code in our table =triage.test=,
 looking at the total and average number of complaints in that
 =zip_code= over the year prior and 2 months prior to the date in the =date= column.
 
-#+BEGIN_SRC sql
-select * from triage.test_zip_code order by date desc limit 5;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| zip_code |       date | test_zip_code_1 year_complaints_sum | test_zip_code_2months_complaints_sum |
-|---------+------------+--------------------------------+---------------------------------|
-|   60612 | 2016-10-17 |                              0 | [NULL]                          |
-|   60612 | 2015-10-20 |                              1 | [NULL]                          |
-|   60612 | 2015-01-12 |                              0 | [NULL]                          |
-|   60612 | 2014-10-08 |                              0 | 0                               |
-|   60612 | 2014-10-06 |                              0 | 0                               |
-:END:
-
-The table =triage.test_license_num= contains two feature columns for each
-license that describe the total number of complaints
-the past one year.
-
 
 #+BEGIN_SRC sql
-select * from triage.test_license_num order by date desc limit 5;
-#+END_SRC
-
-
-
-#+RESULTS:
-:RESULTS:
-| license_num |       date | test_license_num_1 year_complaints_sum |
-|------------+------------+-----------------------------------|
-|    1974745 | 2016-10-17 |                                 0 |
-|    1974745 | 2015-10-20 |                                 1 |
-|    1974745 | 2015-01-12 |                                 0 |
-|    1974745 | 2014-10-08 |                                 0 |
-|    1974745 | 2014-10-06 |                                 0 |
-:END:
-
-
-The =triage.test_aggregation= table joins these results together to make
-it easier to look at both zip_code and facility-level effects
-for any given facility.
-
-#+BEGIN_SRC sql
-select * from triage.test_aggregation order by date limit 5;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| zip_code |       date | license_num | test_license_num_1 year_complaints_sum | test_zip_code_1 year_complaints_sum | test_zip_code_2months_complaints_sum |
-|---------+------------+------------+-----------------------------------+--------------------------------+---------------------------------|
-|   60612 | 2014-10-06 |    1974745 |                                 0 |                              0 | 0                               |
-|   60612 | 2014-10-08 |    1974745 |                                 0 |                              0 | 0                               |
-|   60612 | 2015-01-12 |    1974745 |                                 0 |                              0 | [NULL]                          |
-|   60612 | 2015-10-20 |    1974745 |                                 1 |                              1 | [NULL]                          |
-|   60612 | 2016-10-17 |    1974745 |                                 0 |                              0 | [NULL]                          |
-:END:
-
-Finally, the =triage.test_aggregated_imputed= table fills in null values using the
-imputation rules specified in the =Aggregate= constructor.
-
-Besides the =Aggregator= objects, there is the =Categorical= object. This
-name is a misnomer, in reality is a shorthand for doing several
-operations at once. For example, for getting the proportion of "high",
-"medium" and "low" risks flags received by a facility at the
-inspection we could use
-
-#+BEGIN_SRC python
-from  triage.component.collate import Categorical
-
-risks = Categorical("risk", # the column
-                    ["high", "medium", "low"], # compare to, i.e. 'risk = high', 'risk=low', etc
-                    "avg", # aggregation function
-                    {'coltype':'aggregate', 'all': {'type': 'mean'}} # imputation rules
-)
-#+END_SRC
-
-Now, the =SpacetimeAggregation= looks like
-
-#+BEGIN_SRC python
-st = SpacetimeAggregation([risks],
-                          from_obj='triage.test', # FROM
-                          groups=['license_num','zip_code'],  # GROUP BY
-                          intervals={"license_num": ["1 year"], "zip_code": ["1 year", "2 year"]},
-                          dates=["2014-10-06",
-                                 "2014-10-08",
-                                 "2015-01-12",
-                                 "2015-10-20",
-                                 "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          date_column="date", # Which is the name of the date column?
-                          state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
-                          output_date_column='date',
-                          schema='triage', # In which schema do you want to store the results?
-                          prefix='test_risks'
-)
-
-st.execute(engine.connect())
-#+END_SRC
-
-This will execute queries as the following:
-
-#+BEGIN_EXAMPLE sql
-SELECT
-zip_code, '2016-10-17'::date AS date,
-sum((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_high_sum",
-sum((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_medium_sum",
-sum((risk = 'low')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_low_sum",
-sum((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_high_sum",
-sum((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_medium_sum",
-sum((risk = 'low')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_low_sum"
-FROM triage.test
-WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1 year',interval '2 year') GROUP BY zip_code
-#+END_EXAMPLE
-
-
-
-#+BEGIN_SRC sql
-select * from triage.test_risks_zip_code
+select * from triage.test_risks_zip_code  order by date limit 5;
 #+END_SRC
 
 #+RESULTS:
@@ -506,9 +430,12 @@ select * from triage.test_risks_zip_code
 |   60612 | 2016-10-17 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
 :END:
 
+The table =triage.test_risks_license_num= contains two feature columns for each
+license that describe the total number of complaints
+the past one year.
 
 #+BEGIN_SRC sql
-select * from triage.test_risks_license_num
+select * from triage.test_risks_license_num  order by date limit 5;
 #+END_SRC
 
 #+RESULTS:
@@ -522,6 +449,28 @@ select * from triage.test_risks_license_num
 |    1974745 | 2016-10-17 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |
 :END:
 
+The =triage.test_aggregation= table joins these results together to make
+it easier to look at both zip_code and facility-level effects
+for any given facility.
+
+#+BEGIN_SRC sql
+select * from triage.test_risks_aggregation order by date limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| zip_code |       date | license_num | test_risks_license_num_1 year_risk_high_avg | test_risks_license_num_1 year_risk_medium_avg | test_risks_license_num_1 year_risk_low_avg | test_risks_zip_code_1 year_risk_high_avg | test_risks_zip_code_1 year_risk_medium_avg | test_risks_zip_code_1 year_risk_low_avg | test_risks_zip_code_2 year_risk_high_avg | test_risks_zip_code_2 year_risk_medium_avg | test_risks_zip_code_2 year_risk_low_avg |
+|---------+------------+------------+--------------------------------------+----------------------------------------+-------------------------------------+-----------------------------------+-------------------------------------+----------------------------------+-----------------------------------+-------------------------------------+----------------------------------|
+|   60612 | 2014-10-06 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+|   60612 | 2014-10-08 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+|   60612 | 2015-01-12 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+|   60612 | 2015-10-20 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+|   60612 | 2016-10-17 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+:END:
+
+
+Finally, the =triage.test_risks_aggregated_imputed= table fills in null values using the
+imputation rules specified in the =Categorical= constructor.
 
 
 *** Add number of violations by severity
