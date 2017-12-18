@@ -1,21 +1,23 @@
-model_comment: 'inspections'
+config_version: 'v3'
+
+model_comment: 'test_triage_inspections'
 
 temporal_config:
-  beginning_of_time: '2010-01-04' # earliest date included in features
-  modeling_start_time: '2014-01-01' # earliest date in any model
-  modeling_end_time: '2017-01-01' # all dates in any model are < this date
+  feature_start_time=np.min(df.date)
+  feature_end_time=np.max(df.date)
+  label_start_time=np.min(df.date)
+  label_end_time=np.max(df.date)
 
-  update_window: '1 y' # how frequently to retrain models
+  model_update_frequency='3months'
+  training_label_timespans='1day'
+  training_as_of_date_frequencies='1day'
+  max_training_histories='1year'
 
-  train_example_frequency: '1 d' # time between rows for same entity in train matrix
-  train_durations: ['1 y'] # length of time included in a train matrix
-  train_label_windows: ['3 month'] # time period across which outcomes are labeled in train matrices
+  test_durations='1day'
+  test_label_timespans='3month'
+  test_as_of_date_frequencies='1day'
 
-  test_example_frequency: '1 d' # time between rows for same entity in test matrix
-  test_durations: ['1 d'] # length of time included in a test matrix
-  test_label_windows: ['3 month'] # time period across which outcomes are labeled in test matrices
-
-events_table: 'inspections_events'
+events_table: 'inspections.events'
 
 feature_aggregations:
   -

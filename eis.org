@@ -36,8 +36,6 @@ etc.
 
 
 
-
-
 * ▶ TODO Temporal crossvalidation
 
 /There are three different ways of doing it/...
