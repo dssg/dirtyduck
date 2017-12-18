@@ -69,31 +69,14 @@ Which X facilities are likely to violate some rule in the
   In this case maybe you are interested not
   in all the violations but in the more grave.
 
-  There are other questions that help to define the goal:
+  This tutorial is divided in the following sections
 
-  - From Rayid's notes:
-
-  /What are you inspecting?/ (people, places, other)
-  /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
-  /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
-  /What do you want to optimize for?/ (e.g. efficiency, long term
-  compliance, novelty)
-
-  One of the trickiest part of the inspection prioritization problem is
-  that the data gives you $P(V|I)$ i.e. the probability of finding a
-  violation given that (or conditioned to) an inspection occurred, but
-  the thing that is interesting is $P(V)$ the probability of a violation
-  ...
-w
-  - /Write more about using bayes theorem/
-
-  - /Write more about how this problem is related to send police to areas with crime and how this perpetuate some discrimination/
-
-
-
-* Looking the results at Tyra
-
-  *TODO:* /Add some images/
+- [[file:infrastructure.org][Infrastructure]]
+- [[file:data_exploration.org][Knowing and preparing your data]]
+- [[file:triage_intro.org][Introduction to triage]]
+- [[file:inspections.org][Modeling: Inspections prioritization]]
+- [[file:eis.org][Modeling: Early Warning System]]
+-
 
 * What's next?
 
@@ -107,21 +90,6 @@ w
   - Bias analysis?
 
 
-* Appendix: What are all those files?
-
-* Appendix: Getting help
-
-* Additional DBs
-
-  - [[https://data.cityofchicago.org/Community-Economic-Development/Business-Licenses/r5kz-chrr][Business Licenses]]
-  - Food Inspections
-  - [[https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2][Crime]]
-  - Garbage Cart Complaints
-  - [[https://data.cityofchicago.org/Service-Requests/311-Service-Requests-Sanitation-Code-Complaints/me59-5fac][Sanitation Complaints]]
-  - Weather
-  - Sanitarian Information
-
-
 * Footnotes
 
 [fn:4] [[https://chicago.github.io/food-inspections-evaluation/][Food Inspection Forecasting - Optimizing Inspections with Analytics]]
@@ -133,80 +101,3 @@ for that that uses anothe DSaPP tool: =pgdedup=.
 [fn:1] [[https://youtu.be/lyDLAutA88s][David Beazley | Keynote: Built in Super Heroes]]
 
 [fn:2] [[https://youtu.be/1dKonIT-Yak][Nicole Donnelly | Forecasting critical food violations at restaurants using open data]]
-
-
-
-
-* Temp stuff
-
-
-  Before doing that, let's check how many different =dba_name= we have.
-
-  #+BEGIN_SRC sql :results table drawer
-    select
-    count(distinct dba_name) as different_names
-    from inspections;
-  #+END_SRC
-
-  #+RESULTS:
-  :RESULTS:
-  | different_names |
-  |----------------|
-  |          25107 |
-  :END:
-
-  #+BEGIN_SRC sql :results table drawer
-    select
-    dba_name,
-    btrim(upper(regexp_replace(replace(dba_name, '''', ''), '[^a-zA-Z0-9 ]', '', 'g'))) as cleaned_name
-    from inspections
-    limit 30
-  #+END_SRC
-
-  #+RESULTS:
-  :RESULTS:
-  | dba_name                                      | cleaned_name                                 |
-  |----------------------------------------------+---------------------------------------------|
-  | D AND Y GROCERY                              | D AND Y GROCERY                             |
-  | ONE STOP FOOD MARKET                         | ONE STOP FOOD MARKET                        |
-  | CITGO                                        | CITGO                                       |
-  | KHAN DOLLAR STATION                          | KHAN DOLLAR STATION                         |
-  | FOSTER & BROADWAY BP/AUTOTECH                | FOSTER  BROADWAY BPAUTOTECH                 |
-  | Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
-  | Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
-  | SAVE-A-LOT #882                              | SAVEALOT 882                                |
-  | MEDITERRANEAN EXPRESS                        | MEDITERRANEAN EXPRESS                       |
-  | SWEET FREAKS                                 | SWEET FREAKS                                |
-  | MINGHIN CUISINE KITCHEN                      | MINGHIN CUISINE KITCHEN                     |
-  | HAPPY GROCERY & DOLLAR                       | HAPPY GROCERY  DOLLAR                       |
-  | ARDEN RESTAURANT                             | ARDEN RESTAURANT                            |
-  | TBD                                          | TBD                                         |
-  | MAGGIE GYROS & CHICKEN                       | MAGGIE GYROS  CHICKEN                       |
-  | WOLCOTT TAP                                  | WOLCOTT TAP                                 |
-  | WOLCOTT TAP                                  | WOLCOTT TAP                                 |
-  | 3JJJ'S BETTER TASTE JAMAICAN JERK RESTAURANT | 3JJJS BETTER TASTE JAMAICAN JERK RESTAURANT |
-  | THE HARDING TAVERN                           | THE HARDING TAVERN                          |
-  | ZACATACOS, II. INC                           | ZACATACOS II INC                            |
-  | ONESTI PIZZERIA INC                          | ONESTI PIZZERIA INC                         |
-  | 3JJJ'S BETTER TASTE JAMAICAN JERK RESTAURANT | 3JJJS BETTER TASTE JAMAICAN JERK RESTAURANT |
-  | NORMAN'S                                     | NORMANS                                     |
-  | MCCB                                         | MCCB                                        |
-  | CHECKERS DRIVE-IN RESTAURANTS, INC           | CHECKERS DRIVEIN RESTAURANTS INC            |
-  | Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
-  | GRILL 87                                     | GRILL 87                                    |
-  | KFC                                          | KFC                                         |
-  | PACO'S TACOS 2                               | PACOS TACOS 2                               |
-  | MARTINI CLUB                                 | MARTINI CLUB                                |
-  :END:
-
-
-#+BEGIN_SRC ipython :session
-  %matplotlib inline
-  import matplotlib.pyplot as plt
-  import numpy as np
-#+END_SRC
-
-
-#+BEGIN_SRC ipython :session :file /tmp/image.png :exports both
-  plt.hist(np.random.randn(20000), bins=200)
-#+END_SRC
