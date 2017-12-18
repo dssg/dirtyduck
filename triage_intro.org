@@ -202,6 +202,7 @@ create table triage.test as (
 select
 license_num,  -- entity
 type as inspection_type, risk, -- variables
+violations, -- json array of variables
 date, location, zip_code -- spatio temporal dimensions
 from semantic.events
 where license_num = 1974745
@@ -211,18 +212,18 @@ where license_num = 1974745
 #+RESULTS:
 
 #+BEGIN_SRC sql
-select * from triage.test order by date desc  limit 5
+select license_num, inspection_type, risk, date, zip_code from triage.test order by date desc  limit 5
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | inspection_type | risk |       date | location                                           | zip_code |
-|------------+----------------+------+------------+----------------------------------------------------+---------|
-|    1974745 | canvass        | high | 2016-10-17 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
-|    1974745 | canvass        | high | 2015-10-20 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
-|    1974745 | complaint      | high | 2015-01-12 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
-|    1974745 | canvass        | high | 2014-10-08 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
-|    1974745 | canvass        | high | 2014-10-06 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 |   60612 |
+| license_num | inspection_type | risk |       date | zip_code |
+|------------+----------------+------+------------+---------|
+|    1974745 | canvass        | high | 2016-10-17 |   60612 |
+|    1974745 | canvass        | high | 2015-10-20 |   60612 |
+|    1974745 | complaint      | high | 2015-01-12 |   60612 |
+|    1974745 | canvass        | high | 2014-10-08 |   60612 |
+|    1974745 | canvass        | high | 2014-10-06 |   60612 |
 :END:
 
 =triage.test= contains two categorical variables (=inspection_type,risk=),
@@ -331,7 +332,7 @@ st = SpacetimeAggregation([risks], # The Categorical object
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1 year"], "zip_code": ["1 year", "2 year"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"license_num": ["1 year"], "zip_code": ["1 year"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
                           state_table='triage.all_facilities', # State table name
                           state_group='license_num', # Which is the column that identifies the entity
@@ -374,6 +375,7 @@ This will execute queries as the following:
 #+BEGIN_EXAMPLE sql
 
 ...
+
 SELECT zip_code, '2016-10-17'::date AS date,
 avg((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_high_avg",
 avg((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_medium_avg",
@@ -471,6 +473,63 @@ select * from triage.test_risks_aggregation order by date limit 5;
 
 Finally, the =triage.test_risks_aggregated_imputed= table fills in null values using the
 imputation rules specified in the =Categorical= constructor.
+
+#+BEGIN_SRC python
+
+inspection_types = Categorical("inspection_type", # the column
+                    ["canvass", "complaint"], # compare to, i.e. 'inspection_type = canvass', etc.
+                    "sum", # aggregation function
+                    {'coltype':'aggregate', 'all': {'type': 'mean'}} # imputation rules
+)
+
+st = SpacetimeAggregation([inspection_types], # The Categorical object
+                          from_obj='triage.test', # FROM
+                          groups=['license_num','zip_code'],  # GROUP BY
+                          dates=["2014-10-06",
+                                 "2014-10-08",
+                                 "2015-01-12",
+                                 "2015-10-20",
+                                 "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
+                          intervals={"license_num": ["1y"], "zip_code": ["1y"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          date_column="date", # Which is the name of the date column?
+                          state_table='triage.all_facilities', # State table name
+                          state_group='license_num', # Which is the column that identifies the entity
+                          output_date_column='date',
+                          schema='triage', # In which schema do you want to store the results?
+                          prefix='inspection_type'
+)
+
+st.execute(db_connection)
+#+END_SRC
+
+
+Or you can mix the two:
+
+#+BEGIN_SRC python
+st = SpacetimeAggregation([risks,inspection_types], # The Categorical object
+                          from_obj='triage.test', # FROM
+                          groups=['license_num','zip_code'],  # GROUP BY
+                          dates=["2014-10-06",
+                                 "2014-10-08",
+                                 "2015-01-12",
+                                 "2015-10-20",
+                                 "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
+                          intervals={"license_num": ["1y"], "zip_code": ["1y"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          date_column="date", # Which is the name of the date column?
+                          state_table='triage.all_facilities', # State table name
+                          state_group='license_num', # Which is the column that identifies the entity
+                          output_date_column='date',
+                          schema='triage', # In which schema do you want to store the results?
+                          prefix='both'
+)
+
+#+END_SRC
+
+
+
+
+Obviously you could want to create more complicated variables, for
+example
 
 
 *** Add number of violations by severity
