@@ -1,0 +1,63 @@
+
+
+* Temp stuff
+
+
+  Before doing that, let's check how many different =dba_name= we have.
+
+  #+BEGIN_SRC sql :results table drawer
+    select
+    count(distinct dba_name) as different_names
+    from inspections;
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  | different_names |
+  |----------------|
+  |          25107 |
+  :END:
+
+  #+BEGIN_SRC sql :results table drawer
+    select
+    dba_name,
+    btrim(upper(regexp_replace(replace(dba_name, '''', ''), '[^a-zA-Z0-9 ]', '', 'g'))) as cleaned_name
+    from inspections
+    limit 30
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  | dba_name                                      | cleaned_name                                 |
+  |----------------------------------------------+---------------------------------------------|
+  | D AND Y GROCERY                              | D AND Y GROCERY                             |
+  | ONE STOP FOOD MARKET                         | ONE STOP FOOD MARKET                        |
+  | CITGO                                        | CITGO                                       |
+  | KHAN DOLLAR STATION                          | KHAN DOLLAR STATION                         |
+  | FOSTER & BROADWAY BP/AUTOTECH                | FOSTER  BROADWAY BPAUTOTECH                 |
+  | Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
+  | Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
+  | SAVE-A-LOT #882                              | SAVEALOT 882                                |
+  | MEDITERRANEAN EXPRESS                        | MEDITERRANEAN EXPRESS                       |
+  | SWEET FREAKS                                 | SWEET FREAKS                                |
+  | MINGHIN CUISINE KITCHEN                      | MINGHIN CUISINE KITCHEN                     |
+  | HAPPY GROCERY & DOLLAR                       | HAPPY GROCERY  DOLLAR                       |
+  | ARDEN RESTAURANT                             | ARDEN RESTAURANT                            |
+  | TBD                                          | TBD                                         |
+  | MAGGIE GYROS & CHICKEN                       | MAGGIE GYROS  CHICKEN                       |
+  | WOLCOTT TAP                                  | WOLCOTT TAP                                 |
+  | WOLCOTT TAP                                  | WOLCOTT TAP                                 |
+  | 3JJJ'S BETTER TASTE JAMAICAN JERK RESTAURANT | 3JJJS BETTER TASTE JAMAICAN JERK RESTAURANT |
+  | THE HARDING TAVERN                           | THE HARDING TAVERN                          |
+  | ZACATACOS, II. INC                           | ZACATACOS II INC                            |
+  | ONESTI PIZZERIA INC                          | ONESTI PIZZERIA INC                         |
+  | 3JJJ'S BETTER TASTE JAMAICAN JERK RESTAURANT | 3JJJS BETTER TASTE JAMAICAN JERK RESTAURANT |
+  | NORMAN'S                                     | NORMANS                                     |
+  | MCCB                                         | MCCB                                        |
+  | CHECKERS DRIVE-IN RESTAURANTS, INC           | CHECKERS DRIVEIN RESTAURANTS INC            |
+  | Rizzo's Bar & Inn                            | RIZZOS BAR  INN                             |
+  | GRILL 87                                     | GRILL 87                                    |
+  | KFC                                          | KFC                                         |
+  | PACO'S TACOS 2                               | PACOS TACOS 2                               |
+  | MARTINI CLUB                                 | MARTINI CLUB                                |
+  :END:
