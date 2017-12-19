@@ -1159,22 +1159,27 @@ group by i.inspection, type, i.license_num, facility_type, zip_code, city, i.dat
 -- Add some indexes
 create index events_inspection_ix on semantic.events (inspection);
 create index events_type_ix on semantic.events (type);
-create index events_date_ix on semantic.events(date desc null last);
+create index events_date_ix on semantic.events(date desc nulls last);
 create index events_license_num_ix on semantic.events (license_num);
 create index events_facility_type_ix on semantic.events  (facility_type);
 create index events_zip_code_ix on semantic.events  (zip_code);
 
+-- Spatial index
 create index events_location_gix on semantic.events using gist (location);
 
-create index events_violation_severity_idx on semantic.events using btree ((violations ->> 'severity'));
-create index events_violation_code_idx on semantic.events using btree ((violations ->> 'code'));
+-- JSONB indexes
+create index events_violations on semantic.events using gin(violations);
+create index events_violations_json_path on semantic.events using gin(violations jsonb_path_ops);
 
+create index events_inspection_license_zip_code_date on semantic.events (inspection desc nulls last, license_num, zip_code, date desc nulls last);
 
 drop table if exists semantic.entities cascade;
 
 create table semantic.entities as (
-select distinct license_num, facility_type, location
+select
+license_num, facility_type, location, min(date) as earliest_known_date
 from cleaned.inspections
+group by license_num, facility_type, location
 );
 
 create index entities_license_num_ix on semantic.entities (license_num);

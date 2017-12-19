@@ -146,7 +146,7 @@ drop table if exists triage.all_facilities cascade;
 
 create table triage.all_facilities as (
     select license_num, date
-    from (select distinct license_num from semantic.events) a
+    from (select distinct license_num from semantic.events where license_num = 1974745) a
     cross join (select distinct date as date from semantic.events) b
 -- select
 -- distinct license_num,
@@ -200,6 +200,7 @@ drop table if exists triage.test;
 
 create table triage.test as (
 select
+inspection, -- event
 license_num,  -- entity
 type as inspection_type, risk, -- variables
 violations, -- json array of variables
@@ -298,7 +299,7 @@ from  triage.component.collate import Categorical
 risks = Categorical("risk", # the column
                     ["high", "medium", "low"], # compare to, i.e. 'risk = high', 'risk=low', etc
                     "avg", # aggregation function
-                    {'coltype':'aggregate', 'all': {'type': 'mean'}} # imputation rules
+                    {'coltype':'categorical', 'all': {'type': 'zero'}} # imputation rules
 )
 #+END_SRC
 
@@ -322,7 +323,6 @@ db_url = f"postgresql://food_user:some_password@0.0.0.0:5434/food"
 engine = sqlalchemy.create_engine(db_url, client_encoding='utf8')
 
 db_connection = engine.connect()
-
 
 st = SpacetimeAggregation([risks], # The Categorical object
                           from_obj='triage.test', # FROM
@@ -551,7 +551,7 @@ imputation rules specified in the =Categorical= constructor.
 inspection_types = Categorical("inspection_type", # the column
                     ["canvass", "complaint"], # compare to, i.e. 'inspection_type = canvass', etc.
                     "sum", # aggregation function
-                    {'coltype':'aggregate', 'all': {'type': 'mean'}} # imputation rules
+                    {'coltype':'categorical', 'all': {'type': 'zero'}} # imputation rules
 )
 
 st = SpacetimeAggregation([inspection_types], # The Categorical object
@@ -574,8 +574,8 @@ st = SpacetimeAggregation([inspection_types], # The Categorical object
 st.execute(db_connection)
 #+END_SRC
 
-This will create, as you probbaly guessed, four new tables:
-=inspection_type_{license_num, zip_code, aggregatio, aggregation_imputed}=
+This will create, as you probably guessed, four new tables:
+=inspection_type_{license_num, zip_code, aggregation, aggregation_imputed}=
 
 
 Or you can mix the two in one step:
@@ -630,39 +630,127 @@ that all the previous columns are there (except for the prefix):
 
 
 
+
+
+
 Obviously you could want to create more complicated variables, for
-example
+example, we have a =json= column in our =semantic.events= table, as well
+as a geographical column: =location=. Let's do create some features
+using those.
 
 
 *** Add number of violations by severity
 
+Our =semantic.events= has a =json= column called =violations=. We will like
+to have an idea of how many types of violations were inspected or at
+least their severity. One way of do that is shown in the next =SQL= code:
+
+
 #+BEGIN_SRC sql
-select inspection, result, array_agg(obj ->> 'severity'),
+select inspection, license_num, zip_code, array_agg(obj ->> 'severity'),
 count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
 count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
 count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
 from
-(select inspection, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events limit 20)
+(select inspection, license_num, zip_code, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
 as t1
-group by inspection, result
+group by inspection, license_num, zip_code
+limit 5
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| inspection | result             | array_agg                                       | critical_violations | serious_violations | low_violations |
-|------------+--------------------+------------------------------------------------+--------------------+-------------------+---------------|
-|     100215 | pass w/ conditions | {serious}                                      |                  0 |                 1 |             0 |
-|     100209 | fail               | {critical,minor,minor,minor,minor,minor,minor} |                  1 |                 0 |             6 |
-|     104236 | fail               | {serious,serious,minor,minor}                  |                  0 |                 2 |             2 |
-|     100214 | pass               | {serious}                                      |                  0 |                 1 |             0 |
-|     100211 | fail               | {critical,serious}                             |                  1 |                 1 |             0 |
-|     100212 | fail               | {critical,serious}                             |                  1 |                 1 |             0 |
-|     100213 | pass               | {critical,serious}                             |                  1 |                 1 |             0 |
-|     100210 | pass               | {NULL}                                         |                  0 |                 0 |             0 |
+| inspection | license_num | zip_code | array_agg                                       | critical_violations | serious_violations | low_violations |
+|------------+------------+---------+------------------------------------------------+--------------------+-------------------+---------------|
+|     100209 |    1226806 |   60622 | {critical,minor,minor,minor,minor,minor,minor} |                  1 |                 0 |             6 |
+|     100210 |    1675467 |   60604 | {NULL}                                         |                  0 |                 0 |             0 |
+|     100211 |    2017593 |   60612 | {critical,serious}                             |                  1 |                 1 |             0 |
+|     100212 |    2017593 |   60612 | {critical,serious}                             |                  1 |                 1 |             0 |
+|     100213 |    2017164 |   60612 | {critical,serious}                             |                  1 |                 1 |             0 |
 :END:
+
+Basically, this code gives us the number of violations inspected by
+severity. How about to get the total and proportion of violations in a
+facility in the previous year and the average and standard deviation
+for the zip code zone?  Note than in this case the variable is not
+*categorical*, is a numeric one, fortunately =collate= also provides
+support for numerical variables: the =Aggregate= object
+
+#+BEGIN_SRC python
+violations_sql = """
+(
+select inspection, license_num, zip_code, date,
+count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
+count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
+count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
+from
+(select inspection, license_num, zip_code, date, jsonb_array_elements(violations::jsonb) as obj from triage.test)
+as t1
+group by inspection, license_num, zip_code, date
+) as t
+"""
+
+critical_violations = Aggregate({'critical': 'critical_violations'}, ['sum', 'avg', 'stddev'], {'coltype':'aggregate', 'all': {'type': 'mean'}})
+serious_violations = Aggregate({'serious': 'serious_violations'}, ['sum', 'avg', 'stddev'], {'coltype':'aggregate', 'all': {'type': 'mean'}})
+low_violations = Aggregate({'low': 'low_violations'}, ['sum', 'avg', 'stddev'], {'coltype':'aggregate', 'all': {'type': 'mean'}})
+
+st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
+                          from_obj=violations_sql, # FROM
+                          groups=['license_num','zip_code', 'inspection'],  # GROUP BY
+                          dates=["2014-10-06",
+                                 "2014-10-08",
+                                 "2015-01-12",
+                                 "2015-10-20",
+                                 "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
+                          intervals={"license_num": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          date_column="date", # Which is the name of the date column?
+                          state_table='triage.all_facilities', # State table name
+                          state_group='license_num', # Which is the column that identifies the entity
+                          output_date_column='date',
+                          schema='triage', # In which schema do you want to store the results?
+                          prefix='violations'
+)
+
+st.execute(db_connection)
+
+#+END_SRC
+
+
+#+BEGIN_EXAMPLE sql
+...
+SELECT license_num, '2014-10-08'::date AS date,
+sum(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_critical_sum,
+avg(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_critical_avg,
+stddev(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_critical_stddev,
+sum(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_serious_sum,
+avg(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_serious_avg,
+stddev(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_serious_stddev,
+sum(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_low_sum,
+avg(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_low_avg,
+stddev(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_low_stddev
+FROM
+(
+select inspection, license_num, zip_code, date,
+count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
+count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
+count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
+from
+(select inspection, license_num, zip_code, date, jsonb_array_elements(violations::jsonb) as obj from triage.test)
+as t1
+group by inspection, license_num, zip_code, date
+) as t
+
+WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y') GROUP BY license_num
+...
+#+END_EXAMPLE
+
+
+
 
 
 *** Add number of facilities by type in a radius: 1km
+
+
 #+BEGIN_SRC sql
 with facilities_nearby as (
    select a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
@@ -684,6 +772,54 @@ license_num, location, facility_type, other_facility_type;
 #+END_SRC
 
 #+RESULTS:
+
+#+BEGIN_SRC python
+facilities_nearby_sql = """
+(
+with facilities_nearby as (
+   select a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
+   from semantic.entities as a,
+   lateral (
+       select facility_type
+       from semantic.entities
+       where ST_DWithin(location::geography, a.location::geography, 1000)
+       and license_num <> a.license_num
+   ) as b
+   where license_num = 1974745
+)
+
+select
+license_num, location,
+facility_type, other_facility_type, count(*)
+from facilities_nearby
+group by
+license_num, location, facility_type, other_facility_type
+) as t
+"""
+
+
+
+st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
+                          from_obj=violations_sql, # FROM
+                          groups=['license_num','zip_code', 'inspection'],  # GROUP BY
+                          dates=["2014-10-06",
+                                 "2014-10-08",
+                                 "2015-01-12",
+                                 "2015-10-20",
+                                 "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
+                          intervals={"license_num": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          date_column="date", # Which is the name of the date column?
+                          state_table='triage.all_facilities', # State table name
+                          state_group='license_num', # Which is the column that identifies the entity
+                          output_date_column='date',
+                          schema='triage', # In which schema do you want to store the results?
+                          prefix='violations'
+)
+
+st.execute(db_connection)
+
+#+END_SRC
+
 
 
 *** Add number of inspections by type in a radius and in an interval
