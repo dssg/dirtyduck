@@ -123,6 +123,9 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
 
 
 def show_features_queries(st):
+
     for sql_list in st.get_selects().values():
         for sql in sql_list:
             print(str(sql))
+
+    print(str(st.get_create()))
