@@ -370,7 +370,7 @@ import utils
 utils.show_features_queries(st)
 #+END_SRC
 
-This will execute queries as the following:
+This will execute queries as the following for the group tables (like =test_risks_zip_code=):
 
 #+BEGIN_EXAMPLE sql
 
@@ -388,6 +388,33 @@ WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1 y
 
 ...
 
+#+END_EXAMPLE
+
+
+and the next query for the =test_risks_aggregation= table:
+
+#+BEGIN_EXAMPLE sql
+CREATE TABLE "triage"."both_aggregation" AS (SELECT * FROM (SELECT license_num, zip_code, '2014-10-06'::date AS date
+FROM triage.test
+WHERE date < '2014-10-06'AND date >= '2014-10-06'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+UNION ALL
+SELECT license_num, zip_code, '2014-10-08'::date AS date
+FROM triage.test
+WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+UNION ALL
+SELECT license_num, zip_code, '2015-01-12'::date AS date
+FROM triage.test
+WHERE date < '2015-01-12'AND date >= '2015-01-12'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+UNION ALL
+SELECT license_num, zip_code, '2015-10-20'::date AS date
+FROM triage.test
+WHERE date < '2015-10-20'AND date >= '2015-10-20'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+UNION ALL
+SELECT license_num, zip_code, '2016-10-17'::date AS date
+FROM triage.test
+WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1y') GROUP BY license_num, zip_code) t1
+LEFT JOIN "triage"."both_license_num" USING (license_num, date)
+LEFT JOIN "triage"."both_zip_code" USING (zip_code, date));
 #+END_EXAMPLE
 
 You can create the features tables executing the following:
@@ -410,6 +437,51 @@ The names of the generated tables are constructed as follows:
 #+BEGIN_EXAMPLE
 schema.prefix_{group, aggregation}
 #+END_EXAMPLE
+
+Inside each of those new tables, the column name will follow this
+pattern:
+
+#+BEGIN_EXAMPLE
+prefix_group_interval_categorical_operation
+#+END_EXAMPLE
+
+For example the tables inside the triage schema are:
+
+#+BEGIN_SRC sql
+\dt triage.test_risks*
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| List of relations |                             |       |          |
+|-------------------+-----------------------------+-------+----------|
+| Schema            | Name                        | Type  | Owner    |
+| triage            | test_risks_aggregation        | table | food_user |
+| triage            | test_risks_aggregation_imputed | table | food_user |
+| triage            | test_risks_license_num         | table | food_user |
+| triage            | test_risks_zip_code            | table | food_user |
+:END:
+
+And inside =test_risk_aggregation= the columns are:
+
+#+BEGIN_SRC sql
+\d triage.test_risks_aggregation
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| Table "triage.test_risks_aggregation"                 |                   |           |
+|-----------------------------------------------------+-------------------+-----------|
+| Column                                              | Type              | Modifiers |
+| zip_code                                             | character varying |           |
+| date                                                | date              |           |
+| license_num                                          | numeric           |           |
+| test_risks_license_num_1 year_inspection_type_canvass_sum   | bigint            |           |
+| test_risks_license_num_1 year_inspection_type_complaint_sum | bigint            |           |
+| test_risks_zip_code_1 year_inspection_type_canvass_sum      | bigint            |           |
+| test_risks_zip_code_1 year_inspection_type_complaint_sum    | bigint            |           |
+:END:
+
 
 The =triage.test_risks_zip_code= table
 have two feature columns for every zip code in our table =triage.test=,
@@ -502,8 +574,11 @@ st = SpacetimeAggregation([inspection_types], # The Categorical object
 st.execute(db_connection)
 #+END_SRC
 
+This will create, as you probbaly guessed, four new tables:
+=inspection_type_{license_num, zip_code, aggregatio, aggregation_imputed}=
 
-Or you can mix the two:
+
+Or you can mix the two in one step:
 
 #+BEGIN_SRC python
 st = SpacetimeAggregation([risks,inspection_types], # The Categorical object
@@ -525,6 +600,33 @@ st = SpacetimeAggregation([risks,inspection_types], # The Categorical object
 
 #+END_SRC
 
+
+Checking the columns inside =triage.both_aggregation= , you will note
+that all the previous columns are there (except for the prefix):
+
+#+BEGIN_SRC sql
+\d triage.both_aggregation
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| Table "triage.both_aggregation"             |                   |           |
+|--------------------------------------------+-------------------+-----------|
+| Column                                     | Type              | Modifiers |
+| zip_code                                    | character varying |           |
+| date                                       | date              |           |
+| license_num                                 | numeric           |           |
+| both_license_num_1y_risk_high_avg                | numeric           |           |
+| both_license_num_1y_risk_medium_avg              | numeric           |           |
+| both_license_num_1y_risk_low_avg                 | numeric           |           |
+| both_license_num_1y_inspection_type_canvass_sum   | bigint            |           |
+| both_license_num_1y_inspection_type_complaint_sum | bigint            |           |
+| both_zip_code_1y_risk_high_avg                   | numeric           |           |
+| both_zip_code_1y_risk_medium_avg                 | numeric           |           |
+| both_zip_code_1y_risk_low_avg                    | numeric           |           |
+| both_zip_code_1y_inspection_type_canvass_sum      | bigint            |           |
+| both_zip_code_1y_inspection_type_complaint_sum    | bigint            |           |
+:END:
 
 
 
