@@ -14,7 +14,7 @@
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
 
-* ▶ TODO Triage [2/5]
+* ▶ TODO Triage [0/2]
  - [ ] Describe triage
  - [ ] Describe the problem that triage tries to solve
  - [X] Describe Timechop
@@ -1107,3 +1107,9 @@ st = SpacetimeAggregation([critical_violations, serious_violations, low_violatio
 st.execute(db_connection)
 
 #+END_SRC
+
+
+
+** ▶ TODO Audition
+
+** ▶ TODO Post-modeling
