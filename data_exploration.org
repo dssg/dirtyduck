@@ -17,7 +17,7 @@
 
 * Data
 
-** Downloading
+** Download the data
 
    #+BEGIN_SRC shell
      curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > data/inspections.csv
@@ -25,10 +25,11 @@
 
    #+RESULTS:
 
-   We can check the size of the data set
+   We can check the size of the data set and the number of rows
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
      ls -lh /data
+     wc -l data/inspections.csv
    #+END_SRC
 
    #+RESULTS:
@@ -46,12 +47,6 @@
    -rw-rw-r-- 1 1000 1000 186M Dec 11 23:01 inspections.csv
    :END:
 
-   And the (apparent) total number of rows
-
-   #+BEGIN_SRC shell :dir data
-     wc -l inspections.csv
-   #+END_SRC
-
    #+RESULTS:
    :RESULTS:
    395152 inspections.csv
@@ -59,21 +54,12 @@
 
 
 
-** Loading data to the database
+** Load data to the database
    Assuming that you are already inside =bastion=, run the following
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
      psql ${FOOD_DB_URL} -c 'select count(*) from inspections'
    #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-    count
-   --------
-    162039
-   (1 row)
-
-   :END:
 
    (If you are connected to the database, you could just type =select count(*) from inspections=
 
@@ -85,12 +71,7 @@
    : COPY 162039
 
 
-   This is different to the number of rows that we calculated
-   previously. The reason is that the columns =violations= contains
-   several lines in some examples. But don't worry, the previous
-   command took care about that.
-
-   Let's glimpse the data
+   Let's take a glimpse at the data
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
      psql ${FOOD_DB_URL} -c 'select * from inspections limit 5'
@@ -109,34 +90,35 @@
 
    :END:
 
+** Understanding the data
+   Checking the data documentation (located  [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]), the meaning of some columns are:
 
-   Checking the documentation (located  [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]),
-
-   The meaning of some columns is the following:
-
-   - Risk category of facility:: Each establishment is categorized as
+   - Risk category of facility: Each establishment is categorized as
      to its risk of adversely affecting the public’s health, with 1
      being the highest and 3 the lowest. The frequency of
      inspection is tied to this risk, with risk 1 establishments
      inspected most frequently and risk 3 least frequently.
 
-   - Inspection type:: An inspection can be one of the following
-     types: canvass, the most common type of inspection performed
-     at a frequency relative to the risk of the   establishment;
-     consultation, when the inspection is  done at the request of the
-     owner prior to the opening of the establishment; complaint, when
-     the inspection is done in    response to a complaint against the
-     establishment; license, when the inspection is done    as a
-     requirement for the establishment to receive its license to
-     operate; suspect food    poisoning, when the inspection is done
-     in response to one or more persons claiming to    have gotten ill
-     as a result of eating at the establishment (a specific type of
-     complaint-   based inspection); task-force inspection, when an
-     inspection of a bar or tavern is done.    Re-inspections can
-     occur for most types of these inspections and are indicated as
+   - Inspection type: An inspection can be one of the following
+     types: 
+     	    - canvass: the most common type of inspection performed
+	    at a frequency relative to the risk of the   establishment;
+     	    - consultation: when the inspection is  done at the request of the
+	    owner prior to the opening of the establishment 
+     	    - complaint: when the inspection is done in response 
+	    to a complaint against the establishment
+	    - license: when the inspection is done    as a requirement 
+	    for the establishment to receive its license to operate
+	    - suspect food poisoning: when the inspection is done
+	    in response to one or more persons claiming to    have gotten ill
+     	    as a result of eating at the establishment (a specific type of
+     	    complaint-based inspection)
+	    - task-force inspection: when an inspection of a bar or tavern is done.
+
+Re-inspections can occur for most types of these inspections and are indicated as
      such.
 
-   -  Results:: An inspection can pass, pass with conditions or
+   -  Results: An inspection can pass, pass with conditions or
      fail. Establishments receiving a ‘pass’ were found to have no
      critical or serious violations (violation number 1-14 and 15-29,
      respectively). Establishments receiving a ‘pass  with conditions’
@@ -156,11 +138,11 @@
      of the findings that caused the violation to be issued.
 
 
-   From this definitions, we can deduct the following claims:
+   From these definitions, we can deduct the following claims:
 
 1. /risk/ is related to the frequency of inspections of type /canvass/.
-2. /consultation/ is a compulsory inspections /before/ the facility opens
-   (so we can remove it from the data), the same happens with /license/.
+2. /consultation/ is a compulsory inspection /before/ the facility opens
+   (so we can remove it from the data). The same is true with /license/.
 3. /complaint/ and /suspect food poisoning/ inspections are triggered by
    the people, /consultation/ is triggered by the owner of the
    facility.
@@ -173,7 +155,7 @@
 
 
 Let's check that we have *only* three different classifications for the
-=risk= of the facility and 5 types of =types= of inspections:
+=risk= of the facility and 5 types of =types= of inspections. First connect to the database (=psql ${FOOD_DB_URL}=).
 
 
 #+BEGIN_SRC sql
@@ -192,7 +174,7 @@ Let's check that we have *only* three different classifications for the
 :END:
 
 #+BEGIN_SRC sql
-  select count(distinct type) from inspections
+  select count(distinct type) from inspections;
 #+END_SRC
 
 #+RESULTS:
@@ -203,7 +185,7 @@ Let's check that we have *only* three different classifications for the
 :END:
 
 #+BEGIN_SRC  sql
-  select distinct results from inspections
+  select distinct results from inspections;
 #+END_SRC
 
 #+RESULTS:
@@ -219,49 +201,36 @@ Let's check that we have *only* three different classifications for the
 | Pass                 |
 :END:
 
-Ok, disheartening. But, that is the reality of /real/ data. In the next
-section we will try to clean this mess.
+Ok, this is rather disheartening: there are [NULL]'s in the risks and there are a 108 different types of inspections. But that is the reality of /real/ data. In the next section, let's see how to clean this mess.
 
 
 ** Transforming the data
 
-   For tackling a Machine Learning problem you need to identify the
+   In our world, an /event/ happened in space-time to an /entity/.
+   For tackling a Machine Learning problem you need to first identify the
    *entities* of your problem domain, and if your problem involves time,
-   how those entities change over time.
+   how those entities change over time. 
 
-   In this tutorial, we have two different goals: (1) an *EIS* and
-   (2) *prioritize inspections*, the entity in which we are interested in
-   both cases is the  /facility/.
+   In this tutorial, we have two different goals: (1) *EIS* (Early Information System) and
+   (2) to *prioritize inspections*. 
+   Both problems fall under the umbrella of /supervised machine
+   learning/. The entity of interest in both cases is the  /facility/.
+   For each, we also need to specify the *outcome* of interest (in ML jargon this
+   is called a /label/). For *EIS*, the outcome is whether the facility is *inspected*.
+   For *Inspections*, the outcome is whether a *major violation is found*.
 
-   In the *EIS*, as a facility owner or manager, we want to predict if
-   the facility under our control is at /risk/ of been inspected in the
-   following period of time.
+   One of the golden rules of data cleaning -that will make your life easier- is:
 
-   In the *inspections prioritization*, we want to generate a list of
-   facilities which are /likely/ to have some *critical* o *serious*
-   violation /given that/ they are inspected.
+   /Do not change your original data/
 
-   Both problems are under the umbrella of the /supervised machine
-   learning/ problems. That means that we must need examples that
-   specify the *outcome* in which are interested (in the ML jargon this
-   is called a /label/).
+   If you make some mistake, or if you want to try something different, 
+   you can always go back to the beginning and start over.
 
-   The *outcome* is what differ between those two projects. For *EIS* the
-   outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
-
-   One of the golden rules -that will make your life easier- is:
-
-   /You can't change your original data/
-
-   The reason for this is, if you make some mistake, or if you want to
-   try a different thing you will always can go back to the beginning and
-   start over.
-
-   Let's see the data to figure out how we need to be transform it.
+   Now, let's see how we need to transform our data.
 
    Remember that the data that we have is one inspection per row.
 
-   We will check the result of the inspections:
+   In the database, check the inspection results:
 
    #+BEGIN_SRC sql
      select
@@ -287,50 +256,35 @@ section we will try to clean this mess.
    :END:
 
    We will remove =Not Ready=, =No Entry=, =Out of Business= and =Business Not Located=
-   from the data, and We will only keep all the other options (=Fail=, =Pass w/Condition= and
+   from the data (since these aren't relevant for our model). We will keep all the other options (=Fail=, =Pass w/Condition= and
    =Pass)=.
 
 
-   We still need to clean the column =type= (it contains several
-   variations instead of the seven mentioned in the documentation:
-   /canvass/, /complaint/, /license/, /re-inspection/, /task-force/, /consultation/
-   and /suspect food poisoning/). For simplicity, we will use /regular
-   expressions/ and we will ignore /re-inspection/.
+   Now, lets' look at the column =type=. It contains several variations 
+   instead of the seven mentioned in the documentation. 
+   For simplicity, we will use /regular expressions/ and we will ignore /re-inspection/.
 
 
-   We will add the following columns in =cleaned.inspections=
-   - year
-   - month
-   - day of week
-   - is_weekend
-   - week_of_year
-   - quarter
+   There are a few more transformations to make for the =cleaned.inspections= table:
+   - Add the following columns in =cleaned.inspections=
+      - year
+      - month
+      - day of week
+      - is_weekend
+      - week_of_year
+      - quarter
+   - Remove superfluous spaces and transform the test to lower case
+   - Clean =risk=
+   - Convert =location= to a real =Point=.
+   - Drop the columns =state=, =latitude=, =longitude=, since these are redundant.
 
-   We will remove superfluous spaces and will transform the test to
-   lower case, also, we will clean =risk= and we will convert =location= to a
-   real =Point=.
-
-#+begin_src sql
-select state, count(*) from inspections group by state
-#+end_src
-
-#+RESULTS:
-:RESULTS:
-| state  |  count |
-|--------+--------|
-| [NULL] |     20 |
-| IL     | 162019 |
-:END:
-
-
-   We will drop the columns =state=, =latitude=, =longitude=, since these are
-   redundant.
-
-   We will create a new =schema=
+   We start by creating a new =schema=.
 
    #+BEGIN_SRC sql
-     create schema if not exists cleaned
+     create schema if not exists cleaned;
    #+END_SRC
+
+   Then we create a new table with all the transformations:
 
    #+RESULTS:
 
@@ -338,38 +292,37 @@ select state, count(*) from inspections group by state
      drop table if exists cleaned.inspections cascade;
 
      create table cleaned.inspections as (
-     select
-     inspection,
-     btrim(lower(results)) as result,
-     license_num,
-     btrim(lower(dba_name)) as facility,
-     btrim(lower(aka_name)) as facility_aka,
-     btrim(lower(facility_type)) as facility_type,
-     lower(substring(risk from '\((.+)\)')) as risk,
-     btrim(lower(address)) as address,
-     zip as zip_code,
-     btrim(lower(city)) as city,
-     substring(btrim(lower(type)) from 'canvass|task force|complaint|food poisoning|consultation|license') as type,
-     date,
-     extract(year from date) as year,
-     extract(month from date) as month,
-     extract(isodow from date) as day_of_week, -- Monday: 1 ... Sunday: 7
-     case
-     when extract(isodow from date) in (6,7) then TRUE
-     else FALSE
-     end as is_weekend,
-     extract(week from date) as week_of_year,
-     extract(quarter from date) as quarter,
-     ST_SetSRID(ST_MakePoint(longitude, latitude),4326) as location
-     from inspections
-     where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
+          select
+		inspection,
+		btrim(lower(results)) as result,
+     		license_num,
+     		btrim(lower(dba_name)) as facility,
+     		btrim(lower(aka_name)) as facility_aka,
+     		btrim(lower(facility_type)) as facility_type,
+     		lower(substring(risk from '\((.+)\)')) as risk,
+     		btrim(lower(address)) as address,
+     		zip as zip_code,
+     		btrim(lower(city)) as city,
+     		substring(btrim(lower(type)) from 'canvass|task force|complaint|food poisoning|consultation|license') as type,
+     		date,
+     		extract(year from date) as year,
+     		extract(month from date) as month,
+     		extract(isodow from date) as day_of_week, -- Monday: 1 ... Sunday: 7
+     		case
+			when extract(isodow from date) in (6,7) then TRUE
+		     	else FALSE
+     			end as is_weekend,
+     		extract(week from date) as week_of_year,
+     		extract(quarter from date) as quarter,
+     		ST_SetSRID(ST_MakePoint(longitude, latitude),4326) as location
+     	from inspections
+     	where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
      )
    #+END_SRC
 
-   #+RESULTS:
 
-
-   You could execute this code using (if you are not connected to the database):
+   To simplify things, we have put this code into a sql file.
+   If not connected to the database, execute the following:
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
      psql ${FOOD_DB_URL} < /code/create_cleaned_inspections_table.sql
@@ -381,26 +334,14 @@ select state, count(*) from inspections group by state
    SELECT 141754
    :END:
 
-   Or, if you are connected to the database
+   Or, if you are connected to the database, you can execute the following:
 
    #+BEGIN_EXAMPLE sql
    \i /code/create_cleaned_inspections_table.sql
    #+END_EXAMPLE
 
 
-   #+BEGIN_SRC sql :results table
-     select count(inspection) from cleaned.inspections;
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   |  count |
-   |--------|
-   | 141754 |
-   :END:
-
-
-   Let's look closer the column =violations=:
+   Let's take a closer look at the column =violations=:
 
    #+BEGIN_SRC sql
      select violations
@@ -428,10 +369,8 @@ select state, count(*) from inspections group by state
    - Every violation could have *comments*, those comments appear after
      the string =- Comments:=
 
-   We will take that observations in account and create a new table
-   called =cleaned.violations= to store
-
-   - inspection
+   Keeping these observations in mind, we create a new table called =cleaned.violations= to store
+   - inspections
    - code
    - description
    - comments
@@ -440,73 +379,59 @@ select state, count(*) from inspections group by state
    drop table if exists cleaned.violations cascade;
 
    create table cleaned.violations as (
-   select
-   inspection,
-   license_num, -- This is a requirement of triage
-   date,
-   btrim(tuple[1]) as code,
-   btrim(tuple[2]) as description,
-   btrim(tuple[3]) as comment,
-   (case
-     when btrim(tuple[1]) = '' then NULL
-     when btrim(tuple[1])::int between 1 and 14 then 'critical'
-     when btrim(tuple[1])::int between 15 and 29  then 'serious'
-     else 'minor'
-   end
-   ) as severity from
-   (
-   select
-   inspection,
-   license_num,
-   date,
-   regexp_split_to_array(
-   regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
-   '\.|- Comments:') as tuple
-   from inspections
-   where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
-   ) as t
-   )
+   	  select
+		inspection,
+   		license_num, -- This is a requirement of triage
+   		date,
+   		btrim(tuple[1]) as code,
+   		btrim(tuple[2]) as description,
+   		btrim(tuple[3]) as comment,
+   		(case
+		     when btrim(tuple[1]) = '' then NULL
+		     when btrim(tuple[1])::int between 1 and 14 then 'critical'
+		     when btrim(tuple[1])::int between 15 and 29  then 'serious'
+		     else 'minor'
+		     end
+		) as severity from
+   		  (
+		     select
+   		     inspection,
+   		     license_num,
+   		     date,
+   		     regexp_split_to_array(
+		        regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
+			'\.|- Comments:') as tuple
+   		     from inspections
+  		      where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
+   		  ) as t
+   		)
    #+END_SRC
 
    #+RESULTS:
 
-
-#+BEGIN_SRC sql
-  select
-  case when grouping(severity) = 1 then 'TOTAL' else severity end as severity,
-  count(*) from cleaned.violations
-  group by rollup (severity)
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| severity |  count |
-|----------+--------|
-| critical |  38232 |
-| minor    | 479835 |
-| serious  |  77400 |
-| [NULL]   |  12701 |
-| TOTAL    | 608168 |
-:END:
-
    This code is in =/code/create_violations_table.sql=, you can execute
    this as before.
 
-   As we will see through all this tutorial, /data is always messy/, to
-   begin with we have several different spellings (e.g. =SUBWAY= and
+
+   ## Cleaning the data
+
+   As we will see through all this tutorial, /data is always messy/.
+
+   To begin with we have several different spellings for the facilities (e.g. =SUBWAY= and
    =Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
    =DUNKIN DONUTS / BASKIN ROBBINS=, etc)
 
-   We could try a very simple cleaning for example, convert all the
+   There are a few possible approaches to fix this:
+   -  We could try a very simple cleaning for example, convert all the
    names to uppercase, remove the trailing spaces, remove the apostrophe
    "='"= and remove the spaces around "=/=". The problem with this approach
    is that we will be fixing the names that we just saw, but there are
-   several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
-   but that will create a lot of mismatches. The real workaround is apply
-   some /machine learning/ to /deduplicate/ the entities [fn:3].  We wont
-   follow that path here.
+   several other nuances down that list. 
+   - Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
+   but that will create a lot of mismatches. 
+   - The real workaround is apply some /machine learning/ to /deduplicate/ the entities [fn:3].  
 
-
+   In this tutorial let's see if there's another way we can solve this.
    If we go back to the columns of the table, maybe there is another way
    to solve this: we could try with the column =license_num=  (assume that one
    license represents one establishment) and the column =address= (assume that one restaurant is
@@ -515,9 +440,9 @@ select state, count(*) from inspections group by state
 
    #+BEGIN_SRC sql
      select
-     count(distinct facility) as total_facilities,
-     count(distinct license_num) as total_licenses,
-     count(distinct address) as total_addresses
+          count(distinct facility) as total_facilities,
+     	  count(distinct license_num) as total_licenses,
+     	  count(distinct address) as total_addresses
      from cleaned.inspections
    #+END_SRC
 
@@ -528,9 +453,9 @@ select state, count(*) from inspections group by state
    |           21143 |         28741 |          15945 |
    :END:
 
-   This doesn't look promising...
+   This doesn't look promising... 
 
-   /What are the top 5 locations with more inspections?/
+   What are the top 5 locations with more inspections?
 
    #+BEGIN_SRC sql
      select
@@ -557,17 +482,13 @@ select state, count(*) from inspections group by state
    The /location hypothesis/ also has problems, in particular could be *more*
    than one establishment per location (the first row is *O'Hare International Airport*)
 
-   So, our last hope is the /license number/
-
-   We could get, even more information if we check /How many of those inspections result in a 'fail'/?
-
-   /What are the top 5 licenses with more inspections?/
+   Our last hope now is the /license number/. We could get, even more information if we check /How many of those inspections result in a 'fail'/? What are the top 5 licenses with more inspections?
 
    #+BEGIN_SRC sql
        select
-       license_num, count(*) as total_inspections,
-       coalesce(count(*) filter (where result = 'fail'), 0)
-       as total_failures
+           license_num, count(*) as total_inspections,
+       	   coalesce(count(*) filter (where result = 'fail'), 0)
+       	       as total_failures
        from cleaned.inspections
        group by license_num
        order by total_inspections desc
@@ -586,14 +507,13 @@ select state, count(*) from inspections group by state
    :END:
 
 
-   Even this column has some problems, let's investigate a little about
-   the =license_num= = =0=.
+   That's weird, even this column seems to have some problems. Let's investigate the =license_num= = =0= a little more.
 
    #+BEGIN_SRC sql
      select
-     facility_type, count(*) as total_inspections,
-     coalesce(count(*) filter (where result = 'fail'), 0)
-     as total_failures
+         facility_type, count(*) as total_inspections,
+     	 coalesce(count(*) filter (where result = 'fail'), 0)
+     	     as total_failures
      from cleaned.inspections
      where license_num=0
      group by  facility_type
@@ -651,49 +571,28 @@ select state, count(*) from inspections group by state
    :END:
 
    Most of these are related to /special events/, /churchs/, /festivals/
-   etc. We could research deeply the =restaurants= which have =license_num= =
+   etc. We could look more deeply at the =restaurants= which have =license_num= =
    =0=, but we will skip that for the moment.
 
 
-   Finally, we can conclude that, except for some details, =license_num= is
-   the way to go, for the identification of the establishments.
-
-
-   #+BEGIN_SRC sql
-     select
-     license_num, facility, address,
-     count(*) as total_inspections,
-     coalesce(count(*) filter (where result = 'fail'), 0)
-     as total_failures
-     from cleaned.inspections
-     group by license_num, facility, address
-     order by count(*)  desc
-     limit 5;
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | license_num | facility                          | address                 | total_inspections | total_failures |
-   |------------+-----------------------------------+-------------------------+------------------+---------------|
-   |    1354323 | sportservice soldier field        | 1410 s museum campus dr |              119 |             1 |
-   |      14616 | illinois sportservice inc         | 333 w 35th st           |               99 |            19 |
-   |    1574001 | levy restaurants at wrigley field | 1060 w addison st       |               68 |             1 |
-   |    1974745 | the united center                 | 1901 w madison st       |               46 |             0 |
-   |    1490035 | mcdonald's                        | 6900 s lafayette ave    |               45 |             6 |
-   :END:
+   At the end of this investigation, we can conclude that, except for some details, =license_num= 
+   is the best way to identify establishments.
 
 
 ** Exploring the data
+
+   A useful exercise is to explore and understand the data a little more deeply before trying to build models from it.
+   Let's go through a couple of questions about the data.
 
    /Which is the spatial distribution of inspections?/
 
 
    #+BEGIN_SRC sql
    select
-   zip_code,
-   count(*) as total_inspections,
-   coalesce(count(*) filter (where result = 'fail'), 0)
-   as total_failures
+      zip_code,
+      count(*) as total_inspections,
+      coalesce(count(*) filter (where result = 'fail'), 0)
+   	 as total_failures
    from cleaned.inspections
    group by zip_code
    order by total_inspections desc
@@ -716,14 +615,14 @@ select state, count(*) from inspections group by state
    |   60640 |             3671 |           983 |
    :END:
 
-   /Which is the temporal distribution of the inspections?/
+   /What is the temporal distribution of the inspections?/
 
    #+BEGIN_SRC sql
    select
-   year, month,
-   count(*) as total_inspections,
-   coalesce(count(*) filter (where result = 'fail'), 0)
-   as total_failures
+	year, month,
+   	count(*) as total_inspections,
+   	coalesce(count(*) filter (where result = 'fail'), 0)
+   	    as total_failures
    from cleaned.inspections
    group by rollup(year, month)
    order by year asc, month asc
@@ -840,14 +739,16 @@ select state, count(*) from inspections group by state
    | [NULL] | [NULL] |           141754 |         31363 |
    :END:
 
-   The number of inspections per month, is stable.
+   We see that the number of inspections per month is stable.
+
+   /How many of each type of violation?/
 
    #+BEGIN_SRC sql
      select
-     code,
-     description,
-     severity,
-     count(*) as total
+	code,
+     	description,
+     	severity,
+     	count(*) as total
      from cleaned.violations
      group by code, description, severity
      order by total desc
@@ -870,21 +771,22 @@ select state, count(*) from inspections group by state
    |   30 | FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | minor    | 17359 |
    :END:
 
-   This looks weird, the top most "violation" is not an actual
-   violation. We will repeat the query, we will group by the =results=
+   This looks weird, the top-most "violation" is not an actual
+   violation. Let's repeat the query, this time, grouping by the =results=
 
    #+BEGIN_SRC sql
      with inspections_violations as (
-     select
-     i.inspection, i.result,
-     v.code
-     from cleaned.inspections as i inner join cleaned.violations as v
-     using(inspection)
+     	  select
+		i.inspection, i.result,
+     		v.code
+     	  from cleaned.inspections as i 
+	  inner join cleaned.violations as v
+     	       using(inspection)
      )
 
 
      select code, result,
-     count(code)
+     	    count(code)
      from inspections_violations
      group by rollup(code, result)
    #+END_SRC
@@ -1086,17 +988,17 @@ select state, count(*) from inspections group by state
    but we will keep this simple for the moment.
 
 
-   /How often change the risk in a facility?/
+   /How often does the risk change for a facility?/
 
    #+BEGIN_SRC sql
      select
-     license_num, risk || '->' || previous_risk, count(*)
-     from
-     (
-     select date, license_num,risk, lag(risk) over w as previous_risk
-     from cleaned.inspections
-     window w as (partition by license_num order by date asc)
-     ) as t
+	license_num, risk || '->' || previous_risk, count(*)
+     	from
+     	(
+	    select date, license_num,risk, lag(risk) over w as previous_risk
+     	    from cleaned.inspections
+     	    window w as (partition by license_num order by date asc)
+     	) as t
      where (risk <>  previous_risk) and license_num != '0'
      group by license_num, risk || '->' || previous_risk
      order by  count(*) desc, license_num
@@ -1122,14 +1024,13 @@ select state, count(*) from inspections group by state
 
 *** Events table
 
-We are ready for creating our events table
+We are now ready to create our events table
 
    #+BEGIN_SRC sql
-     create schema if not exists semantic
+     create schema if not exists semantic;
    #+END_SRC
 
    #+RESULTS:
-
 
 
 #+begin_src sql :tangle ./src/create_events_table.sql
@@ -1140,15 +1041,15 @@ create table semantic.events as (
 
 select i.inspection, type, i.license_num, facility_type, zip_code, city,
        i.date, risk, result, location,
-jsonb_agg(
-    jsonb_build_object(
-        'code', v.code,
-        'severity', v.severity,
-	'description', v.description,
-	'comment', v.comment
-	)
-order  by code
-) as violations
+       jsonb_agg(
+		jsonb_build_object(
+		'code', v.code,
+        	'severity', v.severity,
+		'description', v.description,
+		'comment', v.comment
+		)
+		order  by code
+		) as violations
 from cleaned.inspections as i
 inner join
 cleaned.violations as v
@@ -1189,6 +1090,16 @@ create index entities_license_num_facility_type_location_ix on semantic.entities
 
 #+RESULTS:
 
+#+BEGIN_SRC sql
+select * from semantic.entities limit 1
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility_type      | location                                           |
+|------------+-------------------+----------------------------------------------------|
+|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
+:END:
 
 #+begin_src sql
 select * from semantic.events limit 1
@@ -1202,13 +1113,3 @@ select * from semantic.events limit 1
 :END:
 
 
-#+BEGIN_SRC sql
-select * from semantic.entities limit 1
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| license_num | facility_type      | location                                           |
-|------------+-------------------+----------------------------------------------------|
-|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
-:END:

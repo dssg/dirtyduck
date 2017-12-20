@@ -15,18 +15,17 @@
 
 * Infrastructure
 
-  Besides data, in most of the data science projects you will need some
-  other tools, for example a place to store the data (a database
-  management system), a way
-  for putting your model to work (an API) and a interface for looking
-  the performace of your trained models (for this tutorial we are proposing [[https://github.com/dssg/tyra][tyra]])
+  Most data science projects need several tools (in addition to the data):
+  - place to store the data (a database management system)
+  - way for putting your model to work (an API)
+  - interface for looking the performace of your trained models (for this tutorial, we use [[https://github.com/dssg/tyra][tyra]])
 
-  We are proving a little script for managing all the infrastructure in
+  We provide a little script to manage all the infrastructure in
   a (hopefully) transparent way.
 
   Before creating the infrastructure, change the string =your_password=
   for something else in the file
-  =infrastructure/food_db/.env_example=
+  =infrastructure/env_example=
 
   #+BEGIN_SRC shell :tangle infrastructure/env_example
     POSTGRES_DB=food
@@ -40,7 +39,7 @@
     GID=1000
   #+END_SRC
 
-  And change the name of the file to =.env=.
+  Change the name of the file to =.env=.
 
   Also, adjust the =tyra= credentials file (We will explain what is =tyra=
   later). That file is located inside the folder =infrastructure/tyra/example_users.json=
@@ -57,20 +56,9 @@
   Change =tyra_user= for whatever you want (it will be your
   username), and change =tutorial= too (it will be the password).
 
-  Next run the following command
+  To ensure everything works, run =./manage.sh= which should print the usage.
 
-  #+BEGIN_SRC shell
-    ./manage.sh
-  #+END_SRC
-
-  #+RESULTS:
-  :RESULTS:
-  Usage: ./manage.sh {start|stop|build|rebuild|run|logs|status}
-  :END:
-
-
-
-  We need to create the infrastructure so, =start= it
+  To create the infrastructure, =start= it
 
   #+BEGIN_SRC shell
     ./manage.sh start
@@ -79,10 +67,8 @@
   #+RESULTS:
   :RESULTS:
   :END:
-
-
-
-  This will take some minutes the first time.
+  
+  This will take some minutes the first time. This installs all the necessary tools, creates the database, and creates a schema for the necessary tables.
 
   You can check that everything is running smoothly with =status=
 
@@ -102,11 +88,7 @@
   :END:
 
 
-  You can type in your browser [[http://0.0.0.0:5001]] and you will see the
-  login page from *Tyra*.
-
-
-  Login to the docker container using
+  The docker container with all the tools for this tutorial is called =bastion=. To login into the docker container:
 
   #+BEGIN_EXAMPLE shel
   ./manage.sh bastion
@@ -118,25 +100,19 @@
   root@485373fb3c64:/$
   #+END_EXAMPLE
 
-  Now the database is running, its named =food_db=, the single table in
-  there named =inspections=
+  Now that the database is running, we can check what's in there. The database is named =food_db=
+  and contains a single table in named =inspections=
 
-  Let's check the =schema= of =inspections= table, first, type the next
-  command to connect to the database
+  Let's check the =schema= of the =inspections= table. First, connect to the database and then print the schema
 
   #+BEGIN_EXAMPLE shell
   psql ${FOOD_DB_URL}
+  \dS+ inspections
   #+END_EXAMPLE
-
-  and then, type the following command:
-
-  #+BEGIN_SRC sql
-    \dS+ inspections
-  #+END_SRC
 
   #+RESULTS:
   :RESULTS:
-  | Table "public.inspections" |                   |           |          |              |             |
+  | Table "public.inspections"                                                                         |
   |----------------------------+-------------------+-----------+----------+--------------+-------------|
   | Column                     | Type              | Modifiers | Storage  | Stats target | Description |
   | inspection                 | character varying | not null  | extended |              |             |
@@ -158,4 +134,8 @@
   | location                   | character varying |           | extended |              |             |
   :END:
 
-  Now, you can disconnect from the database typing =\q=
+  To disconnect from the database, type =\q=
+  To exit out of the docker container, type =exit=
+
+  Note that the inspections table is currently empty and, in the [[file:data_exploration.org][next step]], we'll populate it.
+  
