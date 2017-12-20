@@ -145,8 +145,8 @@ will assume that all the facilities are active in *every inspection*
 drop table if exists triage.all_facilities cascade;
 
 create table triage.all_facilities as (
-    select license_num, date
-    from (select distinct license_num from semantic.events where license_num = 1974745) a
+    select license_num, facility_type, location, date
+    from (select distinct license_num, facility_type, location from semantic.events where license_num = 1974745) a
     cross join (select distinct date as date from semantic.events) b
 -- select
 -- distinct license_num,
@@ -170,13 +170,13 @@ select * from triage.all_facilities limit 5;
 
 #+RESULTS:
 :RESULTS:
-| license_num |       date |
-|------------+------------|
-|    2506828 | 2016-11-10 |
-|    2506828 | 2015-05-05 |
-|    2506828 | 2013-05-06 |
-|    2506828 | 2015-12-24 |
-|    2506828 | 2017-05-26 |
+| license_num | facility_type | location                                           |       date |
+|------------+--------------+----------------------------------------------------+------------|
+|    1974745 | liquor       | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2016-11-10 |
+|    1974745 | restaurant   | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2016-11-10 |
+|    1974745 | liquor       | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2015-05-05 |
+|    1974745 | restaurant   | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2015-05-05 |
+|    1974745 | liquor       | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2013-05-06 |
 :END:
 
 #+BEGIN_SRC sql
@@ -202,6 +202,7 @@ create table triage.test as (
 select
 inspection, -- event
 license_num,  -- entity
+facility_type,
 type as inspection_type, risk, -- variables
 violations, -- json array of variables
 date, location, zip_code -- spatio temporal dimensions
@@ -752,9 +753,107 @@ WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y'
 
 
 #+BEGIN_SRC sql
-with facilities_nearby as (
-   select a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
-   from semantic.entities as a,
+with inspected_facilities as (
+    select distinct on (license_num, location, facility_type) *
+    from triage.all_facilities
+),
+
+facilities_nearby as (
+   select distinct a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
+   from inspected_facilities as a,
+   lateral (
+       select facility_type
+       from semantic.entities
+       where ST_DWithin(location::geography, a.location::geography, 1000)
+       and license_num <> a.license_num
+   ) as b
+)
+
+select
+license_num, location,
+facility_type, other_facility_type, count(*) as total
+from facilities_nearby
+group by
+license_num, location, facility_type, other_facility_type;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | location                                           | facility_type | other_facility_type                | count |
+|------------+----------------------------------------------------+--------------+----------------------------------+-------|
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | bakery                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | candy                            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | candy maker                      |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | catering                         |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | catering and wholesale           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | children's services facility     |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | daycare (2 - 6 years)            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | daycare (2 years)                |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | daycare above and under 2 years  |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | golden diner                     |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | grocery store                    |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | hospital                         |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | incubator                        |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | liqour brewery tasting           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | liquor                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile dessert vendor            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile food dispenser            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile food preparer             |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile frozen desserts vendor    |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile prepared food vendor      |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | restaurant                       |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | school                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | school cafeteria                 |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shared kitchen                   |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shared kitchen user (long term)  |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shared kitchen user (short term) |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shelter                          |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | special event                    |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | wholesale                        |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | [NULL]                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | bakery                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | candy                            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | candy maker                      |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | catering                         |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | catering and wholesale           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | children's services facility     |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | daycare (2 - 6 years)            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | daycare (2 years)                |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | daycare above and under 2 years  |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | golden diner                     |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | grocery store                    |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | hospital                         |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | incubator                        |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liqour brewery tasting           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile dessert vendor            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile food dispenser            |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile food preparer             |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile frozen desserts vendor    |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile prepared food vendor      |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant                       |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | school                           |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | school cafeteria                 |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shared kitchen                   |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shared kitchen user (long term)  |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shared kitchen user (short term) |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shelter                          |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | special event                    |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | wholesale                        |     1 |
+|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | [NULL]                           |     1 |
+:END:
+
+#+BEGIN_SRC python
+facilities_nearby_sql = """
+(
+with inspected_facilities as (
+    select distinct on (license_num, location, facility_type) *
+    from triage.all_facilities
+),
+
+facilities_nearby as (
+   select distinct a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
+   from inspected_facilities as a,
    lateral (
        select facility_type
        from semantic.entities
@@ -769,35 +868,10 @@ facility_type, other_facility_type, count(*)
 from facilities_nearby
 group by
 license_num, location, facility_type, other_facility_type;
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC python
-facilities_nearby_sql = """
-(
-with facilities_nearby as (
-   select a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
-   from semantic.entities as a,
-   lateral (
-       select facility_type
-       from semantic.entities
-       where ST_DWithin(location::geography, a.location::geography, 1000)
-       and license_num <> a.license_num
-   ) as b
-   where license_num = 1974745
-)
-
-select
-license_num, location,
-facility_type, other_facility_type, count(*)
-from facilities_nearby
-group by
-license_num, location, facility_type, other_facility_type
 ) as t
 """
-
-
+# TODO: Create the correct aggregate Do I need to pivot the table?
+facilities = Aggregate({})
 
 st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
                           from_obj=violations_sql, # FROM
@@ -821,28 +895,212 @@ st.execute(db_connection)
 #+END_SRC
 
 
-
 *** Add number of inspections by type in a radius and in an interval
+
 #+BEGIN_SRC sql
-with inspections_nearby as (
-   select
-   a.inspection, a.license_num, a.location, a.facility_type, a.result,
-   b.inspection as other_inspection, b.license_num as other_license_num, b.facility_type as other_facility_type, b.result as other_result
-   from semantic.events as a,
+with inspected_same_day as (
+ select
+   a.inspection, a.license_num, a.location, a.facility_type, a.date,
+   b.inspection as other_inspection, b.facility_type as other_facility_type, b.location as other_location
+   from triage.test as a,
    lateral (
-       select inspection, license_num, facility_type, result
-       from semantic.events
-       where
-       ST_DWithin(location::geography, a.location::geography, 1000)
-       and inspection <> a.inspection
-   ) as b limit 100
+      select inspection, license_num, location, facility_type, date
+      from semantic.events
+      where inspection <> a.inspection
+      and date = a.date
+   ) as b
+),
+
+inspections_nearby as (
+   select
+   inspection, license_num, location, facility_type,
+   other_facility_type, date
+   from inspected_same_day
+   where
+       ST_DWithin(location::geography, other_location::geography, 1000)
 )
 
 select
-inspection, license_num, location, facility_type, result,
-other_result, other_facility_type, count(*)
+inspection, license_num, location, facility_type,
+other_facility_type, date, count(*)
 from inspections_nearby
 group by
-inspection, license_num, location, facility_type, result, other_result, other_facility_type;
+inspection, license_num, location, facility_type, other_facility_type, date
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| inspection | license_num | location                                           | facility_type | other_facility_type | count |
+|------------+------------+----------------------------------------------------+--------------+-------------------+-------|
+|    1084330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1084330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1300635 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1300635 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1300685 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1300685 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1375554 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1375554 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1480275 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1480275 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1480330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1480330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1480333 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1480333 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1515783 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1515783 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1583214 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1583214 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|    1966659 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|    1966659 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     347278 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     347278 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     347279 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     347279 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547248 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547248 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547249 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547249 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547250 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547250 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547251 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547251 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547252 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547252 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547253 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547253 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547254 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547254 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547255 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547255 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547256 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547256 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547257 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547257 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     547258 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     547258 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579388 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579388 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579389 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579389 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579390 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579390 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579391 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579391 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579392 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579392 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579395 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579395 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579396 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579396 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579397 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579397 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579399 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579399 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579402 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579402 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579403 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579403 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579404 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579404 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579405 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579405 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579410 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579410 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579412 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579412 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579413 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579413 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579414 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579414 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579416 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | restaurant        |    56 |
+|     579419 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579419 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579420 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579420 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579421 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579421 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579422 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579422 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579423 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579423 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579424 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579424 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579431 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579431 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579432 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579432 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     579434 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     579434 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|      58536 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|      58536 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|      58537 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|      58537 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|      58538 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|      58538 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|      58539 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|      58539 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|      58540 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|      58540 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     612586 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     612586 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+|     659526 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
+|     659526 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+:END:
+
+#+BEGIN_SRC python
+inspections_nearby_sql = """
+with inspections_nearby as (
+with inspected_same_day as (
+ select
+   a.inspection, a.license_num, a.location, a.facility_type, a.date,
+   b.inspection as other_inspection, b.facility_type as other_facility_type, b.location as other_location
+   from triage.test as a,
+   lateral (
+      select inspection, license_num, location, facility_type, date
+      from semantic.events
+      where inspection <> a.inspection
+      and date = a.date
+   ) as c
+),
+
+inspections_nearby as (
+   select
+   inspection, license_num, location, facility_type,
+   other_facility_type, date
+   from inspected_same_day
+   where
+       ST_DWithin(location::geography, other_location::geography, 1000)
+)
+
+select
+inspection, license_num, location, facility_type,
+other_facility_type, date, count(*)
+from inspections_nearby
+group by
+inspection, license_num, location, facility_type, other_facility_type, date
+) as b
+"""
+
+# TODO: Create the correct aggregate Do I need to pivot the table?
+facilities = Aggregate({})
+
+st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
+                          from_obj=violations_sql, # FROM
+                          groups=['license_num','zip_code', 'inspection'],  # GROUP BY
+                          dates=["2014-10-06",
+                                 "2014-10-08",
+                                 "2015-01-12",
+                                 "2015-10-20",
+                                 "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
+                          intervals={"license_num": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          date_column="date", # Which is the name of the date column?
+                          state_table='triage.all_facilities', # State table name
+                          state_group='license_num', # Which is the column that identifies the entity
+                          output_date_column='date',
+                          schema='triage', # In which schema do you want to store the results?
+                          prefix='violations'
+)
+
+st.execute(db_connection)
 
 #+END_SRC
