@@ -897,6 +897,9 @@ st.execute(db_connection)
 
 *** Add number of inspections by type in a radius and in an interval
 
+QUESTION: Is this the correct SQL? (at least is fast)
+IDEA: We could precalculate the distances? And from that filter by date?
+
 #+BEGIN_SRC sql
 with inspected_same_day as (
  select
