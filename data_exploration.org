@@ -3,6 +3,7 @@
 #+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
+#+STARTUP: indent
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
@@ -11,8 +12,6 @@
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
-
-
 
 
 * Data
@@ -24,6 +23,8 @@
    #+END_SRC
 
    #+RESULTS:
+   :RESULTS:
+   :END:
 
    We can check the size of the data set
 
@@ -54,7 +55,7 @@
 
    #+RESULTS:
    :RESULTS:
-   395152 inspections.csv
+   396328 inspections.csv
    :END:
 
 
@@ -63,26 +64,26 @@
    Assuming that you are already inside =bastion=, run the following
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
-     psql ${FOOD_DB_URL} -c 'select count(*) from inspections'
+     psql ${FOOD_DB_URL} -c 'select count(*) from raw.inspections'
    #+END_SRC
 
    #+RESULTS:
    :RESULTS:
     count
-   --------
-    162039
+   -------
+        0
    (1 row)
 
    :END:
 
-   (If you are connected to the database, you could just type =select count(*) from inspections=
+   (If you are connected to the database, you could just type =select count(*) from raw.inspections=
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
-     psql ${FOOD_DB_URL} -c "\copy inspections FROM '/data/inspections.csv' WITH HEADER CSV"
+     psql ${FOOD_DB_URL} -c "\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"
    #+END_SRC
 
    #+RESULTS:
-   : COPY 162039
+   : COPY 162753
 
 
    This is different to the number of rows that we calculated
@@ -93,18 +94,19 @@
    Let's glimpse the data
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
-     psql ${FOOD_DB_URL} -c 'select * from inspections limit 5'
+     psql ${FOOD_DB_URL} -c 'select * from raw.inspections limit 5'
    #+END_SRC
 
    #+RESULTS:
    :RESULTS:
-    inspection |           dba_name           |           aka_name           | license_num | facility_type |     risk      |        address         |  city   | state |  zip  |    date    |          type           |     results     |                                                                                                                                                                                                                                                                  violations                                                                                                                                                                                                                                                                  |      latitude      |     longitude      |                 location
-   ------------+------------------------------+------------------------------+-------------+---------------+---------------+------------------------+---------+-------+-------+------------+-------------------------+-----------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------+--------------------+------------------------------------------
-    2116932    | RUBY'S SOULFOOD              | RUBY'S SOULFOOD              |     2542983 | Restaurant    | Risk 1 (High) | 5638 W CHICAGO AVE     | CHICAGO | IL    | 60651 | 2017-12-08 | Complaint               | No Entry        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |  41.89494199271389 | -87.76687933825816 | (41.89494199271389, -87.76687933825816)
-    2116898    | WOODHAVEN BAR & KITCHEN      | WOODHAVEN BAR & KITCHEN      |     1140463 | Restaurant    | Risk 1 (High) | 712 N CLARK ST         | CHICAGO | IL    | 60654 | 2017-12-08 | Canvass Re-Inspection   | Pass            | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: Violation corrected.  | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: Violation corrected.  | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: Violation corrected.  | 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: Violation corrected. Reach in cooler ambient air temperature @ 39.9F.  | 41.895303937252244 | -87.63136070486723 | (41.895303937252244, -87.63136070486723)
-    2116886    | ORANGE GARDEN RESTAURANT LLC | ORANGE GARDEN RESTAURANT LLC |     1942679 | Restaurant    | Risk 1 (High) | 1942 W IRVING PARK RD  | CHICAGO | IL    | 60613 | 2017-12-08 | Complaint Re-Inspection | Pass            | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: PEST CONTROL AT PREMISES 12-7-17. FOUND NO RAT DROPPINGS AT PREMISES. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND HOLE SEALED WITH CEMENT BY REAR EXIT DOOR.                                                                                                                                        | 41.954276019666246 |  -87.6780332991192 | (41.954276019666246, -87.6780332991192)
-    2116831    | HALSTED STREET DELI & BAGEL  | HALSTED STREET DELI & BAGEL  |     2569647 | Restaurant    | Risk 1 (High) | 203 N LA SALLE ST      | CHICAGO | IL    | 60601 | 2017-12-07 | License                 | Pass            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | 41.885822047853026 | -87.63230373508567 | (41.885822047853026, -87.63230373508567)
-    2116816    | CUBBIE DOGGS                 | CUBBIE DOGGS                 |     1479345 |               | Risk 3 (Low)  | 3523 N CLARK ST        | CHICAGO | IL    | 60657 | 2017-12-07 | Canvass                 | Out of Business |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | 41.946344654873236 |  -87.6556546794345 | (41.946344654873236, -87.6556546794345)
+    inspection |               dba_name               |               aka_name               | license_num |     facility_type     |     risk      |          address          |  city   | state |  zip  |    date    |         type          |      results       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |      latitude      |     longitude      |                 location
+   ------------+--------------------------------------+--------------------------------------+-------------+-----------------------+---------------+---------------------------+---------+-------+-------+------------+-----------------------+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------+--------------------+------------------------------------------
+    2129461    | BEN'S NOODLES & RICE                 | BEN'S NOODLES & RICE                 |     2570167 | Restaurant            | Risk 1 (High) | 1139 W BRYN MAWR AVE      | CHICAGO | IL    | 60660 | 2017-12-19 | License Re-Inspection | Pass               | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: EXPOSED HAND SINK INSTALLED AT DISHWASHING AREAS. | 30. FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED - Comments: CORRECTED. | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: CORRECTED. | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |  41.98351970758198 |  -87.6596385602517 | (41.98351970758198, -87.6596385602517)
+    2129449    | BOHO BOHEMIAN HOUSE                  | BOHO                                 |     2303850 | Restaurant            | Risk 1 (High) | 11 W ILLINOIS ST          | CHICAGO | IL    | 60654 | 2017-12-19 | Canvass               | Pass w/ Conditions | 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: OBSERVED A PREP COOLER LOCATED IN THE 1ST FLOOR FOOD PREP AREA AT AN AMBIENT AIR TEMPERATURE OF 57.2F DURING THE INSPECTION, NO POTENTIALLY HAZARDOUS FOODS WERE INSIDE OF SAID PREP COOLER DURING THE INSPECTION. INSTRUCTED TO MAINTAIN ALL REFRIGERATION UNITS AT 40F OR BELOW AT ALL TIMES. PREP COOLER TAGGED AND HELD FOR INSPECTION BY CDPH. NO CITATION ISSUED. CRITICAL VIOLATION 7-38-005(A) | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED RAW WOOD SHELVING FOR PLATES ABOVE THE 1 ST FOOD PREP AREA/ PREP COOLERS. INSTRUCTED TO SEAL RAW WOOD, ALL SURFACES SHOULD BE SMOOTH AND EASILT CLEANABLE. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED INTERIOR OF THE FRYERS WITH ACCUMULATED DUST AND GREASE DEBRIS. OBSERVED PREP COOLER CONDENSER WITH ACCUMULATED FOOD AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: OBSERVED FLOORS UNDER THE 1ST FLOOR PREP COOLERS AND COOKING EQUIPMENT WITH ACCUMULATED FOOD, DIRT AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: OBSERVED DUST ON THE VENTS LOCATED IN THE DISH MACHINE AREA AND IN THE FOOD PREP AREA ON THE FIRST FLOOR. INSTRUCTED TO CLEAN AND MAINTAIN.                                                                                                                                                                                    |   41.8907467911109 | -87.62851094403574 | (41.8907467911109, -87.62851094403574)
+    2129447    | URBAN VEGAN                          | URBAN VEGAN                          |     2574400 | Restaurant            | Risk 1 (High) | 1601-1603 W MONTROSE AVE  | CHICAGO | IL    | 60613 | 2017-12-19 | License               | Fail               | 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: FOUND WALK IN COOLER AND THREE REACH IN COOLERS NOT MAINTAINING PROPER COLD HOLDING TEMPERATURES.(CURRENTLY NOT TURNED ON). MUST TURN ALL COOLERS BEORE NEXT INSPECTION WITH WORKING THERMOMETERS. CRITICAL VIOLATION. 7-38-005A. | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: FOUND EXPOSED HAND SINK AT BASEMENT DISHWASHING AREAS WITH NO HOT WATER. CRITICAL VIOLATION. 7-38-030. | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: FOUND NO BACKFLOW PREVENTION DEVICES AT MOP SINK FAUCET. MUST PROVIDE. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND FLOORS NOT CLEAN THROUGHOUT PREMISES. MUST CLEAN AND SANITIZE. | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: FOUND CLUTTER AT BASEMENT THAT MUST BE REMOVED.(OLD EQUIPMENT, GARBAGE, ETC.). MUST REMOVE ALL UNNECESSARY CLUTTER FROM BASEMENT. | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FOUND NO PEST CONTROL LOG AT PREMISES. SERIOUS VIOLATION. 7-38-020. MUST PROVIDE PEST CONTROL LOG. | 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED - Comments: FOUND BURNT LIGHT FIXTURES/BROKEN SHIELDS AT BASEMENT DISHWASHING AREAS. MUST REPLACE BURNT BULBS/BROKEN LIGHT SHIELDS. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: FOUND RUSTY SHELVING UNITS INSIDE WALK IN COOLER. MUST REPAIR/REPLACE. |  41.96148064502001 | -87.66933420453563 | (41.96148064502001, -87.66933420453563)
+    2129436    | HON KEE BBQ & SEAFOOD RESTAURANT INC | HON KEE BBQ & SEAFOOD RESTAURANT INC |     2564377 | Restaurant            | Risk 3 (Low)  | 1062-1068 W ARGYLE ST     | CHICAGO | IL    | 60640 | 2017-12-19 | License               | Not Ready          |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 41.973386971361634 | -87.65742986013245 | (41.973386971361634, -87.65742986013245)
+    2129435    | LITTLE TYKES PRE-SCHOOL INC.         | LITTLE TYKES PRE-SCHOOL INC.         |     2215562 | Daycare (2 - 6 Years) | Risk 1 (High) | 1711 W 35TH ST            | CHICAGO | IL    | 60609 | 2017-12-19 | License               | Pass               | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: REPLACE MISSING TOILET LID FROM STUDENT TOILET ROOM(TOILET ROOM ON WEST WALL).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  +| 41.830358930906655 | -87.66843553445109 | (41.830358930906655, -87.66843553445109)
+               |                                      |                                      |             |                       |               |                           |         |       |       |            |                       |                    |  | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS ALONG WALLS AND IN ALL CORNERS IN DRY STORAGE AND LAUNDRY AREAS.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                    |                    |
    (5 rows)
 
    :END:
@@ -173,11 +175,11 @@
 
 
 Let's check that we have *only* three different classifications for the
-=risk= of the facility and 5 types of =types= of inspections:
+=risk= of the facility:
 
 
 #+BEGIN_SRC sql
-  select distinct risk from inspections;
+  select distinct risk from raw.inspections;
 #+END_SRC
 
 #+RESULTS:
@@ -185,14 +187,16 @@ Let's check that we have *only* three different classifications for the
 | risk            |
 |-----------------|
 | [NULL]          |
-| All             |
-| Risk 1 (High)   |
 | Risk 2 (Medium) |
+| Risk 1 (High)   |
 | Risk 3 (Low)    |
+| All             |
 :END:
 
+Ok, two more: =All= and =NULL= for a grand total of *5*. What about =types= of inspections?
+
 #+BEGIN_SRC sql
-  select count(distinct type) from inspections
+  select count(distinct type) from raw.inspections
 #+END_SRC
 
 #+RESULTS:
@@ -202,8 +206,39 @@ Let's check that we have *only* three different classifications for the
 |   108 |
 :END:
 
+Wow, we got *108* types of inspections instead of *5*.
+
+Which are those types? How bad is it?
+
+#+BEGIN_SRC sql
+select type, count(*) from raw.inspections group by type order by count(*) desc limit 15
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| type                                   | count |
+|----------------------------------------+-------|
+| Canvass                                | 86871 |
+| License                                | 20756 |
+| Canvass Re-Inspection                  | 16786 |
+| Complaint                              | 14619 |
+| License Re-Inspection                  |  7500 |
+| Short Form Complaint                   |  6032 |
+| Complaint Re-Inspection                |  5985 |
+| Suspected Food Poisoning               |   728 |
+| Consultation                           |   666 |
+| License-Task Force                     |   605 |
+| Tag Removal                            |   603 |
+| Out of Business                        |   284 |
+| Task Force Liquor 1475                 |   254 |
+| Recent Inspection                      |   222 |
+| Suspected Food Poisoning Re-inspection |   167 |
+:END:
+
+We will need to clean this column also. Finally, What about =results=?
+
 #+BEGIN_SRC  sql
-  select distinct results from inspections
+  select distinct results from raw.inspections
 #+END_SRC
 
 #+RESULTS:
@@ -212,8 +247,8 @@ Let's check that we have *only* three different classifications for the
 |----------------------|
 | Fail                 |
 | Pass w/ Conditions   |
-| No Entry             |
 | Not Ready            |
+| No Entry             |
 | Out of Business      |
 | Business Not Located |
 | Pass                 |
@@ -223,11 +258,15 @@ Ok, disheartening. But, that is the reality of /real/ data. In the next
 section we will try to clean this mess.
 
 
-** Transforming the data
+** Transforming (and cleaning) the data
 
    For tackling a Machine Learning problem you need to identify the
    *entities* of your problem domain, and if your problem involves time,
-   how those entities change over time.
+   how those entities change over time, i.e. which *events* happened to
+   that entity or which *events* where acted by the entity in question.
+
+We will materialize that in two different tables, one for entities and
+one for events, we will name those as =entities= and =events= respectively.
 
    In this tutorial, we have two different goals: (1) an *EIS* and
    (2) *prioritize inspections*, the entity in which we are interested in
@@ -251,7 +290,10 @@ section we will try to clean this mess.
 
    One of the golden rules -that will make your life easier- is:
 
+#+BEGIN_QUOTE
    /You can't change your original data/
+#+END_QUOTE
+
 
    The reason for this is, if you make some mistake, or if you want to
    try a different thing you will always can go back to the beginning and
@@ -277,12 +319,12 @@ section we will try to clean this mess.
    :RESULTS:
    | results              | total_number |
    |----------------------+-------------|
-   | Pass                 |       95039 |
-   | Fail                 |       31366 |
-   | Pass w/ Conditions   |       15363 |
-   | Out of Business      |       14473 |
-   | No Entry             |        4767 |
-   | Not Ready            |         971 |
+   | Pass                 |       95468 |
+   | Fail                 |       31465 |
+   | Pass w/ Conditions   |       15397 |
+   | Out of Business      |       14567 |
+   | No Entry             |        4796 |
+   | Not Ready            |        1000 |
    | Business Not Located |          60 |
    :END:
 
@@ -311,7 +353,7 @@ section we will try to clean this mess.
    real =Point=.
 
 #+begin_src sql
-select state, count(*) from inspections group by state
+select state, count(*) from raw.inspections group by state
 #+end_src
 
 #+RESULTS:
@@ -361,7 +403,7 @@ select state, count(*) from inspections group by state
      extract(week from date) as week_of_year,
      extract(quarter from date) as quarter,
      ST_SetSRID(ST_MakePoint(longitude, latitude),4326) as location
-     from inspections
+     from raw.inspections
      where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
      )
    #+END_SRC
@@ -404,7 +446,7 @@ select state, count(*) from inspections group by state
 
    #+BEGIN_SRC sql
      select violations
-     from inspections
+     from raw.inspections
      limit 5
    #+END_SRC
 
@@ -462,7 +504,7 @@ select state, count(*) from inspections group by state
    regexp_split_to_array(
    regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
    '\.|- Comments:') as tuple
-   from inspections
+   from raw.inspections
    where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
    ) as t
    )
