@@ -1,4 +1,6 @@
-create table inspections (
+create schema if not exists raw;
+
+create table raw.inspections (
        inspection varchar not null,
        DBA_Name varchar,
        AKA_Name varchar,

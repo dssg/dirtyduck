@@ -10,7 +10,7 @@ cd $INFRASTRUCTURE_HOME
 
 case "$1" in
     start)
-        docker-compose --project-name ${PROJECT} up -d food_db #tyra reverseproxy api 
+        docker-compose --project-name ${PROJECT} up -d food_db #tyra reverseproxy api
         ;;
     stop)
         docker-compose  --project-name ${PROJECT} stop
@@ -20,6 +20,9 @@ case "$1" in
         ;;
     rebuild)
         docker-compose  --project-name ${PROJECT} build --no-cache
+        ;;
+    destroy)
+        docker-compose  --project-name ${PROJECT} down --rmi all --remove-orphans --volumes
         ;;
     logs)
         docker-compose --project-name ${PROJECT} logs -f -t
@@ -41,7 +44,7 @@ case "$1" in
         docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
         ;;
     *)
-        echo $"Usage: $0 {start|stop|build|rebuild|run|logs|status}"
+        echo $"Usage: $0 {start|stop|build|rebuild|run|logs|status|destroy}"
         RETVAL=1
 esac
 
