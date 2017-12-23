@@ -211,63 +211,23 @@ Wow, we got *108* types of inspections instead of *5*.
 Which are those types? How bad is it?
 
 #+BEGIN_SRC sql
-select type, count(*) from raw.inspections group by type order by count(*) desc limit 50
+select type, count(*) from raw.inspections group by type order by count(*) desc limit 10
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| type                                     | count |
-|------------------------------------------+-------|
-| Canvass                                  | 86871 |
-| License                                  | 20756 |
-| Canvass Re-Inspection                    | 16786 |
-| Complaint                                | 14619 |
-| License Re-Inspection                    |  7500 |
-| Short Form Complaint                     |  6032 |
-| Complaint Re-Inspection                  |  5985 |
-| Suspected Food Poisoning                 |   728 |
-| Consultation                             |   666 |
-| License-Task Force                       |   605 |
-| Tag Removal                              |   603 |
-| Out of Business                          |   284 |
-| Task Force Liquor 1475                   |   254 |
-| Recent Inspection                        |   222 |
-| Suspected Food Poisoning Re-inspection   |   167 |
-| Complaint-Fire                           |   161 |
-| Short Form Fire-Complaint                |   113 |
-| Special Events (Festivals)               |    63 |
-| No Entry                                 |    60 |
-| Package Liquor 1474                      |    44 |
-| Complaint-Fire Re-inspection             |    44 |
-| OUT OF BUSINESS                          |    22 |
-| LICENSE REQUEST                          |    19 |
-| Pre-License Consultation                 |    15 |
-| Non-Inspection                           |    12 |
-| Not Ready                                |    10 |
-| NO ENTRY                                 |     7 |
-| Illegal Operation                        |     5 |
-| no entry                                 |     4 |
-| SFP                                      |     4 |
-| SFP/COMPLAINT                            |     4 |
-| LICENSE CONSULTATION                     |     2 |
-| SPECIAL TASK FORCE                       |     2 |
-| task force                               |     2 |
-| LICENSE/NOT READY                        |     2 |
-| REINSPECTION OF 48 HOUR NOTICE           |     2 |
-| TASK FORCE LIQUOR 1474                   |     2 |
-| LICENSE RENEWAL FOR DAYCARE              |     2 |
-| REINSPECTION                             |     2 |
-| fire complaint                           |     2 |
-| TASK FORCE LIQUOR 1470                   |     2 |
-| CANVAS                                   |     1 |
-| Duplicated                               |     1 |
-| finish complaint inspection from 5-18-10 |     1 |
-| CANVASS RE INSPECTION OF CLOSE UP        |     1 |
-| RE-INSPECTION OF CLOSE-UP                |     1 |
-| Kids Cafe'                               |     1 |
-| RECALL INSPECTION                        |     1 |
-| LIQOUR TASK FORCE NOT READY              |     1 |
-| FIRE                                     |     1 |
+| type                     | count |
+|--------------------------+-------|
+| Canvass                  | 86871 |
+| License                  | 20756 |
+| Canvass Re-Inspection    | 16786 |
+| Complaint                | 14619 |
+| License Re-Inspection    |  7500 |
+| Short Form Complaint     |  6032 |
+| Complaint Re-Inspection  |  5985 |
+| Suspected Food Poisoning |   728 |
+| Consultation             |   666 |
+| License-Task Force       |   605 |
 :END:
 
 We will need to clean this column also. Finally, What about =results=?
