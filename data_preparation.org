@@ -230,7 +230,7 @@ select type, count(*) from raw.inspections group by type order by count(*) desc 
 | License-Task Force       |   605 |
 :END:
 
-We will need to clean this column also. Finally, What about =results=?
+This columns will require also cleaning. Finally, let's look =results=
 
 #+BEGIN_SRC  sql
   select results, count(*) from raw.inspections group by results order by count(*) desc
@@ -415,7 +415,9 @@ btrim(lower(facility_type)) as facility_type,
 lower(substring(risk from '\((.+)\)')) as risk,
 btrim(lower(address)) as address,
 zip as zip_code,
-substring(btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi'))) from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
+substring(
+btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi')))
+from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
 date,
 ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
 from raw.inspections
