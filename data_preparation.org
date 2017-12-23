@@ -1,0 +1,934 @@
+#+TITLE: Dirty duck: A triage's guided tour
+#+AUTHOR: Center of Data Science for Public Policy
+#+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+STARTUP: indent
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:shell     :results drawer
+
+
+* Data
+
+** Downloading
+
+   #+BEGIN_SRC shell
+     curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > data/inspections.csv
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   :END:
+
+   We can check the size of the data set
+
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+     ls -lh /data
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   total 188M
+   -rw-rw-r-- 1 1000 1000 160K Sep 26 02:33 Average_Daily_Traffic_Counts.csv
+   -rw-rw-r-- 1 1000 1000 4.7K Sep 26 02:32 Average_Daily_Traffic_Counts_-_Map.csv
+   -rw-rw-r-- 1 1000 1000 378K Aug 20 01:52 Boundaries - ZIP Codes.zip
+   -rw-rw-r-- 1 1000 1000 845K Aug 20 23:45 CTA_BusStops.zip
+   -rw-rw-r-- 1 1000 1000  40K Aug 20 23:46 CTA_RailLines.zip
+   -rw-rw-r-- 1 1000 1000  18K Aug 20 23:46 CTA_RailStations.zip
+   -rw-rw-r-- 1 1000 1000 335K Aug 20 23:45 CTA_Routes.zip
+   -rw-rw-r-- 1 1000 1000  51K Sep 26 02:30 Chicago Public Schools - School Locations SY1415.zip
+   -rw-rw-r-- 1 1000 1000 2.6K Aug 20 23:46 PoliceStationsDec2012.zip
+   -rw-rw-r-- 1 1000 1000 186M Dec 11 23:01 inspections.csv
+   :END:
+
+   And the (apparent) total number of rows
+
+   #+BEGIN_SRC shell :dir data
+     wc -l inspections.csv
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   396328 inspections.csv
+   :END:
+
+
+
+** Loading data to the database
+   Assuming that you are already inside =bastion=, run the following
+
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+     psql ${FOOD_DB_URL} -c 'select count(*) from raw.inspections'
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+    count
+   -------
+        0
+   (1 row)
+
+   :END:
+
+   (If you are connected to the database, you could just type =select count(*) from raw.inspections=
+
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
+     psql ${FOOD_DB_URL} -c "\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"
+   #+END_SRC
+
+   #+RESULTS:
+   : COPY 162753
+
+
+   This is different to the number of rows that we calculated
+   previously. The reason is that the columns =violations= contains
+   several lines in some examples. But don't worry, the previous
+   command took care about that.
+
+   Let's glimpse the data
+
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+     psql ${FOOD_DB_URL} -c 'select * from raw.inspections limit 5'
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+    inspection |               dba_name               |               aka_name               | license_num |     facility_type     |     risk      |          address          |  city   | state |  zip  |    date    |         type          |      results       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |      latitude      |     longitude      |                 location
+   ------------+--------------------------------------+--------------------------------------+-------------+-----------------------+---------------+---------------------------+---------+-------+-------+------------+-----------------------+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------+--------------------+------------------------------------------
+    2129461    | BEN'S NOODLES & RICE                 | BEN'S NOODLES & RICE                 |     2570167 | Restaurant            | Risk 1 (High) | 1139 W BRYN MAWR AVE      | CHICAGO | IL    | 60660 | 2017-12-19 | License Re-Inspection | Pass               | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: EXPOSED HAND SINK INSTALLED AT DISHWASHING AREAS. | 30. FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED - Comments: CORRECTED. | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: CORRECTED. | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |  41.98351970758198 |  -87.6596385602517 | (41.98351970758198, -87.6596385602517)
+    2129449    | BOHO BOHEMIAN HOUSE                  | BOHO                                 |     2303850 | Restaurant            | Risk 1 (High) | 11 W ILLINOIS ST          | CHICAGO | IL    | 60654 | 2017-12-19 | Canvass               | Pass w/ Conditions | 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: OBSERVED A PREP COOLER LOCATED IN THE 1ST FLOOR FOOD PREP AREA AT AN AMBIENT AIR TEMPERATURE OF 57.2F DURING THE INSPECTION, NO POTENTIALLY HAZARDOUS FOODS WERE INSIDE OF SAID PREP COOLER DURING THE INSPECTION. INSTRUCTED TO MAINTAIN ALL REFRIGERATION UNITS AT 40F OR BELOW AT ALL TIMES. PREP COOLER TAGGED AND HELD FOR INSPECTION BY CDPH. NO CITATION ISSUED. CRITICAL VIOLATION 7-38-005(A) | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED RAW WOOD SHELVING FOR PLATES ABOVE THE 1 ST FOOD PREP AREA/ PREP COOLERS. INSTRUCTED TO SEAL RAW WOOD, ALL SURFACES SHOULD BE SMOOTH AND EASILT CLEANABLE. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED INTERIOR OF THE FRYERS WITH ACCUMULATED DUST AND GREASE DEBRIS. OBSERVED PREP COOLER CONDENSER WITH ACCUMULATED FOOD AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: OBSERVED FLOORS UNDER THE 1ST FLOOR PREP COOLERS AND COOKING EQUIPMENT WITH ACCUMULATED FOOD, DIRT AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: OBSERVED DUST ON THE VENTS LOCATED IN THE DISH MACHINE AREA AND IN THE FOOD PREP AREA ON THE FIRST FLOOR. INSTRUCTED TO CLEAN AND MAINTAIN.                                                                                                                                                                                    |   41.8907467911109 | -87.62851094403574 | (41.8907467911109, -87.62851094403574)
+    2129447    | URBAN VEGAN                          | URBAN VEGAN                          |     2574400 | Restaurant            | Risk 1 (High) | 1601-1603 W MONTROSE AVE  | CHICAGO | IL    | 60613 | 2017-12-19 | License               | Fail               | 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: FOUND WALK IN COOLER AND THREE REACH IN COOLERS NOT MAINTAINING PROPER COLD HOLDING TEMPERATURES.(CURRENTLY NOT TURNED ON). MUST TURN ALL COOLERS BEORE NEXT INSPECTION WITH WORKING THERMOMETERS. CRITICAL VIOLATION. 7-38-005A. | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: FOUND EXPOSED HAND SINK AT BASEMENT DISHWASHING AREAS WITH NO HOT WATER. CRITICAL VIOLATION. 7-38-030. | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: FOUND NO BACKFLOW PREVENTION DEVICES AT MOP SINK FAUCET. MUST PROVIDE. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND FLOORS NOT CLEAN THROUGHOUT PREMISES. MUST CLEAN AND SANITIZE. | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: FOUND CLUTTER AT BASEMENT THAT MUST BE REMOVED.(OLD EQUIPMENT, GARBAGE, ETC.). MUST REMOVE ALL UNNECESSARY CLUTTER FROM BASEMENT. | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FOUND NO PEST CONTROL LOG AT PREMISES. SERIOUS VIOLATION. 7-38-020. MUST PROVIDE PEST CONTROL LOG. | 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED - Comments: FOUND BURNT LIGHT FIXTURES/BROKEN SHIELDS AT BASEMENT DISHWASHING AREAS. MUST REPLACE BURNT BULBS/BROKEN LIGHT SHIELDS. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: FOUND RUSTY SHELVING UNITS INSIDE WALK IN COOLER. MUST REPAIR/REPLACE. |  41.96148064502001 | -87.66933420453563 | (41.96148064502001, -87.66933420453563)
+    2129436    | HON KEE BBQ & SEAFOOD RESTAURANT INC | HON KEE BBQ & SEAFOOD RESTAURANT INC |     2564377 | Restaurant            | Risk 3 (Low)  | 1062-1068 W ARGYLE ST     | CHICAGO | IL    | 60640 | 2017-12-19 | License               | Not Ready          |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 41.973386971361634 | -87.65742986013245 | (41.973386971361634, -87.65742986013245)
+    2129435    | LITTLE TYKES PRE-SCHOOL INC.         | LITTLE TYKES PRE-SCHOOL INC.         |     2215562 | Daycare (2 - 6 Years) | Risk 1 (High) | 1711 W 35TH ST            | CHICAGO | IL    | 60609 | 2017-12-19 | License               | Pass               | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: REPLACE MISSING TOILET LID FROM STUDENT TOILET ROOM(TOILET ROOM ON WEST WALL).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  +| 41.830358930906655 | -87.66843553445109 | (41.830358930906655, -87.66843553445109)
+               |                                      |                                      |             |                       |               |                           |         |       |       |            |                       |                    |  | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS ALONG WALLS AND IN ALL CORNERS IN DRY STORAGE AND LAUNDRY AREAS.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |                    |                    |
+   (5 rows)
+
+   :END:
+
+
+   Checking the documentation (located  [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]),
+
+   The meaning of some columns is the following:
+
+   - Risk category of facility:: Each establishment is categorized as
+     to its risk of adversely affecting the public’s health, with 1
+     being the highest and 3 the lowest. The frequency of
+     inspection is tied to this risk, with risk 1 establishments
+     inspected most frequently and risk 3 least frequently.
+
+   - Inspection type:: An inspection can be one of the following
+     types: canvass, the most common type of inspection performed
+     at a frequency relative to the risk of the   establishment;
+     consultation, when the inspection is  done at the request of the
+     owner prior to the opening of the establishment; complaint, when
+     the inspection is done in    response to a complaint against the
+     establishment; license, when the inspection is done    as a
+     requirement for the establishment to receive its license to
+     operate; suspect food    poisoning, when the inspection is done
+     in response to one or more persons claiming to    have gotten ill
+     as a result of eating at the establishment (a specific type of
+     complaint-   based inspection); task-force inspection, when an
+     inspection of a bar or tavern is done.    Re-inspections can
+     occur for most types of these inspections and are indicated as
+     such.
+
+   -  Results:: An inspection can pass, pass with conditions or
+     fail. Establishments receiving a ‘pass’ were found to have no
+     critical or serious violations (violation number 1-14 and 15-29,
+     respectively). Establishments receiving a ‘pass  with conditions’
+     were found to have critical or serious violations, but these were
+     corrected during the inspection. Establishments receiving a
+     ‘fail’ were found to have critical or serious violations that
+     were not correctable during the inspection. An establishment
+     receiving a ‘fail’ does not  necessarily mean the establishment’s
+     licensed is suspended. Establishments found to be out of business
+     or not located are indicated as such.
+
+   - Violations: An establishment can receive one or more of 45
+     distinct violations (violation numbers 1-44 and 70). For each
+     violation number listed for a given establishment, the
+     requirement the establishment must meet in order for it to NOT
+     receive a violation is noted, followed by a specific description
+     of the findings that caused the violation to be issued.
+
+
+   From this definitions, we can deduct the following claims:
+
+1. /risk/ is related to the frequency of inspections of type /canvass/.
+2. /consultation/ is a compulsory inspections /before/ the facility opens
+   (so we can remove it from the data), the same happens with /license/.
+3. /complaint/ and /suspect food poisoning/ inspections are triggered by
+   the people, /consultation/ is triggered by the owner of the
+   facility.
+4. /task-force/ occurs against bar or taverns.
+5. *Critical violations* are coded between =1-14=, *serious violations*
+   between =15-29=. So, we can assume that the violations code =30= and
+   onward are /minor/ violations.
+6. They are only three possible results of the inspection (plus the
+   fact that the facility was not located or out of business).
+
+
+Let's check that we have *only* three different classifications for the
+=risk= of the facility:
+
+
+#+BEGIN_SRC sql
+  select risk, count(*) from raw.inspections group by risk order by count(*) desc
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| risk            |  count |
+|-----------------+--------|
+| Risk 1 (High)   | 113873 |
+| Risk 2 (Medium) |  33625 |
+| Risk 3 (Low)    |  15167 |
+| [NULL]          |     66 |
+| All             |     22 |
+:END:
+
+Ok, two more: =All= and =NULL= for a grand total of *5*. What about =types= of inspections?
+
+#+BEGIN_SRC sql
+  select count(distinct type) from raw.inspections
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| count |
+|-------|
+|   108 |
+:END:
+
+Wow, we got *108* types of inspections instead of *5*.
+
+Which are those types? How bad is it?
+
+#+BEGIN_SRC sql
+select type, count(*) from raw.inspections group by type order by count(*) desc limit 50
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| type                                     | count |
+|------------------------------------------+-------|
+| Canvass                                  | 86871 |
+| License                                  | 20756 |
+| Canvass Re-Inspection                    | 16786 |
+| Complaint                                | 14619 |
+| License Re-Inspection                    |  7500 |
+| Short Form Complaint                     |  6032 |
+| Complaint Re-Inspection                  |  5985 |
+| Suspected Food Poisoning                 |   728 |
+| Consultation                             |   666 |
+| License-Task Force                       |   605 |
+| Tag Removal                              |   603 |
+| Out of Business                          |   284 |
+| Task Force Liquor 1475                   |   254 |
+| Recent Inspection                        |   222 |
+| Suspected Food Poisoning Re-inspection   |   167 |
+| Complaint-Fire                           |   161 |
+| Short Form Fire-Complaint                |   113 |
+| Special Events (Festivals)               |    63 |
+| No Entry                                 |    60 |
+| Package Liquor 1474                      |    44 |
+| Complaint-Fire Re-inspection             |    44 |
+| OUT OF BUSINESS                          |    22 |
+| LICENSE REQUEST                          |    19 |
+| Pre-License Consultation                 |    15 |
+| Non-Inspection                           |    12 |
+| Not Ready                                |    10 |
+| NO ENTRY                                 |     7 |
+| Illegal Operation                        |     5 |
+| no entry                                 |     4 |
+| SFP                                      |     4 |
+| SFP/COMPLAINT                            |     4 |
+| LICENSE CONSULTATION                     |     2 |
+| SPECIAL TASK FORCE                       |     2 |
+| task force                               |     2 |
+| LICENSE/NOT READY                        |     2 |
+| REINSPECTION OF 48 HOUR NOTICE           |     2 |
+| TASK FORCE LIQUOR 1474                   |     2 |
+| LICENSE RENEWAL FOR DAYCARE              |     2 |
+| REINSPECTION                             |     2 |
+| fire complaint                           |     2 |
+| TASK FORCE LIQUOR 1470                   |     2 |
+| CANVAS                                   |     1 |
+| Duplicated                               |     1 |
+| finish complaint inspection from 5-18-10 |     1 |
+| CANVASS RE INSPECTION OF CLOSE UP        |     1 |
+| RE-INSPECTION OF CLOSE-UP                |     1 |
+| Kids Cafe'                               |     1 |
+| RECALL INSPECTION                        |     1 |
+| LIQOUR TASK FORCE NOT READY              |     1 |
+| FIRE                                     |     1 |
+:END:
+
+We will need to clean this column also. Finally, What about =results=?
+
+#+BEGIN_SRC  sql
+  select results, count(*) from raw.inspections group by results order by count(*) desc
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| results              | count |
+|----------------------+-------|
+| Pass                 | 95468 |
+| Fail                 | 31465 |
+| Pass w/ Conditions   | 15397 |
+| Out of Business      | 14567 |
+| No Entry             |  4796 |
+| Not Ready            |  1000 |
+| Business Not Located |    60 |
+:END:
+
+Ok, disheartening. But, that is the reality of /real/ data. In the next
+section we will try to clean this mess.
+
+
+** Transforming (and cleaning) the data
+
+   For tackling a Machine Learning problem you need to identify the
+   *entities* of your problem domain, and if your problem involves time,
+   how those entities change over time, i.e. which *events* happened to
+   that entity or which *events* where acted by the entity in question.
+
+   We will materialize that in two different tables, one for entities and
+   one for events, we will name those as =entities= and =events= respectively.
+
+The entity is the *facility*, and the events that happen to that entity
+are the *inspections*.
+
+The table =entities= should contain an unique identifier for the entity,
+some data specific for that entity (like name, age, status). The
+=events= table will include data related to the description of the inspection.
+
+Before starting the cleaning, you should know one of the golden rules
+-that will make your life easier:
+
+#+BEGIN_QUOTE
+   /You can't change your original data/
+#+END_QUOTE
+
+The reason for this is, if you make some mistake, or if you want to
+try a different thing you will always can go back to the beginning and
+start over.
+
+Let's see the data to figure out how we need to be transform it. We
+will concentrate at first in all columns except =violations=, we will
+deal with that later, since is more complex.
+
+
+First, we will remove superfluous spaces and will transform the columns
+=type,results, dba_name, aka_name, facility_type, address, city= to
+lower case, also, we will clean =risk= keeping only the description
+(e.g. *high*).
+
+
+We still need to clean the column =type= (it contains several more
+variations instead of the *seven* mentioned in the documentation:
+/canvass/, /complaint/, /license/, /re-inspection/, /task-force/, /consultation/
+and /suspect food poisoning/). For simplicity, we will use /regular
+expressions/ and we will ignore /re-inspection/.
+
+For the column =risk= , we will impute as =high= all the =NULL= and =All=
+values.
+
+As we have seen (and we will continue see that)  through all this
+tutorial, /data is always messy/, to
+begin with we have several different spellings (e.g. =SUBWAY= and
+=Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
+=DUNKIN DONUTS / BASKIN ROBBINS=, etc)
+
+We could try a very simple cleaning for example, convert all the
+names to uppercase, remove the trailing spaces, remove the apostrophe
+"='"= and remove the spaces around "=/=". The problem with this approach
+is that we will be fixing the names that we just saw, but there are
+several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
+but that will create a lot of mismatches. The real workaround is apply
+some /machine learning/ to /deduplicate/ the entities [fn:3].  We wont
+follow that path here.
+
+Let's move to the spatial columns (=state, city, zip, latitude,
+longitude=).
+
+All the rows in the data should be from Ilinois, let's check that
+
+#+begin_src sql
+select state, count(*) from raw.inspections group by state
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+| state  |  count |
+|--------+--------|
+| [NULL] |     20 |
+| IL     | 162733 |
+:END:
+
+Ok, almost, We will assume that the =NULL= values are actually =IL=.
+
+#+BEGIN_SRC sql
+select city, count(*) from raw.inspections group by city order by count(*) desc limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| city              |  count |
+|-------------------+--------|
+| CHICAGO           | 162029 |
+| Chicago           |    264 |
+| [NULL]            |    144 |
+| chicago           |     80 |
+| CCHICAGO          |     41 |
+| SCHAUMBURG        |     20 |
+| MAYWOOD           |     15 |
+| ELK GROVE VILLAGE |     12 |
+| CHicago           |     11 |
+| EVANSTON          |      8 |
+:END:
+
+There are 144 rows with =NULL= values and 41 rows with =CCHICAGO=, we will
+fix this to problems with the value =chicago=.
+
+The zip code has a similar problem:
+
+#+BEGIN_SRC sql
+select count(*) from raw.inspections where zip is null or btrim(zip) = ''
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| count |
+|-------|
+|    71 |
+:END:
+
+We could attempt to remove this =NULLs= using the location point or
+using similar names of restaurants, but for this tutorial we will
+remove this.
+
+Continuing with the cleaning, we will drop the columns =state=,
+=latitude=, =longitude=, since these are (now) redundant. We will remove
+the column =city= since almost everything happens in Chicago (this is
+the Chicago's food inspection data set anyway).
+
+We will convert the coordinates latitude and longitude to a =Point=.
+
+As a final step in the cleaning we will change the name of the columns
+for explicit or better names(e.g =results -> result, dba_name -> facility=, etc).
+
+We will create a new =schema= called =cleaned=. The objective of this
+schema is twofold: keep our raw data as-is and store our assumptions
+and cleaning decisions separated from the raw in a schema that
+/semantically/ is transmitting the information: "this is our clean
+data".
+
+
+#+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
+  create schema if not exists cleaned
+#+END_SRC
+
+#+RESULTS:
+
+Then, we will create our mini *ETL* with our cleaning decisions:
+
+#+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
+drop table if exists cleaned.inspections cascade;
+
+create table cleaned.inspections as (
+with cleaned as (
+select
+inspection,
+btrim(lower(results)) as result,
+license_num,
+btrim(lower(dba_name)) as facility,
+btrim(lower(aka_name)) as facility_aka,
+btrim(lower(facility_type)) as facility_type,
+lower(substring(risk from '\((.+)\)')) as risk,
+btrim(lower(address)) as address,
+zip as zip_code,
+substring(btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi'))) from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
+date,
+ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
+from raw.inspections
+where zip is not null
+)
+
+select * from cleaned where type is not null
+);
+#+END_SRC
+
+#+RESULTS:
+
+
+You could execute this code using (if you are not connected to the database):
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+psql ${FOOD_DB_URL} < /code/create_cleaned_inspections_table.sql
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+SELECT 162682
+:END:
+
+Or, if you are connected to the database
+
+#+BEGIN_EXAMPLE sql
+\i /code/create_cleaned_inspections_table.sql
+#+END_EXAMPLE
+
+
+#+BEGIN_SRC sql :results table
+ select count(inspection) from cleaned.inspections;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|  count |
+|--------|
+| 162682 |
+:END:
+
+
+Let's look closer the column =violations=:
+
+#+BEGIN_SRC sql
+select violations from raw.inspections limit 5
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| violations                                                                                                                                                                                                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: EXPOSED HAND SINK INSTALLED AT DISHWASHING AREAS.                                                                                                                                                                                                                                                                                                                             | 30. FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED - Comments: CORRECTED.                                                                                                                                                          | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                                        | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: CORRECTED.                                                                                                                               | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                               |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: OBSERVED A PREP COOLER LOCATED IN THE 1ST FLOOR FOOD PREP AREA AT AN AMBIENT AIR TEMPERATURE OF 57.2F DURING THE INSPECTION, NO POTENTIALLY HAZARDOUS FOODS WERE INSIDE OF SAID PREP COOLER DURING THE INSPECTION. INSTRUCTED TO MAINTAIN ALL REFRIGERATION UNITS AT 40F OR BELOW AT ALL TIMES. PREP COOLER TAGGED AND HELD FOR INSPECTION BY CDPH. NO CITATION ISSUED. CRITICAL VIOLATION 7-38-005(A) | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED RAW WOOD SHELVING FOR PLATES ABOVE THE 1 ST FOOD PREP AREA/ PREP COOLERS. INSTRUCTED TO SEAL RAW WOOD, ALL SURFACES SHOULD BE SMOOTH AND EASILT CLEANABLE. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED INTERIOR OF THE FRYERS WITH ACCUMULATED DUST AND GREASE DEBRIS. OBSERVED PREP COOLER CONDENSER WITH ACCUMULATED FOOD AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: OBSERVED FLOORS UNDER THE 1ST FLOOR PREP COOLERS AND COOKING EQUIPMENT WITH ACCUMULATED FOOD, DIRT AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: OBSERVED DUST ON THE VENTS LOCATED IN THE DISH MACHINE AREA AND IN THE FOOD PREP AREA ON THE FIRST FLOOR. INSTRUCTED TO CLEAN AND MAINTAIN. |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: FOUND WALK IN COOLER AND THREE REACH IN COOLERS NOT MAINTAINING PROPER COLD HOLDING TEMPERATURES.(CURRENTLY NOT TURNED ON). MUST TURN ALL COOLERS BEORE NEXT INSPECTION WITH WORKING THERMOMETERS. CRITICAL VIOLATION. 7-38-005A.                                                                                                                                                                      | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: FOUND EXPOSED HAND SINK AT BASEMENT DISHWASHING AREAS WITH NO HOT WATER. CRITICAL VIOLATION. 7-38-030.                                                                             | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: FOUND NO BACKFLOW PREVENTION DEVICES AT MOP SINK FAUCET. MUST PROVIDE.                                                                                                     | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND FLOORS NOT CLEAN THROUGHOUT PREMISES. MUST CLEAN AND SANITIZE.                                                                                    | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: FOUND CLUTTER AT BASEMENT THAT MUST BE REMOVED.(OLD EQUIPMENT, GARBAGE, ETC.). MUST REMOVE ALL UNNECESSARY CLUTTER FROM BASEMENT.                                  | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FOUND NO PEST CONTROL LOG AT PREMISES. SERIOUS VIOLATION. 7-38-020. MUST PROVIDE PEST CONTROL LOG. | 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED - Comments: FOUND BURNT LIGHT FIXTURES/BROKEN SHIELDS AT BASEMENT DISHWASHING AREAS. MUST REPLACE BURNT BULBS/BROKEN LIGHT SHIELDS. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: FOUND RUSTY SHELVING UNITS INSIDE WALK IN COOLER. MUST REPAIR/REPLACE. |
+| [NULL]                                                                                                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: REPLACE MISSING TOILET LID FROM STUDENT TOILET ROOM(TOILET ROOM ON WEST WALL).                                                                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+|                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS ALONG WALLS AND IN ALL CORNERS IN DRY STORAGE AND LAUNDRY AREAS.                                                                  |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+:END:
+
+
+
+Note that this column is structured in the following form:
+
+   - If there are several violations reported, those violations will
+     be separated by ='|'=
+   - Every violation begins with a code and  a description
+   - Every violation could have *comments*, those comments appear after
+     the string =- Comments:=
+
+We will take that observations in account and create a new table
+called =cleaned.violations= to store
+
+   - inspection
+   - code
+   - description
+   - comments
+
+#+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
+   drop table if exists cleaned.violations cascade;
+
+   create table cleaned.violations as (
+   select
+   inspection,
+   license_num, -- This is a requirement of triage
+   date,
+   btrim(tuple[1]) as code,
+   btrim(tuple[2]) as description,
+   btrim(tuple[3]) as comment,
+   (case
+     when btrim(tuple[1]) = '' then NULL
+     when btrim(tuple[1])::int between 1 and 14 then 'critical'
+     when btrim(tuple[1])::int between 15 and 29  then 'serious'
+     else 'minor'
+   end
+   ) as severity from
+   (
+   select
+   inspection,
+   license_num,
+   date,
+   regexp_split_to_array(
+   regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
+   '\.|- Comments:') as tuple
+   from raw.inspections
+   where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
+   ) as t
+   )
+#+END_SRC
+
+#+RESULTS:
+
+This code is in =/code/create_violations_table.sql=, you can execute
+this as before.
+
+If everything worked correctly you should be able to run the following code:
+
+
+#+BEGIN_SRC sql
+  select
+  case when grouping(severity) = 1 then 'TOTAL' else severity end as severity,
+  count(*) from cleaned.violations
+  group by rollup (severity)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| severity |  count |
+|----------+--------|
+| critical |  38232 |
+| minor    | 479835 |
+| serious  |  77400 |
+| [NULL]   |  12701 |
+| TOTAL    | 608168 |
+:END:
+
+As a last step, we should create from the cleaned tables the =entities=
+and =events= table.
+
+** Entities table
+
+The =entities= table should uniquely identify the entities and contain
+the attributes that describes the entity.
+
+We could hope that =license_num= is the way to go for uniquely
+identify the facility, let's confirm this with some queries.
+
+We will beging with the following query:
+ /What are the top 5 licenses with more inspections?/
+
+#+BEGIN_SRC sql
+    select
+    license_num, count(*) as total_inspections,
+    coalesce(count(*) filter (where result = 'fail'), 0)
+    as total_failures
+    from cleaned.inspections
+    group by license_num
+    order by total_inspections desc
+    limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | total_inspections | total_failures |
+|------------+------------------+---------------|
+|          0 |              454 |           121 |
+|    1354323 |              192 |             1 |
+|      14616 |              172 |            30 |
+|    1574001 |               80 |             4 |
+|    1974745 |               59 |             3 |
+:END:
+
+
+This looks weird, let's investigate a little about
+the =license_num= = =0=.
+
+#+BEGIN_SRC sql
+  select
+  facility_type, count(*) as total_inspections,
+  coalesce(count(*) filter (where result = 'fail'), 0)
+  as total_failures
+  from cleaned.inspections
+  where license_num=0
+  group by  facility_type
+  order by total_inspections desc
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| facility_type          | total_inspections | total_failures |
+|-----------------------+------------------+---------------|
+| restaurant            |              101 |            43 |
+| special event         |               77 |            11 |
+| [NULL]                |               47 |            10 |
+| church                |               32 |             4 |
+| shelter               |               31 |             6 |
+| navy pier kiosk       |               30 |             4 |
+| grocery store         |               16 |             7 |
+| church kitchen        |               14 |             6 |
+| private school        |               11 |             1 |
+| church/special events |               10 |             2 |
+:END:
+
+Most of these are related to /special events/, /churchs/, /festivals/
+etc. We could research deeply the =restaurants= which have =license_num= =
+=0=, but we will skip that for the moment.
+
+
+#+BEGIN_SRC sql
+  select
+  license_num, facility, address, count(*) as total_inspections,
+  coalesce(count(*) filter (where result = 'fail'), 0)
+  as total_failures
+  from cleaned.inspections
+  where license_num=0
+  and facility_type = 'restaurant'
+  group by  license_num, facility, address
+  order by total_inspections desc
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility                        | address               | total_inspections | total_failures |
+|------------+---------------------------------+-----------------------+------------------+---------------|
+|          0 | british airways                 | 11601 w touhy ave     |                5 |             1 |
+|          0 | rib lady 2                      | 4203 w cermak rd      |                4 |             3 |
+|          0 | taqueria la capital             | 3508 w 63rd st        |                3 |             1 |
+|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                3 |             1 |
+|          0 | las quecas                      | 2500 s christiana ave |                3 |             1 |
+|          0 | nutricion familiar              | 3000 w 59th st        |                3 |             1 |
+|          0 | herbalife                       | 6214 w diversey ave   |                3 |             2 |
+|          0 | la michoacana                   | 4346 s california ave |                3 |             1 |
+|          0 | vinces pizzeria & taqueria, inc | 1527 w devon ave      |                3 |             1 |
+|          0 | unlicensed                      | 7559 n ridge blvd     |                3 |             1 |
+:END:
+
+We conclude that we can't use the =license_num= as the unique
+identifier.
+
+If we go back to the columns of the table, we could try with the
+column =license_num=  (assume that one license represents one
+establishment) and the column =address= (assume that one restaurant is
+in one place).
+
+#+BEGIN_SRC sql
+  select
+  count(distinct license_num) as total_licenses,
+  count(distinct facility) as total_facilities,
+  count(distinct address) as total_addresses
+  from cleaned.inspections
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| total_licenses | total_facilities | total_addresses |
+|---------------+-----------------+----------------|
+|         33557 |           24867 |          17061 |
+:END:
+
+We were expecting (naively) that we should get 1 =license_num= per
+=facility= per =address=, but it wasn't the case. This could be mean that
+several facilities share the name (e.g. Subway or Mc Donalds)  or the
+license; another explanation is that several facilities share the same
+address, as the facilities at the stadium or the airport.
+
+We will decide to use the combination of =license_num=, =facility=, =facility_aka=,
+=facility_type= and =address= to identify a facility:
+
+#+BEGIN_SRC sql
+select
+license_num, facility, facility_type, facility_aka, address , count(*)
+from cleaned.inspections
+group by license_num, facility, facility_type, facility_aka, address
+order by count(*) desc, facility, facility_aka, address, license_num, facility_type
+limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility                     | facility_type  | facility_aka              | address                 | count |
+|------------+------------------------------+---------------+--------------------------+-------------------------+-------|
+|    1490035 | mcdonald's                   | restaurant    | mcdonald's               | 6900 s lafayette ave    |    46 |
+|    1596210 | food 4 less midwest #552     | grocery store | food 4 less              | 7030 s ashland ave      |    44 |
+|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345 | 1224 s wabash ave       |    42 |
+|    1302136 | mcdonald's                   | restaurant    | mcdonald's               | 70 e garfield blvd      |    40 |
+|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market   | 333 e benton pl         |    38 |
+|    1476553 | pete's produce               | grocery store | pete's produce           | 1543 e 87th st          |    38 |
+|    1884255 | food 4 less                  | grocery store | food 4 less              | 4821 w north ave        |    36 |
+|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030   | 7530 s stony island ave |    36 |
+|       9154 | jimmy g's                    | restaurant    | jimmy g's                | 307 s kedzie ave        |    36 |
+|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito     | 2829 n milwaukee ave    |    36 |
+:END:
+
+
+What attributes we want to add to the =entities= table? We should add
+all the attributes that describe the entity and doesn't depend on the
+event. Therefore we will add =zip_code=, =location= and some data about
+when this facility got their license or if this is still open. We will
+add =start_time, end_time=. These columns will be important because we
+won't wnat to do predictions on entities that aren't active. We will
+use the following definition
+
+#+BEGIN_QUOTE
+A facility is active from their opening as a businness until it closes
+#+END_QUOTE
+
+We don't have this type of date directly in our data source, so we
+will use as an interval between the earliest date in the data source
+and the latest date *or* the greater data in which  the *result* of the
+inspection was =out of business= or =business not located=.
+
+#+BEGIN_SRC sql :tangle ./src/create_semantic_tables.sql
+
+create schema if not exists semantic;
+
+drop table if exists semantic.entities cascade;
+
+create table semantic.entities as (
+
+with entities_date as (
+
+  select
+  --distinct on (license_num, facility, facility_aka, facility_type, address)
+  license_num,
+  facility,
+  facility_aka,
+  facility_type,
+  address,
+  zip_code,
+  location,
+  min(date) over (partition by license_num, facility, facility_aka, address) as start_time,
+  max(case when
+  result in ('out of business', 'business not located')
+  then
+  date
+  else
+  NULL
+  end) over (partition by license_num, facility, facility_aka, address) as end_time
+  from cleaned.inspections
+
+)
+
+select distinct
+   dense_rank() over (w) as entity_id,
+   license_num,
+   facility,
+   facility_aka,
+   facility_type,
+   address,
+   zip_code,
+   location,
+   start_time,
+   end_time
+from entities_date
+   window w as (order by license_num, facility, facility_aka, facility_type, address)
+);
+
+
+-- Adding some indices
+create index entities_ix on semantic.entities (entity_id);
+
+create index entities_license_num_ix on semantic.entities (license_num);
+create index entities_facility_ix on semantic.entities (facility);
+create index entities_facility_type_ix on semantic.entities (facility_type);
+create index entities_zip_code_ix on semantic.entities (zip_code);
+
+-- Spatial index
+create index entities_location_gix on semantic.entities using gist (location);
+
+create index entities_full_key_ix on semantic.entities (license_num, facility, facility_aka, facility_type, address);
+
+#+END_SRC
+
+#+RESULTS:
+
+There are *34,517* entities in total.
+
+
+** Events table
+
+
+We are ready for creating our events table. This table will describe
+the data related to the inspection. We also add columns from the
+facility inspected that will simplify the creation of /features/ for our
+machine learning models.
+
+#+begin_src sql :tangle ./src/create_semantic_tables.sql
+
+drop table if exists semantic.events cascade;
+
+create table semantic.events as (
+
+with entities as (
+  select * from semantic.entities
+),
+
+inspections as (
+select
+i.inspection, i.type, i.date, i.risk, i.result,
+i.license_num, i.facility, i.facility_aka, i.facility_type, i.address, i.zip_code, i.location,
+jsonb_agg(
+    jsonb_build_object(
+        'code', v.code,
+        'severity', v.severity,
+	'description', v.description,
+	'comment', v.comment
+	)
+order  by code
+) as violations
+from cleaned.inspections as i
+inner join
+cleaned.violations as v
+on i.inspection = v.inspection
+group by
+i.inspection, i.type, i.license_num, i.facility, i.facility_aka, i.facility_type, i.address, i.zip_code, i.location,
+i.date, i.risk, i.result
+)
+
+select
+i.inspection, e.entity_id, i.type, i.date, i.risk, i.result,
+e.facility_type, e.zip_code, e.location,
+i.violations
+from entities as e
+inner join
+inspections as i
+using (license_num, facility, facility_aka, facility_type, address, zip_code)
+
+);
+
+-- Add some indices
+create index events_entity_ix on semantic.events (entity_id);
+create index events_inspection_ix on semantic.events (inspection);
+create index events_type_ix on semantic.events (type);
+create index events_date_ix on semantic.events(date desc nulls last);
+create index events_facility_type_ix on semantic.events  (facility_type);
+create index events_zip_code_ix on semantic.events  (zip_code);
+
+-- Spatial index
+create index events_location_gix on semantic.events using gist (location);
+
+-- JSONB indices
+create index events_violations on semantic.events using gin(violations);
+create index events_violations_json_path on semantic.events using gin(violations jsonb_path_ops);
+
+create index events_inspection_entity_zip_code_date on semantic.events (inspection desc nulls last, entity_id, zip_code, date desc nulls last);
+
+#+end_src
+
+#+RESULTS:
+
+
+#+begin_src sql
+select * from semantic.events limit 1
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+| inspection | type    | license_num | facility_type | zip_code | city    |       date | risk   | result | location                                           | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|------------+---------+------------+--------------+---------+---------+------------+--------+--------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|     100209 | canvass |    1226806 | liquor       |   60622 | chicago | 2010-01-20 | medium | fail   | 0101000020E6100000D64F99B653EB55C05D6CC3F681F44440 | [{"code": "13", "comment": "All necessary control measures shall be used to effectively minimize or eliminate the presence of rodents, roaches, and other vermin/insect infestations", "severity": "critical", "description": "NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS"}, {"code": "32", "comment": "All food and non-food contact equipment and utensils shall be smooth, easily cleanable, and durable, and shall be in good repair", "severity": "minor", "description": "FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED"}, {"code": "33", "comment": "All food and non-food contact surfaces of equipment and all food storage utensils shall be thoroughly cleaned and sanitized daily", "severity": "minor", "description": "FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS"}, {"code": "34", "comment": "The floors shall be constructed per code, be smooth and easily cleaned, and be kept clean and in good repair", "severity": "minor", "description": "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED"}, {"code": "38", "comment": "Ventilation: All plumbing fixtures, such as toilets, sinks, washbasins, etc", "severity": "minor", "description": "VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED"}, {"code": "41", "comment": "All parts of the food establishment and all parts of the property used in connection with the operation of the establishment shall be kept neat and clean and should not produce any offensive odors", "severity": "minor", "description": "PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED"}, {"code": "42", "comment": "All employees shall be required to use effective hair restraints to confine hair", "severity": "minor", "description": "APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN"}] |
+:END:
+
+
+#+BEGIN_SRC sql
+select * from semantic.entities limit 1
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility_type      | location                                           |
+|------------+-------------------+----------------------------------------------------|
+|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
+:END:
