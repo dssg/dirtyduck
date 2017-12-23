@@ -179,18 +179,18 @@ Let's check that we have *only* three different classifications for the
 
 
 #+BEGIN_SRC sql
-  select distinct risk from raw.inspections;
+  select risk, count(*) from raw.inspections group by risk order by count(*) desc
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| risk            |
-|-----------------|
-| [NULL]          |
-| Risk 2 (Medium) |
-| Risk 1 (High)   |
-| Risk 3 (Low)    |
-| All             |
+| risk            |  count |
+|-----------------+--------|
+| Risk 1 (High)   | 113873 |
+| Risk 2 (Medium) |  33625 |
+| Risk 3 (Low)    |  15167 |
+| [NULL]          |     66 |
+| All             |     22 |
 :END:
 
 Ok, two more: =All= and =NULL= for a grand total of *5*. What about =types= of inspections?
@@ -211,47 +211,82 @@ Wow, we got *108* types of inspections instead of *5*.
 Which are those types? How bad is it?
 
 #+BEGIN_SRC sql
-select type, count(*) from raw.inspections group by type order by count(*) desc limit 15
+select type, count(*) from raw.inspections group by type order by count(*) desc limit 50
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| type                                   | count |
-|----------------------------------------+-------|
-| Canvass                                | 86871 |
-| License                                | 20756 |
-| Canvass Re-Inspection                  | 16786 |
-| Complaint                              | 14619 |
-| License Re-Inspection                  |  7500 |
-| Short Form Complaint                   |  6032 |
-| Complaint Re-Inspection                |  5985 |
-| Suspected Food Poisoning               |   728 |
-| Consultation                           |   666 |
-| License-Task Force                     |   605 |
-| Tag Removal                            |   603 |
-| Out of Business                        |   284 |
-| Task Force Liquor 1475                 |   254 |
-| Recent Inspection                      |   222 |
-| Suspected Food Poisoning Re-inspection |   167 |
+| type                                     | count |
+|------------------------------------------+-------|
+| Canvass                                  | 86871 |
+| License                                  | 20756 |
+| Canvass Re-Inspection                    | 16786 |
+| Complaint                                | 14619 |
+| License Re-Inspection                    |  7500 |
+| Short Form Complaint                     |  6032 |
+| Complaint Re-Inspection                  |  5985 |
+| Suspected Food Poisoning                 |   728 |
+| Consultation                             |   666 |
+| License-Task Force                       |   605 |
+| Tag Removal                              |   603 |
+| Out of Business                          |   284 |
+| Task Force Liquor 1475                   |   254 |
+| Recent Inspection                        |   222 |
+| Suspected Food Poisoning Re-inspection   |   167 |
+| Complaint-Fire                           |   161 |
+| Short Form Fire-Complaint                |   113 |
+| Special Events (Festivals)               |    63 |
+| No Entry                                 |    60 |
+| Package Liquor 1474                      |    44 |
+| Complaint-Fire Re-inspection             |    44 |
+| OUT OF BUSINESS                          |    22 |
+| LICENSE REQUEST                          |    19 |
+| Pre-License Consultation                 |    15 |
+| Non-Inspection                           |    12 |
+| Not Ready                                |    10 |
+| NO ENTRY                                 |     7 |
+| Illegal Operation                        |     5 |
+| no entry                                 |     4 |
+| SFP                                      |     4 |
+| SFP/COMPLAINT                            |     4 |
+| LICENSE CONSULTATION                     |     2 |
+| SPECIAL TASK FORCE                       |     2 |
+| task force                               |     2 |
+| LICENSE/NOT READY                        |     2 |
+| REINSPECTION OF 48 HOUR NOTICE           |     2 |
+| TASK FORCE LIQUOR 1474                   |     2 |
+| LICENSE RENEWAL FOR DAYCARE              |     2 |
+| REINSPECTION                             |     2 |
+| fire complaint                           |     2 |
+| TASK FORCE LIQUOR 1470                   |     2 |
+| CANVAS                                   |     1 |
+| Duplicated                               |     1 |
+| finish complaint inspection from 5-18-10 |     1 |
+| CANVASS RE INSPECTION OF CLOSE UP        |     1 |
+| RE-INSPECTION OF CLOSE-UP                |     1 |
+| Kids Cafe'                               |     1 |
+| RECALL INSPECTION                        |     1 |
+| LIQOUR TASK FORCE NOT READY              |     1 |
+| FIRE                                     |     1 |
 :END:
 
 We will need to clean this column also. Finally, What about =results=?
 
 #+BEGIN_SRC  sql
-  select distinct results from raw.inspections
+  select results, count(*) from raw.inspections group by results order by count(*) desc
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| results              |
-|----------------------|
-| Fail                 |
-| Pass w/ Conditions   |
-| Not Ready            |
-| No Entry             |
-| Out of Business      |
-| Business Not Located |
-| Pass                 |
+| results              | count |
+|----------------------+-------|
+| Pass                 | 95468 |
+| Fail                 | 31465 |
+| Pass w/ Conditions   | 15397 |
+| Out of Business      | 14567 |
+| No Entry             |  4796 |
+| Not Ready            |  1000 |
+| Business Not Located |    60 |
 :END:
 
 Ok, disheartening. But, that is the reality of /real/ data. In the next
@@ -265,92 +300,66 @@ section we will try to clean this mess.
    how those entities change over time, i.e. which *events* happened to
    that entity or which *events* where acted by the entity in question.
 
-We will materialize that in two different tables, one for entities and
-one for events, we will name those as =entities= and =events= respectively.
+   We will materialize that in two different tables, one for entities and
+   one for events, we will name those as =entities= and =events= respectively.
 
-   In this tutorial, we have two different goals: (1) an *EIS* and
-   (2) *prioritize inspections*, the entity in which we are interested in
-   both cases is the  /facility/.
+The entity is the *facility*, and the events that happen to that entity
+are the *inspections*.
 
-   In the *EIS*, as a facility owner or manager, we want to predict if
-   the facility under our control is at /risk/ of been inspected in the
-   following period of time.
+The table =entities= should contain an unique identifier for the entity,
+some data specific for that entity (like name, age, status). The
+=events= table will include data related to the description of the inspection.
 
-   In the *inspections prioritization*, we want to generate a list of
-   facilities which are /likely/ to have some *critical* o *serious*
-   violation /given that/ they are inspected.
-
-   Both problems are under the umbrella of the /supervised machine
-   learning/ problems. That means that we must need examples that
-   specify the *outcome* in which are interested (in the ML jargon this
-   is called a /label/).
-
-   The *outcome* is what differ between those two projects. For *EIS* the
-   outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
-
-   One of the golden rules -that will make your life easier- is:
+Before starting the cleaning, you should know one of the golden rules
+-that will make your life easier:
 
 #+BEGIN_QUOTE
    /You can't change your original data/
 #+END_QUOTE
 
+The reason for this is, if you make some mistake, or if you want to
+try a different thing you will always can go back to the beginning and
+start over.
 
-   The reason for this is, if you make some mistake, or if you want to
-   try a different thing you will always can go back to the beginning and
-   start over.
-
-   Let's see the data to figure out how we need to be transform it.
-
-   Remember that the data that we have is one inspection per row.
-
-   We will check the result of the inspections:
-
-   #+BEGIN_SRC sql
-     select
-     results, count(*) as total_number
-     from
-     inspections
-     group by
-     results
-     order by total_number desc;
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | results              | total_number |
-   |----------------------+-------------|
-   | Pass                 |       95468 |
-   | Fail                 |       31465 |
-   | Pass w/ Conditions   |       15397 |
-   | Out of Business      |       14567 |
-   | No Entry             |        4796 |
-   | Not Ready            |        1000 |
-   | Business Not Located |          60 |
-   :END:
-
-   We will remove =Not Ready=, =No Entry=, =Out of Business= and =Business Not Located=
-   from the data, and We will only keep all the other options (=Fail=, =Pass w/Condition= and
-   =Pass)=.
+Let's see the data to figure out how we need to be transform it. We
+will concentrate at first in all columns except =violations=, we will
+deal with that later, since is more complex.
 
 
-   We still need to clean the column =type= (it contains several
-   variations instead of the seven mentioned in the documentation:
-   /canvass/, /complaint/, /license/, /re-inspection/, /task-force/, /consultation/
-   and /suspect food poisoning/). For simplicity, we will use /regular
-   expressions/ and we will ignore /re-inspection/.
+First, we will remove superfluous spaces and will transform the columns
+=type,results, dba_name, aka_name, facility_type, address, city= to
+lower case, also, we will clean =risk= keeping only the description
+(e.g. *high*).
 
 
-   We will add the following columns in =cleaned.inspections=
-   - year
-   - month
-   - day of week
-   - is_weekend
-   - week_of_year
-   - quarter
+We still need to clean the column =type= (it contains several more
+variations instead of the *seven* mentioned in the documentation:
+/canvass/, /complaint/, /license/, /re-inspection/, /task-force/, /consultation/
+and /suspect food poisoning/). For simplicity, we will use /regular
+expressions/ and we will ignore /re-inspection/.
 
-   We will remove superfluous spaces and will transform the test to
-   lower case, also, we will clean =risk= and we will convert =location= to a
-   real =Point=.
+For the column =risk= , we will impute as =high= all the =NULL= and =All=
+values.
+
+As we have seen (and we will continue see that)  through all this
+tutorial, /data is always messy/, to
+begin with we have several different spellings (e.g. =SUBWAY= and
+=Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
+=DUNKIN DONUTS / BASKIN ROBBINS=, etc)
+
+We could try a very simple cleaning for example, convert all the
+names to uppercase, remove the trailing spaces, remove the apostrophe
+"='"= and remove the spaces around "=/=". The problem with this approach
+is that we will be fixing the names that we just saw, but there are
+several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
+but that will create a lot of mismatches. The real workaround is apply
+some /machine learning/ to /deduplicate/ the entities [fn:3].  We wont
+follow that path here.
+
+Let's move to the spatial columns (=state, city, zip, latitude,
+longitude=).
+
+All the rows in the data should be from Ilinois, let's check that
 
 #+begin_src sql
 select state, count(*) from raw.inspections group by state
@@ -361,108 +370,156 @@ select state, count(*) from raw.inspections group by state
 | state  |  count |
 |--------+--------|
 | [NULL] |     20 |
-| IL     | 162019 |
+| IL     | 162733 |
+:END:
+
+Ok, almost, We will assume that the =NULL= values are actually =IL=.
+
+#+BEGIN_SRC sql
+select city, count(*) from raw.inspections group by city order by count(*) desc limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| city              |  count |
+|-------------------+--------|
+| CHICAGO           | 162029 |
+| Chicago           |    264 |
+| [NULL]            |    144 |
+| chicago           |     80 |
+| CCHICAGO          |     41 |
+| SCHAUMBURG        |     20 |
+| MAYWOOD           |     15 |
+| ELK GROVE VILLAGE |     12 |
+| CHicago           |     11 |
+| EVANSTON          |      8 |
+:END:
+
+There are 144 rows with =NULL= values and 41 rows with =CCHICAGO=, we will
+fix this to problems with the value =chicago=.
+
+The zip code has a similar problem:
+
+#+BEGIN_SRC sql
+select count(*) from raw.inspections where zip is null or btrim(zip) = ''
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| count |
+|-------|
+|    71 |
+:END:
+
+We could attempt to remove this =NULLs= using the location point or
+using similar names of restaurants, but for this tutorial we will
+remove this.
+
+Continuing with the cleaning, we will drop the columns =state=,
+=latitude=, =longitude=, since these are (now) redundant. We will remove
+the column =city= since almost everything happens in Chicago (this is
+the Chicago's food inspection data set anyway).
+
+We will convert the coordinates latitude and longitude to a =Point=.
+
+As a final step in the cleaning we will change the name of the columns
+for explicit or better names(e.g =results -> result, dba_name -> facility=, etc).
+
+We will create a new =schema= called =cleaned=. The objective of this
+schema is twofold: keep our raw data as-is and store our assumptions
+and cleaning decisions separated from the raw in a schema that
+/semantically/ is transmitting the information: "this is our clean
+data".
+
+
+#+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
+  create schema if not exists cleaned
+#+END_SRC
+
+#+RESULTS:
+
+Then, we will create our mini *ETL* with our cleaning decisions:
+
+#+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
+drop table if exists cleaned.inspections cascade;
+
+create table cleaned.inspections as (
+with cleaned as (
+select
+inspection,
+btrim(lower(results)) as result,
+license_num,
+btrim(lower(dba_name)) as facility,
+btrim(lower(aka_name)) as facility_aka,
+btrim(lower(facility_type)) as facility_type,
+lower(substring(risk from '\((.+)\)')) as risk,
+btrim(lower(address)) as address,
+zip as zip_code,
+substring(btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi'))) from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
+date,
+ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
+from raw.inspections
+where zip is not null
+)
+
+select * from cleaned where type is not null
+);
+#+END_SRC
+
+#+RESULTS:
+
+
+You could execute this code using (if you are not connected to the database):
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+psql ${FOOD_DB_URL} < /code/create_cleaned_inspections_table.sql
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+SELECT 162682
+:END:
+
+Or, if you are connected to the database
+
+#+BEGIN_EXAMPLE sql
+\i /code/create_cleaned_inspections_table.sql
+#+END_EXAMPLE
+
+
+#+BEGIN_SRC sql :results table
+ select count(inspection) from cleaned.inspections;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|  count |
+|--------|
+| 162682 |
 :END:
 
 
-   We will drop the columns =state=, =latitude=, =longitude=, since these are
-   redundant.
+Let's look closer the column =violations=:
 
-   We will create a new =schema=
+#+BEGIN_SRC sql
+select violations from raw.inspections limit 5
+#+END_SRC
 
-   #+BEGIN_SRC sql
-     create schema if not exists cleaned
-   #+END_SRC
-
-   #+RESULTS:
-
-   #+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
-     drop table if exists cleaned.inspections cascade;
-
-     create table cleaned.inspections as (
-     select
-     inspection,
-     btrim(lower(results)) as result,
-     license_num,
-     btrim(lower(dba_name)) as facility,
-     btrim(lower(aka_name)) as facility_aka,
-     btrim(lower(facility_type)) as facility_type,
-     lower(substring(risk from '\((.+)\)')) as risk,
-     btrim(lower(address)) as address,
-     zip as zip_code,
-     btrim(lower(city)) as city,
-     substring(btrim(lower(type)) from 'canvass|task force|complaint|food poisoning|consultation|license') as type,
-     date,
-     extract(year from date) as year,
-     extract(month from date) as month,
-     extract(isodow from date) as day_of_week, -- Monday: 1 ... Sunday: 7
-     case
-     when extract(isodow from date) in (6,7) then TRUE
-     else FALSE
-     end as is_weekend,
-     extract(week from date) as week_of_year,
-     extract(quarter from date) as quarter,
-     ST_SetSRID(ST_MakePoint(longitude, latitude),4326) as location
-     from raw.inspections
-     where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
-     )
-   #+END_SRC
-
-   #+RESULTS:
+#+RESULTS:
+:RESULTS:
+| violations                                                                                                                                                                                                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: EXPOSED HAND SINK INSTALLED AT DISHWASHING AREAS.                                                                                                                                                                                                                                                                                                                             | 30. FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED - Comments: CORRECTED.                                                                                                                                                          | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                                        | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: CORRECTED.                                                                                                                               | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                               |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: OBSERVED A PREP COOLER LOCATED IN THE 1ST FLOOR FOOD PREP AREA AT AN AMBIENT AIR TEMPERATURE OF 57.2F DURING THE INSPECTION, NO POTENTIALLY HAZARDOUS FOODS WERE INSIDE OF SAID PREP COOLER DURING THE INSPECTION. INSTRUCTED TO MAINTAIN ALL REFRIGERATION UNITS AT 40F OR BELOW AT ALL TIMES. PREP COOLER TAGGED AND HELD FOR INSPECTION BY CDPH. NO CITATION ISSUED. CRITICAL VIOLATION 7-38-005(A) | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED RAW WOOD SHELVING FOR PLATES ABOVE THE 1 ST FOOD PREP AREA/ PREP COOLERS. INSTRUCTED TO SEAL RAW WOOD, ALL SURFACES SHOULD BE SMOOTH AND EASILT CLEANABLE. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED INTERIOR OF THE FRYERS WITH ACCUMULATED DUST AND GREASE DEBRIS. OBSERVED PREP COOLER CONDENSER WITH ACCUMULATED FOOD AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: OBSERVED FLOORS UNDER THE 1ST FLOOR PREP COOLERS AND COOKING EQUIPMENT WITH ACCUMULATED FOOD, DIRT AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: OBSERVED DUST ON THE VENTS LOCATED IN THE DISH MACHINE AREA AND IN THE FOOD PREP AREA ON THE FIRST FLOOR. INSTRUCTED TO CLEAN AND MAINTAIN. |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: FOUND WALK IN COOLER AND THREE REACH IN COOLERS NOT MAINTAINING PROPER COLD HOLDING TEMPERATURES.(CURRENTLY NOT TURNED ON). MUST TURN ALL COOLERS BEORE NEXT INSPECTION WITH WORKING THERMOMETERS. CRITICAL VIOLATION. 7-38-005A.                                                                                                                                                                      | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: FOUND EXPOSED HAND SINK AT BASEMENT DISHWASHING AREAS WITH NO HOT WATER. CRITICAL VIOLATION. 7-38-030.                                                                             | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: FOUND NO BACKFLOW PREVENTION DEVICES AT MOP SINK FAUCET. MUST PROVIDE.                                                                                                     | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND FLOORS NOT CLEAN THROUGHOUT PREMISES. MUST CLEAN AND SANITIZE.                                                                                    | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: FOUND CLUTTER AT BASEMENT THAT MUST BE REMOVED.(OLD EQUIPMENT, GARBAGE, ETC.). MUST REMOVE ALL UNNECESSARY CLUTTER FROM BASEMENT.                                  | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FOUND NO PEST CONTROL LOG AT PREMISES. SERIOUS VIOLATION. 7-38-020. MUST PROVIDE PEST CONTROL LOG. | 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED - Comments: FOUND BURNT LIGHT FIXTURES/BROKEN SHIELDS AT BASEMENT DISHWASHING AREAS. MUST REPLACE BURNT BULBS/BROKEN LIGHT SHIELDS. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: FOUND RUSTY SHELVING UNITS INSIDE WALK IN COOLER. MUST REPAIR/REPLACE. |
+| [NULL]                                                                                                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: REPLACE MISSING TOILET LID FROM STUDENT TOILET ROOM(TOILET ROOM ON WEST WALL).                                                                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+|                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS ALONG WALLS AND IN ALL CORNERS IN DRY STORAGE AND LAUNDRY AREAS.                                                                  |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+:END:
 
 
-   You could execute this code using (if you are not connected to the database):
 
-   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
-     psql ${FOOD_DB_URL} < /code/create_cleaned_inspections_table.sql
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   DROP TABLE
-   SELECT 141754
-   :END:
-
-   Or, if you are connected to the database
-
-   #+BEGIN_EXAMPLE sql
-   \i /code/create_cleaned_inspections_table.sql
-   #+END_EXAMPLE
-
-
-   #+BEGIN_SRC sql :results table
-     select count(inspection) from cleaned.inspections;
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   |  count |
-   |--------|
-   | 141754 |
-   :END:
-
-
-   Let's look closer the column =violations=:
-
-   #+BEGIN_SRC sql
-     select violations
-     from raw.inspections
-     limit 5
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | violations                                                                                                                                                                                                                   |                                                                                                                                                                        |                                                                                                                                    |                                                                                                                                |
-   |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------|
-   | [NULL]                                                                                                                                                                                                                       |                                                                                                                                                                        |                                                                                                                                    |                                                                                                                                |
-   | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: Violation corrected.                                                                                                        | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: Violation corrected.                             | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: Violation corrected. | 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: Violation corrected. Reach in cooler ambient air temperature @ 39.9F. |
-   | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: PEST CONTROL AT PREMISES 12-7-17. FOUND NO RAT DROPPINGS AT PREMISES. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND HOLE SEALED WITH CEMENT BY REAR EXIT DOOR. |                                                                                                                                    |                                                                                                                                |
-   | [NULL]                                                                                                                                                                                                                       |                                                                                                                                                                        |                                                                                                                                    |                                                                                                                                |
-   | [NULL]                                                                                                                                                                                                                       |                                                                                                                                                                        |                                                                                                                                    |                                                                                                                                |
-   :END:
-
-
-   Note that this column is structured in the following form:
+Note that this column is structured in the following form:
 
    - If there are several violations reported, those violations will
      be separated by ='|'=
@@ -470,15 +527,15 @@ select state, count(*) from raw.inspections group by state
    - Every violation could have *comments*, those comments appear after
      the string =- Comments:=
 
-   We will take that observations in account and create a new table
-   called =cleaned.violations= to store
+We will take that observations in account and create a new table
+called =cleaned.violations= to store
 
    - inspection
    - code
    - description
    - comments
 
-   #+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
+#+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
    drop table if exists cleaned.violations cascade;
 
    create table cleaned.violations as (
@@ -508,9 +565,14 @@ select state, count(*) from raw.inspections group by state
    where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
    ) as t
    )
-   #+END_SRC
+#+END_SRC
 
-   #+RESULTS:
+#+RESULTS:
+
+This code is in =/code/create_violations_table.sql=, you can execute
+this as before.
+
+If everything worked correctly you should be able to run the following code:
 
 
 #+BEGIN_SRC sql
@@ -531,650 +593,255 @@ select state, count(*) from raw.inspections group by state
 | TOTAL    | 608168 |
 :END:
 
-   This code is in =/code/create_violations_table.sql=, you can execute
-   this as before.
+As a last step, we should create from the cleaned tables the =entities=
+and =events= table.
 
-   As we will see through all this tutorial, /data is always messy/, to
-   begin with we have several different spellings (e.g. =SUBWAY= and
-   =Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
-   =DUNKIN DONUTS / BASKIN ROBBINS=, etc)
+** Entities table
 
-   We could try a very simple cleaning for example, convert all the
-   names to uppercase, remove the trailing spaces, remove the apostrophe
-   "='"= and remove the spaces around "=/=". The problem with this approach
-   is that we will be fixing the names that we just saw, but there are
-   several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
-   but that will create a lot of mismatches. The real workaround is apply
-   some /machine learning/ to /deduplicate/ the entities [fn:3].  We wont
-   follow that path here.
+The =entities= table should uniquely identify the entities and contain
+the attributes that describes the entity.
 
+We could hope that =license_num= is the way to go for uniquely
+identify the facility, let's confirm this with some queries.
 
-   If we go back to the columns of the table, maybe there is another way
-   to solve this: we could try with the column =license_num=  (assume that one
-   license represents one establishment) and the column =address= (assume that one restaurant is
-   in one place).
+We will beging with the following query:
+ /What are the top 5 licenses with more inspections?/
 
+#+BEGIN_SRC sql
+    select
+    license_num, count(*) as total_inspections,
+    coalesce(count(*) filter (where result = 'fail'), 0)
+    as total_failures
+    from cleaned.inspections
+    group by license_num
+    order by total_inspections desc
+    limit 5;
+#+END_SRC
 
-   #+BEGIN_SRC sql
-     select
-     count(distinct facility) as total_facilities,
-     count(distinct license_num) as total_licenses,
-     count(distinct address) as total_addresses
-     from cleaned.inspections
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | total_facilities | total_licenses | total_addresses |
-   |-----------------+---------------+----------------|
-   |           21143 |         28741 |          15945 |
-   :END:
-
-   This doesn't look promising...
-
-   /What are the top 5 locations with more inspections?/
-
-   #+BEGIN_SRC sql
-     select
-     address, count(*) as total_inspections,
-     coalesce( count(*) filter (where result = 'fail'), 0)
-     as total_failures
-     from cleaned.inspections
-     group by address
-     order by total_inspections desc
-     limit 5;
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | address           | total_inspections | total_failures |
-   |-------------------+------------------+---------------|
-   | 11601 w touhy ave |             1903 |           257 |
-   | 5700 s cicero ave |              373 |            54 |
-   | 500 w madison st  |              330 |            69 |
-   | 324 n leavitt st  |              305 |            86 |
-   | 131 n clinton st  |              276 |            34 |
-   :END:
-
-   The /location hypothesis/ also has problems, in particular could be *more*
-   than one establishment per location (the first row is *O'Hare International Airport*)
-
-   So, our last hope is the /license number/
-
-   We could get, even more information if we check /How many of those inspections result in a 'fail'/?
-
-   /What are the top 5 licenses with more inspections?/
-
-   #+BEGIN_SRC sql
-       select
-       license_num, count(*) as total_inspections,
-       coalesce(count(*) filter (where result = 'fail'), 0)
-       as total_failures
-       from cleaned.inspections
-       group by license_num
-       order by total_inspections desc
-       limit 5;
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | license_num | total_inspections | total_failures |
-   |------------+------------------+---------------|
-   |          0 |              390 |           121 |
-   |      14616 |              172 |            30 |
-   |    1354323 |              130 |             1 |
-   |    1574001 |               78 |             4 |
-   |    1974745 |               57 |             3 |
-   :END:
+#+RESULTS:
+:RESULTS:
+| license_num | total_inspections | total_failures |
+|------------+------------------+---------------|
+|          0 |              454 |           121 |
+|    1354323 |              192 |             1 |
+|      14616 |              172 |            30 |
+|    1574001 |               80 |             4 |
+|    1974745 |               59 |             3 |
+:END:
 
 
-   Even this column has some problems, let's investigate a little about
-   the =license_num= = =0=.
+This looks weird, let's investigate a little about
+the =license_num= = =0=.
 
-   #+BEGIN_SRC sql
-     select
-     facility_type, count(*) as total_inspections,
-     coalesce(count(*) filter (where result = 'fail'), 0)
-     as total_failures
-     from cleaned.inspections
-     where license_num=0
-     group by  facility_type
-     order by total_inspections desc
-   #+END_SRC
+#+BEGIN_SRC sql
+  select
+  facility_type, count(*) as total_inspections,
+  coalesce(count(*) filter (where result = 'fail'), 0)
+  as total_failures
+  from cleaned.inspections
+  where license_num=0
+  group by  facility_type
+  order by total_inspections desc
+  limit 10
+#+END_SRC
 
-   #+RESULTS:
-   :RESULTS:
-   | facility_type                | total_inspections | total_failures |
-   |-----------------------------+------------------+---------------|
-   | restaurant                  |               78 |            43 |
-   | special event               |               73 |            11 |
-   | church                      |               32 |             4 |
-   | shelter                     |               30 |             6 |
-   | navy pier kiosk             |               29 |             4 |
-   | [NULL]                      |               25 |            10 |
-   | grocery store               |               15 |             7 |
-   | church kitchen              |               14 |             6 |
-   | church/special events       |               10 |             2 |
-   | private school              |               10 |             1 |
-   | after school program        |                8 |             1 |
-   | long term care              |                8 |             1 |
-   | catering                    |                6 |             3 |
-   | mobile food dispenser       |                5 |             2 |
-   | school                      |                3 |             0 |
-   | illegal vendor              |                3 |             3 |
-   | social club                 |                3 |             3 |
-   | hospital                    |                2 |             0 |
-   | food pantry/church          |                2 |             0 |
-   | food pantry                 |                2 |             0 |
-   | non -profit                 |                2 |             0 |
-   | not for profit              |                2 |             2 |
-   | church/special event        |                2 |             0 |
-   | soup kitchen                |                2 |             1 |
-   | boys and girls club         |                2 |             0 |
-   | summer feeding              |                2 |             0 |
-   | summer feeding prep area    |                2 |             1 |
-   | herbal life shop            |                2 |             1 |
-   | daycare (2 - 6 years)       |                1 |             0 |
-   | religious                   |                1 |             1 |
-   | warehouse                   |                1 |             0 |
-   | restaurant/grocery          |                1 |             1 |
-   | retail                      |                1 |             1 |
-   | after school care           |                1 |             0 |
-   | incubator                   |                1 |             0 |
-   | kids cafe                   |                1 |             1 |
-   | chicago park district       |                1 |             0 |
-   | bakery                      |                1 |             1 |
-   | farmer's market             |                1 |             1 |
-   | newsstand                   |                1 |             1 |
-   | non-for profit basement kit |                1 |             0 |
-   | wholesale                   |                1 |             1 |
-   | unlicensed facility         |                1 |             1 |
-   | np-kiosk                    |                1 |             0 |
-   :END:
+#+RESULTS:
+:RESULTS:
+| facility_type          | total_inspections | total_failures |
+|-----------------------+------------------+---------------|
+| restaurant            |              101 |            43 |
+| special event         |               77 |            11 |
+| [NULL]                |               47 |            10 |
+| church                |               32 |             4 |
+| shelter               |               31 |             6 |
+| navy pier kiosk       |               30 |             4 |
+| grocery store         |               16 |             7 |
+| church kitchen        |               14 |             6 |
+| private school        |               11 |             1 |
+| church/special events |               10 |             2 |
+:END:
 
-   Most of these are related to /special events/, /churchs/, /festivals/
-   etc. We could research deeply the =restaurants= which have =license_num= =
-   =0=, but we will skip that for the moment.
+Most of these are related to /special events/, /churchs/, /festivals/
+etc. We could research deeply the =restaurants= which have =license_num= =
+=0=, but we will skip that for the moment.
 
 
-   Finally, we can conclude that, except for some details, =license_num= is
-   the way to go, for the identification of the establishments.
+#+BEGIN_SRC sql
+  select
+  license_num, facility, address, count(*) as total_inspections,
+  coalesce(count(*) filter (where result = 'fail'), 0)
+  as total_failures
+  from cleaned.inspections
+  where license_num=0
+  and facility_type = 'restaurant'
+  group by  license_num, facility, address
+  order by total_inspections desc
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility                        | address               | total_inspections | total_failures |
+|------------+---------------------------------+-----------------------+------------------+---------------|
+|          0 | british airways                 | 11601 w touhy ave     |                5 |             1 |
+|          0 | rib lady 2                      | 4203 w cermak rd      |                4 |             3 |
+|          0 | taqueria la capital             | 3508 w 63rd st        |                3 |             1 |
+|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                3 |             1 |
+|          0 | las quecas                      | 2500 s christiana ave |                3 |             1 |
+|          0 | nutricion familiar              | 3000 w 59th st        |                3 |             1 |
+|          0 | herbalife                       | 6214 w diversey ave   |                3 |             2 |
+|          0 | la michoacana                   | 4346 s california ave |                3 |             1 |
+|          0 | vinces pizzeria & taqueria, inc | 1527 w devon ave      |                3 |             1 |
+|          0 | unlicensed                      | 7559 n ridge blvd     |                3 |             1 |
+:END:
+
+We conclude that we can't use the =license_num= as the unique
+identifier.
+
+If we go back to the columns of the table, we could try with the
+column =license_num=  (assume that one license represents one
+establishment) and the column =address= (assume that one restaurant is
+in one place).
+
+#+BEGIN_SRC sql
+  select
+  count(distinct license_num) as total_licenses,
+  count(distinct facility) as total_facilities,
+  count(distinct address) as total_addresses
+  from cleaned.inspections
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| total_licenses | total_facilities | total_addresses |
+|---------------+-----------------+----------------|
+|         33557 |           24867 |          17061 |
+:END:
+
+We were expecting (naively) that we should get 1 =license_num= per
+=facility= per =address=, but it wasn't the case. This could be mean that
+several facilities share the name (e.g. Subway or Mc Donalds)  or the
+license; another explanation is that several facilities share the same
+address, as the facilities at the stadium or the airport.
+
+We will decide to use the combination of =license_num=, =facility=, =facility_aka=,
+=facility_type= and =address= to identify a facility:
+
+#+BEGIN_SRC sql
+select
+license_num, facility, facility_type, facility_aka, address , count(*)
+from cleaned.inspections
+group by license_num, facility, facility_type, facility_aka, address
+order by count(*) desc, facility, facility_aka, address, license_num, facility_type
+limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility                     | facility_type  | facility_aka              | address                 | count |
+|------------+------------------------------+---------------+--------------------------+-------------------------+-------|
+|    1490035 | mcdonald's                   | restaurant    | mcdonald's               | 6900 s lafayette ave    |    46 |
+|    1596210 | food 4 less midwest #552     | grocery store | food 4 less              | 7030 s ashland ave      |    44 |
+|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345 | 1224 s wabash ave       |    42 |
+|    1302136 | mcdonald's                   | restaurant    | mcdonald's               | 70 e garfield blvd      |    40 |
+|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market   | 333 e benton pl         |    38 |
+|    1476553 | pete's produce               | grocery store | pete's produce           | 1543 e 87th st          |    38 |
+|    1884255 | food 4 less                  | grocery store | food 4 less              | 4821 w north ave        |    36 |
+|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030   | 7530 s stony island ave |    36 |
+|       9154 | jimmy g's                    | restaurant    | jimmy g's                | 307 s kedzie ave        |    36 |
+|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito     | 2829 n milwaukee ave    |    36 |
+:END:
 
 
-   #+BEGIN_SRC sql
-     select
-     license_num, facility, address,
-     count(*) as total_inspections,
-     coalesce(count(*) filter (where result = 'fail'), 0)
-     as total_failures
-     from cleaned.inspections
-     group by license_num, facility, address
-     order by count(*)  desc
-     limit 5;
-   #+END_SRC
+What attributes we want to add to the =entities= table? We should add
+all the attributes that describe the entity and doesn't depend on the
+event. Therefore we will add =zip_code=, =location= and some data about
+when this facility got their license or if this is still open. We will
+add =start_time, end_time=. These columns will be important because we
+won't wnat to do predictions on entities that aren't active. We will
+use the following definition
 
-   #+RESULTS:
-   :RESULTS:
-   | license_num | facility                          | address                 | total_inspections | total_failures |
-   |------------+-----------------------------------+-------------------------+------------------+---------------|
-   |    1354323 | sportservice soldier field        | 1410 s museum campus dr |              119 |             1 |
-   |      14616 | illinois sportservice inc         | 333 w 35th st           |               99 |            19 |
-   |    1574001 | levy restaurants at wrigley field | 1060 w addison st       |               68 |             1 |
-   |    1974745 | the united center                 | 1901 w madison st       |               46 |             0 |
-   |    1490035 | mcdonald's                        | 6900 s lafayette ave    |               45 |             6 |
-   :END:
+#+BEGIN_QUOTE
+A facility is active from their opening as a businness until it closes
+#+END_QUOTE
 
+We don't have this type of date directly in our data source, so we
+will use as an interval between the earliest date in the data source
+and the latest date *or* the greater data in which  the *result* of the
+inspection was =out of business= or =business not located=.
 
-** Exploring the data
+#+BEGIN_SRC sql :tangle ./src/create_semantic_tables.sql
 
-   /Which is the spatial distribution of inspections?/
+create schema if not exists semantic;
 
+drop table if exists semantic.entities cascade;
 
-   #+BEGIN_SRC sql
-   select
+create table semantic.entities as (
+
+with entities_date as (
+
+  select
+  --distinct on (license_num, facility, facility_aka, facility_type, address)
+  license_num,
+  facility,
+  facility_aka,
+  facility_type,
+  address,
+  zip_code,
+  location,
+  min(date) over (partition by license_num, facility, facility_aka, address) as start_time,
+  max(case when
+  result in ('out of business', 'business not located')
+  then
+  date
+  else
+  NULL
+  end) over (partition by license_num, facility, facility_aka, address) as end_time
+  from cleaned.inspections
+
+)
+
+select distinct
+   dense_rank() over (w) as entity_id,
+   license_num,
+   facility,
+   facility_aka,
+   facility_type,
+   address,
    zip_code,
-   count(*) as total_inspections,
-   coalesce(count(*) filter (where result = 'fail'), 0)
-   as total_failures
-   from cleaned.inspections
-   group by zip_code
-   order by total_inspections desc
-   limit 10
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | zip_code | total_inspections | total_failures |
-   |---------+------------------+---------------|
-   |   60614 |             5262 |          1241 |
-   |   60647 |             4835 |          1057 |
-   |   60657 |             4761 |          1083 |
-   |   60611 |             4709 |           788 |
-   |   60622 |             4550 |          1152 |
-   |   60608 |             4182 |          1022 |
-   |   60618 |             4168 |           727 |
-   |   60639 |             3753 |           921 |
-   |   60607 |             3731 |           841 |
-   |   60640 |             3671 |           983 |
-   :END:
-
-   /Which is the temporal distribution of the inspections?/
-
-   #+BEGIN_SRC sql
-   select
-   year, month,
-   count(*) as total_inspections,
-   coalesce(count(*) filter (where result = 'fail'), 0)
-   as total_failures
-   from cleaned.inspections
-   group by rollup(year, month)
-   order by year asc, month asc
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   |   year |  month | total_inspections | total_failures |
-   |--------+--------+------------------+---------------|
-   |   2010 |      1 |             1279 |           330 |
-   |   2010 |      2 |             1398 |           342 |
-   |   2010 |      3 |             1478 |           350 |
-   |   2010 |      4 |             1439 |           401 |
-   |   2010 |      5 |             1541 |           389 |
-   |   2010 |      6 |             1753 |           455 |
-   |   2010 |      7 |             1275 |           367 |
-   |   2010 |      8 |             1541 |           407 |
-   |   2010 |      9 |             1640 |           427 |
-   |   2010 |     10 |             1649 |           437 |
-   |   2010 |     11 |             1201 |           308 |
-   |   2010 |     12 |             1186 |           291 |
-   |   2010 | [NULL] |            17380 |          4504 |
-   |   2011 |      1 |             1259 |           287 |
-   |   2011 |      2 |             1272 |           255 |
-   |   2011 |      3 |             1693 |           380 |
-   |   2011 |      4 |             1421 |           345 |
-   |   2011 |      5 |             1645 |           362 |
-   |   2011 |      6 |             1681 |           419 |
-   |   2011 |      7 |             1311 |           346 |
-   |   2011 |      8 |             1547 |           442 |
-   |   2011 |      9 |             1481 |           417 |
-   |   2011 |     10 |             1494 |           397 |
-   |   2011 |     11 |             1552 |           396 |
-   |   2011 |     12 |             1228 |           310 |
-   |   2011 | [NULL] |            17584 |          4356 |
-   |   2012 |      1 |             1290 |           302 |
-   |   2012 |      2 |             1165 |           259 |
-   |   2012 |      3 |             1339 |           302 |
-   |   2012 |      4 |             1288 |           301 |
-   |   2012 |      5 |             1682 |           382 |
-   |   2012 |      6 |             1375 |           312 |
-   |   2012 |      7 |             1227 |           310 |
-   |   2012 |      8 |             1451 |           364 |
-   |   2012 |      9 |             1406 |           324 |
-   |   2012 |     10 |             1421 |           322 |
-   |   2012 |     11 |             1347 |           274 |
-   |   2012 |     12 |             1022 |           188 |
-   |   2012 | [NULL] |            16013 |          3640 |
-   |   2013 |      1 |             1426 |           261 |
-   |   2013 |      2 |             1281 |           260 |
-   |   2013 |      3 |             1407 |           269 |
-   |   2013 |      4 |             1542 |           288 |
-   |   2013 |      5 |             1692 |           331 |
-   |   2013 |      6 |             1336 |           271 |
-   |   2013 |      7 |             1306 |           274 |
-   |   2013 |      8 |             1440 |           297 |
-   |   2013 |      9 |             1628 |           375 |
-   |   2013 |     10 |             1596 |           287 |
-   |   2013 |     11 |             1265 |           235 |
-   |   2013 |     12 |             1147 |           201 |
-   |   2013 | [NULL] |            17066 |          3349 |
-   |   2014 |      1 |             1228 |           231 |
-   |   2014 |      2 |             1285 |           262 |
-   |   2014 |      3 |             1464 |           258 |
-   |   2014 |      4 |             1675 |           325 |
-   |   2014 |      5 |             1706 |           336 |
-   |   2014 |      6 |             1635 |           331 |
-   |   2014 |      7 |             1522 |           345 |
-   |   2014 |      8 |             1756 |           379 |
-   |   2014 |      9 |             1761 |           380 |
-   |   2014 |     10 |             1843 |           371 |
-   |   2014 |     11 |             1353 |           278 |
-   |   2014 |     12 |             1392 |           223 |
-   |   2014 | [NULL] |            18620 |          3719 |
-   |   2015 |      1 |             1429 |           301 |
-   |   2015 |      2 |             1229 |           267 |
-   |   2015 |      3 |             1525 |           330 |
-   |   2015 |      4 |             1426 |           285 |
-   |   2015 |      5 |             1455 |           292 |
-   |   2015 |      6 |             1600 |           303 |
-   |   2015 |      7 |             1400 |           295 |
-   |   2015 |      8 |             1579 |           336 |
-   |   2015 |      9 |             1676 |           322 |
-   |   2015 |     10 |             1755 |           344 |
-   |   2015 |     11 |             1479 |           280 |
-   |   2015 |     12 |             1338 |           252 |
-   |   2015 | [NULL] |            17891 |          3607 |
-   |   2016 |      1 |             1411 |           298 |
-   |   2016 |      2 |             1297 |           307 |
-   |   2016 |      3 |             1944 |           402 |
-   |   2016 |      4 |             1711 |           372 |
-   |   2016 |      5 |             1780 |           379 |
-   |   2016 |      6 |             1949 |           438 |
-   |   2016 |      7 |             1373 |           309 |
-   |   2016 |      8 |             1868 |           435 |
-   |   2016 |      9 |             1914 |           420 |
-   |   2016 |     10 |             1695 |           369 |
-   |   2016 |     11 |             1537 |           319 |
-   |   2016 |     12 |             1380 |           250 |
-   |   2016 | [NULL] |            19859 |          4298 |
-   |   2017 |      1 |             1560 |           325 |
-   |   2017 |      2 |             1398 |           321 |
-   |   2017 |      3 |             1835 |           412 |
-   |   2017 |      4 |             1445 |           349 |
-   |   2017 |      5 |             1816 |           392 |
-   |   2017 |      6 |             1925 |           414 |
-   |   2017 |      7 |             1296 |           293 |
-   |   2017 |      8 |             1607 |           364 |
-   |   2017 |      9 |             1547 |           361 |
-   |   2017 |     10 |             1577 |           363 |
-   |   2017 |     11 |             1208 |           264 |
-   |   2017 |     12 |              127 |            32 |
-   |   2017 | [NULL] |            17341 |          3890 |
-   | [NULL] | [NULL] |           141754 |         31363 |
-   :END:
-
-   The number of inspections per month, is stable.
-
-   #+BEGIN_SRC sql
-     select
-     code,
-     description,
-     severity,
-     count(*) as total
-     from cleaned.violations
-     group by code, description, severity
-     order by total desc
-     limit 10
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | code | description                                                                                                                            | severity | total |
-   |------+----------------------------------------------------------------------------------------------------------------------------------------+----------+-------|
-   |   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                  | minor    | 78093 |
-   |   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS                   | minor    | 69385 |
-   |   33 | FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS                                                        | minor    | 68917 |
-   |   38 | VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED                                                | minor    | 59026 |
-   |   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                       | minor    | 58680 |
-   |   41 | PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED                                          | minor    | 37340 |
-   |   18 | NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS | serious  | 29601 |
-   |   36 | LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED                                                           | minor    | 28538 |
-   |   40 | REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS                                                                     | minor    | 17424 |
-   |   30 | FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | minor    | 17359 |
-   :END:
-
-   This looks weird, the top most "violation" is not an actual
-   violation. We will repeat the query, we will group by the =results=
-
-   #+BEGIN_SRC sql
-     with inspections_violations as (
-     select
-     i.inspection, i.result,
-     v.code
-     from cleaned.inspections as i inner join cleaned.violations as v
-     using(inspection)
-     )
+   location,
+   start_time,
+   end_time
+from entities_date
+   window w as (order by license_num, facility, facility_aka, facility_type, address)
+);
 
 
-     select code, result,
-     count(code)
-     from inspections_violations
-     group by rollup(code, result)
-   #+END_SRC
+-- Adding some indices
 
-   #+RESULTS:
-   :RESULTS:
-   |   code | result             |  count |
-   |--------+--------------------+--------|
-   |        | fail               |   2877 |
-   |        | pass               |   9705 |
-   |        | pass w/ conditions |    119 |
-   |        | [NULL]             |  12701 |
-   |      1 | fail               |    347 |
-   |      1 | pass               |     62 |
-   |      1 | pass w/ conditions |    287 |
-   |      1 | [NULL]             |    696 |
-   |     10 | fail               |    740 |
-   |     10 | pass               |    367 |
-   |     10 | pass w/ conditions |    162 |
-   |     10 | [NULL]             |   1269 |
-   |     11 | fail               |   2757 |
-   |     11 | pass               |   1650 |
-   |     11 | pass w/ conditions |    701 |
-   |     11 | [NULL]             |   5108 |
-   |     12 | fail               |   1848 |
-   |     12 | pass               |    625 |
-   |     12 | pass w/ conditions |   1018 |
-   |     12 | [NULL]             |   3491 |
-   |     13 | fail               |    568 |
-   |     13 | pass               |    274 |
-   |     13 | pass w/ conditions |     33 |
-   |     13 | [NULL]             |    875 |
-   |     14 | fail               |    801 |
-   |     14 | pass               |    570 |
-   |     14 | pass w/ conditions |    684 |
-   |     14 | [NULL]             |   2055 |
-   |     15 | pass               |      3 |
-   |     15 | pass w/ conditions |      1 |
-   |     15 | [NULL]             |      4 |
-   |     16 | fail               |   3456 |
-   |     16 | pass               |   2334 |
-   |     16 | pass w/ conditions |   1451 |
-   |     16 | [NULL]             |   7241 |
-   |     17 | fail               |     55 |
-   |     17 | pass               |      5 |
-   |     17 | pass w/ conditions |     61 |
-   |     17 | [NULL]             |    121 |
-   |     18 | fail               |  16051 |
-   |     18 | pass               |  12569 |
-   |     18 | pass w/ conditions |    981 |
-   |     18 | [NULL]             |  29601 |
-   |     19 | fail               |   3806 |
-   |     19 | pass               |   2826 |
-   |     19 | pass w/ conditions |    502 |
-   |     19 | [NULL]             |   7134 |
-   |      2 | fail               |   3536 |
-   |      2 | pass               |   1831 |
-   |      2 | pass w/ conditions |   2603 |
-   |      2 | [NULL]             |   7970 |
-   |     20 | fail               |    110 |
-   |     20 | pass               |     68 |
-   |     20 | pass w/ conditions |     11 |
-   |     20 | [NULL]             |    189 |
-   |     21 | fail               |   3970 |
-   |     21 | pass               |   2184 |
-   |     21 | pass w/ conditions |   5012 |
-   |     21 | [NULL]             |  11166 |
-   |     22 | fail               |    914 |
-   |     22 | pass               |    693 |
-   |     22 | pass w/ conditions |    130 |
-   |     22 | [NULL]             |   1737 |
-   |     23 | fail               |      3 |
-   |     23 | pass               |      2 |
-   |     23 | [NULL]             |      5 |
-   |     24 | fail               |   2949 |
-   |     24 | pass               |   2180 |
-   |     24 | pass w/ conditions |    285 |
-   |     24 | [NULL]             |   5414 |
-   |     25 | fail               |    122 |
-   |     25 | pass               |     62 |
-   |     25 | pass w/ conditions |     59 |
-   |     25 | [NULL]             |    243 |
-   |     26 | fail               |   1315 |
-   |     26 | pass               |    947 |
-   |     26 | pass w/ conditions |    149 |
-   |     26 | [NULL]             |   2411 |
-   |     27 | fail               |    281 |
-   |     27 | pass               |    190 |
-   |     27 | pass w/ conditions |    107 |
-   |     27 | [NULL]             |    578 |
-   |     28 | fail               |    587 |
-   |     28 | pass               |    117 |
-   |     28 | pass w/ conditions |    749 |
-   |     28 | [NULL]             |   1453 |
-   |     29 | fail               |   5282 |
-   |     29 | pass               |   4108 |
-   |     29 | pass w/ conditions |    713 |
-   |     29 | [NULL]             |  10103 |
-   |      3 | fail               |   3404 |
-   |      3 | pass               |    238 |
-   |      3 | pass w/ conditions |   4961 |
-   |      3 | [NULL]             |   8603 |
-   |     30 | fail               |   3980 |
-   |     30 | pass               |  10844 |
-   |     30 | pass w/ conditions |   2535 |
-   |     30 | [NULL]             |  17359 |
-   |     31 | fail               |   2623 |
-   |     31 | pass               |   6795 |
-   |     31 | pass w/ conditions |   1635 |
-   |     31 | [NULL]             |  11053 |
-   |     32 | fail               |  14550 |
-   |     32 | pass               |  37011 |
-   |     32 | pass w/ conditions |   7119 |
-   |     32 | [NULL]             |  58680 |
-   |     33 | fail               |  15895 |
-   |     33 | pass               |  44766 |
-   |     33 | pass w/ conditions |   8256 |
-   |     33 | [NULL]             |  68917 |
-   |     34 | fail               |  18686 |
-   |     34 | pass               |  50629 |
-   |     34 | pass w/ conditions |   8778 |
-   |     34 | [NULL]             |  78093 |
-   |     35 | fail               |  17506 |
-   |     35 | pass               |  44343 |
-   |     35 | pass w/ conditions |   7536 |
-   |     35 | [NULL]             |  69385 |
-   |     36 | fail               |   7578 |
-   |     36 | pass               |  17893 |
-   |     36 | pass w/ conditions |   3067 |
-   |     36 | [NULL]             |  28538 |
-   |     37 | fail               |   2635 |
-   |     37 | pass               |   4914 |
-   |     37 | pass w/ conditions |    774 |
-   |     37 | [NULL]             |   8323 |
-   |     38 | fail               |  15078 |
-   |     38 | pass               |  37515 |
-   |     38 | pass w/ conditions |   6433 |
-   |     38 | [NULL]             |  59026 |
-   |     39 | fail               |    225 |
-   |     39 | pass               |    450 |
-   |     39 | pass w/ conditions |     82 |
-   |     39 | [NULL]             |    757 |
-   |      4 | fail               |    245 |
-   |      4 | pass               |     97 |
-   |      4 | pass w/ conditions |    270 |
-   |      4 | [NULL]             |    612 |
-   |     40 | fail               |   4615 |
-   |     40 | pass               |  10501 |
-   |     40 | pass w/ conditions |   2308 |
-   |     40 | [NULL]             |  17424 |
-   |     41 | fail               |  10368 |
-   |     41 | pass               |  22917 |
-   |     41 | pass w/ conditions |   4055 |
-   |     41 | [NULL]             |  37340 |
-   |     42 | fail               |   1635 |
-   |     42 | pass               |   4220 |
-   |     42 | pass w/ conditions |   1378 |
-   |     42 | [NULL]             |   7233 |
-   |     43 | fail               |   2148 |
-   |     43 | pass               |   5404 |
-   |     43 | pass w/ conditions |   1537 |
-   |     43 | [NULL]             |   9089 |
-   |     44 | fail               |    131 |
-   |     44 | pass               |    258 |
-   |     44 | pass w/ conditions |     67 |
-   |     44 | [NULL]             |    456 |
-   |     45 | fail               |   1776 |
-   |     45 | pass               |   4369 |
-   |     45 | pass w/ conditions |   1217 |
-   |     45 | [NULL]             |   7362 |
-   |      5 | fail               |     10 |
-   |      5 | pass w/ conditions |      6 |
-   |      5 | [NULL]             |     16 |
-   |      6 | fail               |    748 |
-   |      6 | pass               |     51 |
-   |      6 | pass w/ conditions |    919 |
-   |      6 | [NULL]             |   1718 |
-   |      7 | fail               |     85 |
-   |      7 | pass               |     35 |
-   |      7 | pass w/ conditions |     57 |
-   |      7 | [NULL]             |    177 |
-   |     70 | fail               |    421 |
-   |     70 | pass               |    196 |
-   |     70 | pass w/ conditions |    183 |
-   |     70 | [NULL]             |    800 |
-   |      8 | fail               |   1289 |
-   |      8 | pass               |    599 |
-   |      8 | pass w/ conditions |   1218 |
-   |      8 | [NULL]             |   3106 |
-   |      9 | fail               |   1401 |
-   |      9 | pass               |    837 |
-   |      9 | pass w/ conditions |    298 |
-   |      9 | [NULL]             |   2536 |
-   | [NULL] | [NULL]             | 608168 |
-   :END:
+create index entities_license_num_ix on semantic.entities (license_num);
+create index entities_facility_ix on semantic.entities (facility);
+create index entities_facility_type_ix on semantic.entities (facility_type);
+create index entities_zip_code_ix on semantic.entities (zip_code);
+
+-- Spatial index
+create index entities_location_gix on semantic.entities using gist (location);
+
+create index entities_license_num_facility_type_ix on semantic.entities (license_num, facility_type);
+
+#+END_SRC
+
+#+RESULTS:
+
+There are *34,517* entities in total.
 
 
-   *NOTE*: You could also split between, /major violation found/ and /minor violation found/,
-   but we will keep this simple for the moment.
+** Events table
 
-
-   /How often change the risk in a facility?/
-
-   #+BEGIN_SRC sql
-     select
-     license_num, risk || '->' || previous_risk, count(*)
-     from
-     (
-     select date, license_num,risk, lag(risk) over w as previous_risk
-     from cleaned.inspections
-     window w as (partition by license_num order by date asc)
-     ) as t
-     where (risk <>  previous_risk) and license_num != '0'
-     group by license_num, risk || '->' || previous_risk
-     order by  count(*) desc, license_num
-     limit 10
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
-   | license_num | ?column?     | count |
-   |------------+--------------+-------|
-   |      20481 | medium->high |    10 |
-   |      20481 | high->medium |    10 |
-   |      14616 | low->medium  |     8 |
-   |      14616 | medium->low  |     8 |
-   |    1574001 | high->medium |     8 |
-   |    1574001 | medium->high |     8 |
-   |      23081 | high->medium |     7 |
-   |      23081 | medium->high |     7 |
-   |      51011 | medium->high |     7 |
-   |      51011 | high->medium |     7 |
-   :END:
-
-
-*** Events table
 
 We are ready for creating our events table
 
-   #+BEGIN_SRC sql
-     create schema if not exists semantic
-   #+END_SRC
-
-   #+RESULTS:
-
-
-
-#+begin_src sql :tangle ./src/create_events_table.sql
+#+begin_src sql :tangle ./src/create_semantic_tables.sql
 
 drop table if exists semantic.events cascade;
 
@@ -1198,7 +865,7 @@ on i.inspection = v.inspection
 group by i.inspection, type, i.license_num, facility_type, zip_code, city, i.date, risk, result, location
 );
 
--- Add some indexes
+-- Add some indices
 create index events_inspection_ix on semantic.events (inspection);
 create index events_type_ix on semantic.events (type);
 create index events_date_ix on semantic.events(date desc nulls last);
@@ -1209,29 +876,12 @@ create index events_zip_code_ix on semantic.events  (zip_code);
 -- Spatial index
 create index events_location_gix on semantic.events using gist (location);
 
--- JSONB indexes
+-- JSONB indices
 create index events_violations on semantic.events using gin(violations);
 create index events_violations_json_path on semantic.events using gin(violations jsonb_path_ops);
 
 create index events_inspection_license_zip_code_date on semantic.events (inspection desc nulls last, license_num, zip_code, date desc nulls last);
 
-drop table if exists semantic.entities cascade;
-
-create table semantic.entities as (
-select
-license_num, facility_type, location, min(date) as earliest_known_date
-from cleaned.inspections
-group by license_num, facility_type, location
-);
-
-create index entities_license_num_ix on semantic.entities (license_num);
-create index entities_facility_type_ix on semantic.entities (facility_type);
-create index entities_location_gix on semantic.entities using gist (location);
-
-create index entities_license_num_facility_type_ix on semantic.entities (license_num, facility_type);
-create index entities_license_num_location_ix on semantic.entities (license_num, location);
-create index entities_facility_type_location_ix on semantic.entities (facility_type, location);
-create index entities_license_num_facility_type_location_ix on semantic.entities (license_num desc, facility_type desc, location);
 #+end_src
 
 #+RESULTS:
@@ -1258,4 +908,467 @@ select * from semantic.entities limit 1
 | license_num | facility_type      | location                                           |
 |------------+-------------------+----------------------------------------------------|
 |          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
+:END:
+
+
+* Exploring the data
+
+/Which is the spatial distribution of inspections?/
+
+
+#+BEGIN_SRC sql
+select
+zip_code,
+count(*) as total_inspections,
+coalesce(count(*) filter (where result = 'fail'), 0)
+as total_failures
+from cleaned.inspections
+group by zip_code
+order by total_inspections desc
+limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| zip_code | total_inspections | total_failures |
+|---------+------------------+---------------|
+|   60614 |             5262 |          1241 |
+|   60647 |             4835 |          1057 |
+|   60657 |             4761 |          1083 |
+|   60611 |             4709 |           788 |
+|   60622 |             4550 |          1152 |
+|   60608 |             4182 |          1022 |
+|   60618 |             4168 |           727 |
+|   60639 |             3753 |           921 |
+|   60607 |             3731 |           841 |
+|   60640 |             3671 |           983 |
+:END:
+
+/Which is the temporal distribution of the inspections?/
+
+#+BEGIN_SRC sql
+select
+year, month,
+count(*) as total_inspections,
+coalesce(count(*) filter (where result = 'fail'), 0)
+as total_failures
+from cleaned.inspections
+group by rollup(year, month)
+order by year asc, month asc
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|   year |  month | total_inspections | total_failures |
+|--------+--------+------------------+---------------|
+|   2010 |      1 |             1279 |           330 |
+|   2010 |      2 |             1398 |           342 |
+|   2010 |      3 |             1478 |           350 |
+|   2010 |      4 |             1439 |           401 |
+|   2010 |      5 |             1541 |           389 |
+|   2010 |      6 |             1753 |           455 |
+|   2010 |      7 |             1275 |           367 |
+|   2010 |      8 |             1541 |           407 |
+|   2010 |      9 |             1640 |           427 |
+|   2010 |     10 |             1649 |           437 |
+|   2010 |     11 |             1201 |           308 |
+|   2010 |     12 |             1186 |           291 |
+|   2010 | [NULL] |            17380 |          4504 |
+|   2011 |      1 |             1259 |           287 |
+|   2011 |      2 |             1272 |           255 |
+|   2011 |      3 |             1693 |           380 |
+|   2011 |      4 |             1421 |           345 |
+|   2011 |      5 |             1645 |           362 |
+|   2011 |      6 |             1681 |           419 |
+|   2011 |      7 |             1311 |           346 |
+|   2011 |      8 |             1547 |           442 |
+|   2011 |      9 |             1481 |           417 |
+|   2011 |     10 |             1494 |           397 |
+|   2011 |     11 |             1552 |           396 |
+|   2011 |     12 |             1228 |           310 |
+|   2011 | [NULL] |            17584 |          4356 |
+|   2012 |      1 |             1290 |           302 |
+|   2012 |      2 |             1165 |           259 |
+|   2012 |      3 |             1339 |           302 |
+|   2012 |      4 |             1288 |           301 |
+|   2012 |      5 |             1682 |           382 |
+|   2012 |      6 |             1375 |           312 |
+|   2012 |      7 |             1227 |           310 |
+|   2012 |      8 |             1451 |           364 |
+|   2012 |      9 |             1406 |           324 |
+|   2012 |     10 |             1421 |           322 |
+|   2012 |     11 |             1347 |           274 |
+|   2012 |     12 |             1022 |           188 |
+|   2012 | [NULL] |            16013 |          3640 |
+|   2013 |      1 |             1426 |           261 |
+|   2013 |      2 |             1281 |           260 |
+|   2013 |      3 |             1407 |           269 |
+|   2013 |      4 |             1542 |           288 |
+|   2013 |      5 |             1692 |           331 |
+|   2013 |      6 |             1336 |           271 |
+|   2013 |      7 |             1306 |           274 |
+|   2013 |      8 |             1440 |           297 |
+|   2013 |      9 |             1628 |           375 |
+|   2013 |     10 |             1596 |           287 |
+|   2013 |     11 |             1265 |           235 |
+|   2013 |     12 |             1147 |           201 |
+|   2013 | [NULL] |            17066 |          3349 |
+|   2014 |      1 |             1228 |           231 |
+|   2014 |      2 |             1285 |           262 |
+|   2014 |      3 |             1464 |           258 |
+|   2014 |      4 |             1675 |           325 |
+|   2014 |      5 |             1706 |           336 |
+|   2014 |      6 |             1635 |           331 |
+|   2014 |      7 |             1522 |           345 |
+|   2014 |      8 |             1756 |           379 |
+|   2014 |      9 |             1761 |           380 |
+|   2014 |     10 |             1843 |           371 |
+|   2014 |     11 |             1353 |           278 |
+|   2014 |     12 |             1392 |           223 |
+|   2014 | [NULL] |            18620 |          3719 |
+|   2015 |      1 |             1429 |           301 |
+|   2015 |      2 |             1229 |           267 |
+|   2015 |      3 |             1525 |           330 |
+|   2015 |      4 |             1426 |           285 |
+|   2015 |      5 |             1455 |           292 |
+|   2015 |      6 |             1600 |           303 |
+|   2015 |      7 |             1400 |           295 |
+|   2015 |      8 |             1579 |           336 |
+|   2015 |      9 |             1676 |           322 |
+|   2015 |     10 |             1755 |           344 |
+|   2015 |     11 |             1479 |           280 |
+|   2015 |     12 |             1338 |           252 |
+|   2015 | [NULL] |            17891 |          3607 |
+|   2016 |      1 |             1411 |           298 |
+|   2016 |      2 |             1297 |           307 |
+|   2016 |      3 |             1944 |           402 |
+|   2016 |      4 |             1711 |           372 |
+|   2016 |      5 |             1780 |           379 |
+|   2016 |      6 |             1949 |           438 |
+|   2016 |      7 |             1373 |           309 |
+|   2016 |      8 |             1868 |           435 |
+|   2016 |      9 |             1914 |           420 |
+|   2016 |     10 |             1695 |           369 |
+|   2016 |     11 |             1537 |           319 |
+|   2016 |     12 |             1380 |           250 |
+|   2016 | [NULL] |            19859 |          4298 |
+|   2017 |      1 |             1560 |           325 |
+|   2017 |      2 |             1398 |           321 |
+|   2017 |      3 |             1835 |           412 |
+|   2017 |      4 |             1445 |           349 |
+|   2017 |      5 |             1816 |           392 |
+|   2017 |      6 |             1925 |           414 |
+|   2017 |      7 |             1296 |           293 |
+|   2017 |      8 |             1607 |           364 |
+|   2017 |      9 |             1547 |           361 |
+|   2017 |     10 |             1577 |           363 |
+|   2017 |     11 |             1208 |           264 |
+|   2017 |     12 |              127 |            32 |
+|   2017 | [NULL] |            17341 |          3890 |
+| [NULL] | [NULL] |           141754 |         31363 |
+:END:
+
+The number of inspections per month, is stable.
+
+#+BEGIN_SRC sql
+  select
+  code,
+  description,
+  severity,
+  count(*) as total
+  from cleaned.violations
+  group by code, description, severity
+  order by total desc
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| code | description                                                                                                                            | severity | total |
+|------+----------------------------------------------------------------------------------------------------------------------------------------+----------+-------|
+|   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                  | minor    | 78093 |
+|   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS                   | minor    | 69385 |
+|   33 | FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS                                                        | minor    | 68917 |
+|   38 | VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED                                                | minor    | 59026 |
+|   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                       | minor    | 58680 |
+|   41 | PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED                                          | minor    | 37340 |
+|   18 | NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS | serious  | 29601 |
+|   36 | LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED                                                           | minor    | 28538 |
+|   40 | REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS                                                                     | minor    | 17424 |
+|   30 | FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | minor    | 17359 |
+:END:
+
+This looks weird, the top most "violation" is not an actual
+violation. We will repeat the query, we will group by the =results=
+
+#+BEGIN_SRC sql
+  with inspections_violations as (
+  select
+  i.inspection, i.result,
+  v.code
+  from cleaned.inspections as i inner join cleaned.violations as v
+  using(inspection)
+  )
+
+
+  select code, result,
+  count(code)
+  from inspections_violations
+  group by rollup(code, result)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|   code | result             |  count |
+|--------+--------------------+--------|
+|        | fail               |   2877 |
+|        | pass               |   9705 |
+|        | pass w/ conditions |    119 |
+|        | [NULL]             |  12701 |
+|      1 | fail               |    347 |
+|      1 | pass               |     62 |
+|      1 | pass w/ conditions |    287 |
+|      1 | [NULL]             |    696 |
+|     10 | fail               |    740 |
+|     10 | pass               |    367 |
+|     10 | pass w/ conditions |    162 |
+|     10 | [NULL]             |   1269 |
+|     11 | fail               |   2757 |
+|     11 | pass               |   1650 |
+|     11 | pass w/ conditions |    701 |
+|     11 | [NULL]             |   5108 |
+|     12 | fail               |   1848 |
+|     12 | pass               |    625 |
+|     12 | pass w/ conditions |   1018 |
+|     12 | [NULL]             |   3491 |
+|     13 | fail               |    568 |
+|     13 | pass               |    274 |
+|     13 | pass w/ conditions |     33 |
+|     13 | [NULL]             |    875 |
+|     14 | fail               |    801 |
+|     14 | pass               |    570 |
+|     14 | pass w/ conditions |    684 |
+|     14 | [NULL]             |   2055 |
+|     15 | pass               |      3 |
+|     15 | pass w/ conditions |      1 |
+|     15 | [NULL]             |      4 |
+|     16 | fail               |   3456 |
+|     16 | pass               |   2334 |
+|     16 | pass w/ conditions |   1451 |
+|     16 | [NULL]             |   7241 |
+|     17 | fail               |     55 |
+|     17 | pass               |      5 |
+|     17 | pass w/ conditions |     61 |
+|     17 | [NULL]             |    121 |
+|     18 | fail               |  16051 |
+|     18 | pass               |  12569 |
+|     18 | pass w/ conditions |    981 |
+|     18 | [NULL]             |  29601 |
+|     19 | fail               |   3806 |
+|     19 | pass               |   2826 |
+|     19 | pass w/ conditions |    502 |
+|     19 | [NULL]             |   7134 |
+|      2 | fail               |   3536 |
+|      2 | pass               |   1831 |
+|      2 | pass w/ conditions |   2603 |
+|      2 | [NULL]             |   7970 |
+|     20 | fail               |    110 |
+|     20 | pass               |     68 |
+|     20 | pass w/ conditions |     11 |
+|     20 | [NULL]             |    189 |
+|     21 | fail               |   3970 |
+|     21 | pass               |   2184 |
+|     21 | pass w/ conditions |   5012 |
+|     21 | [NULL]             |  11166 |
+|     22 | fail               |    914 |
+|     22 | pass               |    693 |
+|     22 | pass w/ conditions |    130 |
+|     22 | [NULL]             |   1737 |
+|     23 | fail               |      3 |
+|     23 | pass               |      2 |
+|     23 | [NULL]             |      5 |
+|     24 | fail               |   2949 |
+|     24 | pass               |   2180 |
+|     24 | pass w/ conditions |    285 |
+|     24 | [NULL]             |   5414 |
+|     25 | fail               |    122 |
+|     25 | pass               |     62 |
+|     25 | pass w/ conditions |     59 |
+|     25 | [NULL]             |    243 |
+|     26 | fail               |   1315 |
+|     26 | pass               |    947 |
+|     26 | pass w/ conditions |    149 |
+|     26 | [NULL]             |   2411 |
+|     27 | fail               |    281 |
+|     27 | pass               |    190 |
+|     27 | pass w/ conditions |    107 |
+|     27 | [NULL]             |    578 |
+|     28 | fail               |    587 |
+|     28 | pass               |    117 |
+|     28 | pass w/ conditions |    749 |
+|     28 | [NULL]             |   1453 |
+|     29 | fail               |   5282 |
+|     29 | pass               |   4108 |
+|     29 | pass w/ conditions |    713 |
+|     29 | [NULL]             |  10103 |
+|      3 | fail               |   3404 |
+|      3 | pass               |    238 |
+|      3 | pass w/ conditions |   4961 |
+|      3 | [NULL]             |   8603 |
+|     30 | fail               |   3980 |
+|     30 | pass               |  10844 |
+|     30 | pass w/ conditions |   2535 |
+|     30 | [NULL]             |  17359 |
+|     31 | fail               |   2623 |
+|     31 | pass               |   6795 |
+|     31 | pass w/ conditions |   1635 |
+|     31 | [NULL]             |  11053 |
+|     32 | fail               |  14550 |
+|     32 | pass               |  37011 |
+|     32 | pass w/ conditions |   7119 |
+|     32 | [NULL]             |  58680 |
+|     33 | fail               |  15895 |
+|     33 | pass               |  44766 |
+|     33 | pass w/ conditions |   8256 |
+|     33 | [NULL]             |  68917 |
+|     34 | fail               |  18686 |
+|     34 | pass               |  50629 |
+|     34 | pass w/ conditions |   8778 |
+|     34 | [NULL]             |  78093 |
+|     35 | fail               |  17506 |
+|     35 | pass               |  44343 |
+|     35 | pass w/ conditions |   7536 |
+|     35 | [NULL]             |  69385 |
+|     36 | fail               |   7578 |
+|     36 | pass               |  17893 |
+|     36 | pass w/ conditions |   3067 |
+|     36 | [NULL]             |  28538 |
+|     37 | fail               |   2635 |
+|     37 | pass               |   4914 |
+|     37 | pass w/ conditions |    774 |
+|     37 | [NULL]             |   8323 |
+|     38 | fail               |  15078 |
+|     38 | pass               |  37515 |
+|     38 | pass w/ conditions |   6433 |
+|     38 | [NULL]             |  59026 |
+|     39 | fail               |    225 |
+|     39 | pass               |    450 |
+|     39 | pass w/ conditions |     82 |
+|     39 | [NULL]             |    757 |
+|      4 | fail               |    245 |
+|      4 | pass               |     97 |
+|      4 | pass w/ conditions |    270 |
+|      4 | [NULL]             |    612 |
+|     40 | fail               |   4615 |
+|     40 | pass               |  10501 |
+|     40 | pass w/ conditions |   2308 |
+|     40 | [NULL]             |  17424 |
+|     41 | fail               |  10368 |
+|     41 | pass               |  22917 |
+|     41 | pass w/ conditions |   4055 |
+|     41 | [NULL]             |  37340 |
+|     42 | fail               |   1635 |
+|     42 | pass               |   4220 |
+|     42 | pass w/ conditions |   1378 |
+|     42 | [NULL]             |   7233 |
+|     43 | fail               |   2148 |
+|     43 | pass               |   5404 |
+|     43 | pass w/ conditions |   1537 |
+|     43 | [NULL]             |   9089 |
+|     44 | fail               |    131 |
+|     44 | pass               |    258 |
+|     44 | pass w/ conditions |     67 |
+|     44 | [NULL]             |    456 |
+|     45 | fail               |   1776 |
+|     45 | pass               |   4369 |
+|     45 | pass w/ conditions |   1217 |
+|     45 | [NULL]             |   7362 |
+|      5 | fail               |     10 |
+|      5 | pass w/ conditions |      6 |
+|      5 | [NULL]             |     16 |
+|      6 | fail               |    748 |
+|      6 | pass               |     51 |
+|      6 | pass w/ conditions |    919 |
+|      6 | [NULL]             |   1718 |
+|      7 | fail               |     85 |
+|      7 | pass               |     35 |
+|      7 | pass w/ conditions |     57 |
+|      7 | [NULL]             |    177 |
+|     70 | fail               |    421 |
+|     70 | pass               |    196 |
+|     70 | pass w/ conditions |    183 |
+|     70 | [NULL]             |    800 |
+|      8 | fail               |   1289 |
+|      8 | pass               |    599 |
+|      8 | pass w/ conditions |   1218 |
+|      8 | [NULL]             |   3106 |
+|      9 | fail               |   1401 |
+|      9 | pass               |    837 |
+|      9 | pass w/ conditions |    298 |
+|      9 | [NULL]             |   2536 |
+| [NULL] | [NULL]             | 608168 |
+:END:
+
+
+*NOTE*: You could also split between, /major violation found/ and /minor violation found/,
+but we will keep this simple for the moment.
+
+
+/How often change the risk in a facility?/
+
+#+BEGIN_SRC sql
+  select
+  license_num, risk || '->' || previous_risk, count(*)
+  from
+  (
+  select date, license_num,risk, lag(risk) over w as previous_risk
+  from cleaned.inspections
+  window w as (partition by license_num order by date asc)
+  ) as t
+  where (risk <>  previous_risk) and license_num != '0'
+  group by license_num, risk || '->' || previous_risk
+  order by  count(*) desc, license_num
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | ?column?     | count |
+|------------+--------------+-------|
+|      20481 | medium->high |    10 |
+|      20481 | high->medium |    10 |
+|      14616 | low->medium  |     8 |
+|      14616 | medium->low  |     8 |
+|    1574001 | high->medium |     8 |
+|    1574001 | medium->high |     8 |
+|      23081 | high->medium |     7 |
+|      23081 | medium->high |     7 |
+|      51011 | medium->high |     7 |
+|      51011 | high->medium |     7 |
+:END:
+
+
+
+/What are the top 5 locations with more inspections?/
+
+#+BEGIN_SRC sql
+  select
+  address, count(*) as total_inspections,
+  coalesce( count(*) filter (where result = 'fail'), 0)
+  as total_failures
+  from cleaned.inspections
+  group by address
+  order by total_inspections desc
+  limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| address           | total_inspections | total_failures |
+|-------------------+------------------+---------------|
+| 11601 w touhy ave |             2026 |           257 |
+| 5700 s cicero ave |              405 |            54 |
+| 324 n leavitt st  |              364 |            86 |
+| 500 w madison st  |              360 |            69 |
+| 131 n clinton st  |              315 |            34 |
 :END:

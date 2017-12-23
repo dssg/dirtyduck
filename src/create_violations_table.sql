@@ -23,7 +23,7 @@ date,
 regexp_split_to_array(
 regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
 '\.|- Comments:') as tuple
-from inspections
+from raw.inspections
 where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
 ) as t
 )
