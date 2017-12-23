@@ -35,6 +35,27 @@ EIS the join starts from entity (entity centric) (if you don't have an outcome y
 
 * Description of the problem to solve
 
+In this tutorial, we have two different goals: (1) an *EIS* and
+   (2) *prioritize inspections*, the entity in which we are interested in
+   both cases is the  /facility/.
+
+   In the *EIS*, as a facility owner or manager, we want to predict if
+   the facility under our control is at /risk/ of been inspected in the
+   following period of time.
+
+   In the *inspections prioritization*, we want to generate a list of
+   facilities which are /likely/ to have some *critical* o *serious*
+   violation /given that/ they are inspected.
+
+   Both problems are under the umbrella of the /supervised machine
+   learning/ problems. That means that we must need examples that
+   specify the *outcome* in which are interested (in the ML jargon this
+   is called a /label/).
+
+   The *outcome* is what differ between those two projects. For *EIS* the
+   outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
+
+
   Actually, We want to solve two problems: an /Early intervention system/ (*EIS*)
   and a /Inspection prioritization/.
 
@@ -72,11 +93,12 @@ Which X facilities are likely to violate some rule in the
   This tutorial is divided in the following sections
 
 - [[file:infrastructure.org][Infrastructure]]
-- [[file:data_exploration.org][Knowing and preparing your data]]
+- [[file:data_preparation.org][Preparing your data]]
+- [[file:data_exploration.org][Knowing your data]]
 - [[file:triage_intro.org][Introduction to triage]]
 - [[file:inspections.org][Modeling: Inspections prioritization]]
 - [[file:eis.org][Modeling: Early Warning System]]
--
+
 
 * What's next?
 
