@@ -333,29 +333,32 @@ select state, count(*) from raw.inspections group by state
 | IL     | 162733 |
 :END:
 
-Ok, almost, We will assume that the =NULL= values are actually =IL=.
+Ok, almost, We will assume that the =NULL= values are actually
+=IL=. Moving on the next spatial column, We
+expect that all the values in the column =city= are Chicago:
 
 #+BEGIN_SRC sql
-select city, count(*) from raw.inspections group by city order by count(*) desc limit 10
+select lower(city) as city, count(*) from raw.inspections group by lower(city) order by count(*) desc limit 10
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | city              |  count |
 |-------------------+--------|
-| CHICAGO           | 162029 |
-| Chicago           |    264 |
+| chicago           | 162384 |
 | [NULL]            |    144 |
-| chicago           |     80 |
-| CCHICAGO          |     41 |
-| SCHAUMBURG        |     20 |
-| MAYWOOD           |     15 |
-| ELK GROVE VILLAGE |     12 |
-| CHicago           |     11 |
-| EVANSTON          |      8 |
+| cchicago          |     41 |
+| schaumburg        |     20 |
+| maywood           |     16 |
+| elk grove village |     12 |
+| skokie            |      8 |
+| chicagochicago    |      8 |
+| chestnut street   |      8 |
+| inactive          |      8 |
 :END:
 
-There are 144 rows with =NULL= values and 41 rows with =CCHICAGO=, we will
+There are 144 rows with =NULL= values and 41 rows with =CCHICAGO=, the
+rest are from different places, but all of them are near to Chicago. We will
 fix this to problems with the value =chicago=.
 
 The zip code has a similar problem:
@@ -373,7 +376,7 @@ select count(*) from raw.inspections where zip is null or btrim(zip) = ''
 
 We could attempt to remove this =NULLs= using the location point or
 using similar names of restaurants, but for this tutorial we will
-remove this.
+remove them.
 
 Continuing with the cleaning, we will drop the columns =state=,
 =latitude=, =longitude=, since these are (now) redundant. We will remove
@@ -421,7 +424,7 @@ from 'canvass|task force|complaint|food poisoning|consultation|license|tag remov
 date,
 ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
 from raw.inspections
-where zip is not null
+where zip is not null  -- removing NULL zip codes
 )
 
 select * from cleaned where type is not null
