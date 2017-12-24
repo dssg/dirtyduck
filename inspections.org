@@ -16,6 +16,9 @@
 #+PROPERTY: header-args:python   :session :exports both :results raw drawer
 
 * Problem description
+Inspection the join starts from outcomes (outcome centric) (if you
+haven't been inspected, we can not said anything about you)
+
 
  /What are you inspecting?/ (people, places, other)
  /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
@@ -23,39 +26,66 @@
  /What do you want to optimize for?/ (e.g. efficiency, long term
  compliance, novelty)
 
+The scenario, is the following:  you work for the Chicago's
+  government, and you try
+  to prioritize your resources (i.e. your inspection workforce), since
+  they are limited. So, you will use the data (the same data set,
+  remember) for answering the next
+  question:
 
 #+begin_quote
-Will my restaurant be inspected in the
-/next X period of time?/
+Which X facilities are likely to violate some rule in the
+  following Y period of time?
 #+end_quote
 
-Where $X$ could be 1 month, 1 week, 1 year,
-etc.
+  In this case maybe you are interested not
+  in all the violations but in the more grave.
 
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
 
 
 * Creating the labels
 
+Let's remember how the table looks like:
+
  #+begin_src sql
- select * from semantic.events limit 1
+ \d semantic.events
  #+end_src
 
  #+RESULTS:
  :RESULTS:
- | inspection | type    | license_num | facility_type | zip_code | city    |       date | risk   | result | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
- |------------+---------+------------+--------------+---------+---------+------------+--------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
- |     100209 | canvass |    1226806 | liquor       |   60622 | chicago | 2010-01-20 | medium | fail   | [{"code" : "13", "severity" : "critical", "description" : "NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS", "comment" : "All necessary control measures shall be used to effectively minimize or eliminate the presence of rodents, roaches, and other vermin/insect infestations"}, {"code" : "32", "severity" : "minor", "description" : "FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED", "comment" : "All food and non-food contact equipment and utensils shall be smooth, easily cleanable, and durable, and shall be in good repair"}, {"code" : "33", "severity" : "minor", "description" : "FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS", "comment" : "All food and non-food contact surfaces of equipment and all food storage utensils shall be thoroughly cleaned and sanitized daily"}, {"code" : "34", "severity" : "minor", "description" : "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED", "comment" : "The floors shall be constructed per code, be smooth and easily cleaned, and be kept clean and in good repair"}, {"code" : "38", "severity" : "minor", "description" : "VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED", "comment" : "Ventilation: All plumbing fixtures, such as toilets, sinks, washbasins, etc"}, {"code" : "41", "severity" : "minor", "description" : "PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED", "comment" : "All parts of the food establishment and all parts of the property used in connection with the operation of the establishment shall be kept neat and clean and should not produce any offensive odors"}, {"code" : "42", "severity" : "minor", "description" : "APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN", "comment" : "All employees shall be required to use effective hair restraints to confine hair"}] |
+ | Table "semantic.events"                                                                                         |                   |           |
+ |-----------------------------------------------------------------------------------------------------------------+-------------------+-----------|
+ | Column                                                                                                          | Type              | Modifiers |
+ | inspection                                                                                                      | character varying |           |
+ | entity_id                                                                                                        | bigint            |           |
+ | type                                                                                                            | text              |           |
+ | date                                                                                                            | date              |           |
+ | risk                                                                                                            | text              |           |
+ | result                                                                                                          | text              |           |
+ | facility_type                                                                                                    | text              |           |
+ | zip_code                                                                                                         | character varying |           |
+ | location                                                                                                        | geometry          |           |
+ | violations                                                                                                      | jsonb             |           |
+ | Indexes:                                                                                                        |                   |           |
+ | "events_date_ix" btree (date DESC NULLS LAST)                                                                     |                   |           |
+ | "events_entity_ix" btree (entity_id)                                                                               |                   |           |
+ | "events_facility_type_ix" btree (facility_type)                                                                     |                   |           |
+ | "events_inspection_entity_zip_code_date" btree (inspection DESC NULLS LAST, entity_id, zip_code, date DESC NULLS LAST) |                   |           |
+ | "events_inspection_ix" btree (inspection)                                                                         |                   |           |
+ | "events_location_gix" gist (location)                                                                             |                   |           |
+ | "events_type_ix" btree (type)                                                                                     |                   |           |
+ | "events_violations" gin (violations)                                                                             |                   |           |
+ | "events_violations_json_path" gin (violations jsonb_path_ops)                                                        |                   |           |
+ | "events_zip_code_ix" btree (zip_code)                                                                               |                   |           |
  :END:
 
+We will define two different labels:
 
-
-** Which facilities are likely to fail an inspection?
+- *Which facilities are likely to fail an inspection?*
 
 Facilities who failed an inspection (i.e. =result= = ='fail'=)
 
-** Which facilities are likely  to fail an inspection with a major  violation?
+- *Which facilities are likely  to fail an inspection with a major  violation?*
 
 Critical violations are coded between =1-14=, serious violations between
 =15-29=, everything above =30= is assumed to be a minor violation.
@@ -63,6 +93,7 @@ Critical violations are coded between =1-14=, serious violations between
 Facilities who failed an inspection (i.e. =result= = ='fail'=) and the
 =severity in ('critical', 'serious')=
 
+We will create both labels using the following code:
 
 #+begin_src sql
 
@@ -80,28 +111,25 @@ group by inspection, result
 
 #+RESULTS:
 :RESULTS:
-| inspection | result             | array_agg                                                                             | failed | failed_major_violation |
-|------------+--------------------+--------------------------------------------------------------------------------------+--------+----------------------|
-|     285190 | pass w/ conditions | {minor,critical}                                                                     | f      | f                    |
-|     285193 | fail               | {critical,critical,serious,critical,minor,minor,minor,critical,minor,minor,critical} | t      | t                    |
-|     285191 | pass               | {minor,minor,minor,minor}                                                            | f      | f                    |
-|     285192 | pass               | {NULL}                                                                               | f      | f                    |
-|     285196 | fail               | {serious,critical}                                                                   | t      | t                    |
+| inspection | result             | array_agg                                       | failed | failed_major_violation |
+|------------+--------------------+------------------------------------------------+--------+----------------------|
+|     100215 | pass w/ conditions | {serious}                                      | f      | f                    |
+|     100209 | fail               | {critical,minor,minor,minor,minor,minor,minor} | t      | t                    |
+|     104236 | fail               | {serious,serious,minor,minor}                  | t      | t                    |
+|     100214 | pass               | {serious}                                      | f      | f                    |
+|     100211 | fail               | {critical,serious}                             | t      | t                    |
+|     100212 | fail               | {critical,serious}                             | t      | t                    |
+|     100213 | pass               | {critical,serious}                             | f      | f                    |
+|     100210 | pass               | {NULL}                                         | f      | f                    |
 :END:
 
 
-Let's use the previous query to generate our labels in the inspections schema
+Let's use the previous query to generate our labels in a new  =inspections= schema
 
-#+begin_src sql
-create schema if not exists inspections
-#+end_src
+#+begin_src sql :tangle ./src/create_inspections_schema.sql
+create schema if not exists inspections;
 
-#+RESULTS:
-
-
-#+begin_src sql
-
-drop table if exists inspections.events;
+drop table if exists inspections.events cascade;
 
 create table inspections.events as (
 with inspection_labels as (
@@ -116,17 +144,98 @@ as t1
 group by inspection, result
 )
 
-
-select e.inspection, e.type, e.license_num, e.facility_type, e.zip_code, e.city, e.date, e.risk, e.result, failed, failed_major_violation
+select
+e.inspection, e.type, e.license_num::INTEGER as entity_id, e.facility_type,
+e.zip_code, e.location, e.city, e.date, e.risk, e.result, failed, failed_major_violation
 from
 semantic.events as e
 join
 inspection_labels as l
 on e.inspection = l.inspection
+where zip_code is not null and type is not null
 )
 #+end_src
 
 #+RESULTS:
+
+
+Triage has some restrictions (at the current version) about how to
+name some of the columns, in specific, our column should include:
+
+- =entity_id=
+- =outcome_date=
+- =outcome=
+
+=entity_id= an identifier for which the labels are applied to,
+=outcome_date= the date at which some outcome was known, =outcome= a
+boolean outcome.
+
+Given that do we have two labels, we will create two tables.
+
+#+BEGIN_SRC sql
+drop table if exists inspections.failed;
+
+create table inspections.failed as (
+select
+entity_id,
+date as outcome_date,
+failed as outcome
+from inspections.events
+);
+
+
+drop table if exists inspections.failed_major_violation;
+
+create table inspections.failed_major_violation as (
+select
+entity_id,
+date as outcome_date,
+failed_major_violation as outcome
+from inspections.events
+);
+
+
+
+#+END_SRC
+
+#+RESULTS:
+
+
+Also, we will need a *states* table. The table must have columns
+=entity_id, state, start_time, end_time=. The states table allows us to only
+include rows in your matrices in a specific state. In our case we only want
+to inspect *active* facilities,
+
+#+BEGIN_SRC sql
+
+drop table if exists inspections.active_facilities;
+
+
+create table inspections.active_facilities as (
+with dates as (
+select
+license_num::INTEGER as entity_id,
+min(date) over (partition by license_num) as start_time,
+(case when
+results in ('Out of Business', 'Business Not Located')
+then
+date
+else
+NULL
+end) as end_time
+from inspections
+where zip is not null and license_num is not null
+)
+
+select
+distinct on (entity_id)
+entity_id, 'active'::VARCHAR  as state, start_time, coalesce(end_time, '2020-12-31'::date) as end_time
+from dates
+);
+#+END_SRC
+
+#+RESULTS:
+
 
 
 * Modeling using Machine Learning
@@ -147,124 +256,82 @@ model_comment: 'inspections_test'
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 temporal_config:
-  feature_start_time='np.min(df.date)'
-  feature_end_time='np.max(df.date)'
-  label_start_time='np.min(df.date)'
-  label_end_time='np.max(df.date)'
-  model_update_frequency='3months'
-  training_label_timespans='1day'
-  training_as_of_date_frequencies='1day'
-  max_training_histories='1year'
-  test_durations='1day'
-  test_label_timespans='3month'
-  test_as_of_date_frequencies='1day'
+    feature_start_time: '2014-02-08'
+    feature_end_time: '2016-10-17'
+    label_start_time: '2014-02-08'
+    label_end_time: '2016-10-17'
+    model_update_frequency: '1y'
+    training_label_timespans: ['1month']
+    training_as_of_date_frequencies: '1month'
+    max_training_histories: '1y'
+    test_durations: '1d'
+    test_label_timespans: ['3month']
+    test_as_of_date_frequencies: '1month'
 #+END_SRC
 
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
-events_table: inspections.events
+events_table: inspections.failed
 #+END_SRC
 
+
+Each entry describes a collate.SpacetimeAggregation object, and the
+arguments needed to create it. Generally, each of these entries controls
+the features from one source table, though in the case of multiple groups
+may result in multiple output tables
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 feature_aggregations:
     -
         # prefix given to the resultant tables
-        prefix: 'prefix'
+        prefix: 'inspections'
         # from_obj is usually a source table but can be an expression, such as
         # a join (ie 'cool_stuff join other_stuff using (stuff_id)')
-        from_obj: 'cool_stuff'
+        from_obj: 'inspections.events'
         # The date column to use for specifying which records to include
         # in temporal features. It is important that the column used specifies
         # the date at which the event is known about, which may be different
         # from the date the event happened.
-        knowledge_date_column: 'open_date'
+        knowledge_date_column: 'date'
 
         # top-level imputation rules that will apply to all aggregates functions
         # can also specify categoricals_imputation or array_categoricals_imputation
         #
         # You must specified at least one of the top-level or feature-level imputation
         # to cover ever feature being defined.
-        aggregates_imputation:
+        categoricals_imputation:
             # The `all` rule will apply to all aggregation functions, unless over-
             # ridden by a more specific one
             all:
                 # every imputation rule must have a `type` parameter, while some
                 # (like 'constant') have other required parameters (`value` here)
-                type: 'constant'
-                value: 0
-            # specifying `max` here will take precedence over the `all` rule for
-            # aggregations using a MAX() function
-            max:
-                type: 'mean'
+                type: 'zero'
 
         # aggregates and categoricals define the actual features created. So
         # at least one is required
         #
         # Aggregates of numerical columns. Each quantity is a number of some
         # sort, and the list of metrics are applied to each quantity
-        aggregates:
-            -
-                quantity: 'homeless::INT'
-                # Imputation rules specified at the level of specific features
-                # will take precedence over the higer-level rules specified
-                # above. Note that the 'count' and 'sum' metrics will be
-                # imputed differently here.
-                imputation:
-                    count:
-                        type: 'mean'
-                    sum:
-                        type: 'constant'
-                        value: 137
-                metrics:
-                    - 'count'
-                    - 'sum'
-            -
-                # since we're specifying `aggregates_imputation` above,
-                # a feature-specific imputation rule can be omitted
-                quantity: 'some_flag'
-                metrics:
-                    - 'max'
-                    - 'sum'
         # Categorical features. The column given can be of any type, but the
         # choices must comparable to that type for equality within SQL
         # The result will be one feature for each choice/metric combination
         categoricals:
             -
-                column: 'color'
+                column: 'type'
                 # note that we haven't specified a top level `categoricals_imputation`
                 # set of rules, so we have to include feature-specific imputation
                 # rules for both of our categoricals here.
-                imputation:
-                    sum:
-                        type: 'null_category'
-                    max:
-                        type: 'mean'
-                choices:
-                    - 'red'
-                    - 'blue'
-                    - 'green'
-                metrics:
-                    - 'sum'
-            -
-                column: 'shape'
-                # as with the top-level imputation rules, `all` can be used
-                # for the feature-level rules to specify the same type of
-                # imputation for all aggregation functions
-                imputation:
-                    all:
-                        type: 'zero'
-                choice_query: 'select distinct shape from cool_stuff'
+                choice_query: 'select distinct type from inspections.events where type is not null'
                 metrics:
                     - 'sum'
         # The time intervals over which to aggregate features
         intervals:
-            - '1 year'
-            - '2 years'
-            - 'all'
+            - '1y'
+
         # A list of different columns to separately group by
         groups:
-- 'entity_id'
+            - 'entity_id'
+            - 'zip_code'
 #+END_SRC
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
@@ -277,7 +344,7 @@ feature_aggregations:
 # - 'tables' allows you to send a list of collate feature tables (collate builds these by appending 'aggregation_imputed' to the prefix)
 # - 'prefix' allows you to specify a list of feature name prefixes
 feature_group_definition:
-   tables: ['prefix_aggregation_imputed']
+   prefix: ['inspections']
 #+END_SRC
 
 
@@ -292,10 +359,9 @@ feature_group_definition:
 #   to this format), write a SQL expression for each state
 #   configuration you want, ie '(permitted OR suspended) AND licensed'
 state_config:
-    table_name: 'states'
+    table_name: 'inspections.active_facilities'
     state_filters:
-        - 'state_one AND state_two'
-        - '(state_one OR state_two) AND state_three'
+        - 'active'
 #+END_SRC
 
 
@@ -315,24 +381,21 @@ state_config:
 # groups. In this way, user metadata can be used to expand Triage beyond its
 # explicitly supported functionality.
 user_metadata:
-  label_definition: 'severe_violations'
+  label_definition: 'failed'
 #+END_SRC
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 model_group_keys:
-    - 'train_duration'
-    - 'label_window'
-    - 'example_frequency'
     - 'label_definition'
 #+END_SRC
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 grid_config:
     'sklearn.ensemble.ExtraTreesClassifier':
-        n_estimators: [100,100]
+        n_estimators: [100]
         criterion: [gini, entropy]
         max_depth: [1,5,10,20,50]
-        max_features: [sqrt,log2]
+        max_features: [sqrt]
         min_samples_split: [2,5,10]
 #+END_SRC
 
