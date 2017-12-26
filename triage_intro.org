@@ -13,9 +13,10 @@
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
+#+PROPERTY: header-args:python    :results output drawer
 
-* ▶ TODO Triage [0/3]
- - [ ] Describe triage
+* ▶ TODO Triage [3/5]
+ - [X] Describe triage
  - [ ] Describe the problem that triage tries to solve
  - [X] Describe Timechop
  - [X] Describe Collate
@@ -27,19 +28,133 @@ evaluation, and list generation. These tasks are complicated in their
 own right, but in addition have to be combined in different ways
 throughout the course of the project.
 
-Triage aims to provide interfaces to these different phases of a
+=Triage= aims to provide interfaces to these different phases of a
 project, such as an Experiment. Each phase is defined by configuration
 specific to the needs of the project, and an arrangement of core data
 science components that work together to produce the output of that
 phase.
 
+=Triage= was created to facilitate the creation of supervised learning
+models, in particular classification models with an strong temporal
+component in the data.
+
+The temporal component in the data set affects the modeling mainly in
+two ways, first, you need to be very careful and avoid /leakage/ of
+information in the data, and second, in the possible temporal drifting of the
+data. =Triage= solves the first splitting the data in temporal blocks to be
+used in the temporal crossvalidation and using those blocks for the
+feature generation.
+
+=Triage= uses the concept of /experiment/. An /experiment/ consists in a
+series of steps which aim to generate a good model for predicting the
+/label/ of an new instance of the data set. The steps are /feature generation/,
+/label generation/, /model training/ and /model scoring/. In each of all
+this steps, =triage= will take care of the temporal nuances of the data.
+
+=Triage= will train one model for each block generated, so when the
+experiment finishes you will have several models for each algorithm
+and selection of hyperparameters. =Triage= calls this a =model_group=.
 
 ** The problem to solve
 
 The most acute problems are avoiding leakage and feature generation in
 a temporal setting
 
-** Temporal crossvalidation
+
+
+** The interface
+
+=Triage= is very simple to use, but it contains a lot of complex
+concepts that we will try to clarify in this section of the tutorial.
+
+For running a =triage= experiment you need the following:
+
+- =triage= installed in your environment (this is already install in the
+  docker container). You can verify that =triage= is installed typying
+  the following inside an =ipython= session:
+
+#+BEGIN_EXAMPLE python
+import triage
+#+END_EXAMPLE
+
+- A database connection
+
+#+BEGIN_EXAMPLE python
+import os
+import sqlalchemy
+
+food_db = os.environ.get('FOOD_DB_URL')
+#+END_EXAMPLE
+
+- An experiment config file, we will discuss this at length in this
+  section of the tutorial.
+
+#+BEGIN_EXAMPLE python
+with open('example.yaml') as f:
+    experiment_config = yaml.load(f)
+#+END_EXAMPLE
+
+
+With this three components you can create your =experiment= object and
+execute it:
+
+#+BEGIN_EXAMPLE python
+
+from triage.component.catwalk.storage import FSModelStorageEngine
+from triage.experiments import SingleThreadedExperiment
+
+experiment = SingleThreadedExperiment(
+    config=experiment_config,
+    db_engine=sqlalchemy.create_engine(food_db),
+    model_storage_class=FSModelStorageEngine,
+    project_path='triage'
+)
+
+experiment.run()
+#+END_EXAMPLE
+
+
+*** Configuration file
+
+The experiment configuration file is used to create the experiment
+object. Here, you will specify the temporal configuration, the
+features to be generated, the labels to learn and the models that you
+want to train in your data.
+
+The configuration file is a =yaml= file with the following main sections:
+
+
+- [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data, used for
+     creating the blocks for temporal crossvalidation.
+
+- =events_table= :: Table that contains the information about the labels
+                    to be predicted
+
+- [[Feature engineering][feature_generation]] :: Which spatio-temporal aggregations of the
+     columns in the data set do you want to generate as features for
+     the models?
+
+- =state_config=  :: Specify which objects are in a given state in a
+     particular interval of time, you can use this for filter which
+     objects should be included in the training and prediction.
+
+- =model_group_keys= :: How do you want to identify the =model_group= in
+     the data
+
+- =grid_config= :: Which combination of hyperparameters and algorithms
+                   will be trained and evaluated in the data set?
+
+- =scoring= :: Which metrics will be calculated?
+
+
+
+*** The =Experiment= object
+
+Everything revolves around the =experiment= object.
+
+
+
+** <<Temporal crossvalidation>> Temporal crossvalidation
 
 Avoid leakage ...
 
@@ -101,20 +216,18 @@ In the particular case of *inspections*,
     test_as_of_date_frequencies='1month'
 #+END_EXAMPLE
 
+With that configuration our time splits looks like:
 
-#+BEGIN_SRC python
+#+BEGIN_SRC python :results file
 import utils
 
-utils.show_timechop(utils.chopper)
+utils.show_timechop(utils.chopper, file_name="timechop_example.png")
+
+return "timechop_example.png"
 #+END_SRC
 
 #+RESULTS:
-: None
-
-
-With that configuration our time splits looks like:
-
-[[file:timechop.png][Timechop blocks for inspection]]
+[[file:timechop_example.png]]
 
 
 ** Feature engineering
