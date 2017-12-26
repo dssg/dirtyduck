@@ -14,7 +14,7 @@
 #+PROPERTY: header-args:shell     :results drawer
 
 
-* Data
+* Data preparation
 
 ** Downloading
 
@@ -114,7 +114,79 @@
 
    Checking the documentation (located  [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]),
 
-   The meaning of some columns is the following:
+** For the impatient
+
+If you want to skip all the cleansing and transformation you can
+execute the following:
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+psql ${FOOD_DB_URL} < /code/create_cleaned_inspections_table.sql
+psql ${FOOD_DB_URL} < /code/create_violations_table.sql
+psql ${FOOD_DB_URL} < /code/create_semantic_tables.sql
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+DROP TABLE
+SELECT 610203
+CREATE SCHEMA
+DROP TABLE
+SELECT 34517
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+DROP TABLE
+SELECT 139782
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+:END:
+
+If everything works, you should end with two new schemas: =cleaned= and =semantic=.
+
+** Transforming (and cleaning) the data
+
+
+
+
+   For tackling a Machine Learning problem you need to identify the
+   *entities* of your problem domain, and if your problem involves time,
+   how those entities change over time, i.e. which *events* happened to
+   that entity or which *events* where acted by the entity in question.
+
+   We will materialize that in two different tables, one for entities and
+   one for events, we will name those as =entities= and =events= respectively.
+
+The entity is the *facility*, and the events that happen to that entity
+are the *inspections*.
+
+The table =entities= should contain an unique identifier for the entity,
+some data specific for that entity (like name, age, status). The
+=events= table will include data related to the description of the inspection.
+
+Before starting the cleaning, you should know one of the golden rules
+-that will make your life easier:
+
+#+BEGIN_QUOTE
+   /You can't change your original data/
+#+END_QUOTE
+
+The reason for this is, if you make some mistake, or if you want to
+try a different thing you will always can go back to the beginning and
+start over.
+
+  The meaning of some columns is the following:
 
    - Risk category of facility:: Each establishment is categorized as
      to its risk of adversely affecting the public’s health, with 1
@@ -249,37 +321,8 @@ This columns will require also cleaning. Finally, let's look =results=
 | Business Not Located |    60 |
 :END:
 
-Ok, disheartening. But, that is the reality of /real/ data. In the next
-section we will try to clean this mess.
+Ok, disheartening. But, that is the reality of /real/ data. We will try to clean this mess.
 
-
-** Transforming (and cleaning) the data
-
-   For tackling a Machine Learning problem you need to identify the
-   *entities* of your problem domain, and if your problem involves time,
-   how those entities change over time, i.e. which *events* happened to
-   that entity or which *events* where acted by the entity in question.
-
-   We will materialize that in two different tables, one for entities and
-   one for events, we will name those as =entities= and =events= respectively.
-
-The entity is the *facility*, and the events that happen to that entity
-are the *inspections*.
-
-The table =entities= should contain an unique identifier for the entity,
-some data specific for that entity (like name, age, status). The
-=events= table will include data related to the description of the inspection.
-
-Before starting the cleaning, you should know one of the golden rules
--that will make your life easier:
-
-#+BEGIN_QUOTE
-   /You can't change your original data/
-#+END_QUOTE
-
-The reason for this is, if you make some mistake, or if you want to
-try a different thing you will always can go back to the beginning and
-start over.
 
 Let's see the data to figure out how we need to be transform it. We
 will concentrate at first in all columns except =violations=, we will
@@ -414,7 +457,10 @@ btrim(lower(results)) as result,
 license_num,
 btrim(lower(dba_name)) as facility,
 btrim(lower(aka_name)) as facility_aka,
-btrim(lower(facility_type)) as facility_type,
+case when
+facility_type is null then 'unknown'
+else btrim(lower(facility_type))
+end as facility_type,
 lower(substring(risk from '\((.+)\)')) as risk,
 btrim(lower(address)) as address,
 zip as zip_code,
@@ -561,6 +607,7 @@ If everything worked correctly you should be able to run the following code:
 As a last step, we should create from the cleaned tables the =entities=
 and =events= table.
 
+
 ** Entities table
 
 The =entities= table should uniquely identify the entities and contain
@@ -587,7 +634,7 @@ We will beging with the following query:
 :RESULTS:
 | license_num | total_inspections | total_failures |
 |------------+------------------+---------------|
-|          0 |              454 |           121 |
+|          0 |              420 |           111 |
 |    1354323 |              192 |             1 |
 |      14616 |              172 |            30 |
 |    1574001 |               80 |             4 |
