@@ -14,7 +14,7 @@
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
 
-* ▶ TODO Triage [0/2]
+* ▶ TODO Triage [0/3]
  - [ ] Describe triage
  - [ ] Describe the problem that triage tries to solve
  - [X] Describe Timechop
@@ -88,9 +88,6 @@ In the particular case of *inspections*,
 - =test_durations= is how far out are you scheduling for?
 - =test_label_timespan= is equal to =test_durations=
 
-/What are you inspecting?/ (people, places, other)
-/How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
-/How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
 
 
 #+BEGIN_EXAMPLE
@@ -118,7 +115,6 @@ utils.show_timechop(utils.chopper)
 With that configuration our time splits looks like:
 
 [[file:timechop.png][Timechop blocks for inspection]]
-
 
 
 ** Feature engineering
@@ -630,10 +626,6 @@ that all the previous columns are there (except for the prefix):
 :END:
 
 
-
-
-
-
 Obviously you could want to create more complicated variables, for
 example, we have a =json= column in our =semantic.events= table, as well
 as a geographical column: =location=. Let's do create some features
@@ -1108,6 +1100,7 @@ st.execute(db_connection)
 
 #+END_SRC
 
+** ▶ TODO Machine lerarning governance: The =RESULTS= schema
 
 
 ** ▶ TODO Audition
