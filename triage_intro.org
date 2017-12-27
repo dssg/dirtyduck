@@ -13,7 +13,7 @@
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
-#+PROPERTY: header-args:python    :results output drawer
+#+PROPERTY: header-args:python    :session food_inspections :results output drawer
 
 * Triage
 
@@ -220,17 +220,6 @@ experiment.config['temporal_config']
 
 #+RESULTS:
 :RESULTS:
-]0;IPython: dsapp/triage-tutorial>>> [0;31m---------------------------------------------------------------------------[0m
-[0;31mNameError[0m                                 Traceback (most recent call last)
-[0;32m<ipython-input-1-a27e87d7ee14>[0m in [0;36m<module>[0;34m()[0m
-[0;32m----> 1[0;31m [0mexperiment[0m[0;34m.[0m[0mconfig[0m[0;34m[[0m[0;34m'temporal_config'[0m[0;34m][0m[0;34m[0m[0m
-[0m
-[0;31mNameError[0m: name 'experiment' is not defined
-> [0;32m<ipython-input-1-a27e87d7ee14>[0m(1)[0;36m<module>[0;34m()[0m
-[0;32m----> 1 [0;31m[0mexperiment[0m[0;34m.[0m[0mconfig[0m[0;34m[[0m[0;34m'temporal_config'[0m[0;34m][0m[0;34m[0m[0m
-[0m
-ipdb>
->>>
 :END:
 
 
@@ -261,109 +250,87 @@ return "timechop_example.png"
 
 ** Feature engineering
 
-We will show how to create features, we will use the same subset (one
-facility) and only one variable, and some spatial and temporal
-dimensions.
+We will show how to create features, we will create a subset of the
+=semantic.events= table: one facility (=entity_id = 9547=), only two
+variables (=inspection_type,risk=), and
+spatial and temporal dimensions for aggregation (=location, zip_code=, =date=).
 
-For this, we will create a new =schema=
+For this end, we will create a new =schema= called =triage=
 
-#+BEGIN_SRC sql
-create schema if not exists triage
+#+BEGIN_SRC sql :tangle ./src/create_triage_schema.sql
+create schema if not exists triage;
 #+END_SRC
 
 #+RESULTS:
 
 We need a table that represents if the facility is "active" in the
 moment of the inspection (we don't want to predict a facility that is
-not active). We don't want to complicate the calculation here, so, we
-will assume that all the facilities are active in *every inspection*
+not active). For testing purposes this table only include one facility.
 
+#+BEGIN_SRC sql :tangle ./src/create_triage_schema.sql
+drop table if exists triage.active_facilities cascade;
 
-#+BEGIN_SRC sql
-drop table if exists triage.all_facilities cascade;
-
-create table triage.all_facilities as (
-    select license_num, facility_type, location, date
-    from (select distinct license_num, facility_type, location from semantic.events where license_num = 1974745) a
+create table triage.active_facilities as (
+select entity_id, facility_type, location, date
+    from (select distinct entity_id, facility_type, location from semantic.events where entity_id = 9547) a
     cross join (select distinct date as date from semantic.events) b
--- select
--- distinct license_num,
--- 'active'::text as state,
--- min(date) as start,
--- max(date) as end
--- from semantic.events
--- group by license_num
-) ;
+);
 
-
-create index on triage.all_facilities(license_num, date);
 #+END_SRC
 
 #+RESULTS:
 
 
 #+BEGIN_SRC sql
-select * from triage.all_facilities limit 5;
+select * from triage.active_facilities limit 5;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | facility_type | location                                           |       date |
-|------------+--------------+----------------------------------------------------+------------|
-|    1974745 | liquor       | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2016-11-10 |
-|    1974745 | restaurant   | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2016-11-10 |
-|    1974745 | liquor       | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2015-05-05 |
-|    1974745 | restaurant   | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2015-05-05 |
-|    1974745 | liquor       | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | 2013-05-06 |
+| entity_id | facility_type | location                                           |       date |
+|----------+--------------+----------------------------------------------------+------------|
+|     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2016-11-10 |
+|     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2015-05-05 |
+|     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2013-05-06 |
+|     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2017-05-26 |
+|     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2011-10-05 |
 :END:
-
-#+BEGIN_SRC sql
-select count(*) from triage.all_facilities
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-|    count |
-|----------|
-| 57683187 |
-:END:
-
 
 Almost all the components of =triage= works with =SQL= tables stored  in
 =PostgreSQL= (this is very important to remember), so, let's create our
-test table with the =license_num= =1974745=:
+test table with the =entity_id=  =9547=:
 
-#+BEGIN_SRC  sql
+#+BEGIN_SRC  sql :tangle ./src/create_triage_schema.sql
 drop table if exists triage.test;
 
 create table triage.test as (
 select
 inspection, -- event
-license_num,  -- entity
+entity_id,
 facility_type,
 type as inspection_type, risk, -- variables
 violations, -- json array of variables
 date, location, zip_code -- spatio temporal dimensions
 from semantic.events
-where license_num = 1974745
+where entity_id = '9547'
 )
 #+END_SRC
 
 #+RESULTS:
 
 #+BEGIN_SRC sql
-select license_num, inspection_type, risk, date, zip_code from triage.test order by date desc  limit 5
+select entity_id, inspection_type, risk, date, zip_code from triage.test order by date desc  limit 5
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | inspection_type | risk |       date | zip_code |
-|------------+----------------+------+------------+---------|
-|    1974745 | canvass        | high | 2016-10-17 |   60612 |
-|    1974745 | canvass        | high | 2015-10-20 |   60612 |
-|    1974745 | complaint      | high | 2015-01-12 |   60612 |
-|    1974745 | canvass        | high | 2014-10-08 |   60612 |
-|    1974745 | canvass        | high | 2014-10-06 |   60612 |
+| entity_id | inspection_type | risk   |       date | zip_code |
+|----------+----------------+--------+------------+---------|
+|     9547 | complaint      | medium | 2017-02-21 |   60621 |
+|     9547 | complaint      | medium | 2017-02-10 |   60621 |
+|     9547 | complaint      | medium | 2016-12-22 |   60621 |
+|     9547 | complaint      | medium | 2016-08-26 |   60621 |
+|     9547 | complaint      | medium | 2016-08-11 |   60621 |
 :END:
 
 =triage.test= contains two categorical variables (=inspection_type,risk=),
@@ -384,39 +351,39 @@ facility and in the zip code in which the facility operates.
 Let's try to construct that in =SQL=:
 
 #+BEGIN_SRC sql
-select license_num, zip_code,
+select entity_id, zip_code,
 count(*) as inspections,
 count(*) filter (where risk='high') as flagged_as_high_risk
 from triage.test
-group by grouping sets(license_num, zip_code)
+group by grouping sets(entity_id, zip_code)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | zip_code | inspections | flagged_as_high_risk |
-|------------+---------+-------------+-------------------|
-| 1974745    | [NULL]  |          57 |                14 |
-| [NULL]     | 60612   |          57 |                14 |
+| entity_id | zip_code | inspections | flagged_as_high_risk |
+|----------+---------+-------------+-------------------|
+| 9547     | [NULL]  |          45 |                 0 |
+| [NULL]   | 60621   |          45 |                 0 |
 :END:
 
 What about if we want to add the proportion of all the inspections
 that resulted in be flagged as "high risk"?
 
 #+BEGIN_SRC sql
-select license_num, zip_code,
+select entity_id, zip_code,
 count(*) as inspections,
 count(*) filter (where risk='high') as flagged_as_high_risk,
 avg((risk='high')::int) as proportion_of_flags_as_high_risk
 from triage.test
-group by grouping sets(license_num, zip_code)
+group by grouping sets(entity_id, zip_code)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | zip_code | inspections | flagged_as_high_risk | proportion_of_flags_as_high_risk |
-|------------+---------+-------------+-------------------+-----------------------------|
-| 1974745    | [NULL]  |          57 |                14 |      0.24561403508771929825 |
-| [NULL]     | 60612   |          57 |                14 |      0.24561403508771929825 |
+| entity_id | zip_code | inspections | flagged_as_high_risk | proportion_of_flags_as_high_risk |
+|----------+---------+-------------+-------------------+-----------------------------|
+| 9547     | [NULL]  |          45 |                 0 |      0.00000000000000000000 |
+| [NULL]   | 60621   |          45 |                 0 |      0.00000000000000000000 |
 :END:
 
 But, what if we want to add also "medium" and "low" risk? And note
@@ -442,6 +409,10 @@ risks = Categorical("risk", # the column
 )
 #+END_SRC
 
+#+RESULTS:
+:RESULTS:
+:END:
+
 
 
 Note also that we specify the imputation strategy for how to handle
@@ -453,7 +424,6 @@ we need to take in account the spatio and temporal context.
 
 
 #+BEGIN_SRC python
-
 import sqlalchemy
 from triage.component.collate import  SpacetimeAggregation
 
@@ -465,21 +435,25 @@ db_connection = engine.connect()
 
 st = SpacetimeAggregation([risks], # The Categorical object
                           from_obj='triage.test', # FROM
-                          groups=['license_num','zip_code'],  # GROUP BY
+                          groups=['entity_id','zip_code'],  # GROUP BY
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1 year"], "zip_code": ["1 year"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"entity_id": ["1 year"], "zip_code": ["1 year"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
-                          state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
+                          state_table='triage.active_facilities', # State table name
+                          state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
-                          prefix='test_risks'
+                          prefix='risks'
 )
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
 
 The =SpacetimeAggregation= object is in charge of create the
 agregations, another way of see it, is that it encapsulates the FROM section of the
@@ -487,7 +461,7 @@ query (=from_obj=) as well as the
 GROUP BY columns (=groups=).
 
 In the example above it will create features based on individual
-restaurants (using =license_num=) but also /contextual/ features related
+restaurants (using =entity_id=) but also /contextual/ features related
 to information about the zip code (=zip_code=) in which the facility is
 operating.
 
@@ -497,7 +471,7 @@ generated for them, regardless if they exist in the =from_obj=.
 
 The attribute =intervals= specifies the date range partitioning for the
 feature: it will create the aggregation over the past =1 year= for the
-grouping given by the =license_num= nad for the =zip_code=, and
+grouping given by the =entity_id= nad for the =zip_code=, and
 additionally  will give an extra grouping statistic of two months for
 the =zip_code=.
 
@@ -509,51 +483,48 @@ import utils
 utils.show_features_queries(st)
 #+END_SRC
 
+
 This will execute queries as the following for the group tables (like =test_risks_zip_code=):
 
 #+BEGIN_EXAMPLE sql
-
 ...
 
-SELECT zip_code, '2016-10-17'::date AS date,
-avg((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_high_avg",
-avg((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_medium_avg",
-avg((risk = 'low')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_low_avg",
-avg((risk = 'high')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_high_avg",
-avg((risk = 'medium')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_medium_avg",
-avg((risk = 'low')::INT) FILTER (WHERE date >= '2016-10-17'::date - interval '2 year') AS "test_risks_zip_code_2 year_risk_low_avg"
+SELECT zip_code, '2014-10-08'::date AS date,
+avg((risk = 'high')::INT) FILTER (WHERE date >= '2014-10-08'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_high_avg",
+avg((risk = 'medium')::INT) FILTER (WHERE date >= '2014-10-08'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_medium_avg",
+avg((risk = 'low')::INT) FILTER (WHERE date >= '2014-10-08'::date - interval '1 year') AS "test_risks_zip_code_1 year_risk_low_avg"
 FROM triage.test
-WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1 year',interval '2 year') GROUP BY zip_code
+WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1 year') GROUP BY zip_code
 
 ...
-
 #+END_EXAMPLE
 
-
-and the next query for the =test_risks_aggregation= table:
+and the next query for the =risks_aggregation= table:
 
 #+BEGIN_EXAMPLE sql
-CREATE TABLE "triage"."both_aggregation" AS (SELECT * FROM (SELECT license_num, zip_code, '2014-10-06'::date AS date
+CREATE TABLE "triage"."risks_aggregation" AS (
+SELECT * FROM (
+SELECT entity_id, zip_code, '2014-10-06'::date AS date
 FROM triage.test
-WHERE date < '2014-10-06'AND date >= '2014-10-06'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+WHERE date < '2014-10-06'AND date >= '2014-10-06'::date - greatest(interval '1 year') GROUP BY entity_id, zip_code
 UNION ALL
-SELECT license_num, zip_code, '2014-10-08'::date AS date
+SELECT entity_id, zip_code, '2014-10-08'::date AS date
 FROM triage.test
-WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1 year') GROUP BY entity_id, zip_code
 UNION ALL
-SELECT license_num, zip_code, '2015-01-12'::date AS date
+SELECT entity_id, zip_code, '2015-01-12'::date AS date
 FROM triage.test
-WHERE date < '2015-01-12'AND date >= '2015-01-12'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+WHERE date < '2015-01-12'AND date >= '2015-01-12'::date - greatest(interval '1 year') GROUP BY entity_id, zip_code
 UNION ALL
-SELECT license_num, zip_code, '2015-10-20'::date AS date
+SELECT entity_id, zip_code, '2015-10-20'::date AS date
 FROM triage.test
-WHERE date < '2015-10-20'AND date >= '2015-10-20'::date - greatest(interval '1y') GROUP BY license_num, zip_code
+WHERE date < '2015-10-20'AND date >= '2015-10-20'::date - greatest(interval '1 year') GROUP BY entity_id, zip_code
 UNION ALL
-SELECT license_num, zip_code, '2016-10-17'::date AS date
+SELECT entity_id, zip_code, '2016-10-17'::date AS date
 FROM triage.test
-WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1y') GROUP BY license_num, zip_code) t1
-LEFT JOIN "triage"."both_license_num" USING (license_num, date)
-LEFT JOIN "triage"."both_zip_code" USING (zip_code, date));
+WHERE date < '2016-10-17'AND date >= '2016-10-17'::date - greatest(interval '1 year') GROUP BY entity_id, zip_code
+) t1
+LEFT JOIN "triage"."test_risks_entity_id" USING (entity_id, date) LEFT JOIN "triage"."test_risks_zip_code" USING (zip_code, date));
 #+END_EXAMPLE
 
 You can create the features tables executing the following:
@@ -567,8 +538,8 @@ st.execute(db_connection) # with a SQLAlchemy engine object
 :RESULTS:
 :END:
 
-This will create 3 tables (One for the =license_num=, one for =zip_code=
-and one for the combination: =license_num + zip_code=) and one extra
+This will create 3 tables (One for the =entity_id=, one for =zip_code=
+and one for the combination: =entity_id + zip_code=) and one extra
 table for the imputated values.
 
 The names of the generated tables are constructed as follows:
@@ -587,103 +558,108 @@ prefix_group_interval_categorical_operation
 For example the tables inside the triage schema are:
 
 #+BEGIN_SRC sql
-\dt triage.test_risks*
+\dt triage.risks*
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| List of relations |                             |       |          |
-|-------------------+-----------------------------+-------+----------|
-| Schema            | Name                        | Type  | Owner    |
-| triage            | test_risks_aggregation        | table | food_user |
-| triage            | test_risks_aggregation_imputed | table | food_user |
-| triage            | test_risks_license_num         | table | food_user |
-| triage            | test_risks_zip_code            | table | food_user |
+| List of relations |                         |       |          |
+|-------------------+-------------------------+-------+----------|
+| Schema            | Name                    | Type  | Owner    |
+| triage            | risks_aggregation        | table | food_user |
+| triage            | risks_aggregation_imputed | table | food_user |
+| triage            | risks_entity_id           | table | food_user |
+| triage            | risks_zip_code            | table | food_user |
 :END:
 
 And inside =test_risk_aggregation= the columns are:
 
 #+BEGIN_SRC sql
-\d triage.test_risks_aggregation
+\d triage.risks_aggregation
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| Table "triage.test_risks_aggregation"                 |                   |           |
-|-----------------------------------------------------+-------------------+-----------|
-| Column                                              | Type              | Modifiers |
-| zip_code                                             | character varying |           |
-| date                                                | date              |           |
-| license_num                                          | numeric           |           |
-| test_risks_license_num_1 year_inspection_type_canvass_sum   | bigint            |           |
-| test_risks_license_num_1 year_inspection_type_complaint_sum | bigint            |           |
-| test_risks_zip_code_1 year_inspection_type_canvass_sum      | bigint            |           |
-| test_risks_zip_code_1 year_inspection_type_complaint_sum    | bigint            |           |
+| Table "triage.risks_aggregation"  |                   |           |
+|----------------------------------+-------------------+-----------|
+| Column                           | Type              | Modifiers |
+| zip_code                          | character varying |           |
+| date                             | date              |           |
+| entity_id                         | bigint            |           |
+| risks_entity_id_1 year_risk_high_avg   | numeric           |           |
+| risks_entity_id_1 year_risk_medium_avg | numeric           |           |
+| risks_entity_id_1 year_risk_low_avg    | numeric           |           |
+| risks_zip_code_1 year_risk_high_avg    | numeric           |           |
+| risks_zip_code_1 year_risk_medium_avg  | numeric           |           |
+| risks_zip_code_1 year_risk_low_avg     | numeric           |           |
 :END:
 
 
-The =triage.test_risks_zip_code= table
+The =triage.risks_zip_code= table
 have two feature columns for every zip code in our table =triage.test=,
 looking at the total and average number of complaints in that
 =zip_code= over the year prior and 2 months prior to the date in the =date= column.
 
 
 #+BEGIN_SRC sql
-select * from triage.test_risks_zip_code  order by date limit 5;
+select * from triage.risks_zip_code  order by date limit 5;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| zip_code |       date | test_risks_zip_code_1 year_risk_high_avg | test_risks_zip_code_1 year_risk_medium_avg | test_risks_zip_code_1 year_risk_low_avg | test_risks_zip_code_2 year_risk_high_avg | test_risks_zip_code_2 year_risk_medium_avg | test_risks_zip_code_2 year_risk_low_avg |
-|---------+------------+-----------------------------------+-------------------------------------+----------------------------------+-----------------------------------+-------------------------------------+----------------------------------|
-|   60612 | 2014-10-06 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2014-10-08 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2015-01-12 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2015-10-20 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2016-10-17 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+| zip_code |       date | risks_zip_code_1 year_risk_high_avg | risks_zip_code_1 year_risk_medium_avg | risks_zip_code_1 year_risk_low_avg |
+|---------+------------+-------------------------------+---------------------------------+------------------------------|
+|   60621 | 2014-10-06 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2014-10-08 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-01-12 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-10-20 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2016-10-17 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
 :END:
 
-The table =triage.test_risks_license_num= contains two feature columns for each
+The table =triage.risks_entity_id= contains two feature columns for each
 license that describe the total number of complaints
 the past one year.
 
 #+BEGIN_SRC sql
-select * from triage.test_risks_license_num  order by date limit 5;
+select * from triage.risks_entity_id  order by date limit 5;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num |       date | test_risks_license_num_1 year_risk_high_avg | test_risks_license_num_1 year_risk_medium_avg | test_risks_license_num_1 year_risk_low_avg |
-|------------+------------+--------------------------------------+----------------------------------------+-------------------------------------|
-|    1974745 | 2014-10-06 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |
-|    1974745 | 2014-10-08 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |
-|    1974745 | 2015-01-12 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |
-|    1974745 | 2015-10-20 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |
-|    1974745 | 2016-10-17 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |
+| entity_id |       date | risks_entity_id_1 year_risk_high_avg | risks_entity_id_1 year_risk_medium_avg | risks_entity_id_1 year_risk_low_avg |
+|----------+------------+--------------------------------+----------------------------------+-------------------------------|
+|     9547 | 2014-10-06 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2014-10-08 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2015-01-12 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2015-10-20 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2016-10-17 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
 :END:
 
-The =triage.test_aggregation= table joins these results together to make
+The =triage.risk_aggregation= table joins these results together to make
 it easier to look at both zip_code and facility-level effects
 for any given facility.
 
 #+BEGIN_SRC sql
-select * from triage.test_risks_aggregation order by date limit 5;
+select * from triage.risks_aggregation order by date limit 5;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| zip_code |       date | license_num | test_risks_license_num_1 year_risk_high_avg | test_risks_license_num_1 year_risk_medium_avg | test_risks_license_num_1 year_risk_low_avg | test_risks_zip_code_1 year_risk_high_avg | test_risks_zip_code_1 year_risk_medium_avg | test_risks_zip_code_1 year_risk_low_avg | test_risks_zip_code_2 year_risk_high_avg | test_risks_zip_code_2 year_risk_medium_avg | test_risks_zip_code_2 year_risk_low_avg |
-|---------+------------+------------+--------------------------------------+----------------------------------------+-------------------------------------+-----------------------------------+-------------------------------------+----------------------------------+-----------------------------------+-------------------------------------+----------------------------------|
-|   60612 | 2014-10-06 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2014-10-08 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2015-01-12 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2015-10-20 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
-|   60612 | 2016-10-17 |    1974745 |               1.00000000000000000000 |                 0.00000000000000000000 |              0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |            1.00000000000000000000 |              0.00000000000000000000 |           0.00000000000000000000 |
+| zip_code |       date | entity_id | risks_entity_id_1 year_risk_high_avg | risks_entity_id_1 year_risk_medium_avg | risks_entity_id_1 year_risk_low_avg | risks_zip_code_1 year_risk_high_avg | risks_zip_code_1 year_risk_medium_avg | risks_zip_code_1 year_risk_low_avg |
+|---------+------------+----------+--------------------------------+----------------------------------+-------------------------------+-------------------------------+---------------------------------+------------------------------|
+|   60621 | 2014-10-06 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2014-10-08 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-01-12 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-10-20 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2016-10-17 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
 :END:
 
 
-Finally, the =triage.test_risks_aggregated_imputed= table fills in null values using the
+Finally, the =triage.risks_aggregated_imputed= table fills in null values using the
 imputation rules specified in the =Categorical= constructor.
+
+Let's try with =inspection_type=. We want the total of =canvass= and
+=complaint= inspections.
 
 #+BEGIN_SRC python
 
@@ -695,16 +671,16 @@ inspection_types = Categorical("inspection_type", # the column
 
 st = SpacetimeAggregation([inspection_types], # The Categorical object
                           from_obj='triage.test', # FROM
-                          groups=['license_num','zip_code'],  # GROUP BY
+                          groups=['entity_id','zip_code'],  # GROUP BY
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1y"], "zip_code": ["1y"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"entity_id": ["1y"], "zip_code": ["1y"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
-                          state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
+                          state_table='triage.active_facilities', # State table name
+                          state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
                           prefix='inspection_type'
@@ -713,8 +689,12 @@ st = SpacetimeAggregation([inspection_types], # The Categorical object
 st.execute(db_connection)
 #+END_SRC
 
+#+RESULTS:
+:RESULTS:
+:END:
+
 This will create, as you probably guessed, four new tables:
-=inspection_type_{license_num, zip_code, aggregation, aggregation_imputed}=
+=inspection_type_{entity_id, zip_code, aggregation, aggregation_imputed}=
 
 
 Or you can mix the two in one step:
@@ -722,22 +702,27 @@ Or you can mix the two in one step:
 #+BEGIN_SRC python
 st = SpacetimeAggregation([risks,inspection_types], # The Categorical object
                           from_obj='triage.test', # FROM
-                          groups=['license_num','zip_code'],  # GROUP BY
+                          groups=['entity_id','zip_code'],  # GROUP BY
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1y"], "zip_code": ["1y"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"entity_id": ["1y"], "zip_code": ["1y"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
-                          state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
+                          state_table='triage.active_facilities', # State table name
+                          state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
                           prefix='both'
 )
 
+st.execute(db_connection)
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
 
 
 Checking the columns inside =triage.both_aggregation= , you will note
@@ -749,22 +734,22 @@ that all the previous columns are there (except for the prefix):
 
 #+RESULTS:
 :RESULTS:
-| Table "triage.both_aggregation"             |                   |           |
-|--------------------------------------------+-------------------+-----------|
-| Column                                     | Type              | Modifiers |
-| zip_code                                    | character varying |           |
-| date                                       | date              |           |
-| license_num                                 | numeric           |           |
-| both_license_num_1y_risk_high_avg                | numeric           |           |
-| both_license_num_1y_risk_medium_avg              | numeric           |           |
-| both_license_num_1y_risk_low_avg                 | numeric           |           |
-| both_license_num_1y_inspection_type_canvass_sum   | bigint            |           |
-| both_license_num_1y_inspection_type_complaint_sum | bigint            |           |
-| both_zip_code_1y_risk_high_avg                   | numeric           |           |
-| both_zip_code_1y_risk_medium_avg                 | numeric           |           |
-| both_zip_code_1y_risk_low_avg                    | numeric           |           |
-| both_zip_code_1y_inspection_type_canvass_sum      | bigint            |           |
-| both_zip_code_1y_inspection_type_complaint_sum    | bigint            |           |
+| Table "triage.both_aggregation"           |                   |           |
+|------------------------------------------+-------------------+-----------|
+| Column                                   | Type              | Modifiers |
+| zip_code                                  | character varying |           |
+| date                                     | date              |           |
+| entity_id                                 | bigint            |           |
+| both_entity_id_1y_risk_high_avg                | numeric           |           |
+| both_entity_id_1y_risk_medium_avg              | numeric           |           |
+| both_entity_id_1y_risk_low_avg                 | numeric           |           |
+| both_entity_id_1y_inspection_type_canvass_sum   | bigint            |           |
+| both_entity_id_1y_inspection_type_complaint_sum | bigint            |           |
+| both_zip_code_1y_risk_high_avg                 | numeric           |           |
+| both_zip_code_1y_risk_medium_avg               | numeric           |           |
+| both_zip_code_1y_risk_low_avg                  | numeric           |           |
+| both_zip_code_1y_inspection_type_canvass_sum    | bigint            |           |
+| both_zip_code_1y_inspection_type_complaint_sum  | bigint            |           |
 :END:
 
 
@@ -782,20 +767,20 @@ least their severity. One way of do that is shown in the next =SQL= code:
 
 
 #+BEGIN_SRC sql
-select inspection, license_num, zip_code, array_agg(obj ->> 'severity'),
+select inspection, entity_id, zip_code, array_agg(obj ->> 'severity'),
 count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
 count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
 count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
 from
-(select inspection, license_num, zip_code, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
+(select inspection, entity_id, zip_code, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
 as t1
-group by inspection, license_num, zip_code
+group by inspection, entity_id, zip_code
 limit 5
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| inspection | license_num | zip_code | array_agg                                       | critical_violations | serious_violations | low_violations |
+| inspection | entity_id | zip_code | array_agg                                       | critical_violations | serious_violations | low_violations |
 |------------+------------+---------+------------------------------------------------+--------------------+-------------------+---------------|
 |     100209 |    1226806 |   60622 | {critical,minor,minor,minor,minor,minor,minor} |                  1 |                 0 |             6 |
 |     100210 |    1675467 |   60604 | {NULL}                                         |                  0 |                 0 |             0 |
@@ -814,14 +799,14 @@ support for numerical variables: the =Aggregate= object
 #+BEGIN_SRC python
 violations_sql = """
 (
-select inspection, license_num, zip_code, date,
+select inspection, entity_id, zip_code, date,
 count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
 count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
 count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
 from
-(select inspection, license_num, zip_code, date, jsonb_array_elements(violations::jsonb) as obj from triage.test)
+(select inspection, entity_id, zip_code, date, jsonb_array_elements(violations::jsonb) as obj from triage.test)
 as t1
-group by inspection, license_num, zip_code, date
+group by inspection, entity_id, zip_code, date
 ) as t
 """
 
@@ -831,16 +816,16 @@ low_violations = Aggregate({'low': 'low_violations'}, ['sum', 'avg', 'stddev'], 
 
 st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
                           from_obj=violations_sql, # FROM
-                          groups=['license_num','zip_code', 'inspection'],  # GROUP BY
+                          groups=['entity_id','zip_code', 'inspection'],  # GROUP BY
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"entity_id": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
                           state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
+                          state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
                           prefix='violations'
@@ -853,29 +838,29 @@ st.execute(db_connection)
 
 #+BEGIN_EXAMPLE sql
 ...
-SELECT license_num, '2014-10-08'::date AS date,
-sum(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_critical_sum,
-avg(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_critical_avg,
-stddev(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_critical_stddev,
-sum(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_serious_sum,
-avg(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_serious_avg,
-stddev(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_serious_stddev,
-sum(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_low_sum,
-avg(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_low_avg,
-stddev(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_license_num_1y_low_stddev
+SELECT entity_id, '2014-10-08'::date AS date,
+sum(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_critical_sum,
+avg(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_critical_avg,
+stddev(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_critical_stddev,
+sum(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_serious_sum,
+avg(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_serious_avg,
+stddev(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_serious_stddev,
+sum(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_low_sum,
+avg(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_low_avg,
+stddev(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_low_stddev
 FROM
 (
-select inspection, license_num, zip_code, date,
+select inspection, entity_id, zip_code, date,
 count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
 count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
 count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
 from
-(select inspection, license_num, zip_code, date, jsonb_array_elements(violations::jsonb) as obj from triage.test)
+(select inspection, entity_id, zip_code, date, jsonb_array_elements(violations::jsonb) as obj from triage.test)
 as t1
-group by inspection, license_num, zip_code, date
+group by inspection, entity_id, zip_code, date
 ) as t
 
-WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y') GROUP BY license_num
+WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y') GROUP BY entity_id
 ...
 #+END_EXAMPLE
 
@@ -888,32 +873,32 @@ WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y'
 
 #+BEGIN_SRC sql
 with inspected_facilities as (
-    select distinct on (license_num, location, facility_type) *
+    select distinct on (entity_id, location, facility_type) *
     from triage.all_facilities
 ),
 
 facilities_nearby as (
-   select distinct a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
+   select distinct a.entity_id, a.location, a.facility_type, b.facility_type as other_facility_type
    from inspected_facilities as a,
    lateral (
        select facility_type
        from semantic.entities
        where ST_DWithin(location::geography, a.location::geography, 1000)
-       and license_num <> a.license_num
+       and entity_id <> a.entity_id
    ) as b
 )
 
 select
-license_num, location,
+entity_id, location,
 facility_type, other_facility_type, count(*) as total
 from facilities_nearby
 group by
-license_num, location, facility_type, other_facility_type;
+entity_id, location, facility_type, other_facility_type;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | location                                           | facility_type | other_facility_type                | count |
+| entity_id | location                                           | facility_type | other_facility_type                | count |
 |------------+----------------------------------------------------+--------------+----------------------------------+-------|
 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | bakery                           |     1 |
 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | candy                            |     1 |
@@ -981,27 +966,27 @@ license_num, location, facility_type, other_facility_type;
 facilities_nearby_sql = """
 (
 with inspected_facilities as (
-    select distinct on (license_num, location, facility_type) *
+    select distinct on (entity_id, location, facility_type) *
     from triage.all_facilities
 ),
 
 facilities_nearby as (
-   select distinct a.license_num, a.location, a.facility_type, b.facility_type as other_facility_type
+   select distinct a.entity_id, a.location, a.facility_type, b.facility_type as other_facility_type
    from inspected_facilities as a,
    lateral (
        select facility_type
        from semantic.entities
        where ST_DWithin(location::geography, a.location::geography, 1000)
-       and license_num <> a.license_num
+       and entity_id <> a.entity_id
    ) as b
 )
 
 select
-license_num, location,
+entity_id, location,
 facility_type, other_facility_type, count(*)
 from facilities_nearby
 group by
-license_num, location, facility_type, other_facility_type;
+entity_id, location, facility_type, other_facility_type;
 ) as t
 """
 # TODO: Create the correct aggregate Do I need to pivot the table?
@@ -1009,16 +994,16 @@ facilities = Aggregate({})
 
 st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
                           from_obj=violations_sql, # FROM
-                          groups=['license_num','zip_code', 'inspection'],  # GROUP BY
+                          groups=['entity_id','zip_code', 'inspection'],  # GROUP BY
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"entity_id": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
                           state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
+                          state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
                           prefix='violations'
@@ -1037,11 +1022,11 @@ IDEA: We could precalculate the distances? And from that filter by date?
 #+BEGIN_SRC sql
 with inspected_same_day as (
  select
-   a.inspection, a.license_num, a.location, a.facility_type, a.date,
+   a.inspection, a.entity_id, a.location, a.facility_type, a.date,
    b.inspection as other_inspection, b.facility_type as other_facility_type, b.location as other_location
    from triage.test as a,
    lateral (
-      select inspection, license_num, location, facility_type, date
+      select inspection, entity_id, location, facility_type, date
       from semantic.events
       where inspection <> a.inspection
       and date = a.date
@@ -1050,7 +1035,7 @@ with inspected_same_day as (
 
 inspections_nearby as (
    select
-   inspection, license_num, location, facility_type,
+   inspection, entity_id, location, facility_type,
    other_facility_type, date
    from inspected_same_day
    where
@@ -1058,16 +1043,16 @@ inspections_nearby as (
 )
 
 select
-inspection, license_num, location, facility_type,
+inspection, entity_id, location, facility_type,
 other_facility_type, date, count(*)
 from inspections_nearby
 group by
-inspection, license_num, location, facility_type, other_facility_type, date
+inspection, entity_id, location, facility_type, other_facility_type, date
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| inspection | license_num | location                                           | facility_type | other_facility_type | count |
+| inspection | entity_id | location                                           | facility_type | other_facility_type | count |
 |------------+------------+----------------------------------------------------+--------------+-------------------+-------|
 |    1084330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
 |    1084330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
@@ -1189,11 +1174,11 @@ inspections_nearby_sql = """
 with inspections_nearby as (
 with inspected_same_day as (
  select
-   a.inspection, a.license_num, a.location, a.facility_type, a.date,
+   a.inspection, a.entity_id, a.location, a.facility_type, a.date,
    b.inspection as other_inspection, b.facility_type as other_facility_type, b.location as other_location
    from triage.test as a,
    lateral (
-      select inspection, license_num, location, facility_type, date
+      select inspection, entity_id, location, facility_type, date
       from semantic.events
       where inspection <> a.inspection
       and date = a.date
@@ -1202,7 +1187,7 @@ with inspected_same_day as (
 
 inspections_nearby as (
    select
-   inspection, license_num, location, facility_type,
+   inspection, entity_id, location, facility_type,
    other_facility_type, date
    from inspected_same_day
    where
@@ -1210,11 +1195,11 @@ inspections_nearby as (
 )
 
 select
-inspection, license_num, location, facility_type,
+inspection, entity_id, location, facility_type,
 other_facility_type, date, count(*)
 from inspections_nearby
 group by
-inspection, license_num, location, facility_type, other_facility_type, date
+inspection, entity_id, location, facility_type, other_facility_type, date
 ) as b
 """
 
@@ -1223,16 +1208,16 @@ facilities = Aggregate({})
 
 st = SpacetimeAggregation([critical_violations, serious_violations, low_violations], # The Categorical object
                           from_obj=violations_sql, # FROM
-                          groups=['license_num','zip_code', 'inspection'],  # GROUP BY
+                          groups=['entity_id','zip_code', 'inspection'],  # GROUP BY
                           dates=["2014-10-06",
                                  "2014-10-08",
                                  "2015-01-12",
                                  "2015-10-20",
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
-                          intervals={"license_num": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
+                          intervals={"entity_id": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
                           state_table='triage.all_facilities', # State table name
-                          state_group='license_num', # Which is the column that identifies the entity
+                          state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
                           prefix='violations'
@@ -1280,7 +1265,9 @@ model group) this table also includes temporal information (like
 since that is the name of the file in which the matrix is stored.
 
 Lastly, =results.predictions= contains all the /scores/ generated by every
-model for every entity.
+model for every entity. =results.evaluation= stores the value of all the
+*metrics* for every model. These metrics were specified in the =scoring=
+section in the config file.
 
 ** ▶ TODO Audition
 
