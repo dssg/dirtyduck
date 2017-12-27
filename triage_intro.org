@@ -29,6 +29,9 @@ specific to the needs of the project, and an arrangement of core data
 science components that work together to produce the output of that
 phase.
 
+The domain  problems that =triage= had in mind are (1) early warning systems
+/ early intervention systems and (2) prioritization of resources for inspections.
+
 =Triage= was created to facilitate the creation of supervised learning
 models, in particular classification models with an strong temporal
 component in the data.
@@ -45,6 +48,14 @@ series of steps which aim to generate a good model for predicting the
 /label/ of an new instance of the data set. The steps are /feature generation/,
 /label generation/, /model training/ and /model scoring/. In each of all
 this steps, =triage= will take care of the temporal nuances of the data.
+
+You need to specify (via a configuration file) how you want to time
+split your data, which combination of machine learning algorithms and
+their hyperparameters, which kind of features you want to generate and which
+subset of those features you want to try in each model. So, the
+experiment consists in try every combination of algorithm,
+hyperparameters and feature subset, and evaluate their performance
+using a set of metrics (also specified in the config file).
 
 =Triage= will train one model for each block generated, so when the
 experiment finishes you will have several models for each algorithm
@@ -72,19 +83,20 @@ import triage
 
 - A database connection
 
-#+BEGIN_SRC python
+
+#+BEGIN_SRC python :session test  :var food_db="postgresql://food_user:some_password@0.0.0.0:5434/food"
 import os
 import sqlalchemy
 
-food_db ="postgresql://food_user:some_password@0.0.0.0:5434/food"
-# os.environ.get('FOOD_DB_URL')
+## One option is read from the environment
+## food_db =  os.environ.get('FOOD_DB_URL')
 
 print(food_db)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-None
+postgresql://food_user:some_password@0.0.0.0:5434/food
 :END:
 
 - An experiment config file, we will discuss this file at length in this
@@ -772,7 +784,7 @@ count(*) filter (where obj ->> 'severity' = 'critical') as critical_violations,
 count(*) filter (where obj ->> 'severity' = 'serious') as serious_violations,
 count(*) filter (where obj ->> 'severity' = 'minor') as low_violations
 from
-(select inspection, entity_id, zip_code, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
+(select inspection, entity_id, zip_code, jsonb_array_elements(violations::jsonb) as obj from triage.test)
 as t1
 group by inspection, entity_id, zip_code
 limit 5
@@ -780,13 +792,13 @@ limit 5
 
 #+RESULTS:
 :RESULTS:
-| inspection | entity_id | zip_code | array_agg                                       | critical_violations | serious_violations | low_violations |
-|------------+------------+---------+------------------------------------------------+--------------------+-------------------+---------------|
-|     100209 |    1226806 |   60622 | {critical,minor,minor,minor,minor,minor,minor} |                  1 |                 0 |             6 |
-|     100210 |    1675467 |   60604 | {NULL}                                         |                  0 |                 0 |             0 |
-|     100211 |    2017593 |   60612 | {critical,serious}                             |                  1 |                 1 |             0 |
-|     100212 |    2017593 |   60612 | {critical,serious}                             |                  1 |                 1 |             0 |
-|     100213 |    2017164 |   60612 | {critical,serious}                             |                  1 |                 1 |             0 |
+| inspection | entity_id | zip_code | array_agg                        | critical_violations | serious_violations | low_violations |
+|------------+----------+---------+---------------------------------+--------------------+-------------------+---------------|
+|    1076221 |     9547 |   60621 | {minor,minor,minor}             |                  0 |                 0 |             3 |
+|    1150580 |     9547 |   60621 | {minor,minor,minor,minor,minor} |                  0 |                 0 |             5 |
+|    1150633 |     9547 |   60621 | {minor,minor,minor,minor}       |                  0 |                 0 |             4 |
+|    1150878 |     9547 |   60621 | {minor,minor,minor,minor}       |                  0 |                 0 |             4 |
+|    1150936 |     9547 |   60621 | {minor,minor,minor}             |                  0 |                 0 |             3 |
 :END:
 
 Basically, this code gives us the number of violations inspected by
@@ -797,6 +809,9 @@ for the zip code zone?  Note than in this case the variable is not
 support for numerical variables: the =Aggregate= object
 
 #+BEGIN_SRC python
+from  triage.component.collate import Aggregate
+
+
 violations_sql = """
 (
 select inspection, entity_id, zip_code, date,
@@ -824,7 +839,7 @@ st = SpacetimeAggregation([critical_violations, serious_violations, low_violatio
                                  "2016-10-17"], # AS OF DATES, This comes from Timechop, are used as 'WHERE date = ...'
                           intervals={"entity_id": ["1y"], "zip_code": ["1y"], "inspection": ["0d"]}, # This will be used as the intervals in the past of the AS OF DATE
                           date_column="date", # Which is the name of the date column?
-                          state_table='triage.all_facilities', # State table name
+                          state_table='triage.active_facilities', # State table name
                           state_group='entity_id', # Which is the column that identifies the entity
                           output_date_column='date',
                           schema='triage', # In which schema do you want to store the results?
@@ -835,19 +850,22 @@ st.execute(db_connection)
 
 #+END_SRC
 
+We can inspect the generated =SQL=:
+
 
 #+BEGIN_EXAMPLE sql
 ...
-SELECT entity_id, '2014-10-08'::date AS date,
-sum(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_critical_sum,
-avg(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_critical_avg,
-stddev(critical_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_critical_stddev,
-sum(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_serious_sum,
-avg(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_serious_avg,
-stddev(serious_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_serious_stddev,
-sum(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_low_sum,
-avg(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_low_avg,
-stddev(low_violations) FILTER (WHERE date >= '2014-10-08'::date - interval '1y') AS violations_entity_id_1y_low_stddev
+
+SELECT entity_id, '2014-10-06'::date AS date,
+sum(critical_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_critical_sum,
+avg(critical_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_critical_avg,
+stddev(critical_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_critical_stddev,
+sum(serious_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_serious_sum,
+avg(serious_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_serious_avg,
+stddev(serious_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_serious_stddev,
+sum(low_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_low_sum,
+ avg(low_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_low_avg,
+stddev(low_violations) FILTER (WHERE date >= '2014-10-06'::date - interval '1y') AS violations_entity_id_1y_low_stddev
 FROM
 (
 select inspection, entity_id, zip_code, date,
@@ -859,107 +877,77 @@ from
 as t1
 group by inspection, entity_id, zip_code, date
 ) as t
+WHERE date < '2014-10-06'AND date >= '2014-10-06'::date - greatest(interval '1y') GROUP BY entity_id
 
-WHERE date < '2014-10-08'AND date >= '2014-10-08'::date - greatest(interval '1y') GROUP BY entity_id
 ...
+
 #+END_EXAMPLE
 
-
-
+You should learn this: it is possible to pass any PostgreSQL =table=
+object to =collate= (and henceforth to =triage=), even those which result from a query.
 
 
 *** Add number of facilities by type in a radius: 1km
 
+Another possible interesting feature is related to the spatial
+surroundings of the facility. Is the facility near of schools or
+day cares? or Is the facility located in zones with a lot of people
+passing by?
+
+In this feature the spatial aggregation is not some socio-political entity
+as the zip code or the city limits, but the location
+of the facility and the radius that defines the "neighborhood" of the facility.
+
+The following query returns the number of facilities in a radius of 1
+km around the facility in our example (=entity_id= 9547).
 
 #+BEGIN_SRC sql
 with inspected_facilities as (
     select distinct on (entity_id, location, facility_type) *
-    from triage.all_facilities
+    from triage.active_facilities
 ),
 
 facilities_nearby as (
-   select distinct a.entity_id, a.location, a.facility_type, b.facility_type as other_facility_type
+   select
+   a.entity_id, a.location, a.facility_type,
+   b.entity_id as other_entity_id,
+   b.facility_type as other_facility_type
    from inspected_facilities as a,
    lateral (
-       select facility_type
+       select entity_id, facility_type
        from semantic.entities
-       where ST_DWithin(location::geography, a.location::geography, 1000)
+       where ST_DWithin(location::geography, a.location::geography, 1000)  -- In meteres, i.e. 1000 m = 1 km
        and entity_id <> a.entity_id
    ) as b
 )
 
 select
-entity_id, location,
-facility_type, other_facility_type, count(*) as total
+entity_id,
+other_facility_type, count(*) as total
 from facilities_nearby
 group by
-entity_id, location, facility_type, other_facility_type;
+entity_id, other_facility_type
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | location                                           | facility_type | other_facility_type                | count |
-|------------+----------------------------------------------------+--------------+----------------------------------+-------|
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | bakery                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | candy                            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | candy maker                      |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | catering                         |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | catering and wholesale           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | children's services facility     |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | daycare (2 - 6 years)            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | daycare (2 years)                |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | daycare above and under 2 years  |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | golden diner                     |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | grocery store                    |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | hospital                         |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | incubator                        |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | liqour brewery tasting           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | liquor                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile dessert vendor            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile food dispenser            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile food preparer             |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile frozen desserts vendor    |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | mobile prepared food vendor      |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | restaurant                       |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | school                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | school cafeteria                 |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shared kitchen                   |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shared kitchen user (long term)  |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shared kitchen user (short term) |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | shelter                          |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | special event                    |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | wholesale                        |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | [NULL]                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | bakery                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | candy                            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | candy maker                      |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | catering                         |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | catering and wholesale           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | children's services facility     |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | daycare (2 - 6 years)            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | daycare (2 years)                |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | daycare above and under 2 years  |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | golden diner                     |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | grocery store                    |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | hospital                         |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | incubator                        |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liqour brewery tasting           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile dessert vendor            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile food dispenser            |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile food preparer             |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile frozen desserts vendor    |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | mobile prepared food vendor      |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant                       |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | school                           |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | school cafeteria                 |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shared kitchen                   |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shared kitchen user (long term)  |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shared kitchen user (short term) |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | shelter                          |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | special event                    |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | wholesale                        |     1 |
-|    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | [NULL]                           |     1 |
+| entity_id | other_facility_type               | total |
+|----------+---------------------------------+-------|
+|     9547 | school                          |    11 |
+|     9547 | convenience store               |     2 |
+|     9547 | furniture store                 |     1 |
+|     9547 | long term care                  |     6 |
+|     9547 | wholesale                       |     1 |
+|     9547 | daycare (2 - 6 years)           |     3 |
+|     9547 | golden diner                    |     1 |
+|     9547 | private school                  |     2 |
+|     9547 | grocery store                   |    40 |
+|     9547 | restaurant                      |    37 |
+|     9547 | children's services facility    |     1 |
+|     9547 | daycare above and under 2 years |     4 |
+|     9547 | gas station                     |     1 |
+|     9547 | bakery                          |     1 |
+|     9547 | unknown                         |    23 |
 :END:
 
 #+BEGIN_SRC python
@@ -967,27 +955,30 @@ facilities_nearby_sql = """
 (
 with inspected_facilities as (
     select distinct on (entity_id, location, facility_type) *
-    from triage.all_facilities
+    from triage.active_facilities
 ),
 
 facilities_nearby as (
-   select distinct a.entity_id, a.location, a.facility_type, b.facility_type as other_facility_type
+   select
+   a.entity_id, a.location, a.facility_type,
+   b.entity_id as other_entity_id,
+   b.facility_type as other_facility_type
    from inspected_facilities as a,
    lateral (
-       select facility_type
+       select entity_id, facility_type
        from semantic.entities
-       where ST_DWithin(location::geography, a.location::geography, 1000)
+       where ST_DWithin(location::geography, a.location::geography, 1000)  -- In meters i.e. 1000 m = 1 km
        and entity_id <> a.entity_id
    ) as b
 )
 
 select
-entity_id, location,
-facility_type, other_facility_type, count(*)
+entity_id,
+other_facility_type, count(*) as total
 from facilities_nearby
 group by
-entity_id, location, facility_type, other_facility_type;
-) as t
+entity_id, other_facility_type
+)
 """
 # TODO: Create the correct aggregate Do I need to pivot the table?
 facilities = Aggregate({})
@@ -1015,6 +1006,58 @@ st.execute(db_connection)
 
 
 *** Add number of inspections by type in a radius and in an interval
+
+Based in the previous example, we can modify a little the question an
+ask: How many events happened nearby?
+
+#+BEGIN_SRC sql
+with inspected_facilities as (
+    select distinct on (entity_id, location, facility_type) *
+    from triage.active_facilities
+),
+
+inspections_nearby as (
+   select
+   a.entity_id,
+   b.inspection, b.type, b.result, b.entity_id as other_entity_id,
+   b.facility_type as other_facility_type, b.date
+   from inspected_facilities as a,
+   lateral (
+       select inspection, type, result, entity_id, facility_type, date
+       from semantic.events
+       where ST_DWithin(location::geography, a.location::geography, 1000)  -- In meteres, i.e. 1000 m = 1 km
+       and entity_id <> a.entity_id
+   ) as b
+)
+
+select * from inspections_nearby limit 10;
+
+-- select
+-- entity_id, inspection, type as inpection
+-- other_facility_type, count(*) as total
+-- from inspections_nearby
+-- group by
+-- entity_id, other_facility_type
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id | inspection | type      | result             | other_entity_id | other_facility_type |       date |
+|----------+------------+-----------+--------------------+---------------+-------------------+------------|
+|     9547 |     920206 | complaint | pass               |          1811 | grocery store     | 2012-02-24 |
+|     9547 |     545345 | complaint | fail               |          1811 | grocery store     | 2011-05-11 |
+|     9547 |     670596 | complaint | fail               |          1811 | grocery store     | 2012-02-17 |
+|     9547 |     545365 | complaint | pass               |          1811 | grocery store     | 2011-05-19 |
+|     9547 |    1955217 | canvass   | pass               |          1811 | grocery store     | 2016-09-08 |
+|     9547 |    2081502 | complaint | pass               |          1811 | grocery store     | 2017-09-05 |
+|     9547 |     545517 | complaint | pass               |          1811 | grocery store     | 2011-09-08 |
+|     9547 |    1386161 | complaint | fail               |          1811 | grocery store     | 2015-05-27 |
+|     9547 |    1386181 | complaint | pass w/ conditions |          1811 | grocery store     | 2015-06-04 |
+|     9547 |     531602 | canvass   | pass               |          2111 | long term care    | 2011-10-06 |
+:END:
+
+
+
 
 QUESTION: Is this the correct SQL? (at least is fast)
 IDEA: We could precalculate the distances? And from that filter by date?
