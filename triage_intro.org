@@ -30,7 +30,8 @@ science components that work together to produce the output of that
 phase.
 
 The domain  problems that =triage= had in mind are (1) early warning systems
-/ early intervention systems and (2) prioritization of resources for inspections.
+/ early intervention systems and (2) prioritization of resources for
+inspections.
 
 =Triage= was created to facilitate the creation of supervised learning
 models, in particular classification models with an strong temporal
@@ -277,7 +278,10 @@ create schema if not exists triage;
 
 We need a table that represents if the facility is "active" in the
 moment of the inspection (we don't want to predict a facility that is
-not active). For testing purposes this table only include one facility.
+not active). For testing purposes this table only include one
+facility.
+
+
 
 #+BEGIN_SRC sql :tangle ./src/create_triage_schema.sql
 drop table if exists triage.active_facilities cascade;
@@ -291,7 +295,6 @@ select entity_id, facility_type, location, date
 #+END_SRC
 
 #+RESULTS:
-
 
 #+BEGIN_SRC sql
 select * from triage.active_facilities limit 5;

@@ -13,18 +13,9 @@
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
-#+PROPERTY: header-args:python   :session :exports both :results raw drawer
+#+PROPERTY: header-args:python    :session food_inspections :results output drawer
 
 * Problem description
-Inspection the join starts from outcomes (outcome centric) (if you
-haven't been inspected, we can not said anything about you)
-
-
- /What are you inspecting?/ (people, places, other)
- /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /What do you want to optimize for?/ (e.g. efficiency, long term
- compliance, novelty)
 
 The scenario, is the following:  you work for the Chicago's
   government, and you try
@@ -41,6 +32,15 @@ Which X facilities are likely to violate some rule in the
   In this case maybe you are interested not
   in all the violations but in the more grave.
 
+ /What are you inspecting?/ (people, places, other)
+ /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /What do you want to optimize for?/ (e.g. efficiency, long term
+ compliance, novelty)
+
+
+Inspection the join starts from outcomes (outcome centric) (if you
+haven't been inspected, we can not said anything about you)
 
 
 * Creating the labels
@@ -93,7 +93,9 @@ Critical violations are coded between =1-14=, serious violations between
 Facilities who failed an inspection (i.e. =result= = ='fail'=) and the
 =severity in ('critical', 'serious')=
 
-We will create both labels using the following code:
+We could extract the severity of the violation inspected using the
+following code:
+
 
 #+begin_src sql
 
@@ -111,68 +113,52 @@ group by inspection, result
 
 #+RESULTS:
 :RESULTS:
-| inspection | result             | array_agg                                       | failed | failed_major_violation |
-|------------+--------------------+------------------------------------------------+--------+----------------------|
-|     100215 | pass w/ conditions | {serious}                                      | f      | f                    |
-|     100209 | fail               | {critical,minor,minor,minor,minor,minor,minor} | t      | t                    |
-|     104236 | fail               | {serious,serious,minor,minor}                  | t      | t                    |
-|     100214 | pass               | {serious}                                      | f      | f                    |
-|     100211 | fail               | {critical,serious}                             | t      | t                    |
-|     100212 | fail               | {critical,serious}                             | t      | t                    |
-|     100213 | pass               | {critical,serious}                             | f      | f                    |
-|     100210 | pass               | {NULL}                                         | f      | f                    |
+| inspection | result | array_agg                                                 | failed | failed_major_violation |
+|------------+--------+----------------------------------------------------------+--------+----------------------|
+|    1763967 | fail   | {critical,serious,serious,minor,minor,minor,minor,minor} | t      | t                    |
+|    1770568 | pass   | {critical,serious,serious,minor,minor,minor}             | f      | f                    |
+|    1343315 | fail   | {serious,serious,serious,serious,minor,minor}            | t      | t                    |
 :END:
 
 
-Let's use the previous query to generate our labels in a new  =inspections= schema
+Let's use the previous query to generate our labels in a new
+=inspections= schema.
 
-#+begin_src sql :tangle ./src/create_inspections_schema.sql
-create schema if not exists inspections;
+=Triage= has some restrictions (at the current version) about how to
+name (some) columns, in specific, our columns should include:
 
-drop table if exists inspections.events cascade;
-
-create table inspections.events as (
-with inspection_labels as (
-select inspection, result,
-   (result = 'fail') as failed,
-   (result = 'fail' and
-       ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
-   ) as failed_major_violation
-from
-   (select inspection, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
-as t1
-group by inspection, result
-)
-
-select
-e.inspection, e.type, e.license_num::INTEGER as entity_id, e.facility_type,
-e.zip_code, e.location, e.city, e.date, e.risk, e.result, failed, failed_major_violation
-from
-semantic.events as e
-join
-inspection_labels as l
-on e.inspection = l.inspection
-where zip_code is not null and type is not null
-)
-#+end_src
-
-#+RESULTS:
-
-
-Triage has some restrictions (at the current version) about how to
-name some of the columns, in specific, our column should include:
-
-- =entity_id=
-- =outcome_date=
-- =outcome=
+- =entity_id=     :: The entity affected / causing the event (In our
+     case the facility)
+- =outcome_date=  :: The date in which the event happen / The date in
+     which we discover the result (The inpection's date)
+- =outcome=       :: The result (label) of the event (One of the labels
+     speecified before)
 
 =entity_id= an identifier for which the labels are applied to,
 =outcome_date= the date at which some outcome was known, =outcome= a
 boolean outcome.
 
-Given that do we have two labels, we will create two tables.
+Since we defined two labels, we will create two tables.
 
-#+BEGIN_SRC sql
+#+BEGIN_SRC sql :tangle ./src/create_inspections_schema.sql
+
+create schema if not exists inspections;
+
+drop table if exists inspections.labels;
+
+create table inspections.labels as (
+select inspection, entity_id, date,
+   (result = 'fail') as failed,
+   (result = 'fail' and
+       ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
+   ) as failed_major_violation
+from
+   (select inspection, entity_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
+as t1
+group by inspection, entity_id, date, result
+);
+
+
 drop table if exists inspections.failed;
 
 create table inspections.failed as (
@@ -180,7 +166,7 @@ select
 entity_id,
 date as outcome_date,
 failed as outcome
-from inspections.events
+from inspections.labels
 );
 
 
@@ -191,213 +177,302 @@ select
 entity_id,
 date as outcome_date,
 failed_major_violation as outcome
-from inspections.events
+from inspections.labels
 );
-
-
 
 #+END_SRC
 
 #+RESULTS:
 
-
-Also, we will need a *states* table. The table must have columns
-=entity_id, state, start_time, end_time=. The states table allows us to only
+Also, We need to create a new version of the =semantic.entities=
+table. =Triage= refers to this new table as the *states* table. It should
+have columns =entity_id=, =start__time, end_time= and =state=.
+The states table allows us to only
 include rows in your matrices in a specific state. In our case we only want
-to inspect *active* facilities,
+to inspect *active* facilities. We will replace all the =NULL= values in
+the =end_time= column for a date in the future, in particular =2020-12-31=.
 
-#+BEGIN_SRC sql
+#+BEGIN_SRC sql :tangle ./src/create_inspections_schema.sql
 
 drop table if exists inspections.active_facilities;
 
-
 create table inspections.active_facilities as (
-with dates as (
 select
-license_num::INTEGER as entity_id,
-min(date) over (partition by license_num) as start_time,
-(case when
-results in ('Out of Business', 'Business Not Located')
-then
-date
-else
-NULL
-end) as end_time
-from inspections
-where zip is not null and license_num is not null
-)
-
-select
-distinct on (entity_id)
+distinct
 entity_id, 'active'::VARCHAR  as state, start_time, coalesce(end_time, '2020-12-31'::date) as end_time
-from dates
+from semantic.entities
 );
 #+END_SRC
 
 #+RESULTS:
-
 
 
 * Modeling using Machine Learning
 
 It is time of getting all the previous steps and put them
-together. Don't worry, actually we are done coding. =triage= provides
+together. Don't worry, actually we are done with coding. =Triage= provides
 you with a configuration file for specifying the experiment that we
 want to run.
+
+** Creating a simple experiment
+
+We will use the subset table =triage.test= that we were using in
+[[file:triage_intro.org][Introduction to triage]] . For this first experiment we will try one of the simplest
+machine learning algorithms: a *Decision Tree Classifier*. We need to
+write the experiment config file for that, let's break it down and
+explain all the sections.
+
+The config file for this first experiment is located in
+[[src/inspections_test.yaml]].
+
+#+BEGIN_SRC python :var food_db="postgresql://food_user:some_password@0.0.0.0:5434/food"
+import os
+import yaml
+import sqlalchemy
+
+with open('src/inspections_test.yaml') as f:
+    experiment_config = yaml.load(f)
+
+
+from triage.component.catwalk.storage import FSModelStorageEngine
+from triage.experiments import SingleThreadedExperiment
+
+experiment = SingleThreadedExperiment(
+    config=experiment_config,
+    db_engine=sqlalchemy.create_engine(food_db),
+    model_storage_class=FSModelStorageEngine,
+    project_path='triage'
+)
+
+#experiment.validate()
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
+
+
+The first lines of the experiment config file are related to the
+version config file (=v3= at the moment of writing this tutorial), a
+comment (=model_comment=), this will end up as
+a value in the =results.models= table, and a list of user defined
+metadata (=user_metadata=) that could be used for identifying the
+resulting model groups. In our test example, if you run experiments that share
+a temporal configuration but that use different label definitions
+(say, labeling building inspections with *any* violation as positive or
+labeling only building inspections with major violations as positive),
+you can use the user metadata keys to indicate that the matrices
+from these experiments have different labeling criteria. The matrices from the
+two experiments will have different filenames (and not be overwritten or
+inappropriately reused), and if you add the =label_definition= key to
+the =model_group_keys=, models made on different label definition will
+have different groups.
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 config_version: 'v3'
 
-# EXPERIMENT METADATA
-# model_comment (optional) will end up in the model_comment column of the
-# models table for each model created in this experiment
 model_comment: 'inspections_test'
+
+user_metadata:
+  label_definition: 'failed'
+  experiment_type: 'test'
 #+END_SRC
+
+
+Next, the *temporal configuration*  section. The first four parameters
+are related to the availability of data: How much data you have for
+feature creation? How much data you have for label generation? For
+simplicity we will assume that we can use the full =triage.test= time
+span for both.
+
+#+BEGIN_SRC sql
+select min(date), max(date) from triage.test
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|        min |        max |
+|------------+------------|
+| 2010-02-24 | 2017-02-21 |
+:END:
+
+
+
+The next parameters are related to the training intervals:
+- How frequently to retrain models? (=model_update_frequency=)
+- How many rows per entity in the train matrices?
+  (=training_as_of_date_frequencies=)
+- How much time is covered by labels in the training matrices? (=training_label_timespans=)
+
+The remaining elements are related to the *testing* matrices, in the
+particular case of *inspections*, you can choose them as follows:
+
+- =test_as_of_date_frequencies= is planning/scheduling frequency
+- =test_durations= is how far out are you scheduling for?
+- =test_label_timespan= is equal to =test_durations=
+
+Let's assume that we need to do rounds of inspections every month
+(=test_as_of_date_frequencies = 1month=) and we need to complete that
+round in exactly one month (=test_durations = test_label_timespan =
+1month=)
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 temporal_config:
-    feature_start_time: '2014-02-08'
-    feature_end_time: '2016-10-17'
-    label_start_time: '2014-02-08'
-    label_end_time: '2016-10-17'
+    feature_start_time: '2015-02-01'
+    feature_end_time: '2017-02-01'
+    label_start_time: '2015-02-01'
+    label_end_time: '2017-02-01'
+
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
-    max_training_histories: '1y'
-    test_durations: '1d'
-    test_label_timespans: ['3month']
+
+    test_durations: '1month'
+    test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '5y'
 #+END_SRC
 
+We can visualize the splitting using the function =show_timechop=
+introduced in [[file:triage_intro.org][Introduction to triage]].
+
+#+BEGIN_SRC python :results file drawer
+import utils
+
+utils.show_timechop(experiment.chopper, file_name="timechop_inspections_test.png")
+
+"timechop_inspections_test.png"
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+[[file:]]
+:END:
+
+
+
+We need to specify the table that keeps our labels, for this first
+experiment we will use the label =failed=, stored in =inspections.labels=.
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 events_table: inspections.failed
 #+END_SRC
 
+=Triage= will generate the features for us, we need to tell which ones
+in the section =feature_aggregations=. Here, each entry describes a
+=collate.SpacetimeAggregation= object, and the
+arguments needed to create it. For this experiment we will try the following
+features:
 
-Each entry describes a collate.SpacetimeAggregation object, and the
-arguments needed to create it. Generally, each of these entries controls
-the features from one source table, though in the case of multiple groups
-may result in multiple output tables
+- Number of different types of inspections  that happened in the
+  facility in the last year from a particular day
+- Number of different types of inspections  that happened in the
+  zip code in the last year from a particular day
+
+If we observe the image generated from the =temporal_config= section,
+each particular date is the beginning of the rectangles that describes
+the rows in the matrix. In that date (=as_of_date= in =timechop= parlance)
+we will calculate both features, and we will repeat that for every
+other rectangle in that image.
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 feature_aggregations:
     -
-        # prefix given to the resultant tables
         prefix: 'inspections'
-        # from_obj is usually a source table but can be an expression, such as
-        # a join (ie 'cool_stuff join other_stuff using (stuff_id)')
-        from_obj: 'inspections.events'
-        # The date column to use for specifying which records to include
-        # in temporal features. It is important that the column used specifies
-        # the date at which the event is known about, which may be different
-        # from the date the event happened.
+        from_obj: 'triage.test'
         knowledge_date_column: 'date'
 
-        # top-level imputation rules that will apply to all aggregates functions
-        # can also specify categoricals_imputation or array_categoricals_imputation
-        #
-        # You must specified at least one of the top-level or feature-level imputation
-        # to cover ever feature being defined.
         categoricals_imputation:
-            # The `all` rule will apply to all aggregation functions, unless over-
-            # ridden by a more specific one
             all:
-                # every imputation rule must have a `type` parameter, while some
-                # (like 'constant') have other required parameters (`value` here)
                 type: 'zero'
 
-        # aggregates and categoricals define the actual features created. So
-        # at least one is required
-        #
-        # Aggregates of numerical columns. Each quantity is a number of some
-        # sort, and the list of metrics are applied to each quantity
-        # Categorical features. The column given can be of any type, but the
-        # choices must comparable to that type for equality within SQL
-        # The result will be one feature for each choice/metric combination
         categoricals:
             -
-                column: 'type'
-                # note that we haven't specified a top level `categoricals_imputation`
-                # set of rules, so we have to include feature-specific imputation
-                # rules for both of our categoricals here.
-                choice_query: 'select distinct type from inspections.events where type is not null'
+                column: 'inspection_type'
+                choice_query: 'select distinct inspection_type from triage.test where inspection_type is not null'
                 metrics:
                     - 'sum'
-        # The time intervals over which to aggregate features
+
         intervals:
             - '1y'
 
-        # A list of different columns to separately group by
         groups:
             - 'entity_id'
             - 'zip_code'
 #+END_SRC
 
-#+BEGIN_SRC yaml :tangle src/inspections_test.yaml
-
-# FEATURE GROUPING
-# define how to group features and generate combinations
-# feature_group_definition allows you to create groups/subset of your features
-# by different criteria.
-# for instance,
-# - 'tables' allows you to send a list of collate feature tables (collate builds these by appending 'aggregation_imputed' to the prefix)
-# - 'prefix' allows you to specify a list of feature name prefixes
-feature_group_definition:
-   prefix: ['inspections']
-#+END_SRC
-
+We just want to include *active* facilities in our matrices, so we tell
+=triage= to take that in account:
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
-# STATE MANAGEMENT (optional)
-# If you want to only include rows in your matrices in a specific state,
-# provide:
-# 1. a dense state table that defines when entities were in specific states
-#   should have columns entity_id/state/start/end
-# 2. a list of state filtering SQL clauses to iterate through. Assuming the
-#   states are boolean columns (the experiment will convert the one you pass in
-#   to this format), write a SQL expression for each state
-#   configuration you want, ie '(permitted OR suspended) AND licensed'
 state_config:
     table_name: 'inspections.active_facilities'
     state_filters:
-        - 'active'
+       - 'active'
 #+END_SRC
+
+Now, lets discuss how we will define the different models to try in
+the data (Remember that the model is specified by the algorithm, the
+hyperparameters, and the subset of features to use). In =triage= you
+need to specify in the =grid_config= section, a list of machine learning
+algorithms that you want to train, and a set of list of
+hyperparameters. You can use any algorithm that you want, the only
+requirement is that respects the =sklearn= API.
 
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
-# USER METADATA
-# These are arbitrary keys/values that you can have Triage apply to the
-# metadata for every matrix in the experiment. Any keys you include here can
-# be used in the 'model_group_keys' below. For example, if you run experiments
-# that share a temporal configuration but that use different label definitions
-# (say, labeling building inspections with *any* violation as positive or
-# labeling only building inspections with severe health and safety violations
-# as positive), you can use the user metadata keys to indicate that the matrices
-# from these experiments have different labeling criteria. The matrices from the
-# two experiments will have different filenames (and not be overwritten or
-# inappropriately reused), and if you add the label_definition key to the model
-# group keys, models made on different label definition will have different
-# groups. In this way, user metadata can be used to expand Triage beyond its
-# explicitly supported functionality.
-user_metadata:
-  label_definition: 'failed'
+grid_config:
+    'sklearn.tree.DecisionTreeClassifier':
+        max_depth: [1,null]
+        max_features: [1, sqrt, null]
 #+END_SRC
+
+Some of the parameters in =sklearn= are =None=, if you want to try those
+you need to indicate that with the =yaml= 's =null= keyword.
+
+Besides the algorithm and the hyperparameters, you should specify
+which subset of features use. First, in the section
+=feature_group_definition= you specify how to group the features (you
+can use the =table name= or the =prefix= from the section
+=feature_aggregation=) and then choose one /strategy/ for choosing the
+subsets: =all= (all the subsets at once), =leave-one-out= (try all the
+subsets except one, do that for all the combinations) or =leave-one-in=
+(just try subset at the time).
+
+
+#+BEGIN_SRC yaml :tangle src/inspections_test.yaml
+
+feature_group_definition:
+   prefix: ['inspections']
+
+feature_group_strategies: ['all']
+#+END_SRC
+
+In this experiment we will end with *6* model groups ($algorithms (1) \times
+hyperparameters combinations (2 \times 3)  \times feature groups (1) \times temporal
+combinations (1)$). Also, we will create *12* different models (2 per
+each model group) given that we have 2 temporal blocks (one model per
+temporal group).
+
+
+=model_group_keys= defines a list of *additional* matrix metadata keys that
+should be considered when creating a model group. For example, if the models are
+built on matrices with different history lengths (=max_training_histories=), different
+labeling windows (e.g., inspection violations in the next month, next year, or
+next two years), =test_label_timespans,= the frequency of rows for each
+entity(training_as_of_date_frequencies=), or
+the definition of a positive label (=label_definition=, from =user_metadata=).
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 model_group_keys:
     - 'label_definition'
+    - 'experiment_type'
 #+END_SRC
 
-#+BEGIN_SRC yaml :tangle src/inspections_test.yaml
-grid_config:
-    'sklearn.ensemble.ExtraTreesClassifier':
-        n_estimators: [100]
-        criterion: [gini, entropy]
-        max_depth: [1,5,10,20,50]
-        max_features: [sqrt]
-        min_samples_split: [2,5,10]
-#+END_SRC
+Finally, we should define wich metrics we care for evaluating our
+model. Here we will concentrate only in =precision= and =recall=.
 
 #+BEGIN_SRC yaml :tangle src/inspections_test.yaml
 scoring:
@@ -407,48 +482,29 @@ scoring:
             metrics: [precision@, recall@]
             thresholds:
                 percentiles: [5.0, 10.0]
-                top_n: [5, 10]
-        -
-            metrics: [f1]
-        -
-            metrics: [fbeta@]
-            parameters:
-                -
-                    beta: 0.75
-                -
-                    beta: 1.25
-
+                top_n: [5, 10, 25]
 #+END_SRC
 
+We will want as a result of our experiments, a *list* of facilities to
+be inspected. The length of our list is contrained by our inspection
+resources, i.e. the answer to the question How many facilities can I
+inpect in a month?. In this experiment we are assuming that the
+maximum capacity is *25* but we are testing also for a list of length
+*5*, and *10* (see =top_n= above).
 
-#+BEGIN_SRC yaml :tangle src/inspections_test.yaml
-# INDIVIDUAL IMPORTANCES
-# How feature importances for individuals should be computed
-# There are two variables here:
-# methods: Refer to *how to compute* individual importances.
-#   Each entry in this list should represent a different method.
-#   Available methods are in the catwalk library's:
-#   `catwalk.individual_importance.CALCULATE_STRATEGIES` list
-#   Will default to 'uniform', or just the global importances.
-#
-# n_ranks: The number of top features per individual to compute importances for
-#   Will default to 5
-#
-# This entire section can be left blank,
-# in which case the defaults will be used.
-individual_importance:
-    methods: ['uniform']
-    n_ranks: 5
+You can execute the experiment as
+
+#+BEGIN_SRC python
+experiment.run()
 #+END_SRC
 
+This will print a lot of output, and if everything is correct it will
+populate the =results= schema, it will create 4 matrices (2 for
+training, 2 for testing) in
+=triage/matrices= and store 12 models in =triage/trained_models=.
 
-
-** ▶ TODO Creating a simple experiment
-
-Using the same subset as before, we will try one of the simplest
-machine learning algorithms: a Decision Tree Classifier
-
-We began with this data set:
+Every matrix will be represented by two files, one with the metadata
+of the matrix (a =yaml= file) and the actual matrix (the =csv= file).
 
 Our train matrices look like:
 
@@ -461,6 +517,12 @@ Now let's do a real model
 
 ** Defining a baseline
 It is always a good idea define a baseline, we will use
+
+
+
+
+
+
 
 ** The grid
 
