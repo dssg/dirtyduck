@@ -348,7 +348,7 @@ utils.show_timechop(experiment.chopper, file_name="timechop_inspections_test.png
 
 #+RESULTS:
 :RESULTS:
-[[file:]]
+[[file:timechop_inspections_test.png]]
 :END:
 
 
@@ -506,14 +506,114 @@ training, 2 for testing) in
 Every matrix will be represented by two files, one with the metadata
 of the matrix (a =yaml= file) and the actual matrix (the =csv= file).
 
-Our train matrices look like:
+You can check with which matrix the models where trained
 
-And the test matrices:
+#+BEGIN_SRC sql
+select
+model_id, model_group_id, model_hash,
+train_end_time, train_matrix_uuid
+from results.models
+order by model_group_id, train_end_time asc
+#+END_SRC
 
-We can check the results of the experiment here:
+#+RESULTS:
+:RESULTS:
+| model_id | model_group_id | model_hash                        | train_end_time        | train_matrix_uuid                  |
+|---------+--------------+----------------------------------+---------------------+----------------------------------|
+|       1 |            1 | 243410f30a8f65afe1a973ba56b80f20 | 2015-12-01 00:00:00 | 8190bdffd7f8bf3012fa86f0361e50e4 |
+|       7 |            1 | e82dfefda1870a4def36777632278bb7 | 2016-12-01 00:00:00 | b43a980854e099571529470fa939db8a |
+|       2 |            2 | 58e5ae64e6bfee31a4bc49ac9dc6cfd6 | 2015-12-01 00:00:00 | 8190bdffd7f8bf3012fa86f0361e50e4 |
+|       8 |            2 | 372c74795329124d375071c179b7d02b | 2016-12-01 00:00:00 | b43a980854e099571529470fa939db8a |
+|       3 |            3 | c0be0b9246c248fbc2e364e1fded4550 | 2015-12-01 00:00:00 | 8190bdffd7f8bf3012fa86f0361e50e4 |
+|       9 |            3 | 05e5f34055c2eea4feb21da9cace695e | 2016-12-01 00:00:00 | b43a980854e099571529470fa939db8a |
+|       4 |            4 | 5bf2df1a258f28b3748d5f23e265ebce | 2015-12-01 00:00:00 | 8190bdffd7f8bf3012fa86f0361e50e4 |
+|      10 |            4 | b1f99d67b2fd5ee9c6c14f9d15cddfb0 | 2016-12-01 00:00:00 | b43a980854e099571529470fa939db8a |
+|       5 |            5 | 681652c9811752c5eb9f05e69c8034d7 | 2015-12-01 00:00:00 | 8190bdffd7f8bf3012fa86f0361e50e4 |
+|      11 |            5 | f1df36a2b6d7f61507a15bf5e9b0dc45 | 2016-12-01 00:00:00 | b43a980854e099571529470fa939db8a |
+|       6 |            6 | cb49e07115224f80ae72c10472a248da | 2015-12-01 00:00:00 | 8190bdffd7f8bf3012fa86f0361e50e4 |
+|      12 |            6 | 3b7e7f380cc6f22cb6f256532e511ce6 | 2016-12-01 00:00:00 | b43a980854e099571529470fa939db8a |
+:END:
+
+As expected, we have two models per model group. Each model was trained
+with the matrix indicated in the column =train_matrix_uuid=. This =uuid=
+also is the file name of the stored matrix. The model itself was
+stored under the file named with the =model_hash=.
+
+For example, the model =7= was stored as
+=/triage/trained_models/= src_sql{select train_matrix_uuid from
+results.models where model_id = 7}
+using the standard serialization of sklearn models. This model was
+trained with the matrix src_sql{select train_matrix_uuid from
+results.models where model_id = 7} stored in the directory
+=/triage/matrices=.
+
+The model =7= used the following hyperparameters:
+
+#+BEGIN_SRC sql
+select model_parameters from results.models where model_id = 7
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_parameters                   |
+|-----------------------------------|
+| {"max_depth": 1, "max_features": 1} |
+:END:
 
 
-Now let's do a real model
+The same model =7= is part of the model group src_sql{select model_group_id
+from results.models where model_id = 7}. That model group
+
+#+BEGIN_SRC sql
+select model_group_id, model_type, model_config from results.model_groups where model_group_id = 1
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_group_id | model_type                           | model_config                                             |
+|--------------+-------------------------------------+---------------------------------------------------------|
+|            1 | sklearn.tree.DecisionTreeClassifier | {"experiment_type": "test", "label_definition": "failed"} |
+:END:
+
+The features used by that model are:
+
+#+BEGIN_SRC sql
+select unnest(feature_list) from results.model_groups where model_group_id = 1
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| unnest                                          |
+|-------------------------------------------------|
+| inspections_entity_id_1y_inspection_type_complaint_sum |
+| inspections_entity_id_1y_inspection_type__NULL_sum     |
+| inspections_zip_code_1y_inspection_type_complaint_sum  |
+| inspections_zip_code_1y_inspection_type__NULL_sum      |
+:END:
+
+Finally, the performance of the model =7= are:
+
+#+BEGIN_SRC sql
+select model_id, metric || parameter as metric, value from results.evaluations where model_id = 7 order by metric || parameter
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_id | metric            |                value |
+|---------+-------------------+----------------------|
+|       7 | precision@10.0_pct |  0.16831683168316833 |
+|       7 | precision@10_abs   |                  0.0 |
+|       7 | precision@25_abs   |                  0.0 |
+|       7 | precision@5.0_pct  |  0.15254237288135594 |
+|       7 | precision@5_abs    |                  0.0 |
+|       7 | recall@10.0_pct    | 0.089473684210526316 |
+|       7 | recall@10_abs      |                  0.0 |
+|       7 | recall@25_abs      |                  0.0 |
+|       7 | recall@5.0_pct     |  0.04736842105263158 |
+|       7 | recall@5_abs       |                  0.0 |
+:END:
+
+As expected, the model is very bad.
 
 ** Defining a baseline
 It is always a good idea define a baseline, we will use
