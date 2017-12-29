@@ -16,7 +16,7 @@
 
 
 * ▶ TODO Problem description
-
+EIS the join starts from entity (entity centric) (if you don't have an outcome you are doing good)
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/

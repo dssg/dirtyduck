@@ -21,11 +21,6 @@
   used in several examples around the web (e.g. [fn:4],  [fn:1], [fn:2])
 
 
-Inspection the join starts from outcomes (outcome centric) (if you haven't been inspected, we can not said anything about you)
-
-
-EIS the join starts from entity (entity centric) (if you don't have an outcome you are doing good)
-
 * What do you need for this tutorial?
 
   [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
