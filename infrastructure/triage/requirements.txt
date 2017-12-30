@@ -1,0 +1,18 @@
+boto3
+Click
+python-dotenv
+psycopg2
+SQLALchemy
+pymc3
+pandas
+numpy
+seaborn
+scikit-learn
+ipython
+jupyter
+pgcli
+prompt_toolkit
+click-repl
+
+## DSaPP stuff
+git+https://github.com/dssg/triage.git@dummy_classifier
