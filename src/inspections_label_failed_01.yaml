@@ -1,0 +1,163 @@
+config_version: 'v3'
+
+model_comment: 'inspections'
+
+user_metadata:
+  label_definition: 'failed'
+  experiment_type: 'exploratory'
+  org: 'DSaPP'
+  team: 'Chicago Data Science'
+  author: 'Your name here'
+
+temporal_config:
+    feature_start_time: '2012-02-01'
+    feature_end_time: '2017-02-01'
+    label_start_time: '2012-02-01'
+    label_end_time: '2017-02-01'
+
+    model_update_frequency: '1y'
+    training_label_timespans: ['1month']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '1month'
+    test_label_timespans: ['1month']
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '10y'
+
+events_table: inspections.failed
+
+feature_aggregations:
+    -
+        prefix: 'inspections'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -
+                column: 'type'
+                choice_query: 'select distinct type from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+
+    -
+        prefix: 'risks'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -
+                column: 'risk'
+                choice_query: 'select distinct risk from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+            - 'facility_type'
+
+
+    -
+        prefix: 'results'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -
+                column: 'result'
+                choice_query: 'select distinct result from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+            - 'facility_type'
+
+
+
+state_config:
+    table_name: 'inspections.active_facilities'
+    state_filters:
+       - 'active'
+
+grid_config:
+    'sklearn.ensemble.RandomForestClassifier':
+        max_features: [1, 'sqrt']
+        criterion: ['gini']
+        n_estimators: [10, 100]
+        min_samples_split: [2,5,10]
+        max_depth: [2,5,10]
+        class_weight: [null, 'balanced']
+    'sklearn.ensemble.ExtraTreesClassifier':
+        max_features: [1,'sqrt']
+        criterion: ['gini']
+        n_estimators: [10000]
+        min_samples_split: [2, 5,10]
+        max_depth: [2,5,10]
+        n_jobs: [-1]
+        class_weight: [null,'balanced', 'balanced_subsample']
+    'sklearn.tree.DecisionTreeClassifier':
+        criterion: ['gini']
+        min_samples_split: [2,5,10]
+        class_weight: [null,'balanced']
+        max_depth: [1,null]
+        max_features: [1, sqrt, null]
+
+feature_group_definition:
+   prefix: ['inspections', 'results', 'risks']
+
+feature_group_strategies: ['all', 'leave-one-out', 'leave-one-in']
+
+model_group_keys:
+    - 'label_definition'
+    - 'experiment_type'
+    - 'org'
+    - 'team'
+
+scoring:
+    sort_seed: 1234
+    metric_groups:
+        -
+            metrics: ['precision@', 'recall@']
+            thresholds:
+                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+                top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
