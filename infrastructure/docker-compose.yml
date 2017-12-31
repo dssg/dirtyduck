@@ -17,7 +17,6 @@ services:
       context: ./bastion
     image: tutorial/bastion
     container_name: tutorial_bastion
-    #working_dir: /app
     command: bash
     #user: ${UID}:${GID}
     tty: true
@@ -34,10 +33,10 @@ services:
       context: ./triage
     image: tutorial/triage
     container_name: tutorial_triage
-    command: repl
+    command: "--help"
     env_file: .env
     environment:
-      FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
+      TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
     volumes:
       - "../src:/code"
 

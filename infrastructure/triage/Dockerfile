@@ -14,4 +14,4 @@ COPY setup.py /triage_experiment/
 
 RUN pip install --editable .
 
-#ENTRYPOINT ["python", "run.py"]
+ENTRYPOINT [ "triage_experiment" ]

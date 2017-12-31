@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 import os
@@ -19,8 +18,9 @@ from triage.experiments import SingleThreadedExperiment
               help="Triage's experiment congiguration file", required=True)
 @click.option('--triage_db', envvar='TRIAGE_DB_URL', type=click.STRING,
                 help="""DB URL, in the form of 'postgresql://user:password@host_db:host_port/db',
-                        by default it gets this from the environment (TRIAGE_DB_URL)""")
-@click.option('--debug/--no-debug', default=False)
+                        by default it gets this from the environment (TRIAGE_DB_URL)""",
+              required=True)
+@click.option('--debug/--no-debug', default=False, help="Do you want a verbose output?")
 @click.pass_context
 def triage(ctx, config_file, triage_db, debug):
 
@@ -57,7 +57,8 @@ def validate(experiment):
     try:
         experiment.validate()
     except:
-        logging.error("No hay experimento")
+        logging.error("You can't validate what has not been created (experiment not found)")
+    click.echo("The experiment looks in good shape. May the force be with you")
 
 @triage.command()
 @click.pass_obj
@@ -66,5 +67,5 @@ def run(experiment):
     try:
         experiment.run()
     except:
-        logging.error("No hay experimento")
+        logging.error("You can't execute what has not been created (experiment not found)")
     click.echo("Done")
