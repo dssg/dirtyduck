@@ -33,7 +33,8 @@ services:
       context: ./triage
     image: tutorial/triage
     container_name: tutorial_triage
-    command: "--help"
+    #entrypoint: /bin/bash
+    #command: "--help"
     env_file: .env
     environment:
       TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'

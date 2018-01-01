@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e -u
 
 PROJECT="$(cat .project-name)"
 PROJECT_HOME="$( cd "$( dirname "$0" )" && pwd )"
@@ -8,44 +8,146 @@ INFRASTRUCTURE_HOME="${PROJECT_HOME}/infrastructure"
 
 cd $INFRASTRUCTURE_HOME
 
+
+function help_menu () {
+cat << EOF
+Usage: ${0} {start|stop|build|rebuild|run|logs|status|destroy|all|}
+
+OPTIONS:
+   -h|help             Show this message
+   start
+   stop
+   rebuild
+   status
+   destroy
+   -t|triage
+   -a|all
+
+EXAMPLES:
+   All the infrastructure needed is turned on!
+        $ ./tutorial.sh start
+
+   Check the status of the containers:
+        $ ./tutorial.sh status
+
+   Stop the tutorial's infrastructure:
+        $ ./tutorial.sh stop
+
+   Connect to bastion:
+        $ ./tutorial.sh bastion
+
+   Destroy all the resources related to the tutorial:
+        $ ./tutorial.sh destroy
+
+   Run experiments:
+        $ ./tutorial.sh -r
+
+   Everything!:
+        $ ./tutorial.sh -a
+
+EOF
+}
+
+function start_infrastructure () {
+    docker-compose --project-name ${PROJECT} up -d food_db
+	#tyra reverseproxy api
+}
+
+function stop_infrastructure () {
+	docker-compose  --project-name ${PROJECT} stop
+}
+
+function build_images () {
+	docker-compose  --project-name ${PROJECT} build "${@}"
+}
+
+function destroy () {
+	docker-compose  --project-name ${PROJECT} down --rmi all --remove-orphans --volumes
+}
+
+function infrastructure_logs () {
+    docker-compose --project-name ${PROJECT} logs -f -t
+}
+
+function status () {
+	docker-compose --project-name ${PROJECT} ps
+}
+
+function bastion () {
+	docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
+}
+
+function triage () {
+	docker-compose  --project-name ${PROJECT} run --rm --name triage_experiment triage "${@}"
+}
+
+function all () {
+	build_images
+	start_infrastructure
+	status
+	bastion
+}
+
+
+if [[ $# -eq 0 ]] ; then
+	help_menu
+	exit 0
+fi
+
+
+#while [[ $# > 0 ]]
+#do
 case "$1" in
     start)
-        docker-compose --project-name ${PROJECT} up -d food_db #tyra reverseproxy api
+        start_infrastructure
+		shift
         ;;
     stop)
-        docker-compose  --project-name ${PROJECT} stop
+        stop_infrastructure
+		shift
         ;;
     build)
-        docker-compose  --project-name ${PROJECT} build
+        build_images
+		shift
         ;;
     rebuild)
-        docker-compose  --project-name ${PROJECT} build --no-cache
+        build_images --no-cache
+		shift
         ;;
-    destroy)
-        docker-compose  --project-name ${PROJECT} down --rmi all --remove-orphans --volumes
+    -d|destroy)
+        destroy
+		shift
         ;;
     logs)
-        docker-compose --project-name ${PROJECT} logs -f -t
+        infrastructure_logs
+		shift
         ;;
     status)
-        docker-compose --project-name ${PROJECT} ps
-        ;;
-    run)
-        if [ "$#" -lt  "2" ]
-        then
-            echo $"Usage: $0 $1 <command>"
-            RETVAL=1
-        else
-            shift
-            docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion "$@"
-        fi
+        status
+		shift
         ;;
     bastion)
-        docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
+        bastion
+		shift
         ;;
-    *)
-        echo $"Usage: $0 {start|stop|build|rebuild|run|logs|status|destroy}"
-        RETVAL=1
+	-t|triage)
+		triage ${@:2}
+		shift
+		;;
+	-a|--all)
+        all
+        shift
+        ;;
+    -h|--help)
+        help_menu
+        shift
+        ;;
+   *)
+       echo "${1} is not a valid flag, try running: ${0} --help"
+	   shift
+       ;;
 esac
+shift
+#done
 
 cd - > /dev/null

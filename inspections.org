@@ -17,35 +17,21 @@
 
 * Problem description
 
-The scenario, is the following:  you work for the Chicago's
-  government, and you try
+The scenario, is the following:  you work for the City of Chicago and you try
   to prioritize your resources (i.e. your inspection workforce), since
-  they are limited. So, you will use the data (the same data set,
-  remember) for answering the next
-  question:
+  they are limited. So, you will use the data for answering the next question:
 
 #+begin_quote
-Which X facilities are likely to violate some rule in the
+Which X facilities are likely to violate some code in the
   following Y period of time?
 #+end_quote
 
   In this case maybe you are interested not
-  in all the violations but in the more grave.
-
- /What are you inspecting?/ (people, places, other)
- /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /What do you want to optimize for?/ (e.g. efficiency, long term
- compliance, novelty)
-
-
-Inspection the join starts from outcomes (outcome centric) (if you
-haven't been inspected, we can not said anything about you)
-
+  in all the violations but in the more severe ones.
 
 * Creating the labels
 
-Let's remember how the table looks like:
+Let's remember how the =events= table looks like:
 
  #+begin_src sql
  \d semantic.events
@@ -116,8 +102,9 @@ group by inspection, result
 | inspection | result | array_agg                                                 | failed | failed_major_violation |
 |------------+--------+----------------------------------------------------------+--------+----------------------|
 |    1763967 | fail   | {critical,serious,serious,minor,minor,minor,minor,minor} | t      | t                    |
-|    1770568 | pass   | {critical,serious,serious,minor,minor,minor}             | f      | f                    |
+|    1770568 | pass   | {critical,serious,serious,minor,minor}                   | f      | f                    |
 |    1343315 | fail   | {serious,serious,serious,serious,minor,minor}            | t      | t                    |
+|     537439 | fail   | {NULL}                                                   | t      | [NULL]               |
 :END:
 
 
@@ -138,7 +125,7 @@ name (some) columns, in specific, our columns should include:
 =outcome_date= the date at which some outcome was known, =outcome= a
 boolean outcome.
 
-Since we defined two labels, we will create two tables.
+Since we defined two labels, we will create two tables one per each label.
 
 #+BEGIN_SRC sql :tangle ./src/create_inspections_schema.sql
 
@@ -225,33 +212,6 @@ explain all the sections.
 The config file for this first experiment is located in
 [[src/inspections_test.yaml]].
 
-#+BEGIN_SRC python :var food_db="postgresql://food_user:some_password@0.0.0.0:5434/food"
-import os
-import yaml
-import sqlalchemy
-
-with open('src/inspections_test.yaml') as f:
-    experiment_config = yaml.load(f)
-
-
-from triage.component.catwalk.storage import FSModelStorageEngine
-from triage.experiments import SingleThreadedExperiment
-
-experiment = SingleThreadedExperiment(
-    config=experiment_config,
-    db_engine=sqlalchemy.create_engine(food_db),
-    model_storage_class=FSModelStorageEngine,
-    project_path='triage'
-)
-
-#experiment.validate()
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-:END:
-
-
 
 The first lines of the experiment config file are related to the
 version config file (=v3= at the moment of writing this tutorial), a
@@ -278,7 +238,6 @@ user_metadata:
   label_definition: 'failed'
   experiment_type: 'test'
 #+END_SRC
-
 
 Next, the *temporal configuration*  section. The first four parameters
 are related to the availability of data: How much data you have for
@@ -337,6 +296,7 @@ temporal_config:
 
 We can visualize the splitting using the function =show_timechop=
 introduced in [[file:triage_intro.org][Introduction to triage]].
+
 
 #+BEGIN_SRC python :results file drawer
 import utils
@@ -905,3 +865,18 @@ scoring:
 We are working in ...
 
 But meanwhile, you can try the following
+
+
+* Notes
+[2018-01-01 Mon 00:50]
+
+
+ /What are you inspecting?/ (people, places, other)
+ /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /What do you want to optimize for?/ (e.g. efficiency, long term
+ compliance, novelty)
+
+
+Inspection the join starts from outcomes (outcome centric) (if you
+haven't been inspected, we can not said anything about you)

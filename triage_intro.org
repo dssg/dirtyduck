@@ -11,7 +11,7 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:sh   :results output drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
 #+PROPERTY: header-args:python    :session food_inspections :results output drawer
 
@@ -72,7 +72,7 @@ For running a =triage= experiment you need the following:
 
 - =triage= installed in your environment (this is already install in the
   docker container). You can verify that =triage= is installed typying
-  the following inside an =ipython= session:
+  the following inside an =ipython= session in =bastion=:
 
 #+BEGIN_SRC python
 import triage
@@ -84,37 +84,40 @@ import triage
 
 - A database connection
 
-
-#+BEGIN_SRC python :session test  :var food_db="postgresql://food_user:some_password@0.0.0.0:5434/food"
-import os
-import sqlalchemy
-
-## One option is read from the environment
-## food_db =  os.environ.get('FOOD_DB_URL')
-
-print(food_db)
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-postgresql://food_user:some_password@0.0.0.0:5434/food
-:END:
-
 - An experiment config file, we will discuss this file at length in this
   section of the tutorial.
 
-#+BEGIN_SRC python
-with open('inspections_test.yaml') as f:
-    experiment_config = yaml.load(f)
+With this three components you can create your =experiment= object and
+=run= it. In this tutorial we are providing a =docker= container that
+executes =triage= experiments. You can run the container as follows:
+
+
+#+BEGIN_SRC sh
+./tutorial.sh triage
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
+Usage: triage_experiment [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --config_file PATH    Triage's experiment congiguration file  [required]
+  --triage_db TEXT      DB URL, in the form of
+                        'postgresql://user:password@host_db:host_port/db',
+                        by
+                        default it gets this from the environment
+                        (TRIAGE_DB_URL)  [required]
+  --debug / --no-debug  Do you want a verbose output?
+  --help                Show this message and exit.
+
+Commands:
+  debug_features
+  debug_temporal_blocks
+  run
+  validate
 :END:
 
 
-With this three components you can create your =experiment= object and
-=run= it.
 
 *** Configuration file
 
@@ -150,34 +153,25 @@ The configuration file is a =yaml= file with the following main sections:
 
 *** The =Experiment= object
 
-Everything revolves around the =experiment= object. You can instantiate
+Everything revolves around the =experiment= object. You can validate
 an =experiment= as follows:
 
-
-#+BEGIN_SRC python
-from triage.component.catwalk.storage import FSModelStorageEngine
-from triage.experiments import SingleThreadedExperiment
-
-experiment = SingleThreadedExperiment(
-    config=experiment_config,
-    db_engine=sqlalchemy.create_engine(food_db),
-    model_storage_class=FSModelStorageEngine,
-    project_path='triage'
-)
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file /code/inspections_test.yaml validate
 #+END_SRC
 
-The =experiment= object supports some basic validation:
-
-#+BEGIN_SRC python
-experiment.validate()
-#+END_SRC
+#+RESULTS:
+:RESULTS:
+Creating experiment object
+Experiment loaded
+Validating experiment's configuration
+:END:
 
 If you are ready for run it, you could start your experiment with:
 
-#+BEGIN_SRC python
-experiment.run()
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file /code/inspections_test.yaml run
 #+END_SRC
-
 
 ** Temporal crossvalidation
 
@@ -226,40 +220,24 @@ Timechop requires the following parameters:
 (test prediction span)
 # time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
 
+You can use the docker image provider for getting an image about the
+temporal blocks configuration, for example [[file:src/inspections_test.yaml][inspections_test.yaml]] has the following temporal structure:
 
-#+BEGIN_SRC python
-experiment.config['temporal_config']
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file /code/inspections_test.yaml show_temporal_blocks
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
+Creating experiment object
+Experiment loaded
+Generating temporal blocks image
+Image stored in:
+/code/inspections_test.png
 :END:
 
-
-#+BEGIN_EXAMPLE
-    model_update_frequency='1year',
-    training_label_timespans='3month',
-    training_as_of_date_frequencies='3month',
-    max_training_histories='2year',
-
-    test_durations='3month',
-    test_label_timespans='3month',
-    test_as_of_date_frequencies='1month'
-#+END_EXAMPLE
-
-With that configuration our time splits looks like:
-
-#+BEGIN_SRC python :results file
-import utils
-
-utils.show_timechop(utils.chopper, file_name="timechop_example.png")
-
-return "timechop_example.png"
-#+END_SRC
-
-#+RESULTS:
-[[file:timechop_example.png]]
-
+[[./src/inspections_test.png]]
 
 ** Feature engineering
 
@@ -310,6 +288,7 @@ select * from triage.active_facilities limit 5;
 |     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2017-05-26 |
 |     9547 | restaurant   | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | 2011-10-05 |
 :END:
+
 
 Almost all the components of =triage= works with =SQL= tables stored  in
 =PostgreSQL= (this is very important to remember), so, let's create our
@@ -1318,3 +1297,16 @@ section in the config file.
 ** ▶ TODO Audition
 
 ** ▶ TODO Post-modeling
+
+* Notas
+
+
+#+BEGIN_SRC python :session test  :var food_db="postgresql://food_user:some_password@0.0.0.0:5434/food"
+import os
+import sqlalchemy
+
+## One option is read from the environment
+## food_db =  os.environ.get('FOOD_DB_URL')
+
+print(food_db)
+#+END_SRC
