@@ -127,25 +127,11 @@ grid_config:
         min_samples_split: [2,5,10]
         max_depth: [2,5,10]
         class_weight: [null, 'balanced']
-    'sklearn.ensemble.ExtraTreesClassifier':
-        max_features: [1,'sqrt']
-        criterion: ['gini']
-        n_estimators: [10000]
-        min_samples_split: [2, 5,10]
-        max_depth: [2,5,10]
-        n_jobs: [-1]
-        class_weight: [null,'balanced', 'balanced_subsample']
-    'sklearn.tree.DecisionTreeClassifier':
-        criterion: ['gini']
-        min_samples_split: [2,5,10]
-        class_weight: [null,'balanced']
-        max_depth: [1,null]
-        max_features: [1, sqrt, null]
 
 feature_group_definition:
    prefix: ['inspections', 'results', 'risks']
 
-feature_group_strategies: ['all', 'leave-one-out', 'leave-one-in']
+feature_group_strategies: ['all']
 
 model_group_keys:
     - 'label_definition'
