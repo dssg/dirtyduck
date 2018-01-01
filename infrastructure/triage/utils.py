@@ -1,5 +1,8 @@
 # coding: utf-8
 
+import matplotlib
+matplotlib.use('Agg')
+
 import pandas as pd
 import numpy as np
 
@@ -21,24 +24,6 @@ from triage.util.conf import convert_str_to_relativedelta
 
 
 FIG_SIZE = (16,8)
-
-df = pd.read_csv("src/df.csv", parse_dates=['date'])
-
-chopper = timechop.Timechop(
-    feature_start_time=np.min(df.date),
-    feature_end_time=np.max(df.date),
-    label_start_time=np.min(df.date),
-    label_end_time=np.max(df.date),
-
-    model_update_frequency='1year', # 3months
-    training_label_timespans='3month', # 1day
-    training_as_of_date_frequencies='3month', #1day
-    max_training_histories='2year', # 1year
-
-    test_durations='3month', # 1day
-    test_label_timespans='3month', # 3months
-    test_as_of_date_frequencies='1month' # 1day
-)
 
 def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_name=None):
 

@@ -12,9 +12,10 @@ import click
 from triage.component.catwalk.storage import FSModelStorageEngine
 from triage.experiments import SingleThreadedExperiment
 
+from utils import show_timechop, show_features_queries
 
 @click.group()
-@click.option('--config_file', type=click.Path(exists=True, resolve_path=True),
+@click.option('--config_file', type=click.Path(),
               help="Triage's experiment congiguration file", required=True)
 @click.option('--triage_db', envvar='TRIAGE_DB_URL', type=click.STRING,
                 help="""DB URL, in the form of 'postgresql://user:password@host_db:host_port/db',
@@ -42,30 +43,30 @@ def triage(ctx, config_file, triage_db, debug):
 
 @triage.command()
 @click.pass_obj
-def debug_features(experiment):
+def show_feature_generators(experiment):
     pass
 
 @triage.command()
 @click.pass_obj
-def debug_temporal_blocks(experiment):
-    pass
+def show_temporal_blocks(experiment):
+    click.echo("Generating temporal blocks image")
+    chopper = experiment.chopper
+    file_name = f"/code/{experiment.config['model_comment']}.png"
+    show_timechop(chopper, file_name=file_name)
+    click.echo("Image stored in:")
+    click.echo(file_name)
+    return file_name
 
 @triage.command()
 @click.pass_obj
 def validate(experiment):
     click.echo("Validating experiment's configuration")
-    try:
-        experiment.validate()
-    except:
-        logging.error("You can't validate what has not been created (experiment not found)")
+    experiment.validate()
     click.echo("The experiment looks in good shape. May the force be with you")
 
 @triage.command()
 @click.pass_obj
 def run(experiment):
     click.echo("Executing experiment")
-    try:
-        experiment.run()
-    except:
-        logging.error("You can't execute what has not been created (experiment not found)")
+    experiment.run()
     click.echo("Done")

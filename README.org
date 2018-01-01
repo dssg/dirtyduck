@@ -26,8 +26,6 @@
   [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
   Use the links for installing instructions.
 
-
-
 * Description of the problem to solve
 
 In this tutorial, we have two different goals: (1) an *EIS* and
@@ -55,22 +53,7 @@ In this tutorial, we have two different goals: (1) an *EIS* and
   and a /Inspection prioritization/.
 
 
-  We will use the /same/ data set, first, we will be the restaurant's
-  owner, and we want to know:
-
-#+begin_quote
-Will my restaurant be inspected in the
-/next X period of time?/
-#+end_quote
-
-Where $X$ could be 1 month, 1 week, 1 year,
-etc.
-
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
-
-
-  The second scenario, is the following:  you work for the Chicago's
+  The first scenario, is the following:  you work for the Chicago's
   government, and you try
   to prioritize your resources (i.e. your inspection workforce), since
   they are limited. So, you will use the data (the same data set,
@@ -84,6 +67,23 @@ Which X facilities are likely to violate some rule in the
 
   In this case maybe you are interested not
   in all the violations but in the more grave.
+
+
+
+  We will use the /same/ data set, second, we will be the restaurant's
+  owner, and we want to know:
+
+#+begin_quote
+Will my restaurant be inspected in the
+/next X period of time?/
+#+end_quote
+
+Where $X$ could be 1 month, 1 week, 1 year,
+etc.
+
+  Knowing the answer to this question, allows you (as the restaurant's
+  owner) to be prepared and take the pertinent actions.
+
 
   This tutorial is divided in the following sections
 

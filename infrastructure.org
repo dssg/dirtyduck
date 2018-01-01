@@ -46,18 +46,51 @@
   Next run the following command
 
   #+BEGIN_SRC shell
-    ./manage.sh
+    ./tutorial.sh
   #+END_SRC
 
   #+RESULTS:
   :RESULTS:
-  Usage: ./manage.sh {start|stop|build|rebuild|run|logs|status|destroy}
+  Usage: ./tutorial.sh {start|stop|build|rebuild|run|logs|status|destroy|all|}
+
+  OPTIONS:
+	 -h|help             Show this message
+	 start
+	 stop
+	 rebuild
+	 status
+	 destroy
+	 -t|triage
+	 -a|all
+
+  EXAMPLES:
+	 All the infrastructure needed is turned on!
+		  $ ./tutorial.sh start
+
+	 Check the status of the containers:
+		  $ ./tutorial.sh status
+
+	 Stop the tutorial's infrastructure:
+		  $ ./tutorial.sh stop
+
+	 Connect to bastion:
+		  $ ./tutorial.sh bastion
+
+	 Destroy all the resources related to the tutorial:
+		  $ ./tutorial.sh destroy
+
+	 Run experiments:
+		  $ ./tutorial.sh -r
+
+	 Everything!:
+		  $ ./tutorial.sh -a
+
   :END:
 
   We need to create the infrastructure so, =start= it
 
   #+BEGIN_SRC shell
-    ./manage.sh start
+    ./tutorial.sh start
   #+END_SRC
 
   #+RESULTS:
@@ -68,15 +101,17 @@
 
   You can check that everything is running smoothly with =status=
 
-  #+BEGIN_SRC shell
-    ./manage.sh status
+  #+BEGIN_SRC shell :results raw drawer
+    ./tutorial.sh status
+    :
   #+END_SRC
 
   #+RESULTS:
   :RESULTS:
-	   Name                    Command              State            Ports
+       Name                    Command              State            Ports
   ---------------------------------------------------------------------------------
   food_db           docker-entrypoint.sh postgres   Up       0.0.0.0:5434->5432/tcp
+  tutorial_triage   triage_experiment --help        Exit 0
   :END:
 
 
@@ -92,7 +127,7 @@
   For accessing to the =postgresql= client type:
 
   #+BEGIN_EXAMPLE shel
-  ./manage.sh bastion
+  ./tutorial.sh bastion
   #+END_EXAMPLE
 
   You will see something like:
@@ -149,6 +184,6 @@
 
 
   *NOTE*: If you want to clean your laptop of all this, you should type
-  =./manage.sh destroy=. But don't to that now!
+  =./tutorial.sh destroy=. But don't to that now!
 
   Well, you are all set now. Let's start now.
