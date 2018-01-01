@@ -1073,125 +1073,23 @@ other_facility_type, date, count(*)
 from inspections_nearby
 group by
 inspection, entity_id, location, facility_type, other_facility_type, date
+limit 10
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| inspection | entity_id | location                                           | facility_type | other_facility_type | count |
-|------------+------------+----------------------------------------------------+--------------+-------------------+-------|
-|    1084330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1084330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1300635 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1300635 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1300685 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1300685 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1375554 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1375554 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1480275 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1480275 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1480330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1480330 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1480333 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1480333 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1515783 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1515783 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1583214 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1583214 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|    1966659 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|    1966659 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     347278 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     347278 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     347279 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     347279 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547248 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547248 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547249 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547249 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547250 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547250 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547251 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547251 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547252 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547252 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547253 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547253 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547254 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547254 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547255 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547255 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547256 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547256 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547257 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547257 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     547258 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     547258 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579388 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579388 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579389 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579389 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579390 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579390 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579391 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579391 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579392 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579392 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579395 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579395 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579396 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579396 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579397 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579397 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579399 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579399 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579402 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579402 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579403 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579403 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579404 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579404 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579405 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579405 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579410 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579410 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579412 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579412 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579413 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579413 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579414 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579414 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579416 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | liquor       | restaurant        |    56 |
-|     579419 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579419 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579420 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579420 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579421 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579421 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579422 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579422 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579423 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579423 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579424 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579424 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579431 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579431 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579432 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579432 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     579434 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     579434 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|      58536 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|      58536 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|      58537 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|      58537 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|      58538 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|      58538 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|      58539 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|      58539 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|      58540 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|      58540 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     612586 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     612586 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
-|     659526 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | liquor            |     1 |
-|     659526 |    1974745 | 0101000020E6100000FCE5ED7127EB55C0C56C2285CCF04440 | restaurant   | restaurant        |    55 |
+| inspection | entity_id | location                                           | facility_type | other_facility_type |       date | count |
+|------------+----------+----------------------------------------------------+--------------+-------------------+------------+-------|
+|    1150878 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | restaurant        | 2012-10-26 |     1 |
+|    1150878 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | school            | 2012-10-26 |     1 |
+|    1335951 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | restaurant        | 2013-06-06 |     1 |
+|    1335951 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | school            | 2013-06-06 |     2 |
+|    1353423 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | grocery store     | 2013-07-01 |     1 |
+|    1360667 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | grocery store     | 2013-09-04 |     1 |
+|    1591635 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | grocery store     | 2015-12-14 |     1 |
+|    1657238 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | restaurant        | 2016-02-25 |     1 |
+|     401429 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | gas station       | 2011-01-13 |     1 |
+|     401429 |     9547 | 0101000020E6100000BF53EAB21DE855C0EC6799AE73E24440 | restaurant   | wholesale         | 2011-01-13 |     1 |
 :END:
 
 #+BEGIN_SRC python
@@ -1297,16 +1195,3 @@ section in the config file.
 ** ▶ TODO Audition
 
 ** ▶ TODO Post-modeling
-
-* Notas
-
-
-#+BEGIN_SRC python :session test  :var food_db="postgresql://food_user:some_password@0.0.0.0:5434/food"
-import os
-import sqlalchemy
-
-## One option is read from the environment
-## food_db =  os.environ.get('FOOD_DB_URL')
-
-print(food_db)
-#+END_SRC
