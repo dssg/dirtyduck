@@ -24,7 +24,7 @@ zip_code,
 count(*) as total_inspections,
 coalesce(count(*) filter (where result = 'fail'), 0)
 as total_failures
-from cleaned.inspections
+from semantic.events
 group by zip_code
 order by total_inspections desc
 limit 10
@@ -34,143 +34,50 @@ limit 10
 :RESULTS:
 | zip_code | total_inspections | total_failures |
 |---------+------------------+---------------|
-|   60614 |             5262 |          1241 |
-|   60647 |             4835 |          1057 |
-|   60657 |             4761 |          1083 |
-|   60611 |             4709 |           788 |
-|   60622 |             4550 |          1152 |
-|   60608 |             4182 |          1022 |
-|   60618 |             4168 |           727 |
-|   60639 |             3753 |           921 |
-|   60607 |             3731 |           841 |
-|   60640 |             3671 |           983 |
+|   60614 |             5223 |          1229 |
+|   60647 |             4820 |          1047 |
+|   60657 |             4748 |          1070 |
+|   60611 |             4519 |           754 |
+|   60622 |             4495 |          1133 |
+|   60618 |             4159 |           722 |
+|   60608 |             4068 |           979 |
+|   60639 |             3699 |           901 |
+|   60607 |             3687 |           828 |
+|   60640 |             3599 |           941 |
 :END:
 
 /Which is the temporal distribution of the inspections?/
 
 #+BEGIN_SRC sql
 select
-year, month,
+extract(year from date) as year, extract(month from date) as month,
 count(*) as total_inspections,
 coalesce(count(*) filter (where result = 'fail'), 0)
 as total_failures
-from cleaned.inspections
+from semantic.events
 group by rollup(year, month)
 order by year asc, month asc
+limit 10
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-|   year |  month | total_inspections | total_failures |
-|--------+--------+------------------+---------------|
-|   2010 |      1 |             1279 |           330 |
-|   2010 |      2 |             1398 |           342 |
-|   2010 |      3 |             1478 |           350 |
-|   2010 |      4 |             1439 |           401 |
-|   2010 |      5 |             1541 |           389 |
-|   2010 |      6 |             1753 |           455 |
-|   2010 |      7 |             1275 |           367 |
-|   2010 |      8 |             1541 |           407 |
-|   2010 |      9 |             1640 |           427 |
-|   2010 |     10 |             1649 |           437 |
-|   2010 |     11 |             1201 |           308 |
-|   2010 |     12 |             1186 |           291 |
-|   2010 | [NULL] |            17380 |          4504 |
-|   2011 |      1 |             1259 |           287 |
-|   2011 |      2 |             1272 |           255 |
-|   2011 |      3 |             1693 |           380 |
-|   2011 |      4 |             1421 |           345 |
-|   2011 |      5 |             1645 |           362 |
-|   2011 |      6 |             1681 |           419 |
-|   2011 |      7 |             1311 |           346 |
-|   2011 |      8 |             1547 |           442 |
-|   2011 |      9 |             1481 |           417 |
-|   2011 |     10 |             1494 |           397 |
-|   2011 |     11 |             1552 |           396 |
-|   2011 |     12 |             1228 |           310 |
-|   2011 | [NULL] |            17584 |          4356 |
-|   2012 |      1 |             1290 |           302 |
-|   2012 |      2 |             1165 |           259 |
-|   2012 |      3 |             1339 |           302 |
-|   2012 |      4 |             1288 |           301 |
-|   2012 |      5 |             1682 |           382 |
-|   2012 |      6 |             1375 |           312 |
-|   2012 |      7 |             1227 |           310 |
-|   2012 |      8 |             1451 |           364 |
-|   2012 |      9 |             1406 |           324 |
-|   2012 |     10 |             1421 |           322 |
-|   2012 |     11 |             1347 |           274 |
-|   2012 |     12 |             1022 |           188 |
-|   2012 | [NULL] |            16013 |          3640 |
-|   2013 |      1 |             1426 |           261 |
-|   2013 |      2 |             1281 |           260 |
-|   2013 |      3 |             1407 |           269 |
-|   2013 |      4 |             1542 |           288 |
-|   2013 |      5 |             1692 |           331 |
-|   2013 |      6 |             1336 |           271 |
-|   2013 |      7 |             1306 |           274 |
-|   2013 |      8 |             1440 |           297 |
-|   2013 |      9 |             1628 |           375 |
-|   2013 |     10 |             1596 |           287 |
-|   2013 |     11 |             1265 |           235 |
-|   2013 |     12 |             1147 |           201 |
-|   2013 | [NULL] |            17066 |          3349 |
-|   2014 |      1 |             1228 |           231 |
-|   2014 |      2 |             1285 |           262 |
-|   2014 |      3 |             1464 |           258 |
-|   2014 |      4 |             1675 |           325 |
-|   2014 |      5 |             1706 |           336 |
-|   2014 |      6 |             1635 |           331 |
-|   2014 |      7 |             1522 |           345 |
-|   2014 |      8 |             1756 |           379 |
-|   2014 |      9 |             1761 |           380 |
-|   2014 |     10 |             1843 |           371 |
-|   2014 |     11 |             1353 |           278 |
-|   2014 |     12 |             1392 |           223 |
-|   2014 | [NULL] |            18620 |          3719 |
-|   2015 |      1 |             1429 |           301 |
-|   2015 |      2 |             1229 |           267 |
-|   2015 |      3 |             1525 |           330 |
-|   2015 |      4 |             1426 |           285 |
-|   2015 |      5 |             1455 |           292 |
-|   2015 |      6 |             1600 |           303 |
-|   2015 |      7 |             1400 |           295 |
-|   2015 |      8 |             1579 |           336 |
-|   2015 |      9 |             1676 |           322 |
-|   2015 |     10 |             1755 |           344 |
-|   2015 |     11 |             1479 |           280 |
-|   2015 |     12 |             1338 |           252 |
-|   2015 | [NULL] |            17891 |          3607 |
-|   2016 |      1 |             1411 |           298 |
-|   2016 |      2 |             1297 |           307 |
-|   2016 |      3 |             1944 |           402 |
-|   2016 |      4 |             1711 |           372 |
-|   2016 |      5 |             1780 |           379 |
-|   2016 |      6 |             1949 |           438 |
-|   2016 |      7 |             1373 |           309 |
-|   2016 |      8 |             1868 |           435 |
-|   2016 |      9 |             1914 |           420 |
-|   2016 |     10 |             1695 |           369 |
-|   2016 |     11 |             1537 |           319 |
-|   2016 |     12 |             1380 |           250 |
-|   2016 | [NULL] |            19859 |          4298 |
-|   2017 |      1 |             1560 |           325 |
-|   2017 |      2 |             1398 |           321 |
-|   2017 |      3 |             1835 |           412 |
-|   2017 |      4 |             1445 |           349 |
-|   2017 |      5 |             1816 |           392 |
-|   2017 |      6 |             1925 |           414 |
-|   2017 |      7 |             1296 |           293 |
-|   2017 |      8 |             1607 |           364 |
-|   2017 |      9 |             1547 |           361 |
-|   2017 |     10 |             1577 |           363 |
-|   2017 |     11 |             1208 |           264 |
-|   2017 |     12 |              127 |            32 |
-|   2017 | [NULL] |            17341 |          3890 |
-| [NULL] | [NULL] |           141754 |         31363 |
+| year | month | total_inspections | total_failures |
+|------+-------+------------------+---------------|
+| 2010 |     1 |             1143 |           273 |
+| 2010 |     2 |             1284 |           280 |
+| 2010 |     3 |             1363 |           310 |
+| 2010 |     4 |             1356 |           378 |
+| 2010 |     5 |             1478 |           356 |
+| 2010 |     6 |             1667 |           413 |
+| 2010 |     7 |             1238 |           353 |
+| 2010 |     8 |             1515 |           396 |
+| 2010 |     9 |             1599 |           406 |
+| 2010 |    10 |             1611 |           414 |
 :END:
 
-The number of inspections per month, is stable.
+The number of inspections per month and the number of failed
+inspections seem to be more or less constant.
 
 #+BEGIN_SRC sql
   select
@@ -188,16 +95,16 @@ The number of inspections per month, is stable.
 :RESULTS:
 | code | description                                                                                                                            | severity | total |
 |------+----------------------------------------------------------------------------------------------------------------------------------------+----------+-------|
-|   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                  | minor    | 78093 |
-|   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS                   | minor    | 69385 |
-|   33 | FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS                                                        | minor    | 68917 |
-|   38 | VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED                                                | minor    | 59026 |
-|   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                       | minor    | 58680 |
-|   41 | PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED                                          | minor    | 37340 |
-|   18 | NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS | serious  | 29601 |
-|   36 | LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED                                                           | minor    | 28538 |
-|   40 | REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS                                                                     | minor    | 17424 |
-|   30 | FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | minor    | 17359 |
+|   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                  | minor    | 78383 |
+|   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS                   | minor    | 69637 |
+|   33 | FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS                                                        | minor    | 69117 |
+|   38 | VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED                                                | minor    | 59218 |
+|   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                       | minor    | 58874 |
+|   41 | PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED                                          | minor    | 37471 |
+|   18 | NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS | serious  | 29709 |
+|   36 | LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED                                                           | minor    | 28606 |
+|   40 | REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS                                                                     | minor    | 17463 |
+|   30 | FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | minor    | 17414 |
 :END:
 
 This looks weird, the top most "violation" is not an actual
@@ -214,201 +121,27 @@ violation. We will repeat the query, we will group by the =results=
 
 
   select code, result,
-  count(code)
+  count(code) as count
   from inspections_violations
   group by rollup(code, result)
+  order by count desc
+  limit 10
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-|   code | result             |  count |
-|--------+--------------------+--------|
-|        | fail               |   2877 |
-|        | pass               |   9705 |
-|        | pass w/ conditions |    119 |
-|        | [NULL]             |  12701 |
-|      1 | fail               |    347 |
-|      1 | pass               |     62 |
-|      1 | pass w/ conditions |    287 |
-|      1 | [NULL]             |    696 |
-|     10 | fail               |    740 |
-|     10 | pass               |    367 |
-|     10 | pass w/ conditions |    162 |
-|     10 | [NULL]             |   1269 |
-|     11 | fail               |   2757 |
-|     11 | pass               |   1650 |
-|     11 | pass w/ conditions |    701 |
-|     11 | [NULL]             |   5108 |
-|     12 | fail               |   1848 |
-|     12 | pass               |    625 |
-|     12 | pass w/ conditions |   1018 |
-|     12 | [NULL]             |   3491 |
-|     13 | fail               |    568 |
-|     13 | pass               |    274 |
-|     13 | pass w/ conditions |     33 |
-|     13 | [NULL]             |    875 |
-|     14 | fail               |    801 |
-|     14 | pass               |    570 |
-|     14 | pass w/ conditions |    684 |
-|     14 | [NULL]             |   2055 |
-|     15 | pass               |      3 |
-|     15 | pass w/ conditions |      1 |
-|     15 | [NULL]             |      4 |
-|     16 | fail               |   3456 |
-|     16 | pass               |   2334 |
-|     16 | pass w/ conditions |   1451 |
-|     16 | [NULL]             |   7241 |
-|     17 | fail               |     55 |
-|     17 | pass               |      5 |
-|     17 | pass w/ conditions |     61 |
-|     17 | [NULL]             |    121 |
-|     18 | fail               |  16051 |
-|     18 | pass               |  12569 |
-|     18 | pass w/ conditions |    981 |
-|     18 | [NULL]             |  29601 |
-|     19 | fail               |   3806 |
-|     19 | pass               |   2826 |
-|     19 | pass w/ conditions |    502 |
-|     19 | [NULL]             |   7134 |
-|      2 | fail               |   3536 |
-|      2 | pass               |   1831 |
-|      2 | pass w/ conditions |   2603 |
-|      2 | [NULL]             |   7970 |
-|     20 | fail               |    110 |
-|     20 | pass               |     68 |
-|     20 | pass w/ conditions |     11 |
-|     20 | [NULL]             |    189 |
-|     21 | fail               |   3970 |
-|     21 | pass               |   2184 |
-|     21 | pass w/ conditions |   5012 |
-|     21 | [NULL]             |  11166 |
-|     22 | fail               |    914 |
-|     22 | pass               |    693 |
-|     22 | pass w/ conditions |    130 |
-|     22 | [NULL]             |   1737 |
-|     23 | fail               |      3 |
-|     23 | pass               |      2 |
-|     23 | [NULL]             |      5 |
-|     24 | fail               |   2949 |
-|     24 | pass               |   2180 |
-|     24 | pass w/ conditions |    285 |
-|     24 | [NULL]             |   5414 |
-|     25 | fail               |    122 |
-|     25 | pass               |     62 |
-|     25 | pass w/ conditions |     59 |
-|     25 | [NULL]             |    243 |
-|     26 | fail               |   1315 |
-|     26 | pass               |    947 |
-|     26 | pass w/ conditions |    149 |
-|     26 | [NULL]             |   2411 |
-|     27 | fail               |    281 |
-|     27 | pass               |    190 |
-|     27 | pass w/ conditions |    107 |
-|     27 | [NULL]             |    578 |
-|     28 | fail               |    587 |
-|     28 | pass               |    117 |
-|     28 | pass w/ conditions |    749 |
-|     28 | [NULL]             |   1453 |
-|     29 | fail               |   5282 |
-|     29 | pass               |   4108 |
-|     29 | pass w/ conditions |    713 |
-|     29 | [NULL]             |  10103 |
-|      3 | fail               |   3404 |
-|      3 | pass               |    238 |
-|      3 | pass w/ conditions |   4961 |
-|      3 | [NULL]             |   8603 |
-|     30 | fail               |   3980 |
-|     30 | pass               |  10844 |
-|     30 | pass w/ conditions |   2535 |
-|     30 | [NULL]             |  17359 |
-|     31 | fail               |   2623 |
-|     31 | pass               |   6795 |
-|     31 | pass w/ conditions |   1635 |
-|     31 | [NULL]             |  11053 |
-|     32 | fail               |  14550 |
-|     32 | pass               |  37011 |
-|     32 | pass w/ conditions |   7119 |
-|     32 | [NULL]             |  58680 |
-|     33 | fail               |  15895 |
-|     33 | pass               |  44766 |
-|     33 | pass w/ conditions |   8256 |
-|     33 | [NULL]             |  68917 |
-|     34 | fail               |  18686 |
-|     34 | pass               |  50629 |
-|     34 | pass w/ conditions |   8778 |
-|     34 | [NULL]             |  78093 |
-|     35 | fail               |  17506 |
-|     35 | pass               |  44343 |
-|     35 | pass w/ conditions |   7536 |
-|     35 | [NULL]             |  69385 |
-|     36 | fail               |   7578 |
-|     36 | pass               |  17893 |
-|     36 | pass w/ conditions |   3067 |
-|     36 | [NULL]             |  28538 |
-|     37 | fail               |   2635 |
-|     37 | pass               |   4914 |
-|     37 | pass w/ conditions |    774 |
-|     37 | [NULL]             |   8323 |
-|     38 | fail               |  15078 |
-|     38 | pass               |  37515 |
-|     38 | pass w/ conditions |   6433 |
-|     38 | [NULL]             |  59026 |
-|     39 | fail               |    225 |
-|     39 | pass               |    450 |
-|     39 | pass w/ conditions |     82 |
-|     39 | [NULL]             |    757 |
-|      4 | fail               |    245 |
-|      4 | pass               |     97 |
-|      4 | pass w/ conditions |    270 |
-|      4 | [NULL]             |    612 |
-|     40 | fail               |   4615 |
-|     40 | pass               |  10501 |
-|     40 | pass w/ conditions |   2308 |
-|     40 | [NULL]             |  17424 |
-|     41 | fail               |  10368 |
-|     41 | pass               |  22917 |
-|     41 | pass w/ conditions |   4055 |
-|     41 | [NULL]             |  37340 |
-|     42 | fail               |   1635 |
-|     42 | pass               |   4220 |
-|     42 | pass w/ conditions |   1378 |
-|     42 | [NULL]             |   7233 |
-|     43 | fail               |   2148 |
-|     43 | pass               |   5404 |
-|     43 | pass w/ conditions |   1537 |
-|     43 | [NULL]             |   9089 |
-|     44 | fail               |    131 |
-|     44 | pass               |    258 |
-|     44 | pass w/ conditions |     67 |
-|     44 | [NULL]             |    456 |
-|     45 | fail               |   1776 |
-|     45 | pass               |   4369 |
-|     45 | pass w/ conditions |   1217 |
-|     45 | [NULL]             |   7362 |
-|      5 | fail               |     10 |
-|      5 | pass w/ conditions |      6 |
-|      5 | [NULL]             |     16 |
-|      6 | fail               |    748 |
-|      6 | pass               |     51 |
-|      6 | pass w/ conditions |    919 |
-|      6 | [NULL]             |   1718 |
-|      7 | fail               |     85 |
-|      7 | pass               |     35 |
-|      7 | pass w/ conditions |     57 |
-|      7 | [NULL]             |    177 |
-|     70 | fail               |    421 |
-|     70 | pass               |    196 |
-|     70 | pass w/ conditions |    183 |
-|     70 | [NULL]             |    800 |
-|      8 | fail               |   1289 |
-|      8 | pass               |    599 |
-|      8 | pass w/ conditions |   1218 |
-|      8 | [NULL]             |   3106 |
-|      9 | fail               |   1401 |
-|      9 | pass               |    837 |
-|      9 | pass w/ conditions |    298 |
-|      9 | [NULL]             |   2536 |
-| [NULL] | [NULL]             | 608168 |
+|   code | result |  count |
+|--------+--------+--------|
+| [NULL] | [NULL] | 608557 |
+|     34 | [NULL] |  78234 |
+|     35 | [NULL] |  69508 |
+|     33 | [NULL] |  68978 |
+|     38 | [NULL] |  59085 |
+|     32 | [NULL] |  58764 |
+|     34 | pass   |  50751 |
+|     33 | pass   |  44834 |
+|     35 | pass   |  44455 |
+|     38 | pass   |  37577 |
 :END:
 
 
@@ -420,36 +153,30 @@ but we will keep this simple for the moment.
 
 #+BEGIN_SRC sql
   select
-  license_num, risk || '->' || previous_risk, count(*)
+  entity_id, risk || '->' || previous_risk as changes,
+  count(*)
   from
   (
-  select date, license_num,risk, lag(risk) over w as previous_risk
-  from cleaned.inspections
-  window w as (partition by license_num order by date asc)
+  select date, entity_id, risk, lag(risk) over w as previous_risk
+  from semantic.events
+  window w as (partition by entity_id order by date asc)
   ) as t
-  where (risk <>  previous_risk) and license_num != '0'
-  group by license_num, risk || '->' || previous_risk
-  order by  count(*) desc, license_num
-  limit 10
+  where (risk <>  previous_risk)
+  group by entity_id, risk || '->' || previous_risk
+  order by  count(*) desc, entity_id
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | ?column?     | count |
-|------------+--------------+-------|
-|      20481 | medium->high |    10 |
-|      20481 | high->medium |    10 |
-|      14616 | low->medium  |     8 |
-|      14616 | medium->low  |     8 |
-|    1574001 | high->medium |     8 |
-|    1574001 | medium->high |     8 |
-|      23081 | high->medium |     7 |
-|      23081 | medium->high |     7 |
-|      51011 | medium->high |     7 |
-|      51011 | high->medium |     7 |
+| entity_id | changes   | count |
+|----------+-----------+-------|
+|    17949 | high->low |     1 |
+|    33725 | high->low |     1 |
 :END:
 
 
+Mmmm, it seems that there aren't a lot of changes in the =risk=
+classification of a facility.
 
 /What are the top 5 locations with more inspections?/
 
@@ -468,9 +195,9 @@ but we will keep this simple for the moment.
 :RESULTS:
 | address           | total_inspections | total_failures |
 |-------------------+------------------+---------------|
-| 11601 w touhy ave |             2026 |           257 |
+| 11601 w touhy ave |             2020 |           257 |
 | 5700 s cicero ave |              405 |            54 |
-| 324 n leavitt st  |              364 |            86 |
-| 500 w madison st  |              360 |            69 |
-| 131 n clinton st  |              315 |            34 |
+| 324 n leavitt st  |              363 |            86 |
+| 500 w madison st  |              356 |            69 |
+| 131 n clinton st  |              310 |            34 |
 :END:

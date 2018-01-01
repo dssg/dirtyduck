@@ -26,7 +26,7 @@
    :RESULTS:
    :END:
 
-   We can check the size of the data set
+   We can check the size of the data set,
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
      ls -lh /data
@@ -34,17 +34,8 @@
 
    #+RESULTS:
    :RESULTS:
-   total 188M
-   -rw-rw-r-- 1 1000 1000 160K Sep 26 02:33 Average_Daily_Traffic_Counts.csv
-   -rw-rw-r-- 1 1000 1000 4.7K Sep 26 02:32 Average_Daily_Traffic_Counts_-_Map.csv
-   -rw-rw-r-- 1 1000 1000 378K Aug 20 01:52 Boundaries - ZIP Codes.zip
-   -rw-rw-r-- 1 1000 1000 845K Aug 20 23:45 CTA_BusStops.zip
-   -rw-rw-r-- 1 1000 1000  40K Aug 20 23:46 CTA_RailLines.zip
-   -rw-rw-r-- 1 1000 1000  18K Aug 20 23:46 CTA_RailStations.zip
-   -rw-rw-r-- 1 1000 1000 335K Aug 20 23:45 CTA_Routes.zip
-   -rw-rw-r-- 1 1000 1000  51K Sep 26 02:30 Chicago Public Schools - School Locations SY1415.zip
-   -rw-rw-r-- 1 1000 1000 2.6K Aug 20 23:46 PoliceStationsDec2012.zip
-   -rw-rw-r-- 1 1000 1000 186M Dec 11 23:01 inspections.csv
+   total 186M
+   -rw-rw-r-- 1 1000 1000 186M Dec 21 20:16 inspections.csv
    :END:
 
    And the (apparent) total number of rows
@@ -121,12 +112,17 @@ execute the following:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
 psql ${FOOD_DB_URL} < /code/create_cleaned_inspections_table.sql
+
 psql ${FOOD_DB_URL} < /code/create_violations_table.sql
+
 psql ${FOOD_DB_URL} < /code/create_semantic_tables.sql
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
+CREATE SCHEMA
+DROP TABLE
+SELECT 161954
 DROP TABLE
 SELECT 610203
 CREATE SCHEMA
@@ -153,20 +149,18 @@ CREATE INDEX
 CREATE INDEX
 :END:
 
+
 If everything works, you should end with two new schemas: =cleaned= and =semantic=.
 
 ** Transforming (and cleaning) the data
-
-
-
 
    For tackling a Machine Learning problem you need to identify the
    *entities* of your problem domain, and if your problem involves time,
    how those entities change over time, i.e. which *events* happened to
    that entity or which *events* where acted by the entity in question.
 
-   We will materialize that in two different tables, one for entities and
-   one for events, we will name those as =entities= and =events= respectively.
+   We will materialize that conceptualization in two different tables, one for entities and
+   one for events, we will name those tables as =entities= and =events= respectively.
 
 The entity is the *facility*, and the events that happen to that entity
 are the *inspections*.
@@ -179,7 +173,7 @@ Before starting the cleaning, you should know one of the golden rules
 -that will make your life easier:
 
 #+BEGIN_QUOTE
-   /You can't change your original data/
+   /You must not change your original data/
 #+END_QUOTE
 
 The reason for this is, if you make some mistake, or if you want to
@@ -439,7 +433,7 @@ data".
 
 
 #+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
-  create schema if not exists cleaned
+  create schema if not exists cleaned;
 #+END_SRC
 
 #+RESULTS:
@@ -575,7 +569,7 @@ called =cleaned.violations= to store
    from raw.inspections
    where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
    ) as t
-   )
+   );
 #+END_SRC
 
 #+RESULTS:

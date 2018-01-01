@@ -26,4 +26,4 @@ regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't
 from raw.inspections
 where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
 ) as t
-)
+);
