@@ -465,6 +465,12 @@ scoring:
                 top_n: [5, 10, 25]
 #+END_SRC
 
+You should be warned that precision and recall at $k$ in this setting
+is kind of ill-defined (because you will end with a lot of =NULL=
+labels, remember, only a few of facilities are inspected in each
+period) ...
+
+
 We will want as a result of our experiments, a *list* of facilities to
 be inspected. The length of our list is contrained by our inspection
 resources, i.e. the answer to the question How many facilities can I
