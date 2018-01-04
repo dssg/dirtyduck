@@ -1192,7 +1192,24 @@ model for every entity. =results.evaluation= stores the value of all the
 *metrics* for every model. These metrics were specified in the =scoring=
 section in the config file.
 
-** ▶ TODO Audition
+** Audition
+
+*Audition* is a tool for helping you to select a subset of trained
+classifiers from a triage experiment. Often, production-scale experiments
+will come up with thousands of trained models, and sifting through all
+of those results can be time-consuming even after calculating the
+usual basic metrics like precision and recall.
+
+You will be facing questions as:
+
+- Which metrics matter most?
+- Should you prioritize the best metric value over time or treat
+  recent data as most important?
+- Is low metric variance important?
+
+The answers to questions like these may not be obvious up front. *Audition*
+introduces a structured, semi-automated way of filtering models based
+on what you consider important
 
 ** Post-modeling
 
@@ -1214,4 +1231,5 @@ Triage's postmodeling capabilities include:
 - Cross-tab analysis
 - Bias analysis
 
-If you want to see it in action go to [[file:inspections.org][Inspections modeling]] or to [[file:eis.org][EIS modeling]].
+If you want to see *Audition* and *Postmodeling* in action please refer
+[[file:inspections.org][Inspections modeling]] or to [[file:eis.org][EIS modeling]] for practical examples.
