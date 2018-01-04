@@ -680,6 +680,11 @@ order by metric || parameter, model_id
 
 Again, nothing impressive.
 
+** A neat trick
+
+Add small, medium, full grid (Rayid magic loop example)
+
+
 ** A more advanced experiment
 
 Ok, let's add a more complete experiment.
