@@ -19,17 +19,17 @@
 
 Predictive analytics projects require the coordination of many
 different tasks, such as feature generation, classifier training,
-evaluation, and list generation. These tasks are complicated in their
-own right, but in addition have to be combined in different ways
+evaluation, and generating lists of entities of interest. These tasks are complicated in their
+own right. To add to the complexity, the tasks have to be combined in different ways
 throughout the course of the project.
 
 =Triage= aims to provide interfaces to these different phases of a
-project, such as an Experiment. Each phase is defined by configuration
+project. Each phase is defined by configuration
 specific to the needs of the project, and an arrangement of core data
 science components that work together to produce the output of that
 phase.
 
-The domain  problems that =triage= had in mind are (1) early warning systems
+The problem domains that =triage= had in mind are (1) early warning systems
 / early intervention systems and (2) prioritization of resources for
 inspections.
 
@@ -38,56 +38,51 @@ models, in particular classification models with an strong temporal
 component in the data.
 
 The temporal component in the data set affects the modeling mainly in
-two ways, first, you need to be very careful and avoid /leakage/ of
-information in the data, and second, in the possible temporal drifting of the
-data. =Triage= solves the first splitting the data in temporal blocks to be
-used in the temporal crossvalidation and using those blocks for the
-feature generation.
+two ways. First, you need to be very careful to avoid /leakage/ of
+information in the data. Second, you need to be care of the possible temporal drifting of the
+data where the outside reality changes the underlying distribution for the features/labels.
+=Triage= solves the first splitting the data in temporal blocks to be
+used in the temporal cross validation and using those blocks for the
+feature generation. =Triage= solves the second by making it easy to constantly
+train and rebuild models to account for new changes in the outside world.
 
-=Triage= uses the concept of /experiment/. An /experiment/ consists in a
+=Triage= uses the concept of an /experiment/. An /experiment/ consists of a
 series of steps which aim to generate a good model for predicting the
-/label/ of an new instance of the data set. The steps are /feature generation/,
-/label generation/, /model training/ and /model scoring/. In each of all
-this steps, =triage= will take care of the temporal nuances of the data.
+/label/ of an new instance. The steps in an experiement are /feature generation/,
+/label generation/, /model training/ and /model scoring/. In each of these steps, 
+=triage= handles managing the temporal nuances of the data.
 
-You need to specify (via a configuration file) how you want to time
-split your data, which combination of machine learning algorithms and
-their hyperparameters, which kind of features you want to generate and which
-subset of those features you want to try in each model. So, the
-experiment consists in try every combination of algorithm,
-hyperparameters and feature subset, and evaluate their performance
-using a set of metrics (also specified in the config file).
+You need to specify (via a configuration file) 
+    - how you want to split your data (by time)
+    - which kind of features you want to generate 
+    - which subset of those features you want to try in each model. 
+    - which machine learning algorithms and their hyperparameters to use
+    - which metrics to use to analyze performance
+So, the experiment tries every combination of algorithm,
+hyperparameters and feature subsets and evaluate their performance
+using the specified set of metrics.
 
-=Triage= will train one model for each block generated, so when the
+=Triage= will train one model for each data block generated, so when the
 experiment finishes you will have several models for each algorithm
 and selection of hyperparameters. =Triage= calls this a =model_group=.
 
 
 ** Triage interface
 
-=Triage= is very simple to use, but it contains a lot of complex
+=Triage= is very simple to use, but it encapsulates a lot of complex
 concepts that we will try to clarify in this section of the tutorial.
 
-For running a =triage= experiment you need the following:
+To run a =triage= experiment, you need the following:
 
 - =triage= installed in your environment (this is already install in the
-  docker container). You can verify that =triage= is installed typying
-  the following inside an =ipython= session in =bastion=:
-
-#+BEGIN_SRC python
-import triage
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-:END:
+  docker container). You can verify that =triage= is installed typing
+  the following inside an =ipython= session in =bastion=: =import triage=.
 
 - A database connection
 
-- An experiment config file, we will discuss this file at length in this
-  section of the tutorial.
+- An experiment config file (we will go over this file in the next section)
 
-With this three components you can create your =experiment= object and
+With these three components, you can create your =experiment= object and
 =run= it. In this tutorial we are providing a =docker= container that
 executes =triage= experiments. You can run the container as follows:
 
@@ -119,7 +114,7 @@ Commands:
 
 
 
-*** Configuration file
+** Configuration file for Triage
 
 The experiment configuration file is used to create the experiment
 object. Here, you will specify the temporal configuration, the
@@ -129,7 +124,7 @@ want to train in your data.
 The configuration file is a =yaml= file with the following main sections:
 
 
-- [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data, used for
+- [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data; used for
      creating the blocks for temporal crossvalidation.
 
 - =events_table= :: Table that contains the information about the labels
@@ -149,7 +144,7 @@ The configuration file is a =yaml= file with the following main sections:
 - =grid_config= :: Which combination of hyperparameters and algorithms
                    will be trained and evaluated in the data set?
 
-- =scoring= :: Which metrics will be calculated?
+- =scoring= :: The metrics to be computed.
 
 *** The =Experiment= object
 
@@ -173,13 +168,14 @@ If you are ready for run it, you could start your experiment with:
 ./tutorial.sh triage --config_file /code/inspections_test.yaml run
 #+END_SRC
 
-** Temporal crossvalidation
+** Temporal Cross Validation
 
-The most acute problems are avoiding leakage and feature generation in
-a temporal setting.
+In a temporal machine learning setting, the most acute problems 
+to handle are avoiding leakage and feature generation in
+the temporal setting.
 
 =Triage= uses the handy =timechop= library for this purpose. =Timechop=
-will build ("chop") the data set in several temporal blocks. These
+will build ("chop") the data set into several temporal blocks. These
 blocks will be used for creating the features and matrices for
 the training and evaluation of the machine learning models.
 
@@ -242,7 +238,7 @@ Image stored in:
 ** Feature engineering
 
 We will show how to create features, we will create a subset of the
-=semantic.events= table: one facility (=entity_id = 9547=), only two
+=semantic.events= table: one facility (=entity_id = 9577=), only two
 variables (=inspection_type,risk=), and
 spatial and temporal dimensions for aggregation (=location, zip_code=, =date=).
 
@@ -266,7 +262,7 @@ drop table if exists triage.active_facilities cascade;
 
 create table triage.active_facilities as (
 select entity_id, facility_type, location, date
-    from (select distinct entity_id, facility_type, location from semantic.events where entity_id = 9547) a
+    from (select distinct entity_id, facility_type, location from semantic.events where entity_id = 9577) a
     cross join (select distinct date as date from semantic.events) b
 );
 
@@ -290,23 +286,23 @@ select * from triage.active_facilities limit 5;
 :END:
 
 
-Almost all the components of =triage= works with =SQL= tables stored  in
-=PostgreSQL= (this is very important to remember), so, let's create our
-test table with the =entity_id=  =9547=:
+Almost all the components of =triage= works with =SQL= tables stored in
+=PostgreSQL= (this is very important to remember). Let's create our
+test table with the =entity_id=  =9577=:
 
 #+BEGIN_SRC  sql :tangle ./src/create_triage_schema.sql
 drop table if exists triage.test;
 
 create table triage.test as (
-select
-inspection, -- event
-entity_id,
-facility_type,
-type as inspection_type, risk, -- variables
-violations, -- json array of variables
-date, location, zip_code -- spatio temporal dimensions
-from semantic.events
-where entity_id = '9547'
+  select
+    inspection, -- event
+    entity_id,
+    facility_type,
+    type as inspection_type, risk, -- variables
+    violations, -- json array of variables
+    date, location, zip_code -- spatio temporal dimensions
+  from semantic.events
+  where entity_id = '9577'
 )
 #+END_SRC
 
@@ -328,16 +324,16 @@ select entity_id, inspection_type, risk, date, zip_code from triage.test order b
 :END:
 
 =triage.test= contains two categorical variables (=inspection_type,risk=),
-two differnent groups for aggregation (=location, zip_code=), and the date
+two different groups for aggregation (=location, zip_code=), and the date
 when the inspection happened (=date=).
 
-=Collate= is the python library that we will use (and =triage= also) for
-controlling the generation of features (including the imputation rules
-for each feature generated). =Collate= helps the modeler to
-create features based on /spatio-temporal aggregations/ (which is what
-we need in our modeling strategy based on *events*)
+We will use =collate=, a python library, to generate the features. 
+We also specify the imputation rules for each feature generated). 
+=Collate= helps the modeler to
+create features based on /spatio-temporal aggregations/ (which is needed 
+in our modeling strategy based on *events*)
 
-As a first feature we want to know in a given interval of time, given
+As a first feature, let's look at, in a given interval of time, given
 one specific date, how many inspections and the flag resulted in "high risk"
 after the previous inspection (the =risk= column), happened to the
 facility and in the zip code in which the facility operates.
@@ -346,8 +342,8 @@ Let's try to construct that in =SQL=:
 
 #+BEGIN_SRC sql
 select entity_id, zip_code,
-count(*) as inspections,
-count(*) filter (where risk='high') as flagged_as_high_risk
+  count(*) as inspections,
+  count(*) filter (where risk='high') as flagged_as_high_risk
 from triage.test
 group by grouping sets(entity_id, zip_code)
 #+END_SRC
@@ -365,9 +361,9 @@ that resulted in be flagged as "high risk"?
 
 #+BEGIN_SRC sql
 select entity_id, zip_code,
-count(*) as inspections,
-count(*) filter (where risk='high') as flagged_as_high_risk,
-avg((risk='high')::int) as proportion_of_flags_as_high_risk
+  count(*) as inspections,
+  count(*) filter (where risk='high') as flagged_as_high_risk,
+  avg((risk='high')::int) as proportion_of_flags_as_high_risk
 from triage.test
 group by grouping sets(entity_id, zip_code)
 #+END_SRC
@@ -381,17 +377,16 @@ group by grouping sets(entity_id, zip_code)
 :END:
 
 But, what if we want to add also "medium" and "low" risk? And note
-that we didn't add the temporal interval neither. You can see that the
+that we still haven't added any temporal information. You can see that the
 event this simple set of features will require a very complex =SQL= to
 be constructed. For this problem, =collate= has the =Categorical= object.
 
-First note that the previous =SQL= query is composed by three parts:
+First, note that the previous =SQL= query is composed of three parts:
 - The filter ((=risk = 'high')::int=)
 - The aggregation function (=avg()=)
 - The name of the resulting transformation (=proportion_of_flags_as_high_risk=)
 
 In collate, this aggregated column would be defined as:
-
 
 #+BEGIN_SRC python
 from  triage.component.collate import Categorical
@@ -407,13 +402,11 @@ risks = Categorical("risk", # the column
 :RESULTS:
 :END:
 
-
-
-Note also that we specify the imputation strategy for how to handle
-the null values in the resulting fields, in this example we use the
+Note, also that we specify the imputation strategy for how to handle
+the null values in the resulting fields. In this example we use the
 =mean= value.
 
-We are not still ready for use this aggregated variable as a feature,
+We are not still ready for use this aggregated variable as a feature -
 we need to take in account the spatio and temporal context.
 
 
@@ -469,7 +462,7 @@ grouping given by the =entity_id= nad for the =zip_code=, and
 additionally  will give an extra grouping statistic of two months for
 the =zip_code=.
 
-Before execute the queries, you could actually look them using the following
+Before execute the queries, you could actually look them using the following:
 
 #+BEGIN_SRC python
 import utils
@@ -528,26 +521,12 @@ st.execute(db_connection) # with a SQLAlchemy engine object
 #+END_SRC
 
 
-#+RESULTS:
-:RESULTS:
-:END:
-
 This will create 3 tables (One for the =entity_id=, one for =zip_code=
 and one for the combination: =entity_id + zip_code=) and one extra
 table for the imputated values.
 
-The names of the generated tables are constructed as follows:
-
-#+BEGIN_EXAMPLE
-schema.prefix_{group, aggregation}
-#+END_EXAMPLE
-
-Inside each of those new tables, the column name will follow this
-pattern:
-
-#+BEGIN_EXAMPLE
-prefix_group_interval_categorical_operation
-#+END_EXAMPLE
+The names of the generated tables are constructed as follows: =schema.prefix_{group, aggregation}=
+Inside each of those new tables, the column name has the following pattern: =prefix_group_interval_categorical_operation=
 
 For example the tables inside the triage schema are:
 
@@ -587,7 +566,6 @@ And inside =test_risk_aggregation= the columns are:
 | risks_zip_code_1 year_risk_medium_avg  | numeric           |           |
 | risks_zip_code_1 year_risk_low_avg     | numeric           |           |
 :END:
-
 
 The =triage.risks_zip_code= table
 have two feature columns for every zip code in our table =triage.test=,
@@ -652,6 +630,7 @@ select * from triage.risks_aggregation order by date limit 5;
 Finally, the =triage.risks_aggregated_imputed= table fills in null values using the
 imputation rules specified in the =Categorical= constructor.
 
+*** Adding inspection type
 Let's try with =inspection_type=. We want the total of =canvass= and
 =complaint= inspections.
 
@@ -691,7 +670,7 @@ This will create, as you probably guessed, four new tables:
 =inspection_type_{entity_id, zip_code, aggregation, aggregation_imputed}=
 
 
-Or you can mix the two in one step:
+You can also combine the two into one step:
 
 #+BEGIN_SRC python
 st = SpacetimeAggregation([risks,inspection_types], # The Categorical object
@@ -757,7 +736,7 @@ using those.
 
 Our =semantic.events= has a =json= column called =violations=. We will like
 to have an idea of how many types of violations were inspected or at
-least their severity. One way of do that is shown in the next =SQL= code:
+least their severity. One way to do that is below:
 
 
 #+BEGIN_SRC sql
@@ -784,9 +763,9 @@ limit 5
 :END:
 
 Basically, this code gives us the number of violations inspected by
-severity. How about to get the total and proportion of violations in a
+severity. How do we get the total and proportion of violations in a
 facility in the previous year and the average and standard deviation
-for the zip code zone?  Note than in this case the variable is not
+for the zip code zone?  Note, in this case the variable is not
 *categorical*, is a numeric one, fortunately =collate= also provides
 support for numerical variables: the =Aggregate= object
 
@@ -865,15 +844,15 @@ WHERE date < '2014-10-06'AND date >= '2014-10-06'::date - greatest(interval '1y'
 
 #+END_EXAMPLE
 
-You should learn this: it is possible to pass any PostgreSQL =table=
+To keep in mind: you can pass any PostgreSQL =table=
 object to =collate= (and henceforth to =triage=), even those which result from a query.
 
 
 *** Add number of facilities by type in a radius: 1km
 
-Another possible interesting feature is related to the spatial
+Another interesting feature is related to the spatial
 surroundings of the facility. Is the facility near of schools or
-day cares? or Is the facility located in zones with a lot of people
+day cares? Or is the facility located in zones with a lot of people
 passing by?
 
 In this feature the spatial aggregation is not some socio-political entity
@@ -989,7 +968,7 @@ st.execute(db_connection)
 
 *** Add number of inspections by type in a radius and in an interval
 
-Based in the previous example, we can modify a little the question an
+Based on the previous example, we can modify a little the question an
 ask: How many events happened nearby?
 
 #+BEGIN_SRC sql
@@ -1037,7 +1016,6 @@ select * from inspections_nearby limit 10;
 |     9547 |    1386181 | complaint | pass w/ conditions |          1811 | grocery store     | 2015-06-04 |
 |     9547 |     531602 | canvass   | pass               |          2111 | long term care    | 2011-10-06 |
 :END:
-
 
 
 
@@ -1157,11 +1135,7 @@ called =results=. This schema has the goal of storing the output of the
 models and describing the features, parameters and hyperparameters
 used in their training.
 
-The tables contained in =results= are:
-
-#+BEGIN_SRC sql
-\dt results.
-#+END_SRC
+The tables contained in =results= are (=\dt results=) :
 
 #+RESULTS:
 :RESULTS:
