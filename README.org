@@ -29,45 +29,34 @@ EIS the join starts from entity (entity centric) (if you don't have an outcome y
 * What do you need for this tutorial?
 
   [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
-  Use the links for installing instructions.
-
+  Use the links for installation instructions.
 
 
 * Description of the problem to solve
 
-  Actually, We want to solve two problems: an /Early intervention system/ (*EIS*)
-  and a /Inspection prioritization/.
+  We want to solve two problems: an /Early intervention system/ (*EIS*)
+  and a /Inspection prioritization/.  We will use the /same/ data set for both.
 
-
-  We will use the /same/ data set, first, we will be the restaurant's
-  owner, and we want to know:
+  In the first problem, we will take the point of view of the restaurant owner. Our question is:
 
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/
 #+end_quote
 
-Where $X$ could be 1 month, 1 week, 1 year,
-etc.
+where $X$ could be 1 month, 1 week, 1 year, etc.
 
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
+As the restaurant’s owner, knowing the answer to this question allows you to be prepared and take the pertinent actions.
 
-
-  The second scenario, is the following:  you work for the Chicago's
-  government, and you try
-  to prioritize your resources (i.e. your inspection workforce), since
-  they are limited. So, you will use the data (the same data set,
-  remember) for answering the next
-  question:
+In the second second scenario, we take the point of view of the Chicago government. The aim is to prioritize your limited resources (i.e. your inspection workforce). So, you use the same data to answering the second question:
 
 #+begin_quote
 Which X facilities are likely to violate some rule in the
   following Y period of time?
 #+end_quote
 
-  In this case maybe you are interested not
-  in all the violations but in the more grave.
+As before $Y$ is a length of time (1 month, 1 year, etc.). $X$ is a set of the restaurants to inspect. Perhaps you are interested not in all the violations but rather the more serious ones. In this case, $X$ would be a ranked or scored list of restaurants to inspect.
+In this case maybe, you might not be interested in all the violations but rather, in the more grave violations.
 
   This tutorial is divided in the following sections
 
@@ -76,7 +65,6 @@ Which X facilities are likely to violate some rule in the
 - [[file:triage_intro.org][Introduction to triage]]
 - [[file:inspections.org][Modeling: Inspections prioritization]]
 - [[file:eis.org][Modeling: Early Warning System]]
--
 
 * What's next?
 
