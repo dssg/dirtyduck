@@ -47,17 +47,16 @@ In this tutorial, we have two different goals: (1) an *EIS* (Early Intervention 
    The *outcome* is what differ between those two projects. For *EIS* the
    outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
 
+
 In the first problem, we take the point of view of the restaurant’s owner. Our question is:
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/
 #+end_quote
 
-Where $X$ could be 1 month, 1 week, 1 year,
-etc.
+where $X$ could be 1 month, 1 week, 1 year, etc.
 
 As the restaurant’s owner, knowing the answer to this question allows you to be prepared and take the pertinent actions.
-
 
 In the second scenario, we take the point of view of the Chicago government. The aim is to prioritize your limited resources (i.e. your inspection workforce). So, you use the /same/ dataset to answering the second question:
 
@@ -66,8 +65,8 @@ Which X facilities are likely to violate some rule in the
   following Y period of time?
 #+end_quote
 
-  In this case maybe you are not interested in all the violations but rather, in the more grave.
-
+As before $Y$ is a length of time (1 month, 1 year, etc.). $X$ is a set of the restaurants to inspect. Perhaps you are interested not in all the violations but rather the more serious ones. In this case, $X$ would be a ranked or scored list of restaurants to inspect.
+In this case maybe, you might not be interested in all the violations but rather, in the more grave violations.
 
   This tutorial is divided in the following sections
 
