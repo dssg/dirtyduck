@@ -15,19 +15,21 @@
 
 * Exploring the data
 
+Let's start by looking at the distribution of some of the data:
+
+
 /Which is the spatial distribution of inspections?/
 
 
 #+BEGIN_SRC sql
 select
-zip_code,
-count(*) as total_inspections,
-coalesce(count(*) filter (where result = 'fail'), 0)
-as total_failures
+  zip_code,
+  count(*) as total_inspections,
+  coalesce(count(*) filter (where result = 'fail'), 0) as total_failures
 from semantic.events
 group by zip_code
 order by total_inspections desc
-limit 10
+limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -50,14 +52,13 @@ limit 10
 
 #+BEGIN_SRC sql
 select
-extract(year from date) as year, extract(month from date) as month,
-count(*) as total_inspections,
-coalesce(count(*) filter (where result = 'fail'), 0)
-as total_failures
+  extract(year from date) as year, extract(month from date) as month,
+  count(*) as total_inspections,
+  coalesce(count(*) filter (where result = 'fail'), 0) as total_failures
 from semantic.events
 group by rollup(year, month)
 order by year asc, month asc
-limit 10
+limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -77,18 +78,18 @@ limit 10
 :END:
 
 The number of inspections per month and the number of failed
-inspections seem to be more or less constant.
+inspections per month seem to be more or less constant.
+
+/What are the common violations?/
 
 #+BEGIN_SRC sql
   select
-  code,
-  description,
-  severity,
-  count(*) as total
+    code, description, severity,
+    count(*) as total
   from cleaned.violations
   group by code, description, severity
   order by total desc
-  limit 10
+  limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -108,24 +109,23 @@ inspections seem to be more or less constant.
 :END:
 
 This looks weird, the top most "violation" is not an actual
-violation. We will repeat the query, we will group by the =results=
+violation. We will repeat the query, but grouped by the =results=
 
 #+BEGIN_SRC sql
   with inspections_violations as (
-  select
-  i.inspection, i.result,
-  v.code
-  from cleaned.inspections as i inner join cleaned.violations as v
-  using(inspection)
+    select
+      i.inspection, i.result,
+      v.code
+    from cleaned.inspections as i 
+    inner join cleaned.violations as v
+      using(inspection)
   )
-
-
   select code, result,
-  count(code) as count
+    count(code) as count
   from inspections_violations
   group by rollup(code, result)
   order by count desc
-  limit 10
+  limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -149,18 +149,18 @@ violation. We will repeat the query, we will group by the =results=
 but we will keep this simple for the moment.
 
 
-/How often change the risk in a facility?/
+/How often does the risk for a facility change?/
 
 #+BEGIN_SRC sql
   select
-  entity_id, risk || '->' || previous_risk as changes,
-  count(*)
+    entity_id, risk || '->' || previous_risk as changes,
+    count(*)
   from
-  (
-  select date, entity_id, risk, lag(risk) over w as previous_risk
-  from semantic.events
-  window w as (partition by entity_id order by date asc)
-  ) as t
+    (
+      select date, entity_id, risk, lag(risk) over w as previous_risk
+      from semantic.events
+      window w as (partition by entity_id order by date asc)
+    ) as t
   where (risk <>  previous_risk)
   group by entity_id, risk || '->' || previous_risk
   order by  count(*) desc, entity_id
@@ -175,16 +175,15 @@ but we will keep this simple for the moment.
 :END:
 
 
-Mmmm, it seems that there aren't a lot of changes in the =risk=
+Hmmm, it seems that there aren't a lot of changes in the =risk=
 classification of a facility.
 
 /What are the top 5 locations with more inspections?/
 
 #+BEGIN_SRC sql
   select
-  address, count(*) as total_inspections,
-  coalesce( count(*) filter (where result = 'fail'), 0)
-  as total_failures
+    address, count(*) as total_inspections,
+    coalesce( count(*) filter (where result = 'fail'), 0) as total_failures
   from cleaned.inspections
   group by address
   order by total_inspections desc
