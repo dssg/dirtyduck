@@ -15,19 +15,17 @@
 
 * Infrastructure
 
-  Besides data, in most of the data science projects you will need some
-  other tools, for example a place to store the data (a database
-  management system), a way
-  for putting your model to work (an API) and a interface for looking
-  the performace of your trained models (for this tutorial we are
-  proposing [[https://github.com/dssg/tyra][tyra]] and supporting software for postmodeling analysis)
+Most data science projects need several tools (in addition to the data):
 
-  We are proving a little script for managing all the infrastructure in
-  a (hopefully) transparent way.
+    * place to store the data (a database management system)
+    * way for putting your model to work (an API)
+    * interface for looking the performace of your trained models (for this tutorial, we use tyra)
+
+We provide a little script to manage all the infrastructure in a (hopefully) transparent way.
 
   Before creating the infrastructure, change the string =your_password=
   for something else in the file
-  =infrastructure/food_db/.env_example=
+  =infrastructure/.env_example=
 
   #+BEGIN_SRC shell :tangle infrastructure/env_example
     POSTGRES_DB=food
@@ -43,7 +41,7 @@
 
   Then, change the name of the file to =.env=.
 
-  Next run the following command
+  To ensure everything works, run the following command
 
   #+BEGIN_SRC shell
     ./tutorial.sh
@@ -52,7 +50,6 @@
   #+RESULTS:
   :RESULTS:
   Usage: ./tutorial.sh {start|stop|build|rebuild|run|logs|status|destroy|all|}
-
   OPTIONS:
 	 -h|help             Show this message
 	 start
@@ -62,7 +59,6 @@
 	 destroy
 	 -t|triage
 	 -a|all
-
   EXAMPLES:
 	 All the infrastructure needed is turned on!
 		  $ ./tutorial.sh start
@@ -87,7 +83,7 @@
 
   :END:
 
-  We need to create the infrastructure so, =start= it
+  To create the infrastructure, =start= it
 
   #+BEGIN_SRC shell
     ./tutorial.sh start
@@ -97,13 +93,12 @@
   :RESULTS:
   :END:
 
-  This will take some minutes the first time.
+  This will take a few minutes the first time.
 
   You can check that everything is running smoothly with =status=
 
   #+BEGIN_SRC shell :results raw drawer
     ./tutorial.sh status
-    :
   #+END_SRC
 
   #+RESULTS:
@@ -115,16 +110,16 @@
   :END:
 
 
-  The environment is composed (no pun intended) by three pieces: a
-  =postgresql= database called =food_db=, a container that executes =triage=
-  experiments and finally =bastion=, which includes a
-  Login to the docker container called =bastion= using =postgresql= client
-  (so you can interact with the database) and a full =python=
-  environment (so you can code or modify the things that we will
-  discuss in this tutorial). The idea is that you don't need to
-  install anything in your laptop.
+  The environment consists of three pieces: 
+      * a  =postgresql= database called =food_db=
+      *  a container that executes =triage= experiments
+      * =bastion=, which includes
+      	*  Login to the docker container called =bastion= using =postgresql= client (so you can interact with the database)
+	* a full =python= environment (so you can code or modify the things that we will discuss in this tutorial). 
 
-  For accessing to the =postgresql= client type:
+  This is provided so that no installation of additional packages is required on your laptop.
+
+  To access the =postgresql= client, type:
 
   #+BEGIN_EXAMPLE shel
   ./tutorial.sh bastion
@@ -136,21 +131,14 @@
   root@485373fb3c64:/$
   #+END_EXAMPLE
 
-  The number surely will be different (i.e. not =485373fb3c64=).
+  (The number will be different i.e. not =485373fb3c64=).
 
-  Now the database is running, its named =food_db=, the single table in
-  there named =inspections=
+  Now the database is running. The database name is =food_db= and the single table in the database is named =inspections=
 
-  Let's check the =schema= of =inspections= table, first, type the next
-  command to connect to the database
+  Let's check the =schema= of =inspections= table. First, connect to the database and then type the command to check the schema.
 
   #+BEGIN_EXAMPLE shell
-  psql ${FOOD_DB_URL}
-  #+END_EXAMPLE
-
-  and then, type the following command:
-
-  #+BEGIN_SRC sql
+    psql ${FOOD_DB_URL}
     \d raw.inspections
   #+END_SRC
 
@@ -178,12 +166,9 @@
   | location                | character varying |           |
   :END:
 
-  Now, you can disconnect from the database typing =\q=
-
-
-
+  To disconnect from the database, type =\q= To exit out of the docker container, type =exit=.
 
   *NOTE*: If you want to clean your laptop of all this, you should type
   =./tutorial.sh destroy=. But don't to that now!
 
-  Well, you are all set now. Let's start now.
+  Now you're all set for the infrastructure. Let's start with the actual data analysis and modeling.

@@ -17,7 +17,7 @@
 
 * Intro
 
-  The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
+  The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well known, and it has been
   used in several examples around the web (e.g. [fn:4],  [fn:1], [fn:2])
 
 
@@ -28,16 +28,15 @@
 
 * Description of the problem to solve
 
-In this tutorial, we have two different goals: (1) an *EIS* and
-   (2) *prioritize inspections*, the entity in which we are interested in
-   both cases is the  /facility/.
+In this tutorial, we have two different goals: (1) an *EIS* (Early Intervention System) and
+   (2) *prioritize inspections*. In both cases, the entity of interest is the  /facility/.
 
    In the *EIS*, as a facility owner or manager, we want to predict if
    the facility under our control is at /risk/ of been inspected in the
    following period of time.
 
    In the *inspections prioritization*, we want to generate a list of
-   facilities which are /likely/ to have some *critical* o *serious*
+   facilities which are /likely/ to have some *critical* or *serious*
    violation /given that/ they are inspected.
 
    Both problems are under the umbrella of the /supervised machine
@@ -48,31 +47,7 @@ In this tutorial, we have two different goals: (1) an *EIS* and
    The *outcome* is what differ between those two projects. For *EIS* the
    outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
 
-
-  Actually, We want to solve two problems: an /Early intervention system/ (*EIS*)
-  and a /Inspection prioritization/.
-
-
-  The first scenario, is the following:  you work for the Chicago's
-  government, and you try
-  to prioritize your resources (i.e. your inspection workforce), since
-  they are limited. So, you will use the data (the same data set,
-  remember) for answering the next
-  question:
-
-#+begin_quote
-Which X facilities are likely to violate some rule in the
-  following Y period of time?
-#+end_quote
-
-  In this case maybe you are interested not
-  in all the violations but in the more grave.
-
-
-
-  We will use the /same/ data set, second, we will be the restaurant's
-  owner, and we want to know:
-
+In the first problem, we take the point of view of the restaurant’s owner. Our question is:
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/
@@ -81,8 +56,17 @@ Will my restaurant be inspected in the
 Where $X$ could be 1 month, 1 week, 1 year,
 etc.
 
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
+As the restaurant’s owner, knowing the answer to this question allows you to be prepared and take the pertinent actions.
+
+
+In the second scenario, we take the point of view of the Chicago government. The aim is to prioritize your limited resources (i.e. your inspection workforce). So, you use the /same/ dataset to answering the second question:
+
+#+begin_quote
+Which X facilities are likely to violate some rule in the
+  following Y period of time?
+#+end_quote
+
+  In this case maybe you are not interested in all the violations but rather, in the more grave.
 
 
   This tutorial is divided in the following sections
