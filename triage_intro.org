@@ -16,85 +16,45 @@
 
 * Introduction to the different tasks
 
-   In this tutorial, we have two different goals: (1) *EIS* (Early Information System) and
-   (2) to *prioritize inspections*. The entity of interest in both cases is the  /facility/.
-
-   In the *EIS* task, as a facility owner or manager, we want to predict if
-   the facility under our control is at /risk/ of been inspected in the
-   next time period.
-
-   In the *inspections prioritization* task, we want to generate a list of
-   facilities which are /likely/ to have some *critical* or *serious*
-   violation /given that/ they are inspected.
-
-
-* ▶ TODO Triage [2/5]
- - [ ] Describe triage
- - [ ] Describe the problem that triage tries to solve
- - [X] Describe Timechop
- - [X] Describe Collate
- - [ ] Describe the results schema
-
 Predictive analytics projects require the coordination of many
 different tasks, such as feature generation, classifier training,
 evaluation, and list generation. These tasks are complicated in their
 own right, but in addition have to be combined in different ways
-throughout the course of the project.
+throughout the course of the analysis.
 
-Triage aims to provide interfaces to these different phases of a
-project, such as an Experiment. Each phase is defined by configuration
-specific to the needs of the project, and an arrangement of core data
-science components that work together to produce the output of that
-phase.
+Triage provides interfaces to these different phases of a
+project. Each phase is defined by configuration
+specific to the needs of the project. 
+
+In this tutorial, we have two different goals: (1) *EIS* (Early Information System) and
+   (2) to *prioritize inspections*. The entity of interest in both cases is the  /facility/.
+
+   In the *EIS* task, as a facility owner or manager, we want to predict if
+   the facility under our control is at /risk/ of been inspected in the
+   next time period. TODO: add link
+
+   In the *inspections prioritization* task, we want to generate a list of
+   facilities which are /likely/ to have some *critical* or *serious*
+   violation /given that/ they are inspected. TODO: add link
 
 
 ** The problem to solve
 
-The most acute problems are avoiding leakage and feature generation in
-a temporal setting
+Both these problems have a temporal nature to the data. As a result,
+the most acute problems are avoiding leakage (from the future to the past) 
+and feature generation in a temporal setting
 
 ** Temporal crossvalidation
+
+We configure the parameters of our temporal experiment set up in ...yaml.
+This includes information about the time period over which the labels and features are computed, the frequency of model retraining, etc. [see section appendix for more details]
+
+It is crucial to specify this correctly to avoid leakage of information where
+you are training on information from future time points. (note: better way to describe?)
 
 Avoid leakage ...
 
 Enter =timechop=
-
-Timechop requires the following parameters:
-
-- =feature_start_time= - data aggregated into features begins at this point
-# earliest date included in features
-- =feature_end_time= - data aggregated into features is from before this
-  point
-# latest date included in features
-- =label_start_time= - data aggregated into labels begins at this point
-# earliest event date included in any label (event date >= label_start_time)
-- =label_end_time= - data aggregated is from before this point
-# event date < label_end_time to be included in any label
-- =model_update_frequency= - amount of time between train/test splits
-# how frequently to retrain models (days, months, years)
-- =training_as_of_date_frequencies= - how much time between rows for a
-  single entity in a training matrix
-# list - time between rows for same entity in train matrix
-- =max_training_histories= - the maximum amount of history for each
-  entity to train on (early matrices may contain less than this time
-  if it goes past label/feature start times)
-# max length of time for labels included in a train matrix - default = max (label_start_time to now)
-- =training_label_timespans= - how much time is covered by training
-  labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
-  (training prediction span)
-# time period across which outcomes are determined in train matrices
-- =test_as_of_date_frequencies= - how much time between rows for a
-  single entity in a test matrix
-# time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
-- =test_durations= - how far into the future should a model be used to
-  make predictions (in the typical case of wanting a single prediction
-  set immediately after model training, this should be set to 0 days)
-(test span)
-# length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
-- =test_label_timespans= - how much time is covered by test predictions
-  (e.g., outcomes in the next 1 year? 3 days? 2 months?)
-(test prediction span)
-# time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
 
 In the particular case of *inspections*,
 
@@ -724,3 +684,44 @@ group by
 inspection, license_num, location, facility_type, result, other_result, other_facility_type;
 
 #+END_SRC
+
+
+* Appendix: Temporal Configuration Parameters
+
+Timechop requires the following parameters:
+
+- =feature_start_time= - data aggregated into features begins at this point
+# earliest date included in features
+- =feature_end_time= - data aggregated into features is from before this
+  point
+# latest date included in features
+- =label_start_time= - data aggregated into labels begins at this point
+# earliest event date included in any label (event date >= label_start_time)
+- =label_end_time= - data aggregated is from before this point
+# event date < label_end_time to be included in any label
+- =model_update_frequency= - amount of time between train/test splits
+# how frequently to retrain models (days, months, years)
+- =training_as_of_date_frequencies= - how much time between rows for a
+  single entity in a training matrix
+# list - time between rows for same entity in train matrix
+- =max_training_histories= - the maximum amount of history for each
+  entity to train on (early matrices may contain less than this time
+  if it goes past label/feature start times)
+# max length of time for labels included in a train matrix - default = max (label_start_time to now)
+- =training_label_timespans= - how much time is covered by training
+  labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+  (training prediction span)
+# time period across which outcomes are determined in train matrices
+- =test_as_of_date_frequencies= - how much time between rows for a
+  single entity in a test matrix
+# time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
+- =test_durations= - how far into the future should a model be used to
+  make predictions (in the typical case of wanting a single prediction
+  set immediately after model training, this should be set to 0 days)
+(test span)
+# length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
+- =test_label_timespans= - how much time is covered by test predictions
+  (e.g., outcomes in the next 1 year? 3 days? 2 months?)
+(test prediction span)
+# time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
+
