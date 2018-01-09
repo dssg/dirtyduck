@@ -26,33 +26,23 @@
    :RESULTS:
    :END:
 
-   We can check the size of the data set,
+   We can check the size of the data set and the total number of rows:
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
      ls -lh /data
+     wc -l data/inspections.csv
    #+END_SRC
 
    #+RESULTS:
    :RESULTS:
    total 186M
    -rw-rw-r-- 1 1000 1000 186M Dec 21 20:16 inspections.csv
-   :END:
-
-   And the (apparent) total number of rows
-
-   #+BEGIN_SRC shell :dir data
-     wc -l inspections.csv
-   #+END_SRC
-
-   #+RESULTS:
-   :RESULTS:
    396328 inspections.csv
    :END:
 
 
-
 ** Loading data to the database
-   Assuming that you are already inside =bastion=, run the following
+   Assuming that you are already inside =bastion= (the docker container), run the following:
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
      psql ${FOOD_DB_URL} -c 'select count(*) from raw.inspections'
@@ -67,7 +57,9 @@
 
    :END:
 
-   (If you are connected to the database, you could just type =select count(*) from raw.inspections=
+   (If you are connected to the database, you can just type =select count(*) from raw.inspections=)
+
+   To load the data into the database:
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      psql ${FOOD_DB_URL} -c "\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"
@@ -77,12 +69,12 @@
    : COPY 162753
 
 
-   This is different to the number of rows that we calculated
+   This is different from the number of rows that we calculated
    previously. The reason is that the columns =violations= contains
    several lines in some examples. But don't worry, the previous
    command took care about that.
 
-   Let's glimpse the data
+   Let's take a glimpse at the data
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
      psql ${FOOD_DB_URL} -c 'select * from raw.inspections limit 5'
@@ -103,7 +95,7 @@
    :END:
 
 
-   Checking the documentation (located  [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]),
+   For more details about the data, check the documentation (located  [[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]),
 
 ** For the impatient
 
@@ -149,20 +141,19 @@ CREATE INDEX
 CREATE INDEX
 :END:
 
+If everything works, there should be two new schemas: =cleaned= and =semantic=.
 
-If everything works, you should end with two new schemas: =cleaned= and =semantic=.
-
-** Transforming (and cleaning) the data
+** Exploring the data
 
    For tackling a Machine Learning problem you need to identify the
    *entities* of your problem domain, and if your problem involves time,
    how those entities change over time, i.e. which *events* happened to
    that entity or which *events* where acted by the entity in question.
 
-   We will materialize that conceptualization in two different tables, one for entities and
-   one for events, we will name those tables as =entities= and =events= respectively.
+   We will implement that concept in two different tables, one for entities and
+   one for events (named =entities= and =events= respectively).
 
-The entity is the *facility*, and the events that happen to that entity
+In this problem, the entity is the *facility*, and the events that happen to that entity
 are the *inspections*.
 
 The table =entities= should contain an unique identifier for the entity,
@@ -176,11 +167,12 @@ Before starting the cleaning, you should know one of the golden rules
    /You must not change your original data/
 #+END_QUOTE
 
-The reason for this is, if you make some mistake, or if you want to
+Why? Because if you make some mistake, or if you want to
 try a different thing you will always can go back to the beginning and
 start over.
 
-  The meaning of some columns is the following:
+
+  In this dataset, the meaning of some columns is the following:
 
    - Risk category of facility:: Each establishment is categorized as
      to its risk of adversely affecting the public’s health, with 1
@@ -259,7 +251,7 @@ Let's check that we have *only* three different classifications for the
 | All             |     22 |
 :END:
 
-Ok, two more: =All= and =NULL= for a grand total of *5*. What about =types= of inspections?
+Ok, there are two more than we expect: =All= and =NULL= for a grand total of *5* types of risk. What about =types= of inspections?
 
 #+BEGIN_SRC sql
   select count(distinct type) from raw.inspections
@@ -272,9 +264,8 @@ Ok, two more: =All= and =NULL= for a grand total of *5*. What about =types= of i
 |   108 |
 :END:
 
-Wow, we got *108* types of inspections instead of *5*.
-
-Which are those types? How bad is it?
+Wow, we got *108* types of inspections instead of the expected *5*.
+What are those types? How bad is this issue?
 
 #+BEGIN_SRC sql
 select type, count(*) from raw.inspections group by type order by count(*) desc limit 10
@@ -296,7 +287,7 @@ select type, count(*) from raw.inspections group by type order by count(*) desc 
 | License-Task Force       |   605 |
 :END:
 
-This columns will require also cleaning. Finally, let's look =results=
+So, it seems like this columns will require also cleaning. Finally, let's look =results=
 
 #+BEGIN_SRC  sql
   select results, count(*) from raw.inspections group by results order by count(*) desc
@@ -315,19 +306,21 @@ This columns will require also cleaning. Finally, let's look =results=
 | Business Not Located |    60 |
 :END:
 
-Ok, disheartening. But, that is the reality of /real/ data. We will try to clean this mess.
+Ok, this is also not what we expected. This is disheartening. But, that is the reality of /real/ data. Now, let's try to clean this mess.
 
+** Transforming (and cleaning) the data
 
-Let's see the data to figure out how we need to be transform it. We
+Let's start by figuring out how to transform the data. We
 will concentrate at first in all columns except =violations=, we will
 deal with that later, since is more complex.
 
-
-First, we will remove superfluous spaces and will transform the columns
+First, we will remove superfluous spaces and convert the columns
 =type,results, dba_name, aka_name, facility_type, address, city= to
-lower case, also, we will clean =risk= keeping only the description
-(e.g. *high*).
+lower case. 
 
+For the column =risk= , we will keep only the description (e.g. *high*).
+We will impute as =high= all the =NULL= and =All=
+values.
 
 We still need to clean the column =type= (it contains several more
 variations instead of the *seven* mentioned in the documentation:
@@ -335,11 +328,7 @@ variations instead of the *seven* mentioned in the documentation:
 and /suspect food poisoning/). For simplicity, we will use /regular
 expressions/ and we will ignore /re-inspection/.
 
-For the column =risk= , we will impute as =high= all the =NULL= and =All=
-values.
-
-As we have seen (and we will continue see that)  through all this
-tutorial, /data is always messy/, to
+As we have seen (and will continue see), /data is always messy/. To
 begin with we have several different spellings (e.g. =SUBWAY= and
 =Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
 =DUNKIN DONUTS / BASKIN ROBBINS=, etc)
@@ -356,7 +345,7 @@ follow that path here.
 Let's move to the spatial columns (=state, city, zip, latitude,
 longitude=).
 
-All the rows in the data should be from Ilinois, let's check that
+All the rows in the data should be from Ilinois so let's check that first:
 
 #+begin_src sql
 select state, count(*) from raw.inspections group by state
@@ -370,7 +359,7 @@ select state, count(*) from raw.inspections group by state
 | IL     | 162733 |
 :END:
 
-Ok, almost, We will assume that the =NULL= values are actually
+Ok, almost. We will assume that the =NULL= values are actually
 =IL=. Moving on the next spatial column, We
 expect that all the values in the column =city= are Chicago:
 
@@ -394,11 +383,11 @@ select lower(city) as city, count(*) from raw.inspections group by lower(city) o
 | inactive          |      8 |
 :END:
 
-There are 144 rows with =NULL= values and 41 rows with =CCHICAGO=, the
-rest are from different places, but all of them are near to Chicago. We will
-fix this to problems with the value =chicago=.
+There are 144 rows with =NULL= values and 41 rows with =CCHICAGO= which is clearly a misspelling, the
+rest are from different places, but all of them are near Chicago. We will
+fix this problem by replacing them with the value =chicago=.
 
-The zip code has a similar problem:
+The zip code field has a similar problem:
 
 #+BEGIN_SRC sql
 select count(*) from raw.inspections where zip is null or btrim(zip) = ''
@@ -415,12 +404,11 @@ We could attempt to remove this =NULLs= using the location point or
 using similar names of restaurants, but for this tutorial we will
 remove them.
 
-Continuing with the cleaning, we will drop the columns =state=,
-=latitude=, =longitude=, since these are (now) redundant. We will remove
-the column =city= since almost everything happens in Chicago (this is
+We will remove the column =sate=, =city= since almost everything happens in Chicago (this is
 the Chicago's food inspection data set anyway).
 
 We will convert the coordinates latitude and longitude to a =Point=.
+We will drop the columns =latitude= and =longitude=, since these are (now) redundant.
 
 As a final step in the cleaning we will change the name of the columns
 for explicit or better names(e.g =results -> result, dba_name -> facility=, etc).
@@ -444,30 +432,30 @@ Then, we will create our mini *ETL* with our cleaning decisions:
 drop table if exists cleaned.inspections cascade;
 
 create table cleaned.inspections as (
-with cleaned as (
-select
-inspection,
-btrim(lower(results)) as result,
-license_num,
-btrim(lower(dba_name)) as facility,
-btrim(lower(aka_name)) as facility_aka,
-case when
-facility_type is null then 'unknown'
-else btrim(lower(facility_type))
-end as facility_type,
-lower(substring(risk from '\((.+)\)')) as risk,
-btrim(lower(address)) as address,
-zip as zip_code,
-substring(
-btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi')))
-from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
-date,
-ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
-from raw.inspections
-where zip is not null  -- removing NULL zip codes
-)
+  with cleaned as (
+    select
+       inspection,
+       btrim(lower(results)) as result,
+       license_num,
+       btrim(lower(dba_name)) as facility,
+       btrim(lower(aka_name)) as facility_aka,
+       case when
+         facility_type is null then 'unknown'
+	 else btrim(lower(facility_type))
+	 end as facility_type,
+       lower(substring(risk from '\((.+)\)')) as risk,
+       btrim(lower(address)) as address,
+       zip as zip_code,
+       substring(
+         btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi')))
+	 from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
+       date,
+       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
+    from raw.inspections
+    where zip is not null 
+  )
 
-select * from cleaned where type is not null
+  select * from cleaned where type is not null
 );
 #+END_SRC
 
@@ -490,18 +478,6 @@ Or, if you are connected to the database
 #+BEGIN_EXAMPLE sql
 \i /code/create_cleaned_inspections_table.sql
 #+END_EXAMPLE
-
-
-#+BEGIN_SRC sql :results table
- select count(inspection) from cleaned.inspections;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-|  count |
-|--------|
-| 162682 |
-:END:
 
 
 Let's look closer the column =violations=:
@@ -544,37 +520,37 @@ called =cleaned.violations= to store
    drop table if exists cleaned.violations cascade;
 
    create table cleaned.violations as (
-   select
-   inspection,
-   license_num, -- This is a requirement of triage
-   date,
-   btrim(tuple[1]) as code,
-   btrim(tuple[2]) as description,
-   btrim(tuple[3]) as comment,
-   (case
-     when btrim(tuple[1]) = '' then NULL
-     when btrim(tuple[1])::int between 1 and 14 then 'critical'
-     when btrim(tuple[1])::int between 15 and 29  then 'serious'
-     else 'minor'
-   end
-   ) as severity from
-   (
-   select
-   inspection,
-   license_num,
-   date,
-   regexp_split_to_array(
-   regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
-   '\.|- Comments:') as tuple
-   from raw.inspections
-   where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
-   ) as t
+     select
+        inspection,
+	license_num, -- This is a requirement of triage
+   	date,
+   	btrim(tuple[1]) as code,
+   	btrim(tuple[2]) as description,
+   	btrim(tuple[3]) as comment,
+   	(case
+     	   when btrim(tuple[1]) = '' then NULL
+     	   when btrim(tuple[1])::int between 1 and 14 then 'critical'
+     	   when btrim(tuple[1])::int between 15 and 29  then 'serious'
+     	   else 'minor'
+   	 end
+   	) as severity from
+   	  (
+	  select
+   	    inspection,
+   	    license_num,
+   	    date,
+   	    regexp_split_to_array(
+   	        regexp_split_to_table(coalesce(violations, '.- Comments:'), '\|'),   -- We don't want to loose inspections
+   		'\.|- Comments:') as tuple
+   	  from raw.inspections
+   	  where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
+   	  ) as t
    );
 #+END_SRC
 
 #+RESULTS:
 
-This code is in =/code/create_violations_table.sql=, you can execute
+This code is in =/code/create_violations_table.sql=. You can execute
 this as before.
 
 If everything worked correctly you should be able to run the following code:
@@ -584,7 +560,7 @@ If everything worked correctly you should be able to run the following code:
   select
   case when grouping(severity) = 1 then 'TOTAL' else severity end as severity,
   count(*) from cleaned.violations
-  group by rollup (severity)
+  group by rollup (severity);
 #+END_SRC
 
 #+RESULTS:
@@ -598,8 +574,7 @@ If everything worked correctly you should be able to run the following code:
 | TOTAL    | 608168 |
 :END:
 
-As a last step, we should create from the cleaned tables the =entities=
-and =events= table.
+Finally, we should create from the cleaned tables the =entities= and =events= table.
 
 
 ** Entities table
@@ -615,9 +590,9 @@ We will beging with the following query:
 
 #+BEGIN_SRC sql
     select
-    license_num, count(*) as total_inspections,
-    coalesce(count(*) filter (where result = 'fail'), 0)
-    as total_failures
+      license_num, count(*) as total_inspections,
+      coalesce(count(*) filter (where result = 'fail'), 0)
+        as total_failures
     from cleaned.inspections
     group by license_num
     order by total_inspections desc
@@ -636,19 +611,18 @@ We will beging with the following query:
 :END:
 
 
-This looks weird, let's investigate a little about
-the =license_num= = =0=.
+This looks weird, let's investigate a little more about =license_num= = =0=.
 
 #+BEGIN_SRC sql
   select
-  facility_type, count(*) as total_inspections,
-  coalesce(count(*) filter (where result = 'fail'), 0)
-  as total_failures
+    facility_type, count(*) as total_inspections,
+    coalesce(count(*) filter (where result = 'fail'), 0)
+      as total_failures
   from cleaned.inspections
   where license_num=0
   group by  facility_type
   order by total_inspections desc
-  limit 10
+  limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -674,15 +648,15 @@ etc. We could research deeply the =restaurants= which have =license_num= =
 
 #+BEGIN_SRC sql
   select
-  license_num, facility, address, count(*) as total_inspections,
-  coalesce(count(*) filter (where result = 'fail'), 0)
-  as total_failures
+    license_num, facility, address, count(*) as total_inspections,
+    coalesce(count(*) filter (where result = 'fail'), 0)
+      as total_failures
   from cleaned.inspections
   where license_num=0
   and facility_type = 'restaurant'
   group by  license_num, facility, address
   order by total_inspections desc
-  limit 10
+  limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -701,7 +675,7 @@ etc. We could research deeply the =restaurants= which have =license_num= =
 |          0 | unlicensed                      | 7559 n ridge blvd     |                3 |             1 |
 :END:
 
-We conclude that we can't use the =license_num= as the unique
+There is too much uncertainty in this field - we conclude that we can't use the =license_num= as the unique
 identifier.
 
 If we go back to the columns of the table, we could try with the
@@ -711,10 +685,10 @@ in one place).
 
 #+BEGIN_SRC sql
   select
-  count(distinct license_num) as total_licenses,
-  count(distinct facility) as total_facilities,
-  count(distinct address) as total_addresses
-  from cleaned.inspections
+    count(distinct license_num) as total_licenses,
+    count(distinct facility) as total_facilities,
+    count(distinct address) as total_addresses
+  from cleaned.inspections;
 #+END_SRC
 
 #+RESULTS:
@@ -730,16 +704,16 @@ several facilities share the name (e.g. Subway or Mc Donalds)  or the
 license; another explanation is that several facilities share the same
 address, as the facilities at the stadium or the airport.
 
-We will decide to use the combination of =license_num=, =facility=, =facility_aka=,
+Let's use the combination of =license_num=, =facility=, =facility_aka=,
 =facility_type= and =address= to identify a facility:
 
 #+BEGIN_SRC sql
 select
-license_num, facility, facility_type, facility_aka, address , count(*)
+  license_num, facility, facility_type, facility_aka, address , count(*)
 from cleaned.inspections
 group by license_num, facility, facility_type, facility_aka, address
 order by count(*) desc, facility, facility_aka, address, license_num, facility_type
-limit 10
+limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -760,15 +734,15 @@ limit 10
 
 
 What attributes we want to add to the =entities= table? We should add
-all the attributes that describe the entity and doesn't depend on the
+all the attributes that describe the entity and doesn't depend on any
 event. Therefore we will add =zip_code=, =location= and some data about
 when this facility got their license or if this is still open. We will
 add =start_time, end_time=. These columns will be important because we
-won't wnat to do predictions on entities that aren't active. We will
+don't want to make predictions on entities that aren't active. We will
 use the following definition
 
 #+BEGIN_QUOTE
-A facility is active from their opening as a businness until it closes
+A facility is active from the time that they started as a business until it is closed down.
 #+END_QUOTE
 
 We don't have this type of date directly in our data source, so we
@@ -777,47 +751,27 @@ and the latest date *or* the greater data in which  the *result* of the
 inspection was =out of business= or =business not located=.
 
 #+BEGIN_SRC sql :tangle ./src/create_semantic_tables.sql
-
 create schema if not exists semantic;
-
 drop table if exists semantic.entities cascade;
-
 create table semantic.entities as (
-
 with entities_date as (
-
   select
   --distinct on (license_num, facility, facility_aka, facility_type, address)
-  license_num,
-  facility,
-  facility_aka,
-  facility_type,
-  address,
-  zip_code,
-  location,
+  license_num, facility, facility_aka, facility_type,
+  address, zip_code, location,
   min(date) over (partition by license_num, facility, facility_aka, address) as start_time,
-  max(case when
-  result in ('out of business', 'business not located')
-  then
-  date
-  else
-  NULL
-  end) over (partition by license_num, facility, facility_aka, address) as end_time
+  max(case when result in ('out of business', 'business not located')
+           then date
+	   else  NULL
+      end) over (partition by license_num, facility, facility_aka, address) as end_time
   from cleaned.inspections
-
 )
 
 select distinct
    dense_rank() over (w) as entity_id,
-   license_num,
-   facility,
-   facility_aka,
-   facility_type,
-   address,
-   zip_code,
-   location,
-   start_time,
-   end_time
+   license_num, facility, facility_aka, facility_type,
+   address, zip_code, location,
+   start_time, end_time
 from entities_date
    window w as (order by license_num, facility, facility_aka, facility_type, address)
 );
@@ -825,7 +779,6 @@ from entities_date
 
 -- Adding some indices
 create index entities_ix on semantic.entities (entity_id);
-
 create index entities_license_num_ix on semantic.entities (license_num);
 create index entities_facility_ix on semantic.entities (facility);
 create index entities_facility_type_ix on semantic.entities (facility_type);
@@ -833,7 +786,6 @@ create index entities_zip_code_ix on semantic.entities (zip_code);
 
 -- Spatial index
 create index entities_location_gix on semantic.entities using gist (location);
-
 create index entities_full_key_ix on semantic.entities (license_num, facility, facility_aka, facility_type, address);
 
 #+END_SRC
@@ -846,9 +798,8 @@ There are *34,517* entities in total.
 ** Events table
 
 
-We are ready for creating our events table. This table will describe
-the data related to the inspection. We also add columns from the
-facility inspected that will simplify the creation of /features/ for our
+We are now ready to create our events table. This table describes the data related to the inspections. 
+We also add columns from the facility inspected that will simplify the creation of /features/ for our
 machine learning models.
 
 #+begin_src sql :tangle ./src/create_semantic_tables.sql
@@ -916,6 +867,17 @@ create index events_inspection_entity_zip_code_date on semantic.events (inspecti
 #+RESULTS:
 
 
+#+BEGIN_SRC sql
+select * from semantic.entities limit 1
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| license_num | facility_type      | location                                           |
+|------------+-------------------+----------------------------------------------------|
+|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
+:END:
+
 #+begin_src sql
 select * from semantic.events limit 1
 #+end_src
@@ -928,13 +890,3 @@ select * from semantic.events limit 1
 :END:
 
 
-#+BEGIN_SRC sql
-select * from semantic.entities limit 1
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| license_num | facility_type      | location                                           |
-|------------+-------------------+----------------------------------------------------|
-|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
-:END:
