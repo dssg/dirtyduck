@@ -44,13 +44,15 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
         test_label_timespan = chop['test_matrices'][0]['test_label_timespan']
         training_label_timespan = chop['train_matrix']['training_label_timespan']
 
+        color_rgb = np.random.random(3)
+
         if(show_as_of_times):
             # Train matrix (as_of_times)
             ax[idx].hlines(
               [x for x in range(len(train_as_of_times))],
               [x.date() for x in train_as_of_times],
               [x.date() + convert_str_to_relativedelta(training_label_timespan) for x in train_as_of_times],
-              linewidth=3, color=f"C{idx}",label=f"train_{idx}"
+              linewidth=3, color=color_rgb,label=f"train_{idx}"
             )
 
             # Test matrix
@@ -58,7 +60,7 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
               [x for x in range(len(test_as_of_times))],
               [x.date() for x in test_as_of_times],
               [x.date() + convert_str_to_relativedelta(test_label_timespan) for x in test_as_of_times],
-              linewidth=3, color=f"C{idx}",
+              linewidth=3, color=color_rgb,
               label=f"test_{idx}"
             )
 
@@ -67,7 +69,7 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
             # Limits: train
             ax[idx].axvspan(chop['train_matrix']['first_as_of_time'],
                             chop['train_matrix']['last_as_of_time'],
-                            color=f"C{idx}",
+                            color=color_rgb,
                             alpha=0.3
             )
 
@@ -78,7 +80,7 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
             # Limits: test
             ax[idx].axvspan(chop['test_matrices'][0]['first_as_of_time'],
                             chop['test_matrices'][0]['last_as_of_time'],
-                            color=f"C{idx}",
+                            color=color_rgb,
                             alpha=0.3
             )
 
