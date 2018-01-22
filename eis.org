@@ -130,3 +130,14 @@ It is always a good idea define a baseline, we will use
 We are working in ...
 
 But meanwhile, you can try the following
+
+* What's next?
+
+  - Add the shape file
+    https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&format=Shapefile
+  - Text analysis?
+  - Run =pgdedup=
+  - Routing based on the inspection list?
+  - Add more data sources?
+  - Postmodeling?
+  - Bias analysis?

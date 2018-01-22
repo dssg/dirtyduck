@@ -15,20 +15,12 @@
 #+PROPERTY: header-args:ipython   :session food_inspections
 
 
-* Intro
-
-  The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
-  used in several examples around the web (e.g. [fn:4],  [fn:1], [fn:2])
-
-
-* What do you need for this tutorial?
-
-  [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
-  Use the links for installing instructions.
-
 * Description of the problem to solve
 
-In this tutorial, we have two different goals: (1) an *EIS* and
+The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
+used in several examples around the web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]] or [[https://youtu.be/1dKonIT-Yak][here]])
+
+   In this tutorial, we have two different goals: (1) an *EIS* and
    (2) *prioritize inspections*, the entity in which we are interested in
    both cases is the  /facility/.
 
@@ -61,7 +53,7 @@ In this tutorial, we have two different goals: (1) an *EIS* and
   question:
 
 #+begin_quote
-Which X facilities are likely to violate some rule in the
+  Which X facilities are likely to violate some rule in the
   following Y period of time?
 #+end_quote
 
@@ -84,6 +76,7 @@ etc.
   Knowing the answer to this question, allows you (as the restaurant's
   owner) to be prepared and take the pertinent actions.
 
+* Content
 
   This tutorial is divided in the following sections
 
@@ -95,26 +88,8 @@ etc.
 - [[file:eis.org][Modeling: Early Warning System]]
 
 
-* What's next?
 
-  - Add the shape file
-    https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&format=Shapefile
-  - Text analysis?
-  - Run =pgdedup=
-  - Routing based on the inspection list?
-  - Add more data sources?
-  - Postmodeling?
-  - Bias analysis?
+[fn:3]
+[fn:1]
 
-
-* Footnotes
-
-[fn:4] [[https://chicago.github.io/food-inspections-evaluation/][Food Inspection Forecasting - Optimizing Inspections with Analytics]]
-
-[fn:3] This problem is
-related to the process of /deduplication/ and there is another tutorial
-for that that uses anothe DSaPP tool: =pgdedup=.
-
-[fn:1] [[https://youtu.be/lyDLAutA88s][David Beazley | Keynote: Built in Super Heroes]]
-
-[fn:2] [[https://youtu.be/1dKonIT-Yak][Nicole Donnelly | Forecasting critical food violations at restaurants using open data]]
+[fn:2]

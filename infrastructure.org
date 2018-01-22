@@ -13,6 +13,12 @@
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session food_inspections
 
+
+*  What do you need for this tutorial?
+
+  [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
+  Use the links for installing instructions.
+
 * Infrastructure
 
   Besides data, in most of the data science projects you will need some
@@ -187,3 +193,7 @@
   =./tutorial.sh destroy=. But don't to that now!
 
   Well, you are all set now. Let's start now.
+
+* What's next?
+
+Continue to [[file:data_preparation.org][Preparing your data]].

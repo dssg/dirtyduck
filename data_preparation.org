@@ -350,8 +350,9 @@ names to uppercase, remove the trailing spaces, remove the apostrophe
 is that we will be fixing the names that we just saw, but there are
 several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
 but that will create a lot of mismatches. The real workaround is apply
-some /machine learning/ to /deduplicate/ the entities [fn:3].  We wont
-follow that path here.
+some /machine learning/ to /deduplicate/ the entities (This problem is
+related to the process of /deduplication/ and there is another tutorial
+for that that uses anothe DSaPP tool: =pgdedup=).  We wont follow that path here.
 
 Let's move to the spatial columns (=state, city, zip, latitude,
 longitude=).
@@ -938,3 +939,8 @@ select * from semantic.entities limit 1
 |------------+-------------------+----------------------------------------------------|
 |          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
 :END:
+
+* What's next?
+
+Now it is a good time for [[file:data_exploration.org][Invest time knowing your data]] this will pay
+out when you try to do feature engineering.

@@ -201,3 +201,7 @@ classification of a facility.
 | 500 w madison st  |              356 |            69 |
 | 131 n clinton st  |              310 |            34 |
 :END:
+
+* What's next?
+
+Well, with the data in place, it is time to know [[file:triage_intro.org][the inner workings of `triage`]].
