@@ -1233,3 +1233,7 @@ Triage's postmodeling capabilities include:
 
 If you want to see *Audition* and *Postmodeling* in action please refer
 [[file:inspections.org][Inspections modeling]] or to [[file:eis.org][EIS modeling]] for practical examples.
+
+* What's next?
+
+We will begin with [[file:inspections.org][Inspections problem]], let's go for it

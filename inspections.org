@@ -863,6 +863,11 @@ We are working in ...
 
 But meanwhile, you can try the following
 
+* What's next?
+
+Do you want to know why the [[file:eis.org][Early Intervention System]] is different
+from the inspections problem? If so, continue reading.
+
 
 * Notes
 [2018-01-01 Mon 00:50]
