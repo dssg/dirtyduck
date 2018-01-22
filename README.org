@@ -76,7 +76,7 @@ etc.
   Knowing the answer to this question, allows you (as the restaurant's
   owner) to be prepared and take the pertinent actions.
 
-* Content
+* Contents
 
   This tutorial is divided in the following sections
 
@@ -86,10 +86,3 @@ etc.
 - [[file:triage_intro.org][Introduction to triage]]
 - [[file:inspections.org][Modeling: Inspections prioritization]]
 - [[file:eis.org][Modeling: Early Warning System]]
-
-
-
-[fn:3]
-[fn:1]
-
-[fn:2]
