@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as md
 
 import seaborn as sns
-#sns.set_style("whitegrid")
+sns.set_style("white")
 sns.set_context("paper")
 sns.set_style("ticks")
 
@@ -23,7 +23,7 @@ import triage.component.timechop as timechop
 from triage.util.conf import convert_str_to_relativedelta
 
 
-FIG_SIZE = (16,8)
+FIG_SIZE = (32,16)
 
 def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_name=None):
 
@@ -92,14 +92,14 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
             ax[idx].axvline(chop['test_matrices'][0]['matrix_info_end_time'],color='k', linestyle='--')
 
         ax[idx].yaxis.set_major_locator(plt.NullLocator())
-        ax[idx].set_ylabel(f"Block {idx}")
+        ax[idx].yaxis.set_label_position("right")
+        ax[idx].set_ylabel(f"Block {idx}", rotation='horizontal', labelpad=30)
 
-        ax[idx].xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-        ax[idx].xaxis.set_major_locator(md.MonthLocator())
+        ax[idx].xaxis.set_major_formatter(md.DateFormatter('%Y'))
+        ax[idx].xaxis.set_major_locator(md.YearLocator())
+        ax[idx].xaxis.set_minor_locator(md.MonthLocator())
 
-        fig.autofmt_xdate()
-
-    ax[0].set_title('Timechop blocks')
+    ax[0].set_title('Timechop: Temporal cross-validation blocks')
     fig.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
 
