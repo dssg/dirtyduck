@@ -397,7 +397,7 @@ and cleaning decisions separated from the raw in a schema that
 data".
 
 
-#+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
+#+BEGIN_SRC sql :tangle ./sql/create_cleaned_inspections_table.sql
   create schema if not exists cleaned;
 #+END_SRC
 
@@ -405,7 +405,7 @@ data".
 
 Then, we will create our mini *ETL* with our cleaning decisions:
 
-#+BEGIN_SRC sql :tangle ./src/create_cleaned_inspections_table.sql
+#+BEGIN_SRC sql :tangle ./sql/create_cleaned_inspections_table.sql
 drop table if exists cleaned.inspections cascade;
 
 create table cleaned.inspections as (
@@ -505,7 +505,7 @@ called =cleaned.violations= to store
    - description
    - comments
 
-#+BEGIN_SRC sql :tangle ./src/create_violations_table.sql
+#+BEGIN_SRC sql :tangle ./sql/create_violations_table.sql
    drop table if exists cleaned.violations cascade;
 
    create table cleaned.violations as (
@@ -741,7 +741,7 @@ will use as an interval between the earliest date in the data source
 and the latest date *or* the greater data in which  the *result* of the
 inspection was =out of business= or =business not located=.
 
-#+BEGIN_SRC sql :tangle ./src/create_semantic_tables.sql
+#+BEGIN_SRC sql :tangle ./sql/create_semantic_tables.sql
 
 create schema if not exists semantic;
 
@@ -816,7 +816,7 @@ the data related to the inspection. We also add columns from the
 facility inspected that will simplify the creation of /features/ for our
 machine learning models.
 
-#+begin_src sql :tangle ./src/create_semantic_tables.sql
+#+begin_src sql :tangle ./sql/create_semantic_tables.sql
 
 drop table if exists semantic.events cascade;
 
