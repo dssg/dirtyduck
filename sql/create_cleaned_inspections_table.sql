@@ -1,4 +1,4 @@
-create schema if not exists cleaned;
+  create schema if not exists cleaned;
 
 drop table if exists cleaned.inspections cascade;
 
