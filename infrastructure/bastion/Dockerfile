@@ -12,3 +12,4 @@ RUN  sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main'
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
+
