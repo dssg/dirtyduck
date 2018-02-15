@@ -25,7 +25,8 @@ services:
       FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
     volumes:
       - "../data:/data"
-      - "../src:/code"
+      - "../triage:/triage"
+      - "../sql:/sql"
 
 
   triage:
@@ -38,6 +39,7 @@ services:
       TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
     volumes:
       - "../triage:/triage"
+      - "../sql:/sql"
 
   # reverseproxy:
   #   build:

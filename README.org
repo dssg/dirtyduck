@@ -20,7 +20,8 @@
 The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
 used in several examples around the web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]] or [[https://youtu.be/1dKonIT-Yak][here]])
 
-   In this tutorial, we have two different goals: (1) an *EIS* and
+   In this tutorial, we have two different goals: (1) an *Early
+   Intervention System* or *EIS* and  
    (2) *prioritize inspections*, the entity in which we are interested in
    both cases is the  /facility/.
 
@@ -40,11 +41,6 @@ used in several examples around the web (e.g. [[https://chicago.github.io/food-i
    The *outcome* is what differ between those two projects. For *EIS* the
    outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
 
-
-  Actually, We want to solve two problems: an /Early intervention system/ (*EIS*)
-  and a /Inspection prioritization/.
-
-
   The first scenario, is the following:  you work for the Chicago's
   government, and you try
   to prioritize your resources (i.e. your inspection workforce), since
@@ -59,8 +55,6 @@ used in several examples around the web (e.g. [[https://chicago.github.io/food-i
 
   In this case maybe you are interested not
   in all the violations but in the more grave.
-
-
 
   We will use the /same/ data set, second, we will be the restaurant's
   owner, and we want to know:

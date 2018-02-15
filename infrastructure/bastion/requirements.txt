@@ -14,4 +14,4 @@ pgcli
 prompt_toolkit
 
 ## DSaPP stuff
-git+https://github.com/dssg/triage.git@master
+git+https://github.com/dssg/triage.git@v2.2.0

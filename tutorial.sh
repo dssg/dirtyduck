@@ -8,7 +8,6 @@ INFRASTRUCTURE_HOME="${PROJECT_HOME}/infrastructure"
 
 cd $INFRASTRUCTURE_HOME
 
-
 function help_menu () {
 cat << EOF
 Usage: ${0} {start|stop|build|rebuild|run|logs|status|destroy|all|}
@@ -23,7 +22,7 @@ OPTIONS:
    -t|triage
    -a|all
 
-EXAMPLES:
+INFRASTRUCTURE:
    All the infrastructure needed is turned on!
         $ ./tutorial.sh start
 
@@ -33,17 +32,28 @@ EXAMPLES:
    Stop the tutorial's infrastructure:
         $ ./tutorial.sh stop
 
-   Connect to bastion:
-        $ ./tutorial.sh bastion
-
    Destroy all the resources related to the tutorial:
         $ ./tutorial.sh destroy
 
-   Run experiments:
-        $ ./tutorial.sh -r
+   Infrastructure logs:
+        $ ./tutorial.sh -l
 
-   Everything!:
-        $ ./tutorial.sh -a
+EXPERIMENTS:
+   NOTE:
+      The following commands assume that "sample_experiment_config.yaml"
+      is located inside triage/experiment_config  directory
+
+   Run one experiment:
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
+
+   Validate experiment configuration file:
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml validate
+
+   Show experiment's temporal cross-validation blocks:
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
+
+   Triage help:
+        $ ./tutorial.sh -t --help
 
 EOF
 }
@@ -74,7 +84,7 @@ function status () {
 }
 
 function bastion () {
-	docker-compose  --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
+    docker-compose --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
 }
 
 function triage () {
@@ -85,7 +95,6 @@ function all () {
 	build_images
 	start_infrastructure
 	status
-	bastion
 }
 
 
@@ -94,9 +103,6 @@ if [[ $# -eq 0 ]] ; then
 	exit 0
 fi
 
-
-#while [[ $# > 0 ]]
-#do
 case "$1" in
     start)
         start_infrastructure
@@ -118,7 +124,7 @@ case "$1" in
         destroy
 		shift
         ;;
-    logs)
+    -l|logs)
         infrastructure_logs
 		shift
         ;;
@@ -126,21 +132,21 @@ case "$1" in
         status
 		shift
         ;;
+    -t|triage)
+	triage ${@:2}
+		shift
+	;;
     bastion)
         bastion
-		shift
-        ;;
-	-t|triage)
-		triage ${@:2}
-		shift
-		;;
-	-a|--all)
-        all
-        shift
+	        shift
+	;;    
+   -a|--all)
+       all
+                shift
         ;;
     -h|--help)
         help_menu
-        shift
+                shift
         ;;
    *)
        echo "${1} is not a valid flag, try running: ${0} --help"
@@ -148,6 +154,5 @@ case "$1" in
        ;;
 esac
 shift
-#done
 
 cd - > /dev/null
