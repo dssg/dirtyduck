@@ -297,6 +297,9 @@ From this definitions, we can deduct the following claims:
 7. They are only three possible results of the inspection (plus the
    fact that the facility was not located or out of business).
 
+
+All the other columns should be self-explanatory.
+
 *** Reality check
 
 Let's check that we have *only* three different classifications for the
@@ -479,12 +482,16 @@ We could attempt to remove this =NULLs= using the location point or
 using similar names of restaurants, but for this tutorial we will
 remove them.
 
-Continuing with the cleaning, we will drop the columns =state=,
-=latitude=, =longitude=, since these are (now) redundant. We will remove
-the column =city= since almost everything happens in Chicago (this is
-the Chicago's food inspection data set anyway).
-
 We will convert the coordinates latitude and longitude to a =Point=.
+
+Continuing with the cleaning, we will drop the columns =state=,
+=latitude=, =longitude= (since these are (now) redundant, because the
+=Point= object). We will remove the column =city= since almost
+everything happens in Chicago (this is the Chicago's food inspection data set anyway).
+
+Recap, we are keeping two columns related to the spatial location of
+the events: the administrative one (=zip_code=) and the exact point of
+the facility (=location=).
 
 As a final step in the cleaning we will change the name of the columns
 for explicit or better names(e.g =results -> result, dba_name -> facility=, etc).
@@ -569,25 +576,20 @@ Or, if you are connected to the database
 Let's look closer the column =violations=:
 
 #+BEGIN_SRC sql
-select violations from raw.inspections limit 5
+select string_to_array(violations, '|') as violations_array from raw.inspections limit 1
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| violations                                                                                                                                                                                                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: EXPOSED HAND SINK INSTALLED AT DISHWASHING AREAS.                                                                                                                                                                                                                                                                                                                             | 30. FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED - Comments: CORRECTED.                                                                                                                                                          | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                                        | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: CORRECTED.                                                                                                                               | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: CORRECTED.                                                                                                                                                               |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
-| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: OBSERVED A PREP COOLER LOCATED IN THE 1ST FLOOR FOOD PREP AREA AT AN AMBIENT AIR TEMPERATURE OF 57.2F DURING THE INSPECTION, NO POTENTIALLY HAZARDOUS FOODS WERE INSIDE OF SAID PREP COOLER DURING THE INSPECTION. INSTRUCTED TO MAINTAIN ALL REFRIGERATION UNITS AT 40F OR BELOW AT ALL TIMES. PREP COOLER TAGGED AND HELD FOR INSPECTION BY CDPH. NO CITATION ISSUED. CRITICAL VIOLATION 7-38-005(A) | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED RAW WOOD SHELVING FOR PLATES ABOVE THE 1 ST FOOD PREP AREA/ PREP COOLERS. INSTRUCTED TO SEAL RAW WOOD, ALL SURFACES SHOULD BE SMOOTH AND EASILT CLEANABLE. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: OBSERVED INTERIOR OF THE FRYERS WITH ACCUMULATED DUST AND GREASE DEBRIS. OBSERVED PREP COOLER CONDENSER WITH ACCUMULATED FOOD AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: OBSERVED FLOORS UNDER THE 1ST FLOOR PREP COOLERS AND COOKING EQUIPMENT WITH ACCUMULATED FOOD, DIRT AND GREASE DEBRIS. INSTRUCTED TO CLEAN AND MAINTAIN. | 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: OBSERVED DUST ON THE VENTS LOCATED IN THE DISH MACHINE AREA AND IN THE FOOD PREP AREA ON THE FIRST FLOOR. INSTRUCTED TO CLEAN AND MAINTAIN. |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
-| 2. FACILITIES TO MAINTAIN PROPER TEMPERATURE - Comments: FOUND WALK IN COOLER AND THREE REACH IN COOLERS NOT MAINTAINING PROPER COLD HOLDING TEMPERATURES.(CURRENTLY NOT TURNED ON). MUST TURN ALL COOLERS BEORE NEXT INSPECTION WITH WORKING THERMOMETERS. CRITICAL VIOLATION. 7-38-005A.                                                                                                                                                                      | 11. ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, DESIGNED, AND MAINTAINED - Comments: FOUND EXPOSED HAND SINK AT BASEMENT DISHWASHING AREAS WITH NO HOT WATER. CRITICAL VIOLATION. 7-38-030.                                                                             | 38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: FOUND NO BACKFLOW PREVENTION DEVICES AT MOP SINK FAUCET. MUST PROVIDE.                                                                                                     | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: FOUND FLOORS NOT CLEAN THROUGHOUT PREMISES. MUST CLEAN AND SANITIZE.                                                                                    | 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: FOUND CLUTTER AT BASEMENT THAT MUST BE REMOVED.(OLD EQUIPMENT, GARBAGE, ETC.). MUST REMOVE ALL UNNECESSARY CLUTTER FROM BASEMENT.                                  | 18. NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS - Comments: FOUND NO PEST CONTROL LOG AT PREMISES. SERIOUS VIOLATION. 7-38-020. MUST PROVIDE PEST CONTROL LOG. | 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED - Comments: FOUND BURNT LIGHT FIXTURES/BROKEN SHIELDS AT BASEMENT DISHWASHING AREAS. MUST REPLACE BURNT BULBS/BROKEN LIGHT SHIELDS. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: FOUND RUSTY SHELVING UNITS INSIDE WALK IN COOLER. MUST REPAIR/REPLACE. |
-| [NULL]                                                                                                                                                                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
-| 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: REPLACE MISSING TOILET LID FROM STUDENT TOILET ROOM(TOILET ROOM ON WEST WALL).                                                                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
-|                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: CLEAN FLOORS ALONG WALLS AND IN ALL CORNERS IN DRY STORAGE AND LAUNDRY AREAS.                                                                  |                                                                                                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                  |                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                      |                                                                                                                                                                        |
+| violations_array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| {"38. VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED - Comments: REPAIR LEAKING FAUCET ON 3-COMPARTMENT SINK IN ICE CREAM PREP AREA. "," 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: CLEAN INTERIOR OF VENTILATION HOOD ABOVE OVEN. "," 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: CLEAN INTERIOR AND EXTERIOR OF ALL PREP COOLERS AND FREEZERS. "," 41. PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED - Comments: STORE MOP HEAD UPRIGHT TO PREVENT INSECT BREDING."} |
 :END:
 
 Note that this column is structured in the following form:
 
    - If there are several violations reported, those violations will
-     be separated by ='|'=
+     be separated by ='|'= 
    - Every violation begins with a code and  a description
    - Every violation could have *comments*, those comments appear after
      the string =- Comments:=
@@ -661,8 +663,9 @@ If everything worked correctly you should be able to run the following code:
 As a last step, we should create from the cleaned tables the =entities=
 and =events= table.
 
+** Add semantics...
 
-** Entities table
+*** Entities table
 
 The =entities= table should uniquely identify the entities and contain
 the attributes that describes the entity.
@@ -713,23 +716,23 @@ the =license_num= = =0=.
 
 #+RESULTS:
 :RESULTS:
-| facility_type          | total_inspections | total_failures |
-|-----------------------+------------------+---------------|
-| restaurant            |              101 |            43 |
-| special event         |               77 |            11 |
-| [NULL]                |               47 |            10 |
-| church                |               32 |             4 |
-| shelter               |               31 |             6 |
-| navy pier kiosk       |               30 |             4 |
-| grocery store         |               16 |             7 |
-| church kitchen        |               14 |             6 |
-| private school        |               11 |             1 |
-| church/special events |               10 |             2 |
+| facility_type    | total_inspections | total_failures |
+|-----------------+------------------+---------------|
+| restaurant      |              101 |            43 |
+| special event   |               61 |             8 |
+| unknown         |               43 |            10 |
+| shelter         |               31 |             6 |
+| navy pier kiosk |               30 |             4 |
+| church          |               28 |             3 |
+| grocery store   |               16 |             7 |
+| church kitchen  |               14 |             6 |
+| private school  |               11 |             1 |
+| long term care  |                9 |             1 |
 :END:
 
 Most of these are related to /special events/, /churchs/, /festivals/
-etc. We could research deeply the =restaurants= which have =license_num= =
-=0=, but we will skip that for the moment.
+etc. But, What about  the =restaurants= which have =license_num= =
+=0=?
 
 
 #+BEGIN_SRC sql
@@ -751,14 +754,14 @@ etc. We could research deeply the =restaurants= which have =license_num= =
 |------------+---------------------------------+-----------------------+------------------+---------------|
 |          0 | british airways                 | 11601 w touhy ave     |                5 |             1 |
 |          0 | rib lady 2                      | 4203 w cermak rd      |                4 |             3 |
-|          0 | taqueria la capital             | 3508 w 63rd st        |                3 |             1 |
-|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                3 |             1 |
-|          0 | las quecas                      | 2500 s christiana ave |                3 |             1 |
-|          0 | nutricion familiar              | 3000 w 59th st        |                3 |             1 |
-|          0 | herbalife                       | 6214 w diversey ave   |                3 |             2 |
-|          0 | la michoacana                   | 4346 s california ave |                3 |             1 |
-|          0 | vinces pizzeria & taqueria, inc | 1527 w devon ave      |                3 |             1 |
 |          0 | unlicensed                      | 7559 n ridge blvd     |                3 |             1 |
+|          0 | nutricion familiar              | 3000 w 59th st        |                3 |             1 |
+|          0 | taqueria la capital             | 3508 w 63rd st        |                3 |             1 |
+|          0 | herbalife                       | 6214 w diversey ave   |                3 |             2 |
+|          0 | las quecas                      | 2500 s christiana ave |                3 |             1 |
+|          0 | la michoacana                   | 4346 s california ave |                3 |             1 |
+|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                3 |             1 |
+|          0 | vinces pizzeria & taqueria, inc | 1527 w devon ave      |                3 |             1 |
 :END:
 
 We conclude that we can't use the =license_num= as the unique
@@ -808,21 +811,21 @@ limit 10
 |------------+------------------------------+---------------+--------------------------+-------------------------+-------|
 |    1490035 | mcdonald's                   | restaurant    | mcdonald's               | 6900 s lafayette ave    |    46 |
 |    1596210 | food 4 less midwest #552     | grocery store | food 4 less              | 7030 s ashland ave      |    44 |
-|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345 | 1224 s wabash ave       |    42 |
+|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345 | 1224 s wabash ave       |    41 |
 |    1302136 | mcdonald's                   | restaurant    | mcdonald's               | 70 e garfield blvd      |    40 |
+|    1476553 | pete's produce               | grocery store | pete's produce           | 1543 e 87th st          |    40 |
 |    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market   | 333 e benton pl         |    38 |
-|    1476553 | pete's produce               | grocery store | pete's produce           | 1543 e 87th st          |    38 |
+|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030   | 7530 s stony island ave |    37 |
+|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito     | 2829 n milwaukee ave    |    37 |
 |    1884255 | food 4 less                  | grocery store | food 4 less              | 4821 w north ave        |    36 |
-|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030   | 7530 s stony island ave |    36 |
 |       9154 | jimmy g's                    | restaurant    | jimmy g's                | 307 s kedzie ave        |    36 |
-|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito     | 2829 n milwaukee ave    |    36 |
 :END:
 
 
 What attributes we want to add to the =entities= table? We should add
 all the attributes that describe the entity and doesn't depend on the
-event. Therefore we will add =zip_code=, =location= and some data about
-when this facility got their license or if this is still open. We will
+event and are atemporal. Therefore we will add =zip_code=,
+=location= and some data about when this facility got their license or if this is still open. We will
 add =start_time, end_time=. These columns will be important because we
 won't wnat to do predictions on entities that aren't active. We will
 use the following definition
@@ -847,7 +850,6 @@ create table semantic.entities as (
 with entities_date as (
 
   select
-  --distinct on (license_num, facility, facility_aka, facility_type, address)
   license_num,
   facility,
   facility_aka,
@@ -898,9 +900,18 @@ create index entities_full_key_ix on semantic.entities (license_num, facility, f
 
 #+END_SRC
 
-#+RESULTS:
+#+Results:
 
-There are *34,517* entities in total.
+#+BEGIN_SRC sql
+select count(*) from semantic.entities
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| count |
+|-------|
+| 34812 |
+:END:
 
 
 ** Events table
@@ -976,15 +987,17 @@ create index events_inspection_entity_zip_code_date on semantic.events (inspecti
 #+RESULTS:
 
 
+Our semantic data looks like:
+
 #+begin_src sql
 select * from semantic.events limit 1
 #+end_src
 
 #+RESULTS:
 :RESULTS:
-| inspection | type    | license_num | facility_type | zip_code | city    |       date | risk   | result | location                                           | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|------------+---------+------------+--------------+---------+---------+------------+--------+--------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     100209 | canvass |    1226806 | liquor       |   60622 | chicago | 2010-01-20 | medium | fail   | 0101000020E6100000D64F99B653EB55C05D6CC3F681F44440 | [{"code": "13", "comment": "All necessary control measures shall be used to effectively minimize or eliminate the presence of rodents, roaches, and other vermin/insect infestations", "severity": "critical", "description": "NO EVIDENCE OF RODENT OR INSECT INFESTATION, NO BIRDS, TURTLES OR OTHER ANIMALS"}, {"code": "32", "comment": "All food and non-food contact equipment and utensils shall be smooth, easily cleanable, and durable, and shall be in good repair", "severity": "minor", "description": "FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED"}, {"code": "33", "comment": "All food and non-food contact surfaces of equipment and all food storage utensils shall be thoroughly cleaned and sanitized daily", "severity": "minor", "description": "FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS"}, {"code": "34", "comment": "The floors shall be constructed per code, be smooth and easily cleaned, and be kept clean and in good repair", "severity": "minor", "description": "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED"}, {"code": "38", "comment": "Ventilation: All plumbing fixtures, such as toilets, sinks, washbasins, etc", "severity": "minor", "description": "VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED"}, {"code": "41", "comment": "All parts of the food establishment and all parts of the property used in connection with the operation of the establishment shall be kept neat and clean and should not produce any offensive odors", "severity": "minor", "description": "PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED"}, {"code": "42", "comment": "All employees shall be required to use effective hair restraints to confine hair", "severity": "minor", "description": "APPROPRIATE METHOD OF HANDLING OF FOOD (ICE) HAIR RESTRAINTS AND CLEAN APPAREL WORN"}] |
+| inspection | entity_id | type    |       date | risk | result | facility_type | zip_code | location                                           | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|------------+----------+---------+------------+------+--------+--------------+---------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    1343315 |        1 | canvass | 2013-06-06 | low  | fail   | newsstand    |   60623 | 0101000020E6100000B005FE6352EE55C09053AD5BF3ED4440 | [{"code": "18", "comment": "THERE ARE OVER 40 RAT DROPPINGS AND THREE ACTIVE RODENT HOLES INSIDE THE ESTABLISHMENT, NO PEST CONTROL SERVICE", "severity": "serious", "description": "NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS"}, {"code": "19", "comment": "NO PRIVATE GARBAGE SERVICE, GARBAGE IS PUT INTO THE CITY CANS, OBTAIN A PRIVATE GARBAGE SERVICE", "severity": "serious", "description": "OUTSIDE GARBAGE WASTE GREASE AND STORAGE AREA; CLEAN, RODENT PROOF, ALL CONTAINERS COVERED"}, {"code": "24", "comment": "THE 2-COMPARTMENT SINK IS DAMAGED, UNSANITARY AND INOPPERABLE, INSTALL A THREE COMPARTMENT SINK TO CITY CODE,", "severity": "serious", "description": "DISH WASHING FACILITIES: PROPERLY DESIGNED, CONSTRUCTED, MAINTAINED, INSTALLED, LOCATED AND OPERATED"}, {"code": "26", "comment": "THERE IS NO EXPOSED HAND SINK IN THE FOOD SERVICE AREA OR ANYWHERE ELSE, INSTALL AN EXPOSED HAND SINK", "severity": "serious", "description": "ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, PROPERLY DESIGNED AND INSTALLED"}, {"code": "34", "comment": "THE FLOORS ARE FILTHY, CLEAN THE FLOORS FROM CORNER TO CORNER", "severity": "minor", "description": "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED"}, {"code": "35", "comment": "THE WALLS ARE CRUMBLING, REPAIR THE WALLS SO THEY ARE SANITARY", "severity": "minor", "description": "WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS"}] |
 :END:
 
 
@@ -994,9 +1007,9 @@ select * from semantic.entities limit 1
 
 #+RESULTS:
 :RESULTS:
-| license_num | facility_type      | location                                           |
-|------------+-------------------+----------------------------------------------------|
-|          0 | after school care | 0101000020E61000004997CE8A75E755C09210857017E84440 |
+| entity_id | license_num | facility              | facility_aka  | facility_type | address        | zip_code | location                                           |  start_time | end_time |
+|----------+------------+-----------------------+--------------+--------------+----------------+---------+----------------------------------------------------+------------+---------|
+|        1 |          0 | 16th street newsstand | j.g.'s foods | newsstand    | 3934 w 16th st |   60623 | 0101000020E6100000B005FE6352EE55C09053AD5BF3ED4440 | 2013-06-06 | [NULL]  |
 :END:
 
 * What's next?

@@ -204,4 +204,4 @@ classification of a facility.
 
 * What's next?
 
-Well, with the data in place, it is time to know [[file:triage_intro.org][the inner workings of `triage`]].
+Well, with the data in place, it is time to know [[file:triage_intro.org][the inner workings of =triage=]].
