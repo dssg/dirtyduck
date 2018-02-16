@@ -900,6 +900,8 @@ create index entities_full_key_ix on semantic.entities (license_num, facility, f
 
 #+END_SRC
 
+Note that we add a /unique/ identifier (=entity_id=) to this table
+
 #+Results:
 
 #+BEGIN_SRC sql
