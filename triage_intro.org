@@ -365,11 +365,6 @@ Timechop has several parameters, first, you need to specify The
 - =label_end_time= :: data aggregated is from before this point (event
      date < label_end_time to be included in any label)  
 
-
-
-
-
-
 Other parameters controls the /labels/' time horizon, you have two
 'knobs', one for training and one for testing.
 
@@ -390,20 +385,17 @@ the time equal to =test_durations= and to =model_update_frequency=.
 - =model_update_frequency= :: amount of time between train/test splits
      (how frequently to retrain models)
 
-- =test_durations= :: how far into the future should a model be used to
-  make predictions *NOTE*: in the typical case of wanting a single
+- =test_durations= :: how far into the future should a model be used
+     to make predictions *NOTE*: in the typical case of wanting a single
      prediction set immediately after model training, this should be
-     set to 0 days 
-(test span)
+     set to 0 days  (test span)
 # length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
-
 
 With those parameters =timechop= will decide the main blocks for
 training/testing. 
 
-
-Finally, we should specify how many rows per =entity_id= in the train
-or test matrix
+Finally, we should specify how many rows per =entity_id= in the Train
+ and test matrix
 
 - =training_as_of_date_frequencies= :: how much time between rows for a
   single entity in a training matrix (list time between rows for
@@ -418,24 +410,295 @@ or test matrix
 inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
 # max length of time for labels included in a train matrix :: default = max (label_start_time to now)
 
-You can use the docker image provider for getting an image about the
-temporal blocks configuration, for example [[file:src/inspections_test.yaml][inspections_test.yaml]] has the following temporal structure:
+The following images (We will show you how to generate them later)
+shows the time blocks of several configurations. We will change one
+parameter at the time so you could see how that affects the blocks.
+
+***** ={feature, label}_{end, start}_Time=
+
+The image below shows these ={feature, label}_start_time= equal, and the same for the
+={feature, label}_end_time= ones. These parameters show in the image
+as dashed vertical black lines. This setup would be our *base* example.
+
+#+NAME: fig:timechop_1
+#+CAPTION: feature and label start, end time equal
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_1.svg]]
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '0d'
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '1y'  
+#+END_Example
+
+But they can be different (maybe you have more data for features that
+data for labels)
+
+#+NAME: fig:timechop_2
+#+CAPTION: feature_start_time different different that label_start_time.
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_2.svg]]
 
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_test.yaml show_temporal_blocks
-#+END_SRC
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2010-01-01'   # <------- The change happened here!
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
 
-#+RESULTS:
-:RESULTS:
-Creating experiment object
-Experiment loaded
-Generating temporal blocks image
-Image stored in:
-/code/inspections_test.png
-:END:
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month'
 
-[[./src/inspections_test.png]]
+    test_durations: '0d'
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '1y'  
+#+END_EXAMPLE
+
+***** =model_update_frequency= 
+From our *base* =temporal_config= example ([[fig:timechop_1]]), we will
+change how often we want a new model, so we need more train/test sets:
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '6month' # <------- The change happened here!
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '0d'
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '1y'  
+#+END_Example
+
+#+NAME: fig:timechop_3
+#+CAPTION: A smaller model_update_frequency (from 1y to 6month)
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_3.svg]]
+
+
+***** =max_training_histories=
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '0d'
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '10y'  <------- The change happened here!
+#+END_Example
+
+
+#+NAME: fig:timechop_4
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_4.svg]]
+
+***** =_as_of_date_frequencies= and =test_durations=
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '3month' <------- The change happened here!
+
+    test_durations: '0d'
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '10y'  
+#+END_Example
+
+
+#+NAME: fig:timechop_5
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_5.svg]]
+
+Now, change =test_as_of_date_frequencies=
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month' 
+
+    test_durations: '0d'
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '3month'<------- The change happened here!
+
+    max_training_histories: '10y'  
+#+END_Example
+
+
+#+NAME: fig:timechop_6
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_6.svg]]
+
+Nothing change, that's because the test set doesn't have "space", that
+is controlled by =test_durations=, let's move that to to =6month=
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month' 
+
+    test_durations: '6month' <------- The change happened here!
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '10y'  
+#+END_Example
+
+
+#+NAME: fig:timechop_7
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_7.svg]]
+
+So, now we will move both parameters: =test_durations=, =test_as_of_date_frequencies=
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month' 
+
+    test_durations: '6month' <------- The change happened here!
+    test_label_timespans: ['1y'] 
+    test_as_of_date_frequencies: '3month' <------- and also here!
+
+    max_training_histories: '10y'  
+#+END_Example
+
+
+#+NAME: fig:timechop_8
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_8.svg]]
+
+***** =-label_timespans=
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['1y']
+    training_as_of_date_frequencies: '1month' 
+
+    test_durations: '0d' 
+    test_label_timespans: ['3month']  <------- The change happened here!
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '10y'  
+#+END_Example
+
+
+#+NAME: fig:timechop_9
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_9.svg]]
+
+#+BEGIN_EXAMPLE yaml
+temporal_config:
+    feature_start_time: '2014-01-01'
+    feature_end_time: '2018-01-01'
+    label_start_time: '2014-01-02'
+    label_end_time: '2018-01-01'
+
+    model_update_frequency: '1y' 
+    training_label_timespans: ['3month'] <------- The change happened here!
+    training_as_of_date_frequencies: '1month' 
+
+    test_durations: '0d' 
+    test_label_timespans: ['1y']  
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '10y'  
+#+END_Example
+
+
+#+NAME: fig:timechop_10
+#+CAPTION: 
+#+ATTR_ORG :width 100 :height 100
+#+ATTR_HTML :width 600 :height 400
+#+ATTR_LATEX :width 400 :height 300
+[[./images/timechop_10.svg]]
+
 
 **** Feature engineering
 
@@ -1345,4 +1608,49 @@ If you want to see *Audition* and *Postmodeling* in action please refer
 
 * What's next?
 
-We will begin with [[file:inspections.org][Inspections problem]], let's go for it
+We will begin with [[file:inspections.org][Inspections problem]], let's go for It
+
+
+==================
+
+
+You can use the docker image provider for getting an image about the
+temporal blocks configuration, for example [[file:src/inspections_test.yaml][inspections_test.yaml]] has the following temporal structure:
+
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file inspections_test.yaml show_temporal_blocks
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Creating experiment object
+Experiment loaded
+Generating temporal blocks image
+Image stored in:
+/code/inspections_test.png
+:END:
+
+[[./src/inspections_test.png]]
+
+*** The =Experiment= object
+
+Everything revolves around the =experiment= object. You can validate
+an =experiment= as follows:
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file /code/inspections_test.yaml validate
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Creating experiment object
+Experiment loaded
+Validating experiment's configuration
+:END:
+
+If you are ready for run it, you could start your experiment with:
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file /code/inspections_test.yaml run
+#+END_SRC
