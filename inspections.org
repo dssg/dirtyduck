@@ -17,6 +17,10 @@
 
 * Problem description
 
+ We will begin with the the *inspections prioritization* problem: we want to generate a list of
+   facilities which are /likely/ to have some *critical* o *serious*
+   violation /given that/ they are inspected.
+
 The scenario, is the following:  you work for the City of Chicago and you try
   to prioritize your resources (i.e. your inspection workforce), since
   they are limited. So, you will use the data for answering the next question:
@@ -31,40 +35,6 @@ Which X facilities are likely to violate some code in the
 
 * Creating the labels
 
-Let's remember how the =events= table looks like:
-
- #+begin_src sql
- \d semantic.events
- #+end_src
-
- #+RESULTS:
- :RESULTS:
- | Table "semantic.events"                                                                                         |                   |           |
- |-----------------------------------------------------------------------------------------------------------------+-------------------+-----------|
- | Column                                                                                                          | Type              | Modifiers |
- | inspection                                                                                                      | character varying |           |
- | entity_id                                                                                                        | bigint            |           |
- | type                                                                                                            | text              |           |
- | date                                                                                                            | date              |           |
- | risk                                                                                                            | text              |           |
- | result                                                                                                          | text              |           |
- | facility_type                                                                                                    | text              |           |
- | zip_code                                                                                                         | character varying |           |
- | location                                                                                                        | geometry          |           |
- | violations                                                                                                      | jsonb             |           |
- | Indexes:                                                                                                        |                   |           |
- | "events_date_ix" btree (date DESC NULLS LAST)                                                                     |                   |           |
- | "events_entity_ix" btree (entity_id)                                                                               |                   |           |
- | "events_facility_type_ix" btree (facility_type)                                                                     |                   |           |
- | "events_inspection_entity_zip_code_date" btree (inspection DESC NULLS LAST, entity_id, zip_code, date DESC NULLS LAST) |                   |           |
- | "events_inspection_ix" btree (inspection)                                                                         |                   |           |
- | "events_location_gix" gist (location)                                                                             |                   |           |
- | "events_type_ix" btree (type)                                                                                     |                   |           |
- | "events_violations" gin (violations)                                                                             |                   |           |
- | "events_violations_json_path" gin (violations jsonb_path_ops)                                                        |                   |           |
- | "events_zip_code_ix" btree (zip_code)                                                                               |                   |           |
- :END:
-
 We will define two different labels:
 
 - *Which facilities are likely to fail an inspection?*
@@ -73,7 +43,7 @@ Facilities who failed an inspection (i.e. =result= = ='fail'=)
 
 - *Which facilities are likely  to fail an inspection with a major  violation?*
 
-Critical violations are coded between =1-14=, serious violations between
+Rremember that critical violations are coded between =1-14=, serious violations between
 =15-29=, everything above =30= is assumed to be a minor violation.
 
 Facilities who failed an inspection (i.e. =result= = ='fail'=) and the
@@ -85,26 +55,30 @@ following code:
 
 #+begin_src sql
 
-select inspection, result, array_agg(obj ->>'severity'),
+select inspection, 
+date,
+result, 
+array_agg(obj ->>'severity') as violations_severity,
 (result = 'fail') as failed,
 (result = 'fail' and
 ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
 ) as failed_major_violation
 from
-(select inspection, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events limit 20)
+(select inspection,date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events limit 20)
 as t1
-group by inspection, result
+group by inspection, date, result
+order by date desc
 
 #+end_src
 
 #+RESULTS:
 :RESULTS:
-| inspection | result | array_agg                                                 | failed | failed_major_violation |
-|------------+--------+----------------------------------------------------------+--------+----------------------|
-|    1763967 | fail   | {critical,serious,serious,minor,minor,minor,minor,minor} | t      | t                    |
-|    1770568 | pass   | {critical,serious,serious,minor,minor}                   | f      | f                    |
-|    1343315 | fail   | {serious,serious,serious,serious,minor,minor}            | t      | t                    |
-|     537439 | fail   | {NULL}                                                   | t      | [NULL]               |
+| inspection |       date | result | violations_severity                                       | failed | failed_major_violation |
+|------------+------------+--------+----------------------------------------------------------+--------+----------------------|
+|    1770568 | 2016-05-11 | pass   | {critical,minor,minor,serious,serious}                   | f      | f                    |
+|    1763967 | 2016-05-03 | fail   | {minor,critical,serious,serious,minor,minor,minor,minor} | t      | t                    |
+|    1343315 | 2013-06-06 | fail   | {minor,serious,serious,serious,serious,minor}            | t      | t                    |
+|     537439 | 2011-06-10 | fail   | {NULL}                                                   | t      | [NULL]               |
 :END:
 
 
