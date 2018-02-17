@@ -76,7 +76,8 @@ def validate(experiment):
 
     click.echo("""
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs possibly is related to number of columns or collision in
+           Any error that occurs from now on, possibly will be related to hit the maximum 
+           number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     """)
 
