@@ -5,9 +5,12 @@ model_comment: 'inspections_test'
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'test'
+  org: 'DSaPP'
+  team: 'Tutorial'
+  author: 'Adolfo De Unanue'
 
 temporal_config:
-    feature_start_time: '2015-02-01'
+    feature_start_time: '2010-02-01'
     feature_end_time: '2017-02-01'
     label_start_time: '2015-02-01'
     label_end_time: '2017-02-01'
@@ -16,7 +19,7 @@ temporal_config:
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
+    test_durations: '0d'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -27,7 +30,7 @@ events_table: inspections.failed
 feature_aggregations:
     -
         prefix: 'inspections'
-        from_obj: 'triage.test'
+        from_obj: 'semantic.events'
         knowledge_date_column: 'date'
 
         categoricals_imputation:
@@ -36,13 +39,13 @@ feature_aggregations:
 
         categoricals:
             -
-                column: 'inspection_type'
-                choice_query: 'select distinct inspection_type from triage.test where inspection_type is not null'
+                column: 'type'
+                choice_query: 'select distinct type from semantic.events where type is not null'
                 metrics:
                     - 'sum'
 
         intervals:
-            - '1y'
+            - '3month'
 
         groups:
             - 'entity_id'

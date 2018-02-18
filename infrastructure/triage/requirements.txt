@@ -8,6 +8,7 @@ numpy
 seaborn
 scikit-learn
 pgcli
+pydotplus
 
 ## DSaPP stuff
 git+https://github.com/dssg/triage.git@v2.2.0

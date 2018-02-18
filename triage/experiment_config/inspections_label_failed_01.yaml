@@ -6,7 +6,7 @@ user_metadata:
   label_definition: 'failed'
   experiment_type: 'exploratory'
   org: 'DSaPP'
-  team: 'Chicago Data Science'
+  team: 'Tutorial'
   author: 'Your name here'
 
 temporal_config:
@@ -16,11 +16,11 @@ temporal_config:
     label_end_time: '2017-02-01'
 
     model_update_frequency: '1y'
-    training_label_timespans: ['1month']
+    training_label_timespans: ['1y']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
-    test_label_timespans: ['1month']
+    test_durations: '1month'  
+    test_label_timespans: ['1y'] #
     test_as_of_date_frequencies: '1month'
 
     max_training_histories: '10y'
@@ -121,17 +121,17 @@ state_config:
 
 grid_config:
     'sklearn.ensemble.RandomForestClassifier':
-        max_features: [1, 'sqrt']
+        max_features: ['sqrt']
         criterion: ['gini']
-        n_estimators: [10, 100]
-        min_samples_split: [2,5,10]
-        max_depth: [2,5,10]
-        class_weight: [null, 'balanced']
+        n_estimators: [1000]
+        min_samples_leaf: [1]
+        min_samples_split: [50]
+        class_weight: ['balanced']
 
 feature_group_definition:
    prefix: ['inspections', 'results', 'risks']
 
-feature_group_strategies: ['all']
+feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 model_group_keys:
     - 'label_definition'
