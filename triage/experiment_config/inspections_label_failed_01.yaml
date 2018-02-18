@@ -10,13 +10,13 @@ user_metadata:
   author: 'Your name here'
 
 temporal_config:
-    feature_start_time: '2012-02-01'
-    feature_end_time: '2017-02-01'
-    label_start_time: '2012-02-01'
-    label_end_time: '2017-02-01'
+    feature_start_time: '2010-02-01'
+    feature_end_time: '2018-02-01'
+    label_start_time: '2015-02-01'
+    label_end_time: '2018-02-01'
 
     model_update_frequency: '1y'
-    training_label_timespans: ['1y']
+    training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
     test_durations: '1month'  

@@ -179,8 +179,7 @@ want to run.
 
 ** Creating a simple experiment
 
-We will use the subset table =triage.test= that we were using in
-[[file:triage_intro.org][Introduction to triage]] . For this first experiment we will try one of the simplest
+For this first experiment we will try one of the simplest
 machine learning algorithms: a *Decision Tree Classifier*. We need to
 write the experiment config file for that, let's break it down and
 explain all the sections.
@@ -221,18 +220,18 @@ user_metadata:
 Next, the *temporal configuration*  section. The first four parameters
 are related to the availability of data: How much data you have for
 feature creation? How much data you have for label generation? For
-simplicity we will assume that we can use the full =triage.test= time
+simplicity we will assume that we can use the full =semantic.events= time
 span for both.
 
 #+BEGIN_SRC sql
-select min(date), max(date) from triage.test
+select min(date), max(date) from semantic.events
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 |        min |        max |
 |------------+------------|
-| 2010-02-24 | 2017-02-21 |
+| 2010-01-04 | 2018-02-13 |
 :END:
 
 The next parameters are related to the training intervals:
@@ -255,16 +254,16 @@ round in exactly one month (=test_durations = test_label_timespan =
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
 temporal_config:
-    feature_start_time: '2010-02-01'
-    feature_end_time: '2017-02-01'
+    feature_start_time: '2010-01-04'
+    feature_end_time: '2017-02-13'
     label_start_time: '2015-02-01'
-    label_end_time: '2017-02-01'
+    label_end_time: '2017-02-13'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '0d'
+    test_durations: '1month'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -462,21 +461,19 @@ Experiment validation ran to completion with no errors
 
 Number of time splits: 2
 Split index 0:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
-            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-11-13 00:00:00 (10 total)
+            Testing as_of_time range: 2015-12-13 00:00:00 to 2015-12-13 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
-            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-11-13 00:00:00 (22 total)
+            Testing as_of_time range: 2016-12-13 00:00:00 to 2016-12-13 00:00:00 (1 total)
 
 
-For more detailed information on your time splits, inspect the experiment `split_definitions` Property
+For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
-           
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
-           number of columns allowed or collision in
+           Any error that occurs possibly is related to number of columns or collision in
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
@@ -882,20 +879,19 @@ Experiment validation ran to completion with no errors
 
 Number of time splits: 2
 Split index 0:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
-            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-11-13 00:00:00 (10 total)
+            Testing as_of_time range: 2015-12-13 00:00:00 to 2015-12-13 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
-            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-11-13 00:00:00 (22 total)
+            Testing as_of_time range: 2016-12-13 00:00:00 to 2016-12-13 00:00:00 (1 total)
 
 
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
-           
+
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
-           number of columns allowed or collision in
+           Any error that occurs possibly is related to number of columns or collision in
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
@@ -993,13 +989,13 @@ user_metadata:
 
 #+BEGIN_SRC  yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
 temporal_config:
-    feature_start_time: '2012-02-01'
-    feature_end_time: '2017-02-01'
-    label_start_time: '2012-02-01'
-    label_end_time: '2017-02-01'
+    feature_start_time: '2010-02-01'
+    feature_end_time: '2018-02-01'
+    label_start_time: '2015-02-01'
+    label_end_time: '2018-02-01'
 
     model_update_frequency: '1y'
-    training_label_timespans: ['1y']
+    training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
     test_durations: '1month'  
@@ -1008,6 +1004,26 @@ temporal_config:
 
     max_training_histories: '10y'
 #+END_SRC
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file inspections_label_failed_01.yaml show_temporal_blocks
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Using the config file /triage/experiment_config/inspections_label_failed_01.yaml
+The output (matrices and models) of this experiment will be stored in triage/output
+The experiment will utilize any preexisting matrix or model: False
+Creating experiment object
+Experiment loaded
+Generating temporal blocks image
+Image stored in:
+/triage/inspections.svg
+:END:
+
+[[./triage/inspections.svg]]
+
+
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
 events_table: inspections.failed
@@ -1137,6 +1153,7 @@ scoring:
 
 #+END_SRC
 
+
 #+BEGIN_SRC sh
 ./tutorial.sh triage --config_file inspections_label_failed_01.yaml validate
 #+END_SRC
@@ -1153,20 +1170,15 @@ Experiment validation ran to completion with no errors
 
 ----TIME SPLIT SUMMARY----
 
-Number of time splits: 3
+Number of time splits: 2
 Split index 0:
-            Training as_of_time_range: 2012-02-01 00:00:00 to 2013-01-01 00:00:00 (12 total)
-            Testing as_of_time range: 2014-01-01 00:00:00 to 2014-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
+            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2012-02-01 00:00:00 to 2014-01-01 00:00:00 (24 total)
-            Testing as_of_time range: 2015-01-01 00:00:00 to 2015-01-01 00:00:00 (1 total)
-
-
-Split index 2:
-            Training as_of_time_range: 2012-02-01 00:00:00 to 2015-01-01 00:00:00 (36 total)
-            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
+            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
 
 
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
@@ -1196,17 +1208,3 @@ But meanwhile, you can try the following
 Do you want to know why the [[file:eis.org][Early Intervention System]] is different
 from the inspections problem? If so, continue reading.
 
-
-* Notes
-[2018-01-01 Mon 00:50]
-
-
- /What are you inspecting?/ (people, places, other)
- /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /What do you want to optimize for?/ (e.g. efficiency, long term
- compliance, novelty)
-
-
-Inspection the join starts from outcomes (outcome centric) (if you
-haven't been inspected, we can not said anything about you)
