@@ -1240,6 +1240,10 @@ You can execute the experiment with
 #+END_SRC
 
 
+Well, know we have a lot of models, How can you pick the best one for
+you? We will show you that when we model the /Early Intervention System/.
+
+
 * What's next?
 
 Do you want to know why the [[file:eis.org][Early Intervention System]] is different
