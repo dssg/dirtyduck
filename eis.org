@@ -141,3 +141,18 @@ But meanwhile, you can try the following
   - Add more data sources?
   - Postmodeling?
   - Bias analysis?
+
+
+* Notes
+[2018-01-01 Mon 00:50]
+
+
+ /What are you inspecting?/ (people, places, other)
+ /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
+ /What do you want to optimize for?/ (e.g. efficiency, long term
+ compliance, novelty)
+
+
+Inspection the join starts from outcomes (outcome centric) (if you
+haven't been inspected, we can not said anything about you)
