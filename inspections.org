@@ -638,7 +638,29 @@ where model_id = 7
 We can visualize the model 
 
 #+BEGIN_SRC ipython
+from sklearn.externals.six import StringIO  
+from IPython.display import Image  
+from sklearn.tree import export_graphviz
+import pydotplus
+import pandas as pd
+from sklearn.externals import joblib
 
+X = pd.read_csv('./triage/output/matrices/53ccca25d2096ad453831883e1e50e1d.csv', nrows=1)
+
+X.drop(['entity_id', 'as_of_date', 'outcome'], axis=1, inplace=True)
+
+dtree = joblib.load('./triage/output/trained_models/6bb1c66e613fc9f19f3992ec36d743ab')
+
+dot_data = StringIO()
+
+export_graphviz(dtree, out_file=dot_data,  
+                filled=True, rounded=True,
+                special_characters=True,
+                feature_names = X.columns)
+
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+Image(graph.create_png())
+#graph.write_png()
 #+END_SRC
 
 #+RESULTS:
@@ -648,6 +670,9 @@ We can visualize the model
 <IPython.core.display.Image object>
 :END:
 
+This tree makes kind of sense, if the facility had more than 1.5
+inspections related to food poisoning then it will fail the
+inspection.
 
 The same model =7= is part of the model group src_sql{select model_group_id
 from results.models where model_id = 7}. That model group
@@ -964,15 +989,10 @@ order by metric || parameter, model_id
 :END:
 
 
-** A neat trick
-
-Add small, medium, full grid (Rayid magic loop example)
-
-
 ** A more advanced experiment
 
-Ok, let's add a more complete experiment.
-
+Ok, let's add a more complete experiment. First the usual generalities.
+Note that we change =experiment_type=
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
 config_version: 'v3'
@@ -986,6 +1006,21 @@ user_metadata:
   team: 'Tutorial'
   author: 'Your name here'
 #+END_SRC
+
+As before, we set the =triage= special tables that specifies /outcomes/ (that is call
+=events_table=) and the one that specifies /states/. These are the
+same, we didn't change anything.
+
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+events_table: inspections.failed
+
+state_config:
+    table_name: 'inspections.active_facilities'
+    state_filters:
+       - 'active'
+#+END_SRC
+
+Neither to the temporal configuration:
 
 #+BEGIN_SRC  yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
 temporal_config:
@@ -1023,11 +1058,12 @@ Image stored in:
 
 [[./triage/inspections.svg]]
 
-
+The first big change is that we are adding 3 more /features groups/:
+=inspections= (we already use this), =risks=, and =results=. Remember
+that all of this referes to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
+/Which is the average of failed inspections in the previous year?/
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
-events_table: inspections.failed
-
 feature_aggregations:
     -
         prefix: 'inspections'
@@ -1113,13 +1149,24 @@ feature_aggregations:
             - 'zip_code'
             - 'facility_type'
 
+#+END_Src
 
+We want to use all the features groups
+(=feature_group_definition=). The training will be made on matrices
+with =all= the feature groups, then letting one feature group out, =leave-one-out=,
+i.e. one model with =inspections= and =results=, another with
+=inspections= and =risks= and another one with =results= and =risks, 
+and then just trying models with =inspections= or =results= or =risks= exclusively.
 
-state_config:
-    table_name: 'inspections.active_facilities'
-    state_filters:
-       - 'active'
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+feature_group_definition:
+   prefix: ['inspections', 'results', 'risks']
+
+feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
+
+Finally, we will try a =RandomForestClassifier=
+
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
 grid_config:
@@ -1131,10 +1178,6 @@ grid_config:
         min_samples_split: [50]
         class_weight: ['balanced']
 
-feature_group_definition:
-   prefix: ['inspections', 'results', 'risks']
-
-feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 model_group_keys:
     - 'label_definition'
@@ -1190,18 +1233,12 @@ For more detailed information on your time splits, inspect the experiment `split
 The experiment looks in good shape. May the force be with you
 :END:
 
-You can execute the experiment as
+You can execute the experiment with
 
 #+BEGIN_SRC sh
 ./tutorial.sh triage --config_file inspections_label_failed_01.yaml run
 #+END_SRC
 
-** How can I pick the best one?
-
-
-We are working in ...
-
-But meanwhile, you can try the following
 
 * What's next?
 

@@ -9,6 +9,13 @@ user_metadata:
   team: 'Tutorial'
   author: 'Your name here'
 
+events_table: inspections.failed
+
+state_config:
+    table_name: 'inspections.active_facilities'
+    state_filters:
+       - 'active'
+
 temporal_config:
     feature_start_time: '2010-02-01'
     feature_end_time: '2018-02-01'
@@ -24,8 +31,6 @@ temporal_config:
     test_as_of_date_frequencies: '1month'
 
     max_training_histories: '10y'
-
-events_table: inspections.failed
 
 feature_aggregations:
     -
@@ -112,12 +117,10 @@ feature_aggregations:
             - 'zip_code'
             - 'facility_type'
 
+feature_group_definition:
+   prefix: ['inspections', 'results', 'risks']
 
-
-state_config:
-    table_name: 'inspections.active_facilities'
-    state_filters:
-       - 'active'
+feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 grid_config:
     'sklearn.ensemble.RandomForestClassifier':
@@ -128,10 +131,6 @@ grid_config:
         min_samples_split: [50]
         class_weight: ['balanced']
 
-feature_group_definition:
-   prefix: ['inspections', 'results', 'risks']
-
-feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 model_group_keys:
     - 'label_definition'
