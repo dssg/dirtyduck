@@ -1,7 +1,7 @@
 boto3
 Click
 python-dotenv
-psycopg2
+psycopg2-binary
 SQLALchemy
 pandas
 numpy

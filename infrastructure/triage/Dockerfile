@@ -6,7 +6,8 @@ LABEL triage.version="v2.2.0" \
       creator="Center for Data Science and Public Policy (DSaPP)" \
       maintainer="Adolfo De Unánue <adolfo@uchicago.edu>"
 
-RUN apt get install graphviz
+RUN apt update && \
+    apt-get --yes install graphviz
 
 COPY requirements.txt .
 

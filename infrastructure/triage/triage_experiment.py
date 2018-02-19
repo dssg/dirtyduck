@@ -13,6 +13,18 @@ from triage.experiments import SingleThreadedExperiment
 
 from utils import show_timechop, show_features_queries
 
+
+import logging
+
+logging_level = logging.WARNING
+
+logging.basicConfig(
+    format="%(name)-30s  %(asctime)s %(levelname)10s %(process)6d  %(filename)-24s  %(lineno)4d: %(message)s",
+    datefmt = "%d/%m/%Y %I:%M:%S %p",
+    level=logging_level,
+    handlers=[logging.StreamHandler()]
+)
+
 @click.group()
 @click.option('--config_file', type=click.Path(),
               help="""Triage's experiment congiguration file name 
@@ -26,8 +38,10 @@ from utils import show_timechop, show_features_queries
 @click.option('--replace/--no-replace',
               help="Triage will (or won't) replace all the matrices and models",
               default=True)  ## Default True so it matches the default behaviour of Triage
+@click.option('--debug', is_flag=True,
+              help="Activate to get a lot of information in your screen")  
 @click.pass_context
-def triage(ctx, config_file, triage_db, replace):
+def triage(ctx, config_file, triage_db, replace, debug):
 
     config_file = os.path.join(os.sep, "triage", "experiment_config", config_file)
 
@@ -50,6 +64,10 @@ def triage(ctx, config_file, triage_db, replace):
 
     ctx.obj = experiment
 
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+        click.echo("Debug enabled (Expect A LOT of output at the screen!!!)")
+    
     click.echo("Experiment loaded")
 
 @triage.command()
