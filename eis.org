@@ -12,11 +12,23 @@
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
-#+PROPERTY: header-args:ipython   :session food_inspections
+#+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
+#+PROPERTY: header-args:python    :session food_inspections :results output Drawer
+#+PROPERTY: header-args:sh  :results raw drawer
 
+* Problem description
 
-* ▶ TODO Problem description
-EIS the join starts from entity (entity centric) (if you don't have an outcome you are doing good)
+Our final stop is using =triage= to build a /Early Intervention (or Warning) System/. There are
+ several differences between the the *EIS* and the *inspection
+ prioritization* problem. The difference that has more impact is that
+ the /entity/ in *EIS* is  /active/ 
+ i.e. it is doing stuff, and for that stuff the the entity is doing
+ some outcome will happen. In the *inspection prioritization* the
+ /entity/ is acted on. This will change, from starters the way that
+ the /outcome/ is build.
+
+The question that we want to resolve is the following:
+
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/
@@ -29,100 +41,433 @@ etc.
   owner) to be prepared and take the pertinent actions.
 
 
-* ▶ TODO The task as a multientity/multivariate time series problem
-
-
-* ▶ TODO Creating the labels
-
-
-
-* ▶ TODO Temporal crossvalidation
-
-/There are three different ways of doing it/...
-
-Avoid leakage ...
-
-/It will easy to explain if we show this with only one facility/...
-
-Enter =timechop=
-
-Timechop requires the following parameters:
-
-
-- =feature_start_time= - data aggregated into features begins at this point
-# earliest date included in features
-- =feature_end_time= - data aggregated into features is from before this
-  point
-# latest date included in features
-- =label_start_time= - data aggregated into labels begins at this point
-# earliest event date included in any label (event date >= label_start_time)
-- =label_end_time= - data aggregated is from before this point
-# event date < label_end_time to be included in any label
-- =model_update_frequency= - amount of time between train/test splits
-# how frequently to retrain models (days, months, years)
-- =training_as_of_date_frequencies= - how much time between rows for a
-  single entity in a training matrix
-# list - time between rows for same entity in train matrix
-- =max_training_histories= - the maximum amount of history for each
-  entity to train on (early matrices may contain less than this time
-  if it goes past label/feature start times)
-# max length of time for labels included in a train matrix - default = max (label_start_time to now)
-- =training_label_timespans= - how much time is covered by training
-  labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
-  (training prediction span)
-# time period across which outcomes are determined in train matrices
-- =test_as_of_date_frequencies= - how much time between rows for a
-  single entity in a test matrix
-# time between rows for same entity in test matrix  - inspections -  planning/scheduling frequency, eis = reviewing frequency (default = 1week)
-- =test_durations= - how far into the future should a model be used to
-  make predictions (in the typical case of wanting a single prediction
-  set immediately after model training, this should be set to 0 days)
-(test span)
-# length of time included in a test matrix (default = training_prediction_span) inspections = how far out are you scheduling for? eis = model_update_frequency
-- =test_label_timespans= - how much time is covered by test predictions
-  (e.g., outcomes in the next 1 year? 3 days? 2 months?)
-(test prediction span)
-# time period across which outcomes are labeled in test matrices (default for eis = training_prediction_span, inspections = test_data_span)
-
-In the particular case of *early intervention/warning systems*,
-
-- =test_as_of_date_frequencies= is reviewing frequency
-- =test_durations= is equal to =model_update_frequency=
-- =test_label_timespans= is equal to =training_label_timespan=
+* The EIS problem as a multientity/multivariate time series problem
 
 
 
 
-* ▶ TODO Feature engineering
+* Creating the labels
 
-/We will show how to create features, we will use the same subset (one facility) and only one variable .../
+The trick to note is that every day there are two possible outcomes:
+/the facility was inspected/ and /the facility wasn't inspected/. So,
+our /outcomes/ table will be more larger, since we need for every date
+in our dataset for every /active/ facility an /outcome/: Does the
+facility Inspected?
 
-Enter =collate=
+#+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
+create schema if not exists eis;
+#+END_Src
+
+#+RESULTS:
+
+For achiving that, we need to create a table (naïvely) of /number of
+days/ \times /number of entities/. Lets see how many rows do we generate.
+
+#+BEGIN_SRC sql
+select min(date), max(date) from semantic.events
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|        min |        max |
+|------------+------------|
+| 2010-01-04 | 2018-02-13 |
+:End:
+
+
+#+NAME: all_days
+#+BEGIN_SRC sql
+select count(days) from generate_series((select min(date) from semantic.events), current_date, '1 day'::interval) days;
+#+END_SRC
+
+#+RESULTS: all_days
+:RESULTS:
+| count |
+|-------|
+|  2968 |
+:END:
+
+
+#+NAME: all_entities
+#+BEGIN_SRC sql 
+select count(*) from semantic.entities;
+#+END_SRC
+
+#+RESULTS: all_entities
+:RESULTS:
+| count |
+|-------|
+| 34812 |
+:END:
+
+#+BEGIN_SRC ipython
+34812*2968
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+
+103322016
+:END:
+
+The result is src_python[:var entities=all_entities[2] :var
+days=all_days[2]]{print(int(entities[0])*int(days[0]))}
+{{{results(=103322016=)}}} That's a lot of rows! 
+
+We could improve that taking only the /active/
+Entities
+#+NAME: actives
+#+BEGIN_SRC sql 
+with dates as (
+    select days::date
+    from 
+    generate_series(
+       (select min(date) from semantic.events),
+       current_date, '1 day'::interval) days
+)
+
+select count(*)
+from semantic.entities
+join dates d
+on d.days <@ daterange(start_time, end_time)
+#+END_SRC
+
+#+RESULTS: actives
+:RESULTS:
+|    count |
+|----------|
+| 46772382 |
+:END:
+
+
+That's almost a reduction of src_python[:var entities=all_entities[2]
+:var days=all_days[2] :var
+active_entities=actives[2]]{print(100*float(active_entities[0])/(int(entities[0])*int(days[0])))}
+{{{results(=45.2685534126628=)}}}%, but still a huge number of rows
+given our infrastructure.
+
+So we will cheat, and we will only consider /outcomes/ from =2015=
+
+#+BEGIN_SRC sql 
+with dates as (
+    select days::date
+    from 
+    generate_series(
+       '2015-01-01'::date,
+       current_date, '1 day'::interval) days
+)
+
+select count(*)
+from semantic.entities
+join dates d
+on d.days <@ daterange(start_time, end_time)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|    count |
+|----------|
+| 21952711 |
+:END:
+
+
+#+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
+drop table if exists eis.inspected;
+
+create table eis.inspected as (
+ with dates as (
+    select days::date as outcome_date
+    from
+    generate_series(
+       '2015-01-01'::date,
+       current_date, '1 day'::interval) days
+),
+active_entities as (
+   select entity_id, outcome_date
+   from dates d
+   left  join semantic.entities
+   on outcome_date <@ daterange(start_time, end_time)
+   --where entity_id = 2379
+)
+select
+a.entity_id, outcome_date,
+case when
+inspection is null then FALSE
+else TRUE
+end as outcome
+from active_entities as a
+left join semantic.events as e 
+on a.entity_id = e.entity_id and a.outcome_date = e.date
+);
+
+create index inspected_entity_ix on eis.inspected (entity_id);
+create index inspected_outcome_date_ix on eis.inspected(outcome_date desc nulls last);
+create index inspected_outcome_ix on eis.inspected(outcome);
+
+create index inspected_entity_date_ix on eis.inspected(entity_id, outcome_date);
+create index inspected_date_entity_ix on eis.inspected(outcome_date, entity_id);
+
+#+END_SRC
+
+#+RESULTS:
+
+
+The /states/ table is the same that in the inspection's case.
+
+#+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
+drop table if exists eis.active_facilities;
+
+create table eis.active_facilities as (
+select
+distinct
+entity_id, 
+'active'::VARCHAR  as state, 
+start_time, 
+coalesce(end_time, current_date) as end_time
+from semantic.entities
+);
+#+END_SRC
+
+#+RESULTS:
+
+
+
 
 
 * Modeling using Machine Learning
 
 
-** ▶ TODO Creating a simple experiment
+** Creating a simple Experiment
 
-Using the same subset as before, we will try one of the simplest
-machine learning algorithms: a Decision Tree Classifier
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+config_version: 'v3'
 
-We began with this data set:
+model_comment: 'eis'
 
-Our train matrices look like:
+user_metadata:
+  label_definition: 'inspected'
+  experiment_type: 'eis'
+  purpose: 'exploring'
+  org: 'DSaPP'
+  team: 'Tutorial'
+  author: 'Your name here'
+#+END_SRC
 
-And the test matrices:
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+events_table: eis.inspected
+#+END_SRC
 
-We can check the results of the experiment here:
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+state_config:
+    table_name: 'eis.active_facilities'
+    state_filters:
+       - 'active'
+#+END_SRC
+
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+temporal_config:
+    feature_start_time: '2010-01-04'
+    feature_end_time: '2017-02-13'
+    label_start_time: '2015-02-01'
+    label_end_time: '2017-02-13'
+
+    model_update_frequency: '1y'
+    training_label_timespans: ['1month']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '1month'
+    test_label_timespans: ['1month']
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '5y'
+#+END_SRC
+
+#+BEGIN_SRC sh 
+./tutorial.sh triage --config_file eis_01.yaml show_temporal_blocks
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Using the config file /triage/experiment_config/eis_01.yaml
+The output (matrices and models) of this experiment will be stored in triage/output
+The experiment will utilize any preexisting matrix or model: False
+Creating experiment object
+Experiment loaded
+Generating temporal blocks image
+Image stored in:
+/triage/eis.svg
+:End:
+
+[[./triage/eis.svg]]
+
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+feature_aggregations:
+    -
+        prefix: 'inspections'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -
+                column: 'type'
+                choice_query: 'select distinct type from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+
+    -
+        prefix: 'risks'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -
+                column: 'risk'
+                choice_query: 'select distinct risk from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+            - 'facility_type'
 
 
-Now let's do a real model
+    -
+        prefix: 'results'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
 
-** Defining a baseline
-It is always a good idea define a baseline, we will use
+        categoricals_imputation:
+            all:
+                type: 'zero'
 
-** The grid
+        categoricals:
+            -
+                column: 'result'
+                choice_query: 'select distinct result from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+            - 'facility_type'
+
+#+END_Src
+
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+feature_group_definition:
+   prefix: ['inspections', 'results', 'risks']
+
+feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
+#+END_SRC
+
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+grid_config:
+    'sklearn.tree.DecisionTreeClassifier':
+        max_depth: [1,null]
+    'sklearn.ensemble.RandomForestClassifier':
+        max_features: ['sqrt']
+        criterion: ['gini']
+        n_estimators: [1000]
+        min_samples_leaf: [1]
+        min_samples_split: [50]
+        class_weight: ['balanced']
+    'sklearn.dummy.DummyClassifier':
+        strategy: [prior,uniform, most_frequent]
+#+END_SRC
+
+#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+model_group_keys:
+    - 'label_definition'
+    - 'experiment_type'
+    - 'purpose'
+
+scoring:
+    sort_seed: 1234
+    metric_groups:
+        -
+            metrics: ['precision@', 'recall@']
+            thresholds:
+                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+                top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+#+END_SRC
+
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file eis_01.yaml validate
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+Using the config file /triage/experiment_config/eis_01.yaml
+The output (matrices and models) of this experiment will be stored in triage/output
+The experiment will utilize any preexisting matrix or model: False
+Creating experiment object
+Experiment loaded
+Validating experiment's configuration
+Experiment validation ran to completion with no errors
+
+----TIME SPLIT SUMMARY----
+
+Number of time splits: 2
+Split index 0:
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-11-13 00:00:00 (10 total)
+            Testing as_of_time range: 2015-12-13 00:00:00 to 2015-12-13 00:00:00 (1 total)
+
+
+Split index 1:
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-11-13 00:00:00 (22 total)
+            Testing as_of_time range: 2016-12-13 00:00:00 to 2016-12-13 00:00:00 (1 total)
+
+
+For more detailed information on your time splits, inspect the experiment `split_definitions` property
+
+           The experiment configuration doesn't contain any obvious errors.
+           Any error that occurs possibly is related to number of columns or collision in
+           the column names, both due to PostgreSQL limitations.
+    
+The experiment looks in good shape. May the force be with you
+:END:
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file eis_01.yaml run
+#+END_SRC
+
+
 
 ** How can I pick the best one?
 
@@ -131,17 +476,21 @@ We are working in ...
 
 But meanwhile, you can try the following
 
+* Postmodeling
+
+  - Postmodeling?
+  - Bias analysis?
+
 * What's next?
 
   - Add the shape file
     https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&format=Shapefile
-  - Text analysis?
-  - Run =pgdedup=
+    and generate geospatial variables using =location=
+  - Text analysis on the /violations/' =comments= column and generate
+    new /outcomes/ or /features/?
+  - Run =pgdedup= and had a better =semantic.entities=?
   - Routing based on the inspection list?
-  - Add more data sources?
-  - Postmodeling?
-  - Bias analysis?
-
+  - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)? 
 
 * Notes
 [2018-01-01 Mon 00:50]
@@ -156,3 +505,9 @@ But meanwhile, you can try the following
 
 Inspection the join starts from outcomes (outcome centric) (if you
 haven't been inspected, we can not said anything about you)
+
+
+
+** A neat trick
+
+Add small, medium, full grid (Rayid magic 

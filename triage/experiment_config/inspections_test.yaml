@@ -4,10 +4,11 @@ model_comment: 'inspections_test'
 
 user_metadata:
   label_definition: 'failed'
-  experiment_type: 'test'
+  experiment_type: 'inspections prioritization'
+  purpose: 'test'
   org: 'DSaPP'
   team: 'Tutorial'
-  author: 'Adolfo De Unanue'
+  author: 'Your name here'
 
 temporal_config:
     feature_start_time: '2010-01-04'
@@ -69,6 +70,7 @@ feature_group_strategies: ['all']
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
+    - 'purpose'
 
 scoring:
     sort_seed: 5
