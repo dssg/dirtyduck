@@ -5,11 +5,11 @@ model_comment: 'inspections_baseline'
 
 user_metadata:
   label_definition: 'failed'
-  experiment_type: 'baseline'
+  experiment_type: 'inspections prioritization'
+  purpose: 'baseline'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
-
 
 temporal_config:
     feature_start_time: '2010-01-04'

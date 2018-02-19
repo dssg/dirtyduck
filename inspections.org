@@ -107,7 +107,6 @@ boolean outcome.
 Since we defined two labels, we will create two tables one per each outcome.
 
 #+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
-create schema if not exists inspections;
 
 create temp table inspections_outcomes as (
 select inspection, entity_id, date,
@@ -211,10 +210,11 @@ model_comment: 'inspections_test'
 
 user_metadata:
   label_definition: 'failed'
-  experiment_type: 'test'
+  experiment_type: 'inspections prioritization'
+  purpose: 'test'
   org: 'DSaPP'
   team: 'Tutorial'
-  author: 'Adolfo De Unanue'
+  author: 'Your name here'
 #+END_SRC
 
 Next, the *temporal configuration*  section. The first four parameters
@@ -410,6 +410,7 @@ The valid =model_group_keys= are
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
+    - 'purpose'
 #+END_SRC
 
 Finally, we should define wich metrics we care for evaluating our
@@ -866,7 +867,8 @@ model_comment: 'inspections_baseline'
 
 user_metadata:
   label_definition: 'failed'
-  experiment_type: 'baseline'
+  experiment_type: 'inspections prioritization'
+  purpose: 'baseline'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
@@ -878,6 +880,7 @@ grid_config:
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
+    - 'purpose'
 #+END_EXAMPLE
 
 The complete file is in [[./triage/experiment_config/inspections_baseline.yaml][triage/experiment_config/inspections_baseline.yaml]]
@@ -1001,7 +1004,8 @@ model_comment: 'inspections'
 
 user_metadata:
   label_definition: 'failed'
-  experiment_type: 'exploratory'
+  experiment_type: 'inspections prioritization'
+  purpose: 'development'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
@@ -1182,8 +1186,7 @@ grid_config:
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
-    - 'org'
-    - 'team'
+    - 'purpose'
 
 scoring:
     sort_seed: 1234

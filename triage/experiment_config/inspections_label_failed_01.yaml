@@ -4,7 +4,8 @@ model_comment: 'inspections'
 
 user_metadata:
   label_definition: 'failed'
-  experiment_type: 'exploratory'
+  experiment_type: 'inspections prioritization'
+  purpose: 'development'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
@@ -135,8 +136,7 @@ grid_config:
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
-    - 'org'
-    - 'team'
+    - 'purpose'
 
 scoring:
     sort_seed: 1234
