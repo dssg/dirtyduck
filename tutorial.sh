@@ -46,14 +46,17 @@ EXPERIMENTS:
    Run one experiment:
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
 
+   Run one experiment, without replacing matrices or models if already exist and with debug enabled:
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
+
    Validate experiment configuration file:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml validate
+        $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
    Show experiment's temporal cross-validation blocks:
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
 
    Triage help:
-        $ ./tutorial.sh -t --help
+        $ ./tutorial.sh triage --help
 
 EOF
 }

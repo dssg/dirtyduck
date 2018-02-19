@@ -1,9 +1,8 @@
 boto3
 Click
 python-dotenv
-psycopg2
+psycopg2-binary
 SQLALchemy
-pymc3
 pandas
 numpy
 seaborn
