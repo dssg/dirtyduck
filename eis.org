@@ -231,9 +231,6 @@ from semantic.entities
 #+RESULTS:
 
 
-
-
-
 * Modeling using Machine Learning
 
 
@@ -264,6 +261,7 @@ state_config:
        - 'active'
 #+END_SRC
 
+*** Temporal configuration
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
@@ -299,6 +297,10 @@ Image stored in:
 :End:
 
 [[./triage/eis.svg]]
+
+*** Features
+
+Regarding the features, we will use the same ones that were used in [[file:inspections.org][inspections prioritization]]
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 feature_aggregations:
@@ -386,7 +388,9 @@ feature_aggregations:
             - 'zip_code'
             - 'facility_type'
 
-#+END_Src
+#+END_SRC
+
+As before, we declare that we want to use all possible combinations for training:
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 feature_group_definition:
@@ -394,6 +398,12 @@ feature_group_definition:
 
 feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
+
+
+
+*** Algorithm and hyperparameters
+
+We will collapse the baseline (=DummyClassifier=)  and the exploratory configuration together:
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 grid_config:
@@ -409,6 +419,15 @@ grid_config:
     'sklearn.dummy.DummyClassifier':
         strategy: [prior,uniform, most_frequent]
 #+END_SRC
+
+The number of /model groups/ to be generated are 6 algorithms and
+hyperparameters (2 =DecisionTreeClassifier=, 1
+=RandomForestClassifier=, 3 =DummyClassifier=) \times 7 features groups ( 1
+=all=, 3 =leave-one-in=, 3 =leave-one-out=), which give a total of
+*42*.The total number of /models/ is the double of that (we have 2
+time blocks) i.e. *84*.
+
+We don't want to mix different experiments together, it is very important that the =model_group_keys= distinguish between models, so use it wisely:
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 model_group_keys:
@@ -426,6 +445,7 @@ scoring:
                 top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
 #+END_SRC
 
+As a last step, we validate that the configuration file is correct:
 
 #+BEGIN_SRC sh
 ./tutorial.sh triage --config_file eis_01.yaml validate
@@ -457,24 +477,190 @@ Split index 1:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs possibly is related to number of columns or collision in
+           Any error that occurs from now on, possibly will be related to hit the maximum 
+           number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
 :END:
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file eis_01.yaml run
+#+BEGIN_EXAMPLE sh
+./tutorial.sh triage --config_file eis_01.yaml --no-replace --debug run
+#+END_EXAMPLE
+
+This will take a *lot* amount of time (on my computer took 3h 42m),
+so, grab your coffee, chat with 
+your coworkers or check your email (or all the above). Is taking that
+amount of time for several reasons:
+
+1. There are a lot of models, parameters, etc
+2. We are running in serial mode (i.e. not in parallel)
+3. Our database, is running in your laptop
+
+You can solve 2 and 3. For the second point you could use the =docker=
+container that has the multicore option enabled. For 3, I recommed you
+to use a PostgreSQL database in the cloud, for example in *AWS* the
+service is call *PostgreSQL RDS*.
+
+After the experiment had finished we could create the following table
+
+#+BEGIN_SRC sql
+with features_groups as (
+select model_group_id, split_part(unnest(feature_list), '_', 1) as feature_groups
+from results.model_groups
+), 
+
+features_arrays as (
+select model_group_id, array_agg(distinct feature_groups) as feature_groups
+from features_groups
+group by model_group_id
+)
+
+select
+model_group_id,
+model_type,
+model_parameters,
+feature_groups,
+array_agg(model_id) as models
+from results.models
+join features_arrays using(model_group_id)
+where model_comment = 'eis'
+group by model_group_id, model_type, model_parameters, feature_groups order by model_group_id 
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_group_id | model_type                               | model_parameters                                                                                                                          | feature_groups               | models   |
+|--------------+-----------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------+----------|
+|           10 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {inspections,results,risks} | {61,19}  |
+|           11 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {inspections,results,risks} | {62,20}  |
+|           12 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections,results,risks} | {63,21}  |
+|           13 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {inspections,results,risks} | {64,22}  |
+|           14 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {inspections,results,risks} | {65,23}  |
+|           15 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {inspections,results,risks} | {66,24}  |
+|           16 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {inspections}               | {67,25}  |
+|           17 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {inspections}               | {68,26}  |
+|           18 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections}               | {69,27}  |
+|           19 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {inspections}               | {70,28}  |
+|           20 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {inspections}               | {71,29}  |
+|           21 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {inspections}               | {72,30}  |
+|           22 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {results}                   | {73,31}  |
+|           23 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {results}                   | {74,32}  |
+|           24 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {results}                   | {75,33}  |
+|           25 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {results}                   | {76,34}  |
+|           26 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {results}                   | {77,35}  |
+|           27 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {results}                   | {78,36}  |
+|           28 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {risks}                     | {79,37}  |
+|           29 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {risks}                     | {80,38}  |
+|           30 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {risks}                     | {81,39}  |
+|           31 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {risks}                     | {82,40}  |
+|           32 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {risks}                     | {83,41}  |
+|           33 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {risks}                     | {84,42}  |
+|           34 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {results,risks}             | {85,43}  |
+|           35 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {results,risks}             | {86,44}  |
+|           36 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {results,risks}             | {87,45}  |
+|           37 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {results,risks}             | {88,46}  |
+|           38 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {results,risks}             | {89,47}  |
+|           39 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {results,risks}             | {90,48}  |
+|           40 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {inspections,risks}         | {91,49}  |
+|           41 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {inspections,risks}         | {92,50}  |
+|           42 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections,risks}         | {93,51}  |
+|           43 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {inspections,risks}         | {94,52}  |
+|           44 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {inspections,risks}         | {95,53}  |
+|           45 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {inspections,risks}         | {96,54}  |
+|           46 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {inspections,results}       | {97,55}  |
+|           47 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {inspections,results}       | {98,56}  |
+|           48 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "class_weight": "balanced", "max_features": "sqrt", "n_estimators": 1000, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections,results}       | {99,57}  |
+|           49 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                                                                    | {inspections,results}       | {100,58} |
+|           50 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                                                                  | {inspections,results}       | {101,59} |
+|           51 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                                             | {inspections,results}       | {102,60} |
+:END:
+
+
+
+#+BEGIN_SRC sql
+select
+model_id, evaluation_start_time,
+metric || parameter as metric,
+value,
+num_labeled_examples, 
+num_labeled_above_threshold,
+num_positive_labels
+from results.evaluations 
+where model_id in (21, 63)
+and metric || parameter = 'precision@25_abs'
+order by num_labeled_above_threshold asc,
+metric || parameter
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_id | evaluation_start_time | metric          | value | num_labeled_examples | num_labeled_above_threshold | num_positive_labels |
+|---------+---------------------+-----------------+-------+--------------------+--------------------------+-------------------|
+|      21 | 2015-12-13 00:00:00 | precision@25_abs |  0.84 |              18668 |                       25 |               790 |
+|      63 | 2016-12-13 00:00:00 | precision@25_abs |  0.88 |              19358 |                       25 |               958 |
+:END:
+
+#+BEGIN_SRC sql
+select *
+from results.predictions
+where model_id = 21
+order by score desc
+limit 25
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_id | entity_id | as_of_date            |              score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
+|---------+----------+---------------------+--------------------+------------+---------+---------+----------------------------------+-------------------|
+|      21 |    25854 | 2015-12-13 00:00:00 | 0.9484136677797923 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     3019 | 2015-12-13 00:00:00 | 0.9436469079812785 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    13792 | 2015-12-13 00:00:00 | 0.9419947954600382 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    17502 | 2015-12-13 00:00:00 | 0.9312907285784298 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     2466 | 2015-12-13 00:00:00 | 0.9243102785460537 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    10382 | 2015-12-13 00:00:00 | 0.9206737935216891 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    24297 | 2015-12-13 00:00:00 | 0.9200144700893553 |          0 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |      143 | 2015-12-13 00:00:00 | 0.9199824040634403 |          0 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    29174 | 2015-12-13 00:00:00 | 0.9141830973245461 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     1816 | 2015-12-13 00:00:00 | 0.9116947701339125 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    15936 | 2015-12-13 00:00:00 |  0.910420304141231 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     4019 | 2015-12-13 00:00:00 | 0.9101049552562018 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     8835 | 2015-12-13 00:00:00 |  0.909611746159294 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    30294 | 2015-12-13 00:00:00 | 0.9053675764327609 |          0 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    27955 | 2015-12-13 00:00:00 | 0.9046749372346382 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    27956 | 2015-12-13 00:00:00 | 0.9046749372346382 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    13783 | 2015-12-13 00:00:00 | 0.9015988243973061 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     8760 | 2015-12-13 00:00:00 | 0.8936300434147297 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    27071 | 2015-12-13 00:00:00 | 0.8889020831400419 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    27073 | 2015-12-13 00:00:00 | 0.8889020831400419 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     1381 | 2015-12-13 00:00:00 | 0.8856752816172949 |          0 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    23063 | 2015-12-13 00:00:00 | 0.8838436286127278 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     1355 | 2015-12-13 00:00:00 | 0.8828514873911587 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |    19735 | 2015-12-13 00:00:00 | 0.8806239565602527 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+|      21 |     6959 | 2015-12-13 00:00:00 | 0.8736905232325605 |          1 | [NULL]  | [NULL]  | 2e85917732c60eb208f2d052a9e4fe60 | 1 mon             |
+:END:
 
 
 
 ** How can I pick the best one?
 
+Well now you have *42* /model groups/ Which one must you select to
+use? Which one is the best one? This is not as easy as it sounds, due
+several Factors:
 
-We are working in ...
+- You could try to pick the best one using just one of the metrics
+  that we establish in the config file (=precision@= and =recall@=)
+  but at what point of time? Maybe different model groups are the best
+  at different prediction times.
+- You could just use the one that perfom better in the last temporal point
+- Or you could value that the model is stable across time? Maybe is
+  not the best but is consistent.
+- Also, even if there are several model groups that perform similar,
+  the lists generated are more or less similar, so, it doesn't really
+  matter which one do you Pick.
 
-But meanwhile, you can try the following
+=Triage= provides that functionality in =audition=
+
 
 * Postmodeling
 

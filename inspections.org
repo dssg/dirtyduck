@@ -474,7 +474,8 @@ Split index 1:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs possibly is related to number of columns or collision in
+           Any error that occurs from now on, possibly will be related to hit the maximum 
+           number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
@@ -845,15 +846,40 @@ Let's assume that this is our best model, Which is the list of 25 facilities to 
 #+BEGIN_SRC sql
 select *
 from results.predictions
-where model_id = 7 and rank_abs is not null
+where model_id = 7 
 order by score desc
 limit 25
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_id | entity_id | as_of_date | score | label_value | rank_abs | rank_pct | matrix_uuid | test_label_timespan |
-|---------+----------+----------+-------+------------+---------+---------+------------+-------------------|
+| model_id | entity_id | as_of_date            |               score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
+|---------+----------+---------------------+---------------------+------------+---------+---------+----------------------------------+-------------------|
+|       7 |        2 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        4 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        5 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        6 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        7 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        8 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        9 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       10 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       11 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       13 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       14 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       15 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       16 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       19 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       20 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       21 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       22 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       23 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       25 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       27 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       28 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       29 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       30 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |       31 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+|       7 |        1 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
 :END:
 
 ** Defining a baseline
@@ -919,7 +945,8 @@ Split index 1:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs possibly is related to number of columns or collision in
+           Any error that occurs from now on, possibly will be related to hit the maximum 
+           number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
@@ -1230,7 +1257,8 @@ Split index 1:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs possibly is related to number of columns or collision in
+           Any error that occurs from now on, possibly will be related to hit the maximum 
+           number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
