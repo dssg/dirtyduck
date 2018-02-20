@@ -51,6 +51,7 @@ def triage(ctx, config_file, triage_db, replace, debug):
         experiment_config = yaml.load(f)
 
     click.echo(f"The output (matrices and models) of this experiment will be stored in triage/output")
+    click.echo(f"Using data stored in {triage_db}")
     click.echo(f"The experiment will utilize any preexisting matrix or model: {not replace}")
     click.echo(f"Creating experiment object")
 
