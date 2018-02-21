@@ -77,7 +77,8 @@ select min(date), max(date) from semantic.events
 
 #+NAME: all_days
 #+BEGIN_SRC sql
-select count(days) from generate_series((select min(date) from semantic.events), current_date, '1 day'::interval) days;
+select count(days) 
+from generate_series((select min(date) from semantic.events), current_date, '1 day'::interval) days;
 #+END_SRC
 
 #+RESULTS: all_days
@@ -187,8 +188,8 @@ active_entities as (
    from dates d
    left  join semantic.entities
    on outcome_date <@ daterange(start_time, end_time)
-   --where entity_id = 2379
 )
+
 select
 a.entity_id, outcome_date,
 case when
@@ -236,6 +237,10 @@ from semantic.entities
 
 ** Creating a simple Experiment
 
+First the usual stuff. Note that we are changing =model_comment= and
+=label_definition= (remember that this is used for generating the
+/hash/ that differentiates models and model groups)
+
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 config_version: 'v3'
 
@@ -249,6 +254,8 @@ user_metadata:
   team: 'Tutorial'
   author: 'Your name here'
 #+END_SRC
+
+We will use the =eis= tables for /outcomes/ and /states/ (obviously)
 
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 events_table: eis.inspected
@@ -577,6 +584,8 @@ group by model_group_id, model_type, model_parameters, feature_groups order by m
 :END:
 
 
+Let's check the performance of the /model group/ 12 (a Random Forest
+with all the features)
 
 #+BEGIN_SRC sql
 select
@@ -600,6 +609,8 @@ metric || parameter
 |      21 | 2015-12-13 00:00:00 | precision@25_abs |  0.84 |              18668 |                       25 |               790 |
 |      63 | 2016-12-13 00:00:00 | precision@25_abs |  0.88 |              19358 |                       25 |               958 |
 :END:
+
+
 
 #+BEGIN_SRC sql
 select *
@@ -641,6 +652,49 @@ limit 25
 :END:
 
 
+**** Feature Importances
+
+#+BEGIN_SRC sql
+select * from results.feature_importances 
+where model_id = 21 
+order by feature_importance desc
+limit 25
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_id | feature                                     | feature_importance | rank_abs |  rank_pct |
+|---------+---------------------------------------------+-------------------+---------+----------|
+|      21 | risks_facility_type_2y_risk_high_avg              |      0.0174800538 |       1 | 0.003125 |
+|      21 | results_entity_id_3month_result_fail_avg          |      0.0133257966 |       2 |  0.00625 |
+|      21 | risks_facility_type_1y_risk_high_avg              |      0.0131853305 |       3 | 0.009375 |
+|      21 | risks_facility_type_2y_risk_high_sum              |      0.0131239412 |       4 |   0.0125 |
+|      21 | results_entity_id_6month_result_pass_avg          |      0.0129326733 |       5 | 0.015625 |
+|      21 | risks_facility_type_6month_risk_high_avg          |      0.0124089975 |       6 |  0.01875 |
+|      21 | results_facility_type_2y_result_pass_avg          |      0.0119138182 |       7 | 0.021875 |
+|      21 | risks_entity_id_2y_risk_high_sum                  |       0.011606308 |       8 |    0.025 |
+|      21 | results_entity_id_6month_result_pass_sum          |      0.0115504677 |       9 | 0.028125 |
+|      21 | risks_facility_type_1y_risk_high_sum              |      0.0106386415 |      10 |  0.03125 |
+|      21 | results_zip_code_1y_result_pass w/ conditions_avg |       0.009624423 |      11 | 0.034375 |
+|      21 | risks_zip_code_1y_risk_medium_sum                 |      0.0094457436 |      12 |   0.0375 |
+|      21 | results_entity_id_3month_result_pass_sum          |       0.009225408 |      13 | 0.040625 |
+|      21 | results_entity_id_6month_result_fail_avg          |      0.0091078199 |      14 |  0.04375 |
+|      21 | results_entity_id_3month_result_pass_avg          |      0.0088542878 |      15 | 0.046875 |
+|      21 | inspections_zip_code_3month_type_canvass_avg      |      0.0087851068 |      16 |     0.05 |
+|      21 | risks_entity_id_2y_risk_low_sum                   |         0.0085351 |      17 | 0.053125 |
+|      21 | risks_entity_id_2y_risk_low_avg                   |      0.0080073084 |      18 |  0.05625 |
+|      21 | results_zip_code_1y_result_fail_sum               |      0.0079038494 |      19 | 0.059375 |
+|      21 | results_zip_code_2y_result_fail_avg               |      0.0078180121 |      20 |   0.0625 |
+|      21 | results_zip_code_2y_result_pass_sum               |      0.0077150654 |      21 | 0.065625 |
+|      21 | inspections_zip_code_2y_type_license_sum          |      0.0076692378 |      22 |  0.06875 |
+|      21 | risks_facility_type_3month_risk_high_avg          |      0.0076609972 |      23 | 0.071875 |
+|      21 | risks_zip_code_1y_risk_medium_avg                 |      0.0075045563 |      24 |    0.075 |
+|      21 | results_zip_code_2y_result_pass w/ conditions_sum |      0.0074907219 |      25 | 0.078125 |
+:END:
+
+This set of features identifies as important looks reasonable, so the results seem solid.
+
+
 
 ** How can I pick the best one?
 
@@ -659,7 +713,14 @@ several Factors:
   the lists generated are more or less similar, so, it doesn't really
   matter which one do you Pick.
 
-=Triage= provides that functionality in =audition=
+=Triage= provides that functionality in =audition= and in
+=postmodel=. At the moment of this writing this two modules require
+more interaction (there aren't integrated to the /configuration
+file/). 
+
+
+
+
 
 
 * Postmodeling
