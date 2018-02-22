@@ -12,13 +12,21 @@
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
-
-* Exploring the data
-
-/Which is the spatial distribution of inspections?/
+#+PROPERTY: header-args:ipython :session sfpd
+#+PROPERTY: header-args:ipython+ :results output drawer
 
 
-#+BEGIN_SRC sql
+* Exploring the Data
+
+/Inspections time series/
+
+/Number of facilities across time/
+
+/Inspections on unique facilities across time/
+
+/Which is the spatial distribution of Inspections?/
+#+NAME: inspections_zip_code
+#+BEGIN_SRC sql 
 select
 zip_code,
 count(*) as total_inspections,
@@ -30,21 +38,48 @@ order by total_inspections desc
 limit 10
 #+END_SRC
 
-#+RESULTS:
+#+RESULTS: inspections_zip_Code
 :RESULTS:
 | zip_code | total_inspections | total_failures |
 |---------+------------------+---------------|
-|   60614 |             5223 |          1229 |
-|   60647 |             4820 |          1047 |
-|   60657 |             4748 |          1070 |
-|   60611 |             4519 |           754 |
-|   60622 |             4495 |          1133 |
-|   60618 |             4159 |           722 |
-|   60608 |             4068 |           979 |
-|   60639 |             3699 |           901 |
-|   60607 |             3687 |           828 |
-|   60640 |             3599 |           941 |
+|   60614 |             5290 |          1241 |
+|   60647 |             4848 |          1054 |
+|   60657 |             4822 |          1086 |
+|   60611 |             4559 |           759 |
+|   60622 |             4537 |          1144 |
+|   60618 |             4236 |           739 |
+|   60608 |             4123 |           995 |
+|   60639 |             3801 |           926 |
+|   60607 |             3733 |           844 |
+|   60625 |             3657 |           833 |
 :END:
+
+
+#+BEGIN_SRC ipython :var table=inspections_zip_code :exports both :results raw drawer :ipyfile /tmp/img.png
+%matplotlib inline
+
+
+import matplotlib as plt
+import pandas as pd
+import numpy as np
+
+import seaborn as sns
+sns.set_style("whitegrid")
+
+df=pd.DataFrame(table, columns=['zip_code', 'total_inspections', 'total_failures'], dtype=np.int32)
+
+sns.barplot(x="zip_code", y="total_inspections",  data=df, color="salmon", saturation=0.5)
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+
+<matplotlib.axes._subplots.AxesSubplot at 0x7f967aeb7080>
+<matplotlib.figure.Figure at 0x7f967aed9940>
+[[file:ipython-inline-images/ob-ipython-0b4f14ad004d5e920d6db571bd32525c.png]]
+:END:
+
 
 /Which is the temporal distribution of the inspections?/
 

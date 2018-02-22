@@ -639,38 +639,26 @@ where model_id = 7
 
 We can visualize the model 
 
-#+BEGIN_SRC ipython
-from sklearn.externals.six import StringIO  
-from IPython.display import Image  
-from sklearn.tree import export_graphviz
-import pydotplus
-import pandas as pd
-from sklearn.externals import joblib
-
-X = pd.read_csv('./triage/output/matrices/53ccca25d2096ad453831883e1e50e1d.csv', nrows=1)
-
-X.drop(['entity_id', 'as_of_date', 'outcome'], axis=1, inplace=True)
-
-dtree = joblib.load('./triage/output/trained_models/6bb1c66e613fc9f19f3992ec36d743ab')
-
-dot_data = StringIO()
-
-export_graphviz(dtree, out_file=dot_data,  
-                filled=True, rounded=True,
-                special_characters=True,
-                feature_names = X.columns)
-
-graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
-Image(graph.create_png())
-#graph.write_png()
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file inspections_baseline.yaml show_model_plot --model 7
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-
-[[file:ipython-inline-images/ob-ipython-4e78b5edecb9955351d00224b4ab56d5.png]]
-<IPython.core.display.Image object>
+Using the config file /triage/experiment_config/inspections_baseline.yaml
+The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
+The experiment will utilize any preexisting matrix or model: False
+Creating experiment object
+Experiment loaded
+Generating model image
+postgresql://food_user:some_password@food_db/food
+Plotting tree number 0
+Image stored in: 
+['/triage/output/images/model_7_tree_0.svg']
 :END:
+
+[[./triage/output/images/model_7_tree_0.svg]]
 
 This tree makes kind of sense, if the facility had more than 1.5
 inspections related to food poisoning then it will fail the

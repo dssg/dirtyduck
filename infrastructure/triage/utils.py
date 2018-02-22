@@ -1,11 +1,20 @@
 # coding: utf-8
 
+import os
+
+import sqlalchemy
+from sqlalchemy import create_engine
+
+from io import StringIO
+from functools import reduce
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+import numpy as np
+import pandas as pd
+
 import matplotlib
 matplotlib.use('Agg')
-
-import pandas as pd
-import numpy as np
-
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 
@@ -14,16 +23,20 @@ sns.set_style("white")
 sns.set_context("paper")
 sns.set_style("ticks")
 
-from functools import reduce
+import pydotplus
 
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+import sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import export_graphviz, DecisionTreeClassifier
+from sklearn.externals import joblib
 
 import triage.component.timechop as timechop
 from triage.util.conf import convert_str_to_relativedelta
 
 
 FIG_SIZE = (32,16)
+TRIAGE_DB_URL = os.environ.get("TRIAGE_DB_URL")
+TRIAGE_OUTPUT_PATH = "/triage/output/"
 
 def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_name=None):
 
@@ -103,10 +116,12 @@ def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_nam
     fig.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
 
-    if file_name is not None:
-        fig.savefig(file_name)
+    file_name = os.path.join(TRIAGE_OUTPUT_PATH, "images", file_name)
+    fig.savefig(file_name)
 
     plt.show()
+
+    return file_name
 
 
 def show_features_queries(st):
@@ -116,3 +131,60 @@ def show_features_queries(st):
             print(str(sql))
 
     print(str(st.get_create()))
+
+
+def get_model_hashes(model_id):
+    db = create_engine(TRIAGE_DB_URL)
+
+    rows = db.execute(
+        f"""
+        select distinct on (model_hash, train_matrix_uuid, matrix_uuid) 
+        model_hash, train_matrix_uuid as train_hash, matrix_uuid as test_hash
+        from results.models 
+        inner join results.predictions using(model_id) 
+        where model_id = {model_id};
+       """)
+
+    for row in rows:
+        model_hash, train_hash, test_hash = row.model_hash, row.train_hash, row.test_hash
+
+    return model_hash, train_hash, test_hash
+
+def show_model(model_id):
+    model_hash, train_hash, _ = get_model_hashes(model_id)
+
+    clf = joblib.load(os.path.join(TRIAGE_OUTPUT_PATH, "trained_models", model_hash))
+    
+    X = pd.read_csv(os.path.join(TRIAGE_OUTPUT_PATH, "matrices", f"{train_hash}.csv"), nrows = 1)
+    X.drop(['entity_id', 'as_of_date', 'outcome'], axis = 1, inplace=True)
+
+    trees = []
+    file_names = []
+    
+    if isinstance(clf, RandomForestClassifier):
+        # We have a forest, we will pick 5 at random
+        trees.extend(np.random.choice(clf.estimators_, size=1 , replace=False))
+        print(trees)
+    elif isinstance(clf, DecisionTreeClassifier):
+        trees.append(clf)
+    else:
+        trees = None
+        file_names = None
+        print("You selected a model that isn't a Decision Tree. I can not plot that. Sorry")
+
+    for i, dtree in enumerate(trees):
+        print(f"Plotting tree number {i}")
+        dot_data = StringIO()
+        dtree.export_graphviz(out_file=dot_data,  
+                              filled=True, rounded=True,
+                              special_characters=True,
+                              feature_names = X.columns)
+        
+        graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
+        file_name = os.path.join(TRIAGE_OUTPUT_PATH, "images", f"model_{model_id}_tree_{i}.svg")
+        graph.write_svg(file_name)
+        file_names.append(file_name)
+        graph.write_png(file_name.replace("svg", "png"))
+
+
+    return file_names
