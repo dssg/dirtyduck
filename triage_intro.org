@@ -847,7 +847,7 @@ model for every entity. =results.evaluation= stores the value of all the
 section in the config file.
 
 **** =results.experiments=
-This table has the two columns: =experiment_hash= and =Config=
+This table has the two columns: =experiment_hash= and =config=
 
 #+BEGIN_SRC sql
 \d results.experiments
@@ -874,12 +874,12 @@ as =jsonb=
 We can note for our future selfs: If we are interested in all models 
 that resulted from a certain config, we could  lookup that config In
 =results.experiments= and then use its =experiment_hash=  on other tables
-to find all the models that resulted from that config 
+to find all the models that resulted from that configuration.
 
 **** =results.model_groups=
 
 Do you remember how we defined in =grid_config= the different
-classifiers that we want Triage to train? For example, we  Said:
+classifiers that we want =triage= to train? For example, we  said:
 
 #+BEGIN_EXAMPLE yaml
     'sklearn.tree.DecisionTreeClassifier':
@@ -889,7 +889,7 @@ classifiers that we want Triage to train? For example, we  Said:
 #+END_EXAMPLE
 
 By doing so, we are saying that we want to train 4 decision trees
-(max_depth is one of 1, 2, 5, 10). However, remember that  we are using
+(=max_depth= is one of =1, 2, 5, 10=). However, remember that  we are using
 temporal cross-validation to build our models. That  means that we are
 going to have different slices of time that we  are training our
 models on, e.g., 2010-2011, 2011-2012, etc. 
@@ -898,62 +898,138 @@ Therefore, we are going to train our four configurations of the
 decision trees on each time slice. Therefore, the  trained model (or
 the instance of that model) will change across time  splits, but the
 configuration will remain the same. This table lets  us keep track of
-the different configurations (model_groups) and gives  us an id for
-each configuration (model_group_id). We can leverage the  model_group_id
+the different configurations (=model_groups=) and gives  us an =id= for
+each configuration (=model_group_id=). We can leverage the =model_group_id=
 to find all the models that were trained by using the  same config,
-but across different slices of Time. 
+but across different slices of time. 
 
 #+BEGIN_SRC sql
-select model_group_id, model_type, model_parameters from 
+select 
+model_group_id, model_type, model_parameters, model_config
+from 
 results.model_groups
 limit 1
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_parameters                   |
-|--------------+-------------------------------------+-----------------------------------|
-|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1} |
+| model_group_id | model_type                           | model_parameters                   | model_config                                             |
+|--------------+-------------------------------------+-----------------------------------+---------------------------------------------------------|
+|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1} | {"experiment_type": "test", "label_definition": "failed"} |
 :END:
 
-You can see that a model group is defined by the classifier, its parameters, the features, and the model_config. The model_config follows from the model_group_keys we had defined in the config:
+You can see that a model group is defined by the classifier
+(=model_type=), its parameters (=model_parameters=), the features
+(=feature_list=) (not shown), and the =model_config=. The =model_config= follows
+from the =model_group_keys= we had defined in the configuration file:
 
     - 'train_duration'
     - 'label_window'
     - 'example_frequency'
 
-What can we learn from that? For example, if we add a new feature and rerun Triage, Triage will create a new model_group even if the classifier and the model_parameters are the same as before.
+What can we learn from that? For example, if we add a new feature and
+rerun =triage=, =triage= will create a new =model_group= even if the
+classifier and the =model_parameters= are the same as before. 
 
 **** =results.models=
 
-This table stores the information about our actual models, i.e., instances of our classifiers trained on specific time slices.
+This table stores the information about our actual /models/, i.e.,
+instances of our classifiers trained on specific time Slices. 
+#+BEGIN_SRC sql
+\d results.models
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| Table "results.models"                                                                                                                       |                             |                                                                |
+|----------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------+----------------------------------------------------------------|
+| Column                                                                                                                                       | Type                        | Modifiers                                                      |
+| model_id                                                                                                                                      | integer                     | not null default nextval('results.models_model_id_seq'::regclass) |
+| model_group_id                                                                                                                                 | integer                     |                                                                |
+| model_hash                                                                                                                                    | character varying           |                                                                |
+| run_time                                                                                                                                      | timestamp without time zone |                                                                |
+| batch_run_time                                                                                                                                 | timestamp without time zone |                                                                |
+| model_type                                                                                                                                    | character varying           |                                                                |
+| model_parameters                                                                                                                              | jsonb                       |                                                                |
+| model_comment                                                                                                                                 | text                        |                                                                |
+| batch_comment                                                                                                                                 | text                        |                                                                |
+| config                                                                                                                                       | json                        |                                                                |
+| experiment_hash                                                                                                                               | character varying           |                                                                |
+| train_end_time                                                                                                                                 | timestamp without time zone |                                                                |
+| test                                                                                                                                         | boolean                     |                                                                |
+| train_matrix_uuid                                                                                                                              | text                        |                                                                |
+| training_label_timespan                                                                                                                        | interval                    |                                                                |
+| Indexes:                                                                                                                                     |                             |                                                                |
+| "models_pkey" PRIMARY KEY, btree (model_id)                                                                                                    |                             |                                                                |
+| "ix_results_models_model_hash" UNIQUE, btree (model_hash)                                                                                         |                             |                                                                |
+| Foreign-key constraints:                                                                                                                     |                             |                                                                |
+| "models_experiment_hash_fkey" FOREIGN KEY (experiment_hash) REFERENCES results.experiments(experiment_hash)                                       |                             |                                                                |
+| "models_model_group_id_fkey" FOREIGN KEY (model_group_id) REFERENCES results.model_groups(model_group_id)                                             |                             |                                                                |
+| Referenced by:                                                                                                                               |                             |                                                                |
+| TABLE "results.evaluations" CONSTRAINT "evaluations_model_id_fkey" FOREIGN KEY (model_id) REFERENCES results.models(model_id)                     |                             |                                                                |
+| TABLE "results.feature_importances" CONSTRAINT "feature_importances_model_id_fkey" FOREIGN KEY (model_id) REFERENCES results.models(model_id)       |                             |                                                                |
+| TABLE "results.individual_importances" CONSTRAINT "individual_importances_model_id_fkey" FOREIGN KEY (model_id) REFERENCES results.models(model_id) |                             |                                                                |
+| TABLE "results.list_predictions" CONSTRAINT "list_predictions_model_id_fkey" FOREIGN KEY (model_id) REFERENCES results.models(model_id)             |                             |                                                                |
+| TABLE "results.predictions" CONSTRAINT "predictions_model_id_fkey" FOREIGN KEY (model_id) REFERENCES results.models(model_id)                     |                             |                                                                |
+:END:
 
 Noteworthy columns are:
 
-    model_id
-        The id of the model (i.e., instance...). We will use this ID to trace back a model's performance evaluation to a model_group and vice versa.
-    model_group_id
-        The id of the models model_group we encountered above.
-    model_hash
-        The hash of our model. We can use the hash to load the actual model. It gets stored under project_path/trained_models/HASH. We are going to this later to look at a trained decision tree.
-    run_time
+    - =model_id= :: The id of the model (i.e., instance...). We will use this ID to trace back a model's performance evaluation to a =model_group= and vice versa.
+    - =model_group_id= :: The id of the models model_group we encountered above.
+    - =model_hash= :: The hash of our model. We can use the hash to load the actual model. It gets stored under project_path/trained_models/HASH. We are going to this later to look at a trained decision tree.
+    =run_time=
         Time when the model was trained.
-    model_type
+    =model_type=
         The classifier used.
-    model_parameters
+    =model_parameters=
         Parameters used for the model configuration.
-    experiment_hash
-        The hash of our experiment. We encountered this value in the results.experiments table before.
-    train_end_time
+    =experiment_hash=
+        The hash of our experiment. We encountered this value in the =results.experiments= table before.
+    =train_end_time=
         When building the training matrix, we included training samples up until this date.
-    train_matrix_uuid
-        The id of the matrix that we used to train this model. The matrix gets stored as csv under project_path/matrices/TRAIN_MATRIX_UUID.csv. This is very helpful when trying to inspect the matrix and features that were used for training.
-    train_label_window
-        How big was our window to get the labels for our training matrix? For example, a train_label_window of 1 year would mean that we look one year from a given date in the training matrix into the future to find the label for that training sample.
+    =train_matrix_uuid=
+        The /hash/ of the matrix that we used to train this model. The
+        matrix gets stored as csv under
+        =TRIAGE_OUTPUT_PATH/matrices/{train_matrix_uuid}.csv=. This is very helpful
+        when trying to inspect the matrix and features that were used
+        for training. 
+    =train_label_window=
+        How big was our window to get the labels for our training
+        matrix? For example, a =train_label_window= of 1 year would
+        mean that we look one year from a given date in the training
+        matrix into the future to find the label for that training
+        sample. 
 
 **** =results.evaluations=
 
 This table lets us analyze how well our models are doing. Based on the config that we used for our Triage run, Triage is calculating metrics and storing them in this table, e.g., our model's precision at top 10%.
+
+#+BEGIN_SRC sql
+\d results.evaluations
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| Table "results.evaluations"                                                                                                  |                             |           |
+|------------------------------------------------------------------------------------------------------------------------------+-----------------------------+-----------|
+| Column                                                                                                                       | Type                        | Modifiers |
+| model_id                                                                                                                      | integer                     | not null  |
+| evaluation_start_time                                                                                                          | timestamp without time zone | not null  |
+| evaluation_end_time                                                                                                            | timestamp without time zone | not null  |
+| as_of_date_frequency                                                                                                            | interval                    | not null  |
+| metric                                                                                                                       | character varying           | not null  |
+| parameter                                                                                                                    | character varying           | not null  |
+| value                                                                                                                        | numeric                     |           |
+| num_labeled_examples                                                                                                           | integer                     |           |
+| num_labeled_above_threshold                                                                                                     | integer                     |           |
+| num_positive_labels                                                                                                            | integer                     |           |
+| sort_seed                                                                                                                     | integer                     |           |
+| Indexes:                                                                                                                     |                             |           |
+| "evaluations_pkey" PRIMARY KEY, btree (model_id, evaluation_start_time, evaluation_end_time, as_of_date_frequency, metric, parameter) |                             |           |
+| Foreign-key constraints:                                                                                                     |                             |           |
+| "evaluations_model_id_fkey" FOREIGN KEY (model_id) REFERENCES results.models(model_id)                                            |                             |           |
+:END:
 
 Its columns are:
 
