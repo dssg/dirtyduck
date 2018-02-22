@@ -163,10 +163,20 @@ def show_model(model_id):
     
     if isinstance(clf, RandomForestClassifier):
         # We have a forest, we will pick 5 at random
-        trees.extend(np.random.choice(clf.estimators_, size=1 , replace=False))
-        print(trees)
+        trees.extend(np.random.choice(clf.estimators_, size=5 , replace=False))
+        max_depth = 5
+        print("""
+        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        IMPORTANT: The decisions trees are being cropped to a maximum depth of 5. 
+        If your tree is bigger, remember that you aren't viewing the FULL tree.
+
+        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        """)
+
     elif isinstance(clf, DecisionTreeClassifier):
         trees.append(clf)
+        max_depth = None
     else:
         trees = None
         file_names = None
@@ -175,16 +185,17 @@ def show_model(model_id):
     for i, dtree in enumerate(trees):
         print(f"Plotting tree number {i}")
         dot_data = StringIO()
-        dtree.export_graphviz(out_file=dot_data,  
-                              filled=True, rounded=True,
-                              special_characters=True,
-                              feature_names = X.columns)
-        
+        export_graphviz(dtree,out_file=dot_data,  
+                        filled=True, rounded=True,
+                        special_characters=True,
+                        feature_names = X.columns,
+                        class_names=True,
+                        max_depth=max_depth)  
+
         graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
         file_name = os.path.join(TRIAGE_OUTPUT_PATH, "images", f"model_{model_id}_tree_{i}.svg")
         graph.write_svg(file_name)
         file_names.append(file_name)
-        graph.write_png(file_name.replace("svg", "png"))
 
-
+    
     return file_names
