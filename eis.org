@@ -41,11 +41,6 @@ etc.
   owner) to be prepared and take the pertinent actions.
 
 
-* The EIS problem as a multientity/multivariate time series problem
-
-
-
-
 * Creating the labels
 
 The trick to note is that every day there are two possible outcomes:
@@ -85,7 +80,7 @@ from generate_series((select min(date) from semantic.events), current_date, '1 d
 :RESULTS:
 | count |
 |-------|
-|  2968 |
+|  2972 |
 :END:
 
 
@@ -321,7 +316,7 @@ feature_aggregations:
                 type: 'zero'
 
         categoricals:
-            -
+            -   # inspection type
                 column: 'type'
                 choice_query: 'select distinct type from semantic.events'
                 metrics:
@@ -348,7 +343,7 @@ feature_aggregations:
                 type: 'zero'
 
         categoricals:
-            -
+            -   # Facility's Risk
                 column: 'risk'
                 choice_query: 'select distinct risk from semantic.events'
                 metrics:
@@ -367,7 +362,7 @@ feature_aggregations:
             - 'facility_type'
 
 
-    -
+    -  
         prefix: 'results'
         from_obj: 'semantic.events'
         knowledge_date_column: 'date'
@@ -377,7 +372,7 @@ feature_aggregations:
                 type: 'zero'
 
         categoricals:
-            -
+            -   # Result of previous inspections
                 column: 'result'
                 choice_query: 'select distinct result from semantic.events'
                 metrics:

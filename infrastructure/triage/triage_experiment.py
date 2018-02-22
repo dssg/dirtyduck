@@ -11,8 +11,7 @@ import click
 from triage.component.catwalk.storage import FSModelStorageEngine
 from triage.experiments import SingleThreadedExperiment
 
-from utils import show_timechop, show_features_queries
-
+from utils import show_timechop, show_features_queries, show_model
 
 import logging
 
@@ -73,22 +72,6 @@ def triage(ctx, config_file, triage_db, replace, debug):
 
 @triage.command()
 @click.pass_obj
-def show_feature_generators(experiment):
-    pass
-
-@triage.command()
-@click.pass_obj
-def show_temporal_blocks(experiment):
-    click.echo("Generating temporal blocks image")
-    chopper = experiment.chopper
-    file_name = f"/triage/{experiment.config['model_comment'].replace(' ', '_')}.svg"
-    show_timechop(chopper, file_name=file_name)
-    click.echo("Image stored in:")
-    click.echo(file_name)
-    return file_name
-
-@triage.command()
-@click.pass_obj
 def validate(experiment):
     click.echo("Validating experiment's configuration")
     experiment.validate()
@@ -101,7 +84,6 @@ def validate(experiment):
     """)
 
     click.echo("The experiment looks in good shape. May the force be with you")
-    
 
 @triage.command()
 @click.pass_obj
@@ -114,3 +96,33 @@ def run(experiment):
 
     end_time = datetime.datetime.now()
     click.echo(f"Experiment completed in {end_time - start_time} seconds")
+
+@triage.command()
+@click.pass_obj
+def show_feature_generators(experiment):
+    pass
+
+@triage.command()
+@click.pass_obj
+def show_temporal_blocks(experiment):
+    click.echo("Generating temporal blocks image")
+    chopper = experiment.chopper
+    file_name = f"{experiment.config['model_comment'].replace(' ', '_')}.svg"
+    image_path=show_timechop(chopper, file_name=file_name)
+    click.echo("Image stored in:")
+    click.echo(image_path)
+    return image_path
+
+@triage.command()
+@click.pass_obj
+@click.option('--model', 
+              help="Model to plot",
+              required=True)
+def show_model_plot(experiment, model):
+    click.echo("Generating model image")
+    image_path = show_model(model)
+    click.echo("Image stored in: ")
+    click.echo(image_path)
+    return image_path
+               
+
