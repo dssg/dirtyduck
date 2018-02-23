@@ -37,6 +37,7 @@ services:
     env_file: .env
     environment:
       TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
+      TRIAGE_OUTPUT_PATH: '/triage/output'
     volumes:
       - "../triage:/triage"
       - "../sql:/sql"
