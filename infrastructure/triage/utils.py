@@ -33,10 +33,9 @@ from sklearn.externals import joblib
 import triage.component.timechop as timechop
 from triage.util.conf import convert_str_to_relativedelta
 
-
 FIG_SIZE = (32,16)
 TRIAGE_DB_URL = os.environ.get("TRIAGE_DB_URL")
-TRIAGE_OUTPUT_PATH = "/triage/output/"
+TRIAGE_OUTPUT_PATH = os.environ.get("TRIAGE_OUTPUT_PATH")
 
 def show_timechop(chopper, show_as_of_times=True, show_boundaries=True, file_name=None):
 
