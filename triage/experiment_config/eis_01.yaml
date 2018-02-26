@@ -44,7 +44,7 @@ feature_aggregations:
                 type: 'zero'
 
         categoricals:
-            -
+            -   # inspection type
                 column: 'type'
                 choice_query: 'select distinct type from semantic.events'
                 metrics:
@@ -71,7 +71,7 @@ feature_aggregations:
                 type: 'zero'
 
         categoricals:
-            -
+            -   # Facility's Risk
                 column: 'risk'
                 choice_query: 'select distinct risk from semantic.events'
                 metrics:
@@ -90,7 +90,7 @@ feature_aggregations:
             - 'facility_type'
 
 
-    -
+    -  
         prefix: 'results'
         from_obj: 'semantic.events'
         knowledge_date_column: 'date'
@@ -100,7 +100,7 @@ feature_aggregations:
                 type: 'zero'
 
         categoricals:
-            -
+            -   # Result of previous inspections
                 column: 'result'
                 choice_query: 'select distinct result from semantic.events'
                 metrics:

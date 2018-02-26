@@ -15,8 +15,8 @@ active_entities as (
    from dates d
    left  join semantic.entities
    on outcome_date <@ daterange(start_time, end_time)
-   --where entity_id = 2379
 )
+
 select
 a.entity_id, outcome_date,
 case when
