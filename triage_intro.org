@@ -1,6 +1,3 @@
-#+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Center of Data Science for Public Policy
-#+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: indent
@@ -11,8 +8,9 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:sh   :results output drawer
-#+PROPERTY: header-args:ipython   :session food_inspections
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session food_inspections :results org
 
 
 * Triage
@@ -23,7 +21,7 @@ evaluation, and list generation. These tasks are complicated in their
 own right, but in addition have to be combined in different ways
 throughout the course of the project.
 
-=Triage= aims to provide interfaces to these different phases of a
+=triage= aims to provide interfaces to these different phases of a
 project, such as an Experiment. Each phase is defined by configuration
 specific to the needs of the project, and an arrangement of core data
 science components that work together to produce the output of that
@@ -33,18 +31,18 @@ The domain  problems that =triage= had in mind are (1) early warning systems
 / early intervention systems and (2) prioritization of resources for
 inspections.
 
-=Triage= was created to facilitate the creation of supervised learning
+=triage= was created to facilitate the creation of supervised learning
 models, in particular classification models with an strong temporal
 component in the data.
 
 The temporal component in the data set affects the modeling mainly in
 two ways, first, you need to be very careful and avoid /leakage/ of
 information in the data, and second, in the possible temporal drifting of the
-data. =Triage= solves the first splitting the data in temporal blocks to be
+data. =triage= solves the first splitting the data in temporal blocks to be
 used in the temporal crossvalidation and using those blocks for the
 feature generation.
 
-=Triage= uses the concept of /experiment/. An /experiment/ consists in a
+=triage= uses the concept of /experiment/. An /experiment/ consists in a
 series of steps which aim to generate a good model for predicting the
 /label/ of an new instance of the data set. The steps are /feature generation/,
 /label generation/, /model training/ and /model scoring/. In each of all
@@ -58,13 +56,13 @@ experiment consists in try every combination of algorithm,
 hyperparameters and feature subset, and evaluate their performance
 using a set of metrics (also specified in the config file).
 
-=Triage= will train one model for each block generated, so when the
+=triage= will train one model for each block generated, so when the
 experiment finishes you will have several models for each algorithm
-and selection of hyperparameters. =Triage= calls this a =model_group=.
+and selection of hyperparameters. =triage= calls this a =model_group=.
 
 ** Triage interface
 
-=Triage= is very simple to use, but it contains a lot of complex
+=triage= is very simple to use, but it contains a lot of complex
 concepts that we will try to clarify in this section of the tutorial.
 
 For running a =triage= experiment you need the following:
@@ -80,9 +78,10 @@ triage.__version__
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
+
 '2.2.0'
-:END:
+#+END_SRC
 
 - A database with (obviously) and two tables (at minimum): one that
   describes the /outcome/ of each event on the database and a table
@@ -101,7 +100,7 @@ executes =triage= experiments. You can run the container as follows:
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Usage: triage_experiment [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -115,14 +114,20 @@ Options:
                             (TRIAGE_DB_URL)  [required]
   --replace / --no-replace  Triage will (or won't) replace all the matrices
                             and models
+  --debug                   Activate to get a lot of information in your
+                            screen
   --help                    Show this message and exit.
 
 Commands:
+  audit_models
   run
   show_feature_generators
+  show_model_plot
   show_temporal_blocks
   validate
-:END:
+#+END_SRC
+
+
 
 You already had the database (you were working on it the last two
 sections of the tutorial) and the tutorial provide a recent container
@@ -141,7 +146,7 @@ horizon is calculated from a set of specific dates (=as_of_date= in
 triage parlance) that divide the blocks in past (for training the
 model) and future (for testing the model).
 
-=Triage= will create those /labels/ using information about the /outcome/ of
+=triage= will create those /labels/ using information about the /outcome/ of
 the event, taking in account the temporal structure of the data. 
 As an example of an /outcome/ consider this  if a inspection is
 realized (the event) and the facility fails the inspection (outcome
@@ -295,7 +300,7 @@ create table triage.active_facilities_9581 as (
 
 #+Results:
 
-=Triage= doesn't support open date intervals, so we had to impute
+=triage= doesn't support open date intervals, so we had to impute
 =end_time= with the date '2020-01-01'
 
 #+BEGIN_SRC sql
@@ -354,7 +359,7 @@ detail in the next sections.
 The most acute problems are avoiding leakaging information
 and feature generation in a temporal setting.
 
-=Triage= uses the handy =timechop= library for this purpose. =Timechop=
+=triage= uses the handy =timechop= library for this purpose. =Timechop=
 will build ("chop") the data set in several temporal blocks. These
 blocks will be used for creating the features and matrices for
 the training and evaluation of the machine learning models.
@@ -473,7 +478,7 @@ temporal_config:
     test_as_of_date_frequencies: '1month'
 
     max_training_histories: '1y'  
-#+END_Example
+#+END_EXAMPLE
 
 But they can be different (maybe you have more data for features that
 data for labels)
@@ -1157,15 +1162,6 @@ make this prediction under  =TRIAGE_OUTPUT_PATH/matrices/{matrix_uuid}.csv=
 **** TODO: =results.list_predictions=
 
 
-#+TBLNAME:  test-table
-| key | value |
-|-----+-------|
-| a   |     1 |
-| b   |     2 |
-
-Is there any way to refer to cell @2$2 within the text of an org-mode
-document, and have that reference converted to the value
-src_emacs-lisp[:var d=test-table[3,1]]{d} {{{results(=2=)}}} during export?
 
 ** Audition
 
@@ -1210,7 +1206,7 @@ If you want to see *Audition* and *Postmodeling* in action please refer
 [[file:inspections.org][Inspections modeling]] or to [[file:eis.org][EIS modeling]] for practical examples.
 
 
-* What's next?
+** What's next?
 
 We will begin with [[file:inspections.org][Inspections problem]], let's go for It
 

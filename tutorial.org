@@ -1,65 +1,31 @@
 # -*- mode: org; -*-
 
+#+TITLE: Dirty duck: A triage's guided tour
+#+AUTHOR: Center of Data Science for Public Policy
+#+EMAIL: adolfo@uchicago.edu
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+STARTUP: Indent
+#+EXPORT_FILE_NAME: infrastructure/web/html/index.html
 
-* Description of the problem to solve
+#+LANGUAGE: en
+#+OPTIONS: toc:nil h:4 html-postamble:nil html-preamble:t tex:t f:t
+#+OPTIONS: prop:("VERSION")
 
-The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
-used in several examples around the web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]] or [[https://youtu.be/1dKonIT-Yak][here]])
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://www.pirilampo.org/styles/readtheorg/css/htmlize.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="https://www.pirilampo.org/styles/readtheorg/css/readtheorg.css"/>
 
-   In this tutorial, we have two different goals: (1) an *Early
-   Intervention System* or *EIS* and  
-   (2) *prioritize inspections*, the entity in which we are interested in
-   both cases is the  /facility/.
-
-   In the *EIS*, as a facility owner or manager, we want to predict if
-   the facility under our control is at /risk/ of been inspected in the
-   following period of time.
-
-   In the *inspections prioritization*, we want to generate a list of
-   facilities which are /likely/ to have some *critical* o *serious*
-   violation /given that/ they are inspected.
-
-   Both problems are under the umbrella of the /supervised machine
-   learning/ problems. That means that we must need examples that
-   specify the *outcome* in which are interested (in the ML jargon this
-   is called a /label/).
-
-   The *outcome* is what differ between those two projects. For *EIS* the
-   outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
-
-  The first scenario, is the following:  you work for the Chicago's
-  government, and you try
-  to prioritize your resources (i.e. your inspection workforce), since
-  they are limited. So, you will use the data (the same data set,
-  remember) for answering the next
-  question:
-
-#+begin_quote
-  Which X facilities are likely to violate some rule in the
-  following Y period of time?
-#+end_quote
-
-  In this case maybe you are interested not
-  in all the violations but in the more grave.
-
-  We will use the /same/ data set, second, we will be the restaurant's
-  owner, and we want to know:
-
-#+begin_quote
-Will my restaurant be inspected in the
-/next X period of time?/
-#+end_quote
-
-Where $X$ could be 1 month, 1 week, 1 year,
-etc.
-
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
+#+HTML_HEAD: <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+#+HTML_HEAD: <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="https://www.pirilampo.org/styles/readtheorg/js/readtheorg.js"></script>
 
 
+#+INCLUDE: intro.org :minlevel 1
 #+INCLUDE: infrastructure.org :minlevel 1
 #+INCLUDE: data_preparation.org :minlevel 1
 #+INCLUDE: data_exploration.org :minlevel 1
 #+INCLUDE: triage_intro.org :minlevel 1
 #+INCLUDE: inspections.org :minlevel 1
 #+INCLUDE: eis.org :minlevel 1
+#+INCLUDE: triage_deeper.org :minlevel 1

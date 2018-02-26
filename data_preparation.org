@@ -1,6 +1,3 @@
-#+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Center of Data Science for Public Policy
-#+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: indent
@@ -11,13 +8,13 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:shell :results drawer
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 
-
-
-*NOTE* At least is explicity said the contrary, you should run all the following commands inside =bastion=.
 
 * Data preparation
+
+*NOTE* At least is explicity said the contrary, you should run all the following commands inside =bastion=.
 
 ** Downloading
 
@@ -27,26 +24,26 @@
 
    We can check the size of the data set,
 
-   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
      ls -lh /data
    #+END_SRC
 
    #+RESULTS:
-   :RESULTS:
+   #+BEGIN_SRC org
    total 189M
    -rw-rw-r-- 1 1000 1000 189M Feb 15 02:45 inspections.csv
-   :END:
+   #+END_SRC
 
    And the (apparent) total number of rows
 
-   #+BEGIN_SRC shell :dir data
+   #+BEGIN_SRC sh :dir data
      wc -l inspections.csv
    #+END_SRC
 
    #+RESULTS:
-   :RESULTS:
+   #+BEGIN_SRC org
    401071 inspections.csv
-   :END:
+   #+END_SRC
 
 
 
@@ -83,7 +80,7 @@
 
    Let's glimpse the data
 
-   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org 
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      psql ${FOOD_DB_URL} -c 'select * from raw.inspections limit 1'
    #+END_SRC
 
@@ -103,7 +100,7 @@ Ok, now you have some data! But still, we need to munging it to be able to use i
 If you want to skip all the cleansing and transformation you can
 execute the following:
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
 psql ${FOOD_DB_URL} < /sql/create_cleaned_inspections_table.sql
 
 psql ${FOOD_DB_URL} < /sql/create_violations_table.sql
@@ -112,7 +109,7 @@ psql ${FOOD_DB_URL} < /sql/create_semantic_tables.sql
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 CREATE SCHEMA
 DROP TABLE
 SELECT 164178
@@ -140,7 +137,7 @@ CREATE INDEX
 CREATE INDEX
 CREATE INDEX
 CREATE INDEX
-:END:
+#+END_SRC
 
 
 If everything works, you should end with two new schemas: =cleaned= and =semantic=.
@@ -1014,7 +1011,7 @@ select * from semantic.entities limit 1
 |        1 |          0 | 16th street newsstand | j.g.'s foods | newsstand    | 3934 w 16th st |   60623 | 0101000020E6100000B005FE6352EE55C09053AD5BF3ED4440 | 2013-06-06 | [NULL]  |
 :END:
 
-* What's next?
+** What's next?
 
 Now it is a good time for [[file:data_exploration.org][Invest time knowing your data]] this will pay
 out when you try to do feature engineering.
