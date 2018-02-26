@@ -17,5 +17,3 @@
       name: most_frequent_best_dist
       dist_from_best_case: [0.05]
       n: 1
-
-  

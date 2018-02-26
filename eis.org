@@ -765,6 +765,10 @@ We included a simple configuration file with some rules:
       n: 1
 #+END_SRC
 
+The result will have each rule give you the best $n$ model groups ids
+based on the metric and parameter following that rule for the most
+recent time period (in all the rules shown $n$ = 1).
+
 We can run the simulation of the rules againts the experiment as:
 
 #+BEGIN_SRC sh
@@ -805,7 +809,7 @@ Auditing experiment
 
 #+END_SRC
 
-The result will have each rule give you the best $n$ model groups ids based on the metric and parameter following that rule for the most recent time period.
+
 
 
 *** What's next?
