@@ -10,8 +10,9 @@ import click
 
 from triage.component.catwalk.storage import FSModelStorageEngine
 from triage.experiments import SingleThreadedExperiment
+from triage.component.catwalk.utils import filename_friendly_hash
 
-from utils import show_timechop, show_features_queries, show_model
+from utils import show_timechop, show_features_queries, show_model, audit_experiment
 
 import logging
 
@@ -123,6 +124,26 @@ def show_model_plot(experiment, model):
     image_path = show_model(model)
     click.echo("Image stored in: ")
     click.echo(image_path)
-    return image_path
-               
 
+    return image_path
+
+
+@triage.command()
+@click.pass_obj
+@click.option('--metric', 
+              help="Model to plot",
+              required=True)
+@click.option('--rules',
+              help="Path to selection rules",
+              required=True)
+def audit_models(experiment, metric, rules):
+    click.echo("Auditing experiment")
+    experiment_hash = filename_friendly_hash(experiment.config)
+
+    with open(f"/triage/selection_rules/{rules}") as f:
+        rules = yaml.load(f)
+
+    metric, k = metric.split('@')
+    
+    audit_experiment(experiment_hash, f"{metric}@", k, rules)
+    

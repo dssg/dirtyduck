@@ -65,7 +65,7 @@ EOF
 }
 
 function start_infrastructure () {
-    docker-compose --project-name ${PROJECT} up -d food_db
+    docker-compose --project-name ${PROJECT} up -d food_db web
 	#tyra reverseproxy api
 }
 

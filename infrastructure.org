@@ -1,6 +1,3 @@
-#+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Center of Data Science for Public Policy
-#+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+PROPERTY: header-args:sql :engine postgresql
@@ -10,33 +7,35 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:shell :results drawer
-#+PROPERTY: header-args:shell+ :prologue exec 2>&1 :epilogue :
-#+PROPERTY: header-args:ipython   :session food_inspections
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session Food_inspections
 
-
-*  What do you need for this tutorial?
-
-  [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
-  Use the links for installing instructions.
 
 * Infrastructure
 
-  Besides data, in most of the data science projects you will need some
-  other tools, for example a place to store the data (a database
-  management system or *DBMS*), a way
-  for putting your model to work (an *API*) and a interface for looking
-  the performace of your trained models (for this tutorial we are
-  proposing [[https://github.com/dssg/tyra][tyra]] and supporting software for postmodeling analysis)
+**  What do you need for this tutorial?
 
-  We are proving a little script for managing all the infrastructure in
-  a (hopefully) transparent way.
+   [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
+   Use the links for installing instructions.
 
-  Before creating the infrastructure, change the string =your_password=
-  for something else in the file
-  =infrastructure/food_db/.env_example=
+** Infrastructure
 
-  #+BEGIN_EXAMPLE shell :tangle infrastructure/env_example
+   Besides data, in most of the data science projects you will need some
+   other tools, for example a place to store the data (a database
+   management system or *DBMS*), a way
+   for putting your model to work (an *API*) and a interface for looking
+   the performace of your trained models (for this tutorial we are
+   proposing [[https://github.com/dssg/tyra][tyra]] and supporting software for postmodeling analysis)
+
+   We are proving a little script for managing all the infrastructure in
+   a (hopefully) transparent way.
+
+   Before creating the infrastructure, change the string =your_password=
+   for something else in the file
+   =infrastructure/food_db/.env_example=
+
+   #+BEGIN_EXAMPLE sh :tangle infrastructure/env_example
     POSTGRES_DB=food
     POSTGRES_HOST=0.0.0.0
     POSTGRES_USER=food_user
@@ -46,18 +45,18 @@
 
     UID=1000
     GID=1000
-  #+END_EXAMPLE
+   #+END_EXAMPLE
 
-  Then, change the name of the file to =.env=.
+   Then, change the name of the file to =.env=.
 
-  Next run the following command
+   Next run the following command
 
-  #+BEGIN_SRC shell
+   #+BEGIN_SRC sh 
     ./tutorial.sh
-  #+END_SRC
+   #+END_SRC
 
-  #+RESULTS:
-  :RESULTS:
+   #+RESULTS:
+   #+BEGIN_SRC org
   Usage: ./tutorial.sh {start|stop|build|rebuild|run|logs|status|destroy|all|}
 
   OPTIONS:
@@ -94,111 +93,118 @@
      Run one experiment:
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
 
+     Run one experiment, without replacing matrices or models if already exist and with debug enabled:
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
+
      Validate experiment configuration file:
-	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml validate
+	  $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
      Show experiment's temporal cross-validation blocks:
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
 
+     Plot the model number 4 (if it is a Decision Tree or a Random Forest):
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
+
      Triage help:
-	  $ ./tutorial.sh -t --help
+	  $ ./tutorial.sh triage --help
 
-  :END:
+   #+END_SRC
 
-  We need to create the infrastructure so, =start= it
+   We need to create the infrastructure so, =start= it
 
-  #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE sh
     ./tutorial.sh start
-  #+END_EXAMPLE
+   #+END_EXAMPLE
 
-  This will take some minutes the first time.
+   This will take some minutes the first time.
 
-  You can check that everything is running smoothly with =status=
+   You can check that everything is running smoothly with =status=
 
-  #+BEGIN_SRC shell 
+   #+BEGIN_SRC sh
     ./tutorial.sh status
     :
-  #+END_SRC
+   #+END_SRC
 
-  #+RESULTS:
-  :RESULTS:
-   Name                Command              State           Ports         
-  ------------------------------------------------------------------------
-  food_db   docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
-  :END:
+   #+RESULTS:
+   #+BEGIN_SRC org
+       Name                    Command              State           Ports         
+  --------------------------------------------------------------------------------
+  food_db           docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
+  tutorial_server   nginx -g daemon off;            Up      0.0.0.0:80->80/tcp    
+   #+END_SRC
 
 
-  The environment is composed (no pun intended) by three pieces: a
-  =postgresql= database called =food_db=, a container that executes =triage=
-  experiments and finally =bastion=, which includes a
-  Login to the docker container called =bastion= using =postgresql= client
-  (so you can interact with the database) and a full =python=
-  environment (so you can code or modify the things that we will
-  discuss in this tutorial). The idea is that you don't need to
-  install anything in your laptop.
+   The environment is composed by /four/ pieces: a
+   =postgresql= database called =food_db=, a container that executes =triage=
+   experiments, a /web server/ that shows this tutorial,  and finally =bastion=, which includes a
+   Login to the docker container called =bastion= using =postgresql= client
+   (so you can interact with the database) and a full =python=
+   environment (so you can code or modify the things that we will
+   discuss in this tutorial). The idea is that you don't need to
+   install anything in your laptop.
 
-  For accessing to the =postgresql= client type:
+   For accessing to the =postgresql= client type:
 
-  #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE shell
   ./tutorial.sh bastion
-  #+END_EXAMPLE
+   #+END_EXAMPLE
 
-  You will see something like:
+   You will see something like:
 
-  #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE shell
   root@485373fb3c64:/$
-  #+END_EXAMPLE
+   #+END_EXAMPLE
 
-  The number surely will be different (i.e. not =485373fb3c64=).
+   The number surely will be different (i.e. not =485373fb3c64=).
 
-  Now the database is running, its named =food_db=, the single table in
-  there named =inspections=
+   Now the database is running, its named =food_db=, the single table in
+   there named =inspections=
 
-  Let's check the =schema= of =inspections= table, first, type the next
-  command to connect to the database
+   Let's check the =schema= of =inspections= table, first, type the next
+   command to connect to the database
 
-  #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE shell
   psql ${FOOD_DB_URL}
-  #+END_EXAMPLE
+   #+END_EXAMPLE
 
-  and then, type the following command:
+   and then, type the following command:
 
-  #+BEGIN_SRC sql
+   #+BEGIN_SRC sql
     \d raw.inspections
-  #+END_SRC
+   #+END_SRC
 
-  #+RESULTS:
-  :RESULTS:
-  | Table "raw.inspections" |                   |           |
-  |-------------------------+-------------------+-----------|
-  | Column                  | Type              | Modifiers |
-  | inspection              | character varying | not null  |
-  | dba_name                 | character varying |           |
-  | aka_name                 | character varying |           |
-  | license_num              | numeric           |           |
-  | facility_type            | character varying |           |
-  | risk                    | character varying |           |
-  | address                 | character varying |           |
-  | city                    | character varying |           |
-  | state                   | character varying |           |
-  | zip                     | character varying |           |
-  | date                    | date              |           |
-  | type                    | character varying |           |
-  | results                 | character varying |           |
-  | violations              | character varying |           |
-  | latitude                | numeric           |           |
-  | longitude               | numeric           |           |
-  | location                | character varying |           |
-  :END:
+   #+RESULTS:
+   :RESULTS:
+   | Table "raw.inspections" |                   |           |
+   |-------------------------+-------------------+-----------|
+   | Column                  | Type              | Modifiers |
+   | inspection              | character varying | not null  |
+   | dba_name                 | character varying |           |
+   | aka_name                 | character varying |           |
+   | license_num              | numeric           |           |
+   | facility_type            | character varying |           |
+   | risk                    | character varying |           |
+   | address                 | character varying |           |
+   | city                    | character varying |           |
+   | state                   | character varying |           |
+   | zip                     | character varying |           |
+   | date                    | date              |           |
+   | type                    | character varying |           |
+   | results                 | character varying |           |
+   | violations              | character varying |           |
+   | latitude                | numeric           |           |
+   | longitude               | numeric           |           |
+   | location                | character varying |           |
+   :END:
 
-  Now, you can disconnect from the database typing =\q=
+   Now, you can disconnect from the database typing =\q=
 
 
-  *NOTE*: If you want to clean your laptop of all this, you should type
-  =./tutorial.sh destroy=. But don't to that now!
+   *NOTE*: If you want to clean your laptop of all this, you should type
+   =./tutorial.sh destroy=. But don't to that now!
 
-  Well, you are all set now. Let's start now.
+   Well, you are all set now. Let's start now.
 
-* What's next?
+** What's next?
 
-Continue to [[file:data_preparation.org][Preparing your data]].
+ Continue to [[file:data_preparation.org][Preparing your data]].

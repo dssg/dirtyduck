@@ -1,6 +1,3 @@
-#+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Center of Data Science for Public Policy
-#+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: indent
@@ -12,19 +9,145 @@
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
-#+PROPERTY: header-args:ipython :session sfpd
+#+PROPERTY: header-args:ipython :session dssg
 #+PROPERTY: header-args:ipython+ :results output drawer
+#+PROPERTY: header-args:R :session :exports results
+
+#+BEGIN_SRC R :results none 
+library(tidyverse)
+library(dbplyr)
+library(ggplot2)
+library(RPostgreSQL)
+library(lubridate)
+
+pg <- RPostgreSQL::PostgreSQL(max.con = 50)
+db <- dbConnect(PostgreSQL(), dbname = 'postgresql://food_user:some_password@0.0.0.0:5434/food')
+
+theme_dssg <- function () { 
+    theme_bw(base_size=12, base_family="Avenir") %+replace% 
+        theme(
+            panel.background  = element_blank(),
+            plot.background = element_rect(fill="gray96", colour=NA), 
+            legend.background = element_rect(fill="transparent", colour=NA),
+            legend.key = element_rect(fill="transparent", colour=NA)
+        )
+}
+
+theme_dssg_dates <- function () { 
+    theme_dssg() %+replace% 
+           theme(axis.text.x = element_text(angle = 30, hjust = 0.5))
+}
+
+theme_dssg2 <- function(base_size=12, base_family="Avenir") {
+      library(grid)
+      library(ggthemes)
+      (theme_foundation(base_size=base_size, base_family=base_family)
+       + theme(plot.title = element_text(face = "bold",
+                                         size = rel(1.2), hjust = 0.5),
+               text = element_text(),
+               panel.background = element_rect(colour = NA),
+               plot.background = element_rect(colour = NA),
+               panel.border = element_rect(colour = NA),
+               axis.title = element_text(face = "bold",size = rel(1)),
+               axis.title.y = element_text(angle=90,vjust =2),
+               axis.title.x = element_text(vjust = -0.2),
+               axis.text = element_text(), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(),
+               panel.grid.major = element_line(colour="#f0f0f0"),
+               panel.grid.minor = element_blank(),
+               legend.key = element_rect(colour = NA),
+               legend.position = "bottom",
+               legend.direction = "horizontal",
+               legend.key.size= unit(0.8, "cm"),
+               legend.margin = unit(0, "cm"),
+               legend.title = element_blank(),
+               legend.text = element_text(size=18),
+               plot.margin = unit(c(10,5,5,5),"mm"),
+               strip.background = element_rect(colour="#f0f0f0",fill="#f0f0f0"),
+               strip.text = element_text(face="bold")
+          ))
+      
+}
+
+theme_dssg2_dates <- function () { 
+    theme_dssg2() %+replace% 
+           theme(axis.text.x = element_text(angle = 30, hjust = 0.5))
+}
+
+
+
+scale_fill_dssg2 <- function(...){
+      library(scales)
+      discrete_scale("fill","Publication",manual_pal(values = c("#386cb0","#fdb462","#7fc97f","#ef3b2c","#662506","#a6cee3","#fb9a99","#984ea3","#ffff33")), ...)
+
+}
+
+scale_colour_dssg2 <- function(...){
+      library(scales)
+      discrete_scale("colour","Publication",manual_pal(values = c("#386cb0","#fdb462","#7fc97f","#ef3b2c","#662506","#a6cee3","#fb9a99","#984ea3","#ffff33")), ...)
+
+}
+
+specify_decimal <- function(x, k) trimws(format(round(x, k), nsmall=k))
+#+END_SRC
 
 
 * Exploring the Data
 
-/Inspections time series/
+** /Inspections across time/
 
-/Number of facilities across time/
+#+BEGIN_SRC sql
+select date_trunc('month', date), count(*) from semantic.events
+group by 1
+order by 1 asc
+#+END_SRC
 
-/Inspections on unique facilities across time/
+#+BEGIN_SRC R :results output graphics :file images/inspections-time-series.svg
+db %>%
+tbl(sql("select date_trunc('month', date) as date, count(*) as total from semantic.events group by 1 order by 1 asc")) %>%
+collect() %>%
+mutate(date=as.Date(date)) %>%
+ggplot(aes(x=date, y=total)) +
+geom_bar(stat="identity") + theme_dssg()
+#+END_SRC
 
-/Which is the spatial distribution of Inspections?/
+#+RESULTS:
+[[file:images/inspections-time-series.svg]]
+
+** /Number of facilities across time/
+
+#+BEGIN_SRC sql
+select * from semantic.entities
+#+END_SRC
+
+#+BEGIN_SRC R :export results 
+monthly_series <- seq(ymd('2010-01-01'), ymd('2018-12-01'), by = '1 month')
+
+db %>% 
+ tbl(in_schema("semantic", "entities")) %>%
+ collect()
+#+End_src
+
+** /Inspections on unique facilities across time/
+
+#+BEGIN_SRC R :export output :session :results output graphics :file images/inspections-unique-entitiestime-series.svg 
+db %>%
+  tbl(in_schema("semantic", "events")) %>%
+  mutate(date=date_trunc('month', date)) %>%
+  group_by(date) %>%
+  distinct(entity_id) %>%
+  tally() %>%
+  collect() %>%
+ggplot(aes(x=date, y=n)) + 
+ geom_bar(stat="identity") + theme_dssg()
+#+END_SRC
+
+#+RESULTS:
+[[file:images/inspections-unique-entitiestime-series.svg]]
+
+
+** /Which is the spatial distribution of Inspections?/
 #+NAME: inspections_zip_code
 #+BEGIN_SRC sql 
 select
@@ -38,7 +161,7 @@ order by total_inspections desc
 limit 10
 #+END_SRC
 
-#+RESULTS: inspections_zip_Code
+#+RESULTS: inspections_zip_code
 :RESULTS:
 | zip_code | total_inspections | total_failures |
 |---------+------------------+---------------|
@@ -52,36 +175,9 @@ limit 10
 |   60639 |             3801 |           926 |
 |   60607 |             3733 |           844 |
 |   60625 |             3657 |           833 |
-:END:
+:End:
 
-
-#+BEGIN_SRC ipython :var table=inspections_zip_code :exports both :results raw drawer :ipyfile /tmp/img.png
-%matplotlib inline
-
-
-import matplotlib as plt
-import pandas as pd
-import numpy as np
-
-import seaborn as sns
-sns.set_style("whitegrid")
-
-df=pd.DataFrame(table, columns=['zip_code', 'total_inspections', 'total_failures'], dtype=np.int32)
-
-sns.barplot(x="zip_code", y="total_inspections",  data=df, color="salmon", saturation=0.5)
-
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-
-<matplotlib.axes._subplots.AxesSubplot at 0x7f967aeb7080>
-<matplotlib.figure.Figure at 0x7f967aed9940>
-[[file:ipython-inline-images/ob-ipython-0b4f14ad004d5e920d6db571bd32525c.png]]
-:END:
-
-
-/Which is the temporal distribution of the inspections?/
+** /Which is the temporal distribution of the inspections?/
 
 #+BEGIN_SRC sql
 select
@@ -181,10 +277,10 @@ violation. We will repeat the query, we will group by the =results=
 
 
 *NOTE*: You could also split between, /major violation found/ and /minor violation found/,
-but we will keep this simple for the moment.
+but we will keep this simple for the Moment.
 
 
-/How often change the risk in a facility?/
+** /How often change the risk in a facility?/
 
 #+BEGIN_SRC sql
   select
@@ -237,6 +333,6 @@ classification of a facility.
 | 131 n clinton st  |              310 |            34 |
 :END:
 
-* What's next?
+** What's next?
 
 Well, with the data in place, it is time to know [[file:triage_intro.org][the inner workings of =triage=]].

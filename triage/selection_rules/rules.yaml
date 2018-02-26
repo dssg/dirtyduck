@@ -1,28 +1,21 @@
-rules:
-  -
+-
+  shared_parameters:
+    -
+      metric: 'precision@'
+      parameter: '50_abs'
+  selection_rules:
+    -
       name: best_current_value
-      n: 3
-      metric: 'precision@'
-      parameter: '50_abs'
-  -
+      n: 1
+    -
       name: best_average_value
-      n: 3
-      metric: 'precision@'
-      parameter: '50_abs'
-
-  -
+      n: 1
+    -
       name: lowest_metric_variance
-      n: 3
-      metric: 'precision@'
-      parameter: '50_abs'
-
-  -
+      n: 1
+    -
       name: most_frequent_best_dist
       dist_from_best_case: [0.05]
-      n: 3
-      metric: 'precision@'
-      parameter: '50_abs'
-
-  -
-      name: random_model_group
       n: 1
+
+  

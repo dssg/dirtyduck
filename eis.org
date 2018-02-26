@@ -1,6 +1,3 @@
-#+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Center of Data Science for Public Policy
-#+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: indent
@@ -13,10 +10,13 @@
 #+PROPERTY: header-args:sql+ :results table drawer
 #+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
-#+PROPERTY: header-args:python    :session food_inspections :results output Drawer
-#+PROPERTY: header-args:sh  :results raw drawer
+#+PROPERTY: header-args:python    :session food_inspections :results output drawer
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 
-* Problem description
+* An Early Intervention System
+
+** Problem description
 
 Our final stop is using =triage= to build a /Early Intervention (or Warning) System/. There are
  several differences between the the *EIS* and the *inspection
@@ -41,7 +41,7 @@ etc.
   owner) to be prepared and take the pertinent actions.
 
 
-* Creating the labels
+** Creating the labels
 
 The trick to note is that every day there are two possible outcomes:
 /the facility was inspected/ and /the facility wasn't inspected/. So,
@@ -227,10 +227,10 @@ from semantic.entities
 #+RESULTS:
 
 
-* Modeling using Machine Learning
+** Modeling using Machine Learning
 
 
-** Creating a simple Experiment
+*** Creating a simple Experiment
 
 First the usual stuff. Note that we are changing =model_comment= and
 =label_definition= (remember that this is used for generating the
@@ -263,7 +263,7 @@ state_config:
        - 'active'
 #+END_SRC
 
-*** Temporal configuration
+**** Temporal configuration
 #+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
@@ -300,7 +300,7 @@ Image stored in:
 
 [[./triage/eis.svg]]
 
-*** Features
+**** Features
 
 Regarding the features, we will use the same ones that were used in [[file:inspections.org][inspections prioritization]]
 
@@ -403,7 +403,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 
 
-*** Algorithm and hyperparameters
+**** Algorithm and hyperparameters
 
 We will collapse the baseline (=DummyClassifier=)  and the exploratory configuration together:
 
@@ -690,8 +690,9 @@ limit 25
 This set of features identifies as important looks reasonable, so the results seem solid.
 
 
+** Postmodeling
 
-** How can I pick the best one?
+*** How can I pick the best one?
 
 Well now you have *42* /model groups/ Which one must you select to
 use? Which one is the best one? This is not as easy as it sounds, due
@@ -708,22 +709,106 @@ several Factors:
   the lists generated are more or less similar, so, it doesn't really
   matter which one do you Pick.
 
-=Triage= provides that functionality in =audition= and in
+=triage= provides that functionality in =audition= and in
 =postmodel=. At the moment of this writing this two modules require
-more interaction (there aren't integrated to the /configuration
-file/). 
+more interaction (they aren't integrated to the /configuration
+File/). 
+
+=Audition= formalizes this idea through /selection rules/ that take in
+the data up to a given point in time, apply some rule to choose a
+model group, and evaluate the performance of that chosen model in the
+subsequent time window, the *regret*. 
+
+=Audition= predefines 7 Rules:
+
+1. =best_current_value= :: Pick the model group with the best current metric Value.
+2. =best_average_value= :: Pick the model with the highest average metric value so far.
+3. =lowest_metric_variance= :: Pick the model with the lowest metric variance so far.
+4. =most_frequent_best_dist= :: Pick the model that is most frequently
+     within =dist_from_best_case= from the best-performing model group
+     across test sets so far. 
+5. =best_average_two_metrics= :: Pick the model with the highest
+     average combined value to date of two metrics weighted together
+     using =metric1_weight=. 
+6. =best_avg_var_penalized= :: Pick the model with the highest average
+     metric value so far, penalized for relative variance ss:  
+     =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
+     =min_stdev= is the minimum standard deviation of the metric
+     across all model groups 
+7.  =best_avg_recency_weight= :: Pick the model with the highest
+     average metric value so far, penalized for relative variance as:
+     =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
+     =min_stdev= is the minimum standard deviation of the metric
+     across all  model groups
+
+We included a simple configuration file with some rules:
+
+#+BEGIN_SRC yaml :tangle ./triage/selection_rules/rules.yaml
+-
+  shared_parameters:
+    -
+      metric: 'precision@'
+      parameter: '50_abs'
+  selection_rules:
+    -
+      name: best_current_value
+      n: 1
+    -
+      name: best_average_value
+      n: 1
+    -
+      name: lowest_metric_variance
+      n: 1
+    -
+      name: most_frequent_best_dist
+      dist_from_best_case: [0.05]
+      n: 1
+#+END_SRC
+
+We can run the simulation of the rules againts the experiment as:
+
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file eis_01.yaml audit_models --metric precision@50_abs --rules rules.yaml
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+Using the config file /triage/experiment_config/eis_01.yaml
+The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
+The experiment will utilize any preexisting matrix or model: False
+Creating experiment object
+Experiment loaded
+Auditing experiment
+
+          ++++++++++++++++++++++++++++++++++++++++++++++++++++
+          +                                                  +
+          +          Results of the simulation               +
+          +                                                  +
+          ++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+{'best_average_value_precision@_50_abs': [24],
+ 'best_current_value_precision@_50_abs': [48, 24],
+ 'lowest_metric_variance_precision@_50_abs': [24],
+ 'most_frequent_best_dist_precision@_50_abs_0.05': [48]}
+
+          ++++++++++++++++++++++++++++++++++++++++++++++++++++
+          +                                                  +
+          +          Average regret per rule                 +
+          +                                                  +
+          ++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+{'precision@50_abs': {'best_average_value_precision@_50_abs': 0.0,
+                      'best_current_value_precision@_50_abs': 0.0,
+                      'lowest_metric_variance_precision@_50_abs': 0.08,
+                      'most_frequent_best_dist_precision@_50_abs_0.05': 0.02}}
+
+#+END_SRC
+
+The result will have each rule give you the best $n$ model groups ids based on the metric and parameter following that rule for the most recent time period.
 
 
-
-
-
-
-* Postmodeling
-
-  - Postmodeling?
-  - Bias analysis?
-
-* What's next?
+*** What's next?
 
   - Add the shape file
     https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&format=Shapefile
@@ -734,22 +819,3 @@ file/).
   - Routing based on the inspection list?
   - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)? 
 
-* Notes
-[2018-01-01 Mon 00:50]
-
-
- /What are you inspecting?/ (people, places, other)
- /How far do you want to predict?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /How often do you want to update the list?/ (e.g. 1 mo, 6mo, 12 mo, etc)
- /What do you want to optimize for?/ (e.g. efficiency, long term
- compliance, novelty)
-
-
-Inspection the join starts from outcomes (outcome centric) (if you
-haven't been inspected, we can not said anything about you)
-
-
-
-** A neat trick
-
-Add small, medium, full grid (Rayid magic 

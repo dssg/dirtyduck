@@ -42,6 +42,17 @@ services:
       - "../triage:/triage"
       - "../sql:/sql"
 
+  web:
+    build:
+      context: ./web
+    image: tutorial/web
+    container_name: tutorial_server
+    ports:
+      - "80:80"
+    volumes:
+      - "./web/html/:/usr/share/nginx/html/"
+      
+          
   # reverseproxy:
   #   build:
   #     context: ./reverseproxy
