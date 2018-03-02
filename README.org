@@ -3,80 +3,90 @@
 #+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
-#+STARTUP: indent
-#+PROPERTY: header-args:sql :engine postgresql
-#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
-#+PROPERTY: header-args:sql+ :dbport 5434
-#+PROPERTY: header-args:sql+ :dbuser food_user
-#+PROPERTY: header-args:sql+ :dbpassword some_password
-#+PROPERTY: header-args:sql+ :database food
-#+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:shell     :results drawer
-#+PROPERTY: header-args:ipython   :session food_inspections
+#+STARTUP: Indent
 
 
-* Description of the problem to solve
+* Welcome!
 
-The [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections data set]] is well know, and it has been
-used in several examples around the web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]] or [[https://youtu.be/1dKonIT-Yak][here]])
+This tutorial will show you how to use =triage=, a data science
+ modeling tool developed in  the [[http://dsapp.uchicago.edu][Center for Data Science and Public
+ Policy]] (DSaPP) at the University of Chicago. 
 
-   In this tutorial, we have two different goals: (1) an *Early
-   Intervention System* or *EIS* and  
-   (2) *prioritize inspections*, the entity in which we are interested in
-   both cases is the  /facility/.
+=triage= aims to help you to model two complex data problems: /Early
+warning systems/ and /resource prioritization/. 
+Both problems pop up constantly in our daily job at DsaPP. This
+problems serve as templates for real use cases of Data Science and
+Machine Learning in the public policy sector.
 
-   In the *EIS*, as a facility owner or manager, we want to predict if
-   the facility under our control is at /risk/ of been inspected in the
-   following period of time.
+This problems are difficult to model due the fact that they are prone
+to errors in the conceptualization of the problem or in the
+implementation of the model in a computer. The multi dimensional,
+multi entities time series structure of both problems is the cause of
+these difficulties. 
 
-   In the *inspections prioritization*, we want to generate a list of
-   facilities which are /likely/ to have some *critical* o *serious*
-   violation /given that/ they are inspected.
+* What do you need for this tutorial?
 
-   Both problems are under the umbrella of the /supervised machine
-   learning/ problems. That means that we must need examples that
-   specify the *outcome* in which are interested (in the ML jargon this
-   is called a /label/).
+[[http://www.docker.com][Docker CE]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
+Use the links for installing instructions.
 
-   The *outcome* is what differ between those two projects. For *EIS* the
-   outcome is *inspected*, for *Inspections*, the outcome is *major violation found*.
+Note that if you are using =GNU/Linux= you should add your user to the
+=docker= group following the guidance at this [[https://docs.docker.com/install/linux/linux-postinstall/][link]].
 
-  The first scenario, is the following:  you work for the Chicago's
-  government, and you try
-  to prioritize your resources (i.e. your inspection workforce), since
-  they are limited. So, you will use the data (the same data set,
-  remember) for answering the next
-  question:
+At the moment only operative systems with /real/ command lines are
+supported, as =GNU/Linux= and =MacOS=. Maybe in a recent version of
+=Windows= you could install a =bash= command line. 
 
-#+begin_quote
-  Which X facilities are likely to violate some rule in the
-  following Y period of time?
-#+end_quote
+* How to use this tutorial?
 
-  In this case maybe you are interested not
-  in all the violations but in the more grave.
+Clone this repository in your Laptop 
 
-  We will use the /same/ data set, second, we will be the restaurant's
-  owner, and we want to know:
+#+BEGIN_EXAMPLE
+ git clone https://github.com/dssg/dirtyduck.git
+#+END_EXAMPLE
 
-#+begin_quote
-Will my restaurant be inspected in the
-/next X period of time?/
-#+end_quote
+And then run
 
-Where $X$ could be 1 month, 1 week, 1 year,
-etc.
+#+BEGIN_EXAMPLE
+./tutorial.sh start
+#+END_Example
 
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
+ finally open your browser and type in the location bar =0.0.0.0= that
+ will open the tutorial, follow from there[fn:3].
 
-* Contents
+* I want to help
 
-  This tutorial is divided in the following sections
+Help is always welcome! How do you want to help? You can help
+reporting errors, improving the tutorial or proposing improvements to
+=triage=. This three cases are discussed below.
 
-- [[file:infrastructure.org][Infrastructure]]
-- [[file:data_preparation.org][Preparing your data]]
-- [[file:data_exploration.org][Knowing your data]]
-- [[file:triage_intro.org][Introduction to triage]]
-- [[file:inspections.org][Modeling: Inspections prioritization]]
-- [[file:eis.org][Modeling: Early Warning System]]
+** How can I report errors?
+
+We are almost sure that there will be errors, please open an [[https://github.com/dssg/dirtyduck/issues][issue]] and
+we will try to correct them as soon as possible.
+
+** How can I improve the tutorial itself?
+
+This tutorial was created following the practices of [[https://www-cs-faculty.stanford.edu/~knuth/lp.html][Literate
+Programming]] using  [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means that
+the tutorial is a /live/ document that mixes programming languages and
+text.  
+
+The steps to help are:
+
+- clone the repository
+- edit the source =org= files in the =src= folder
+- create a *pull request*.
+
+
+** How can I collaborate developing =triage=?
+
+Go to the [[https://github.com/dssg/triage][triage]] repository and follow the instructions there.
+
+* Footnotes
+
+[fn:3] You could also follow this tutorial in github or in your =GNU
+Emacs=. Just follow the =org= files inside the folder =src=.
+
+[fn:2] But it is supported in =vim= if you install a plugin.
+
+[fn:1] Is very similar to =markdown= so, you won't have any problem.
