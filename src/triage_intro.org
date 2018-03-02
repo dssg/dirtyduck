@@ -356,8 +356,39 @@ detail in the next sections.
 
 **** Temporal crossvalidation
 
-The most acute problems are avoiding leakaging information
-and feature generation in a temporal setting.
+Cross validation is a common technique to reduce overfitting and model and
+ hyperparameter. Standard cross validation randomly splits the
+ training data into subsets, fits models on all except one of them,
+ and calculates the metric of interest (e.g. precision/recall) on the
+ remaining, rotating through the subsets and leaving each out
+ once. You then select the model that performed best on the test sets,
+ and then retrain them.  
+
+Unfortunately, standard cross validation is usually inappropriate for
+real-world data science problems like the ones that we are facing. If
+you are testing your model on temporally 
+correlated data, standard cross validation lets  you peek ahead into
+the future, due to the random split, using time points both before and
+after the target date. To avoid this problem, you should design  your training and
+testing to mimic how your model will be used, making predictions with
+only the data that would be available at  that time (i.e. from the past). 
+
+In temporal crossvalidation, rather than randomly splitting the
+dataset into training and test splits, temporal cross validation
+splits the data by time. For example, we can fit models on training
+sets up to  1/1/2010 and see how well those models would have
+predicted 2010; fit more models on
+training sets up to 1/1/2011 and see how  well those models would have
+predicted 2011; and so on. That way, we choose models that have
+historically performed best at our task,  forecasting. It’s why this
+approach is sometimes called “evaluation on a rolling forecast
+origin.”  
+
+The most acute problem is avoiding leakaging information
+in a temporal setting. Note that this spliting will affect the
+generation of features, because you don't want to have leakage on the
+generation. 
+
 
 =triage= uses the handy =timechop= library for this purpose. =Timechop=
 will build ("chop") the data set in several temporal blocks. These
@@ -457,9 +488,9 @@ horizon in testing.
 
 #+NAME: fig:timechop_1
 #+CAPTION: feature and label start, end time equal
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_1.svg]]
 
 #+BEGIN_EXAMPLE yaml
@@ -485,9 +516,9 @@ data for labels)
 
 #+NAME: fig:timechop_2
 #+CAPTION: feature_start_time different different that label_start_time.
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_2.svg]]
 
 
@@ -533,9 +564,9 @@ temporal_config:
 
 #+NAME: fig:timechop_3
 #+CAPTION: A smaller model_update_frequency (from 1y to 6month) (The number of blocks grew)
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_3.svg]]
 
 
@@ -566,9 +597,9 @@ temporal_config:
 
 #+NAME: fig:timechop_4
 #+CAPTION: The size of the block is bigger now
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_4.svg]]
 
 ***** =_as_of_date_frequencies= and =test_durations=
@@ -594,9 +625,9 @@ temporal_config:
 
 #+NAME: fig:timechop_5
 #+CAPTION: More rows per entity in the training block
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_5.svg]]
 
 Now, change =test_as_of_date_frequencies=
@@ -622,9 +653,9 @@ temporal_config:
 
 #+NAME: fig:timechop_6
 #+CAPTION: We should get more rows per entity in the test matrix, but that didn't happen. Why?
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_6.svg]]
 
 Nothing change, that's because the test set doesn't have "space", that
@@ -651,9 +682,9 @@ temporal_config:
 
 #+NAME: fig:timechop_7
 #+CAPTION: The test duration is bigger now, so we got 6 rows (since the "base" frequency is 1 month)
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_7.svg]]
 
 So, now we will move both parameters: =test_durations=, =test_as_of_date_frequencies=
@@ -679,9 +710,9 @@ temporal_config:
 
 #+NAME: fig:timechop_8
 #+CAPTION: With more room in testing, now test_as_of_date_frequencies has some effect.
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_8.svg]]
 
 ***** =-label_timespans=
@@ -707,9 +738,9 @@ temporal_config:
 
 #+NAME: fig:timechop_9
 #+CAPTION: The label time horizon in testing is smaller
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_9.svg]]
 
 #+BEGIN_EXAMPLE yaml
@@ -733,13 +764,13 @@ temporal_config:
 
 #+NAME: fig:timechop_10
 #+CAPTION: The label time horizon is smaller in trainning, also, now we have more room for more rows per entity.
-#+ATTR_ORG :width 100 :height 100
-#+ATTR_HTML :width 600 :height 400
-#+ATTR_LATEX :width 400 :height 300
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_10.svg]]
 
 
-**** Feature engineering
+**** TODO Feature engineering
 
 We will show how to create features using the /experiments config
 file/. =triage= for this end, uses =collate=. =Collate= is the python
