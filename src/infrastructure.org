@@ -14,13 +14,6 @@
 
 * Infrastructure
 
-**  What do you need for this tutorial?
-
-   [[http://www.docker.com][Docker]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
-   Use the links for installing instructions.
-
-** Infrastructure
-
    Besides data, in most of the data science projects you will need some
    other tools, for example a place to store the data (a database
    management system or *DBMS*), a way
