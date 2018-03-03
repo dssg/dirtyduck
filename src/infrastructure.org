@@ -25,6 +25,17 @@
    We are proving a little script for managing all the infrastructure[fn:2] in
    a (hopefully) transparent way.
 
+   The provided environment is composed by /four/ Pieces:
+   - a =postgresql= database called =food_db=,
+   - a container that executes =triage= experiments,
+   - a /web server/ that shows this tutorial,
+   - and finally =bastion=, which includes a =postgresql= client
+   (so you can interact with the database) and a full =python=
+   environment (so you can code or modify the things that we will
+   discuss in this Tutorial). 
+
+   The idea is that you don't need to install anything in your laptop.
+
    Run the following
 
    #+BEGIN_SRC sh 
@@ -108,41 +119,40 @@
   tutorial_server   nginx -g daemon off;            Up      0.0.0.0:80->80/tcp    
    #+END_SRC
 
-
-   The environment is composed by /four/ pieces: a
-   =postgresql= database called =food_db=, a container that executes =triage=
-   experiments, a /web server/ that shows this tutorial,  and finally =bastion=, which includes a
-   Login to the docker container called =bastion= using =postgresql= client
-   (so you can interact with the database) and a full =python=
-   environment (so you can code or modify the things that we will
-   discuss in this tutorial). The idea is that you don't need to
-   install anything in your laptop.
-
    For accessing to the =postgresql= client type:
 
-   #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE sh
   ./tutorial.sh bastion
    #+END_EXAMPLE
 
-   You will see something like:
+   Your prompt should change to something like:
 
-   #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE sh
   root@485373fb3c64:/$
    #+END_EXAMPLE
 
-   The number surely will be different (i.e. not =485373fb3c64=).
+   *NOTE*: The number surely will be different (i.e. not =485373fb3c64=).
 
-   Now the database is running, its named =food_db=, the single table in
-   there named =inspections=
+   Type the next command to connect to the database
 
-   Let's check the =schema= of =inspections= table, first, type the next
-   command to connect to the database
-
-   #+BEGIN_EXAMPLE shell
+   #+BEGIN_EXAMPLE sh
   psql ${FOOD_DB_URL}
    #+END_EXAMPLE
 
-   and then, type the following command:
+   The prompt will change again to
+
+#+BEGIN_EXAMPLE sh
+   psql (9.6.7, server 10.2 (Debian 10.2-1.pgdg90+1))
+   WARNING: psql major version 9.6, server major version 10.
+         Some psql features might not work.
+   Type "help" for help.
+
+   food=# 
+#+END_EXAMPLE
+
+   The database is running and its named =food=. It should contain a
+   single table named =inspections=  in the =schema= =Raw=. 
+   Let's check the =inspections= table, type the following command:
 
    #+BEGIN_SRC sql
     \d raw.inspections
@@ -172,17 +182,15 @@
    | location                | character varying |           |
    :END:
 
-   Now, you can disconnect from the database typing =\q=
+   That is it. This is our "raw" data. We will work from here.
 
+   You can disconnect from the database typing =\q=. But don't leave
+   =bastion= yet. You should return to the same weird prompt:
 
-   *NOTE*: If you want to clean your laptop of all this, you should type
-   =./tutorial.sh destroy=. But don't to that now!
+   #+BEGIN_EXAMPLE sh
+  root@485373fb3c64:/$
+   #+END_EXAMPLE
 
-   Well, you are all set now. Let's start now.
-
-** What's next?
-
- Continue to [[file:data_preparation.org][Preparing your data]].
 
 * Footnotes
 
