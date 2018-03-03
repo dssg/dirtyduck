@@ -14,35 +14,18 @@
 
 * Infrastructure
 
-   Besides data, in most of the data science projects you will need some
-   other tools, for example a place to store the data (a database
+   In every data science project you will need several tools which
+   will help you to analyze the data in an efficient[fn:1] manner.
+   Examples of this tools are: a place to store the data (a database
    management system or *DBMS*), a way
-   for putting your model to work (an *API*) and a interface for looking
-   the performace of your trained models (for this tutorial we are
-   proposing [[https://github.com/dssg/tyra][tyra]] and supporting software for postmodeling analysis)
+   for putting your model to work, i.e. one way that allows to model
+   to ingest new data and predict on it (an *API*) and a interface for
+   looking the performace of your trained models (a governance tool). 
 
-   We are proving a little script for managing all the infrastructure in
+   We are proving a little script for managing all the infrastructure[fn:2] in
    a (hopefully) transparent way.
 
-   Before creating the infrastructure, change the string =your_password=
-   for something else in the file
-   =infrastructure/food_db/.env_example=
-
-   #+BEGIN_EXAMPLE sh :tangle infrastructure/env_example
-    POSTGRES_DB=food
-    POSTGRES_HOST=0.0.0.0
-    POSTGRES_USER=food_user
-    POSTGRES_DB=food
-    POSTGRES_PORT=5434
-    POSTGRES_PASSWORD=your_password
-
-    UID=1000
-    GID=1000
-   #+END_EXAMPLE
-
-   Then, change the name of the file to =.env=.
-
-   Next run the following command
+   Run the following
 
    #+BEGIN_SRC sh 
     ./tutorial.sh
@@ -103,13 +86,12 @@
 
    #+END_SRC
 
-   We need to create the infrastructure so, =start= it
+   Following the printed instructuons in the screen, we can start the
+   infrastructure with:
 
    #+BEGIN_EXAMPLE sh
     ./tutorial.sh start
    #+END_EXAMPLE
-
-   This will take some minutes the first time.
 
    You can check that everything is running smoothly with =status=
 
@@ -201,3 +183,10 @@
 ** What's next?
 
  Continue to [[file:data_preparation.org][Preparing your data]].
+
+* Footnotes
+
+[fn:2] And other things through this tutorial, like the execution of
+the model training, etc.
+
+[fn:1] Reproducible, reportable, scalable, flexible, etc.
