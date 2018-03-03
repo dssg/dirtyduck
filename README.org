@@ -72,7 +72,7 @@ This will take some minutes the first time.
 Finally open your browser and type in the location bar =0.0.0.0= that
 will open the tutorial, follow from there[fn:3].
 
-* I want to help
+* How do you can help
 
 Help is always welcome! How do you want to help? You can help
 reporting errors, improving the tutorial or proposing improvements to
