@@ -6,14 +6,8 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: Indent
-#+EXPORT_FILE_NAME: infrastructure/web/html/index.html
-
-# +LANGUAGE: en
-#+OPTIONS: toc:nil h:4 html-postamble:nil html-preamble:t tex:t f:t
-# +OPTIONS: prop:("VERSION")
-#+LANGUAGE:  en
-#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="http://gongzhitaao.org/orgcss/org.css"/>
-
+#+EXPORT_FILE_NAME: ../infrastructure/web/html/index.Html
+#+SETUPFILE: tutorial.setup
 
 #+INCLUDE: intro.org :minlevel 1
 #+INCLUDE: infrastructure.org :minlevel 1
