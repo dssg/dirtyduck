@@ -6,7 +6,7 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: Indent
-#+EXPORT_FILE_NAME: ../infrastructure/web/html/index.Html
+#+EXPORT_FILE_NAME: ../infrastructure/web/html/index.html
 #+SETUPFILE: tutorial.setup
 
 #+INCLUDE: intro.org :minlevel 1

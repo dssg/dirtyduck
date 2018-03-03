@@ -44,14 +44,33 @@ Clone this repository in your Laptop
  git clone https://github.com/dssg/dirtyduck.git
 #+END_EXAMPLE
 
+Then copy the file 
+=infrastructure/food_db/.env_example= to
+=infrastructure/food_db/.env= then open the file and change the
+string =your_password= for something more meaningful to you.
+
+   #+BEGIN_EXAMPLE sh :tangle infrastructure/env_example
+    POSTGRES_DB=food
+    POSTGRES_HOST=0.0.0.0
+    POSTGRES_USER=food_user
+    POSTGRES_DB=food
+    POSTGRES_PORT=5434
+    POSTGRES_PASSWORD=your_password  #<-- change this if you like
+
+    UID=1000
+    GID=1000
+   #+END_EXAMPLE
+
 And then run
 
 #+BEGIN_EXAMPLE
 ./tutorial.sh start
 #+END_Example
 
- finally open your browser and type in the location bar =0.0.0.0= that
- will open the tutorial, follow from there[fn:3].
+This will take some minutes the first time.
+
+Finally open your browser and type in the location bar =0.0.0.0= that
+will open the tutorial, follow from there[fn:3].
 
 * I want to help
 
