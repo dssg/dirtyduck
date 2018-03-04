@@ -17,3 +17,4 @@
 #+INCLUDE: inspections.org :minlevel 1
 #+INCLUDE: eis.org :minlevel 1
 #+INCLUDE: triage_deeper.org :minlevel 1
+#+INCLUDE: quick_setup.org :minlevel 1

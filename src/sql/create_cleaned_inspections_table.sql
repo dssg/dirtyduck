@@ -5,9 +5,9 @@ drop table if exists cleaned.inspections cascade;
 create table cleaned.inspections as (
 with cleaned as (
 select
-inspection,
-btrim(lower(results)) as result,
-license_num,
+inspection::integer,
+btrim(lower(results)) as result, 
+license_num::integer,
 btrim(lower(dba_name)) as facility,
 btrim(lower(aka_name)) as facility_aka,
 case when
@@ -21,7 +21,7 @@ substring(
 btrim(lower(regexp_replace(type, 'liquor', 'task force', 'gi')))
 from 'canvass|task force|complaint|food poisoning|consultation|license|tag removal') as type,
 date,
-ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) as location
+ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography as location  -- We use geography so the measurements are in meters
 from raw.inspections
 where zip is not null  -- removing NULL zip codes
 )

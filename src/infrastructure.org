@@ -150,6 +150,9 @@
    food=# 
 #+END_EXAMPLE
 
+   The previous command is using =psql= a powerful command line client for the Postgresql database. 
+   If you want to use this client fully check the [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
+
    The database is running and its named =food=. It should contain a
    single table named =inspections=  in the =schema= =Raw=. 
    Let's check the =inspections= table, type the following command:

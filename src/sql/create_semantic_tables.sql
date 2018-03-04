@@ -7,7 +7,6 @@ create table semantic.entities as (
 with entities_date as (
 
   select
-  --distinct on (license_num, facility, facility_aka, facility_type, address)
   license_num,
   facility,
   facility_aka,
