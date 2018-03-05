@@ -833,7 +833,7 @@ etc. But, What about  the =restaurants= which have =license_num= =
   coalesce(count(*) filter (where result = 'fail'), 0)
   as total_failures
   from cleaned.inspections
-  where license_num=0
+  where license_num = 0
   and facility_type = 'restaurant'
   group by  license_num, facility, address
   order by total_inspections desc
@@ -876,16 +876,16 @@ in one place).
 :RESULTS:
 | total_licenses | total_facilities | total_addresses |
 |---------------+-----------------+----------------|
-|         33557 |           24867 |          17061 |
+|         33666 |           24937 |          17120 |
 :END:
 
-We were expecting (naively) that we should get 1 =license_num= per
-=facility= per =address=, but it wasn't the case. This could be mean that
-several facilities share the name (e.g. Subway or Mc Donalds)  or the
+We were expecting (naively) that we should get one =license_num= per
+=facility= per =address=, but it isn't the case. This could be mean that
+several facilities share the name (e.g. "Subway" or "Mc Donalds")  or the
 license; another explanation is that several facilities share the same
 address, as the facilities at the stadium or the airport.
 
-We will decide to use the combination of =license_num=, =facility=, =facility_aka=,
+We will try to use the combination of =license_num=, =facility=, =facility_aka=,
 =facility_type= and =address= to identify a facility:
 
 #+BEGIN_SRC sql
@@ -899,32 +899,28 @@ limit 10
 
 #+RESULTS:
 :RESULTS:
-| license_num | facility                     | facility_type  | facility_aka              | address                 | count |
-|------------+------------------------------+---------------+--------------------------+-------------------------+-------|
-|    1490035 | mcdonald's                   | restaurant    | mcdonald's               | 6900 s lafayette ave    |    46 |
-|    1596210 | food 4 less midwest #552     | grocery store | food 4 less              | 7030 s ashland ave      |    44 |
-|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345 | 1224 s wabash ave       |    41 |
-|    1302136 | mcdonald's                   | restaurant    | mcdonald's               | 70 e garfield blvd      |    40 |
-|    1476553 | pete's produce               | grocery store | pete's produce           | 1543 e 87th st          |    40 |
-|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market   | 333 e benton pl         |    38 |
-|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030   | 7530 s stony island ave |    37 |
-|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito     | 2829 n milwaukee ave    |    37 |
-|    1884255 | food 4 less                  | grocery store | food 4 less              | 4821 w north ave        |    36 |
-|       9154 | jimmy g's                    | restaurant    | jimmy g's                | 307 s kedzie ave        |    36 |
+| license_num | facility                     | facility_type  | facility_aka                  | address                   | count |
+|------------+------------------------------+---------------+------------------------------+---------------------------+-------|
+|    1490035 | mcdonald's                   | restaurant    | mcdonald's                   | 6900 s lafayette ave      |    46 |
+|    1596210 | food 4 less midwest #552     | grocery store | food 4 less                  | 7030 s ashland ave        |    44 |
+|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345     | 1224 s wabash ave         |    41 |
+|    1302136 | mcdonald's                   | restaurant    | mcdonald's                   | 70 e garfield blvd        |    40 |
+|    1476553 | pete's produce               | grocery store | pete's produce               | 1543 e 87th st            |    40 |
+|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market       | 333 e benton pl           |    39 |
+|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030       | 7530 s stony island ave   |    37 |
+|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |    37 |
+|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito         | 2829 n milwaukee ave      |    37 |
+|    1884255 | food 4 less                  | grocery store | food 4 less                  | 4821 w north ave          |    36 |
 :END:
 
+Which attributes should we add to the =entities= table? All the
+attributes that describe the entity and doesn't depend on the
+event and are atemporal. Therefore we will add =zip_code= and
+=location=. We also will add =start_time, end_time= . These columns
+describe the interval in which the facility is on business or /active/.
 
-What attributes we want to add to the =entities= table? We should add
-all the attributes that describe the entity and doesn't depend on the
-event and are atemporal. Therefore we will add =zip_code=,
-=location= and some data about when this facility got their license or if this is still open. We will
-add =start_time, end_time=. These columns will be important because we
-won't wnat to do predictions on entities that aren't active. We will
-use the following definition
-
-#+BEGIN_QUOTE
-A facility is active from their opening as a businness until it closes
-#+END_QUOTE
+These columns will be important because we won't make predictions on
+entities that aren't active.  
 
 We don't have this type of date directly in our data source, so we
 will use as an interval between the earliest date in the data source
@@ -992,29 +988,31 @@ create index entities_full_key_ix on semantic.entities (license_num, facility, f
 
 #+END_SRC
 
+#+RESULTS:
+
 Note that we add a /unique/ identifier (=entity_id=) to this table
 
-#+Results:
-
 #+BEGIN_SRC sql
-select count(*) from semantic.entities
+select count(entity_id) from semantic.entities
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | count |
 |-------|
-| 34812 |
+| 34917 |
 :END:
 
 
 ** Events table
 
-
 We are ready for creating our events table. This table will describe
-the data related to the inspection. We also add columns from the
-facility inspected that will simplify the creation of /features/ for our
-machine learning models.
+the data related to the inspection, like /where/ and /when/ the
+inspection happened, some attributes of the inspection as /type/ and
+/result/, and we will add the violations as a =JSONB=
+column[fn:11]. As a final detail we will rename the =inspection=
+number to =event_id=[fn:13]  
+
 
 #+begin_src sql :tangle ./sql/create_semantic_tables.sql
 
@@ -1049,7 +1047,8 @@ i.date, i.risk, i.result
 )
 
 select
-i.inspection, e.entity_id, i.type, i.date, i.risk, i.result,
+i.inspection as event_id, 
+e.entity_id, i.type, i.date, i.risk, i.result,
 e.facility_type, e.zip_code, e.location,
 i.violations
 from entities as e
@@ -1061,7 +1060,7 @@ using (license_num, facility, facility_aka, facility_type, address, zip_code)
 
 -- Add some indices
 create index events_entity_ix on semantic.events (entity_id);
-create index events_inspection_ix on semantic.events (inspection);
+create index events_event_ix on semantic.events (event_id);
 create index events_type_ix on semantic.events (type);
 create index events_date_ix on semantic.events(date desc nulls last);
 create index events_facility_type_ix on semantic.events  (facility_type);
@@ -1074,46 +1073,50 @@ create index events_location_gix on semantic.events using gist (location);
 create index events_violations on semantic.events using gin(violations);
 create index events_violations_json_path on semantic.events using gin(violations jsonb_path_ops);
 
-create index events_inspection_entity_zip_code_date on semantic.events (inspection desc nulls last, entity_id, zip_code, date desc nulls last);
+create index events_event_entity_zip_code_date on semantic.events (event_id desc nulls last, entity_id, zip_code, date desc nulls last);
 
 #+end_src
 
 #+RESULTS:
 
-
-Our semantic data looks like:
+We accomplished to have one row per event[fn:12]. Our semantic data looks like:
 
 #+begin_src sql
-select * from semantic.events limit 1
+select event_id, entity_id, type, date, risk, result, facility_type, zip_code from semantic.events limit 1
 #+end_src
 
 #+RESULTS:
 :RESULTS:
-| inspection | entity_id | type    |       date | risk | result | facility_type | zip_code | location                                           | violations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|------------+----------+---------+------------+------+--------+--------------+---------+----------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|    1343315 |        1 | canvass | 2013-06-06 | low  | fail   | newsstand    |   60623 | 0101000020E6100000B005FE6352EE55C09053AD5BF3ED4440 | [{"code": "18", "comment": "THERE ARE OVER 40 RAT DROPPINGS AND THREE ACTIVE RODENT HOLES INSIDE THE ESTABLISHMENT, NO PEST CONTROL SERVICE", "severity": "serious", "description": "NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS"}, {"code": "19", "comment": "NO PRIVATE GARBAGE SERVICE, GARBAGE IS PUT INTO THE CITY CANS, OBTAIN A PRIVATE GARBAGE SERVICE", "severity": "serious", "description": "OUTSIDE GARBAGE WASTE GREASE AND STORAGE AREA; CLEAN, RODENT PROOF, ALL CONTAINERS COVERED"}, {"code": "24", "comment": "THE 2-COMPARTMENT SINK IS DAMAGED, UNSANITARY AND INOPPERABLE, INSTALL A THREE COMPARTMENT SINK TO CITY CODE,", "severity": "serious", "description": "DISH WASHING FACILITIES: PROPERLY DESIGNED, CONSTRUCTED, MAINTAINED, INSTALLED, LOCATED AND OPERATED"}, {"code": "26", "comment": "THERE IS NO EXPOSED HAND SINK IN THE FOOD SERVICE AREA OR ANYWHERE ELSE, INSTALL AN EXPOSED HAND SINK", "severity": "serious", "description": "ADEQUATE NUMBER, CONVENIENT, ACCESSIBLE, PROPERLY DESIGNED AND INSTALLED"}, {"code": "34", "comment": "THE FLOORS ARE FILTHY, CLEAN THE FLOORS FROM CORNER TO CORNER", "severity": "minor", "description": "FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED"}, {"code": "35", "comment": "THE WALLS ARE CRUMBLING, REPAIR THE WALLS SO THEY ARE SANITARY", "severity": "minor", "description": "WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS"}] |
+| event_id | entity_id | type    |       date | risk | result | facility_type | zip_code |
+|---------+----------+---------+------------+------+--------+--------------+---------|
+| 1343315 |        1 | canvass | 2013-06-06 | low  | fail   | newsstand    |   60623 |
 :END:
 
+We omitted =violations= and =location= for brevity. The total number of inspections is
 
 #+BEGIN_SRC sql
-select * from semantic.entities limit 1
+select count(event_id) from semantic.events
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | license_num | facility              | facility_aka  | facility_type | address        | zip_code | location                                           |  start_time | end_time |
-|----------+------------+-----------------------+--------------+--------------+----------------+---------+----------------------------------------------------+------------+---------|
-|        1 |          0 | 16th street newsstand | j.g.'s foods | newsstand    | 3934 w 16th st |   60623 | 0101000020E6100000B005FE6352EE55C09053AD5BF3ED4440 | 2013-06-06 | [NULL]  |
+|  count |
+|--------|
+| 142248 |
 :END:
-
-** What's next?
-
-Now it is a good time for [[file:data_exploration.org][Invest time knowing your data]] this will pay
-out when you try to do feature engineering.
-
 
 
 * Footnotes
+
+[fn:13] As a general rule I hate to add the suffix =_id=, I would
+rather prefer to name them as =event= and =entity= instead of
+=event_id= and =entity_id=. But =triage= named those columns in that
+way and for that we are stuck with that nomenclature.
+
+[fn:12] This will simplify the creation of /features/ for our machine learning models.
+
+[fn:11] If you want to have a deep explanation about why is this good
+check [[http://coussej.github.io/2016/01/14/Replacing-EAV-with-JSONB-in-PostgreSQL/][this blog post]]
 
 [fn:10] We will store the =Point= as a =geography= object, in this way
 all the spatial operation (like calculating the distances between two
