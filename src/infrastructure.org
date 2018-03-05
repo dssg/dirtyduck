@@ -30,7 +30,7 @@
    - a container that executes =triage= experiments,
    - a /web server/ that shows this tutorial,
    - and finally =bastion=, which includes a =postgresql= client
-   (so you can interact with the database) and a full =python=
+   (so you can interact with the database)[fn:3] and a full =python=
    environment (so you can code or modify the things that we will
    discuss in this Tutorial). 
 
@@ -196,6 +196,8 @@
 
 
 * Footnotes
+
+[fn:3] If you have already installed a postgresql client you could use =psql -h 0.0.0.0 -p 5434 -d food -U food_user= instead, and not use the =bastion= container.
 
 [fn:2] And other things through this tutorial, like the execution of
 the model training, etc.

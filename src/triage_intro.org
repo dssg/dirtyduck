@@ -61,15 +61,17 @@ experiment finishes you will have several models for each algorithm
 and selection of hyperparameters. =triage= calls this a =model_group=.
 
 ** Triage interface
+:PROPERTIES:
+:ORDERED:  t
+:END:
 
 =triage= is very simple to use, but it contains a lot of complex
 concepts that we will try to clarify in this section of the tutorial.
 
 For running a =triage= experiment you need the following:
 
-- =triage= installed in your environment (this is already install in the
-  docker container). You can verify that =triage= is installed (and
-  its version) typying the following inside an =ipython= session inside =bastion=:
+- =triage= installed in your environment. You can verify that =triage= is installed (and check
+  its version) typying the following inside an =ipython= session *in =bastion=*:
 
 #+BEGIN_SRC ipython
 import triage
@@ -92,8 +94,9 @@ triage.__version__
 
 With this three components you can create your =experiment= object and
 =run= it. In this tutorial we are providing a =docker= container that
-executes =triage= experiments. You can run the container as follows:
+executes =triage= experiments. 
 
+You can run the container from your laptop (i.e. outside =bastion=) as follows:
 
 #+BEGIN_SRC sh
 ./tutorial.sh triage --help
@@ -127,15 +130,13 @@ Commands:
   validate
 #+END_SRC
 
-
-
 You already had the database (you were working on it the last two
 sections of the tutorial) and the tutorial provide a recent container
 with =triage= installed. So, here, like in a real project you just
 need to worry about the /experiment's configuration file/. But before,
-we need to setup two more Tables.
+we need to setup two more tables.
 
-*** A tale of two Tables
+*** A tale of two tables
 
 The first thing that =triage= will do is split the time that the data
 covers in blocks considering the time horizon for the /label/
@@ -156,7 +157,7 @@ So, for a given /as of date/, in our data, for each entity, =triage=
 will ask: Are positive outcomes in
 the future time horizon? If so, =triage= will generate a positive
 /label/ for that specific entity on that /as of date/. Henceforth, we
-need to create an outcomes Table.
+need to create an outcomes table.
 
 The table that is needed describe the /states/ of each entity. 
 The table  should have columns =entity_id=, =start__time, end_time= and =state=.
@@ -166,124 +167,127 @@ predict for entities in a particular state: Do the restaurant still
 open? Do the restaurant is new? etc.
 
 In order of exemplify and explain the working of =triage=, we will
-create a subset of the =semantic.events= : one facility (=entity_id= =9581=), only two
-variables (=inspection_type, risk=), and
-spatial and temporal dimensions for aggregation (=location=,
+create a subset of the =semantic.events= : two facilities (=entity_id=s =9582= and =10854=),
+two variables (=inspection_type, risk=), and spatial and temporal dimensions for aggregation (=location=,
 =zip_code= and =date=).
 
-For this end, we will create a new =schema= called =triage=
+Create a new =schema= called =testing_triage=
 
 #+BEGIN_SRC sql :tangle ./sql/create_testing_triage.sql
-create schema if not exists triage;
+create schema if not exists testing_triage;
 #+END_SRC
+
+#+RESULTS:
 
 Almost all the components of =triage= works with =SQL= tables stored  in
 =PostgreSQL= (this is very important to remember), so, let's create our
-test table with the =entity_id=  =9581=:
+test table with the entities =9582= and =10854=
 
 #+BEGIN_SRC  sql :tangle ./sql/create_testing_triage.sql
-drop table if exists triage.test;
+drop table if exists testing_triage.events;
 
-create table triage.test as (
+create table testing_triage.events as (
 select
-inspection, -- event
+event_id, 
 entity_id,
 facility_type,
+result,
 type as inspection_type, risk, -- variables
 violations, -- json array of variables
 date, location, zip_code -- spatio temporal dimensions
 from semantic.events
-where entity_id = 9581
+where entity_id in (9582, 10854)
 )
 #+END_SRC
 
 #+RESULTS:
 
+=testing_triage.events= contains three categorical variables (=inspection_type,risk, result=),
+two differnent groups for aggregation (=location, zip_code=), and the date
+when the inspection happened (=date=).
+
 #+BEGIN_SRC sql
 select 
 entity_id, 
-inspection_type, risk, 
+inspection_type, risk, result,
 date, 
 zip_code 
-from triage.test 
+from testing_triage.events
 order by date desc
 limit 5
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | inspection_type | risk   |       date | zip_code |
-|----------+----------------+--------+------------+---------|
-|     9581 | complaint      | medium | 2017-02-21 |   60621 |
-|     9581 | complaint      | medium | 2017-02-10 |   60621 |
-|     9581 | complaint      | medium | 2016-12-22 |   60621 |
-|     9581 | complaint      | medium | 2016-08-26 |   60621 |
-|     9581 | complaint      | medium | 2016-08-11 |   60621 |
+| entity_id | inspection_type | risk   | result |       date | zip_code |
+|----------+----------------+--------+--------+------------+---------|
+|    10854 | complaint      | high   | pass   | 2017-10-04 |   60636 |
+|    10854 | complaint      | high   | fail   | 2017-09-26 |   60636 |
+|    10854 | canvass        | high   | pass   | 2017-06-20 |   60636 |
+|     9582 | complaint      | medium | pass   | 2017-02-21 |   60621 |
+|     9582 | complaint      | medium | fail   | 2017-02-10 |   60621 |
 :END:
-
-=triage.test= contains two categorical variables (=inspection_type,risk=),
-two differnent groups for aggregation (=location, zip_code=), and the date
-when the inspection happened (=date=).
 
 For this test, we will keep things simple and define the /outcome/ as
 =TRUE= if the inspection got a result adverse and =FALSE= Otherwise.
 
-#+BEGIN_SRC sql :tangle ./sql/create_testing_triage.sql
-drop table if exists triage.outcomes_9581;
+=triage= requires that the table =outcomes= has the column names
+=entity_id=, =outcome_date= and =outcome=:  
 
-create table triage.outcomes_9581 as (
+#+BEGIN_SRC sql :tangle ./sql/create_testing_triage.sql
+drop table if exists testing_triage.outcomes;
+
+create table testing_triage.outcomes as (
 select 
 entity_id, 
 date as outcome_date, 
 (result = 'fail') as outcome
-from semantic.events
-where entity_id = 9581
+from testing_triage.events
 );
 
 #+END_SRC
 
-#+Results:
+#+RESULTS:
 
 #+BEGIN_SRC sql
-select * from triage.outcomes_9581 limit 5;
+select * from testing_triage.outcomes limit 5;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | entity_id | outcome_date | outcome |
 |----------+-------------+---------|
-|     9581 |  2011-04-22 | f       |
-|     9581 |  2010-02-24 | f       |
-|     9581 |  2016-06-15 | f       |
-|     9581 |  2016-02-17 | f       |
-|     9581 |  2016-02-25 | f       |
+|     9582 |  2016-02-17 | f       |
+|     9582 |  2016-02-25 | f       |
+|     9582 |  2011-04-22 | f       |
+|     9582 |  2012-02-29 | t       |
+|     9582 |  2012-02-21 | t       |
 :END:
 
 #+BEGIN_SRC sql
 select 
 outcome, count(*) 
-from triage.outcomes_9581
-group by 1;
+from testing_triage.outcomes
+group by outcome;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | outcome | count |
 |---------+-------|
-| f       |    39 |
-| t       |     6 |
+| f       |    70 |
+| t       |    19 |
 :END:
 
-
-For the time being, we will only consider one facility /state/: Is the
-facility "active" or not? This /state/ represents if the facility is
-on business at the moment of the inspection (we don't want to predict
-a facility that is not active). 
+We will only consider only one /state/: Is the
+facility "active" or not?[fn:1]. =triage= also impose some constraints
+to the table that  represents the state: it must include columns Named
+=entity_id=, =start_time=, =end_time= ans =state=
 
 #+BEGIN_SRC sql :tangle ./sql/create_testing_triage_schema.sql
-drop table if exists triage.active_facilities_9581 cascade;
+drop table if exists testing_triage.active_facilities cascade;
 
-create table triage.active_facilities_9581 as (
+create table testing_triage.active_facilities as (
     select 
     entity_id, facility_type, location, 
     start_time, 
@@ -294,6 +298,7 @@ create table triage.active_facilities_9581 as (
     end as end_time,
     'active' as state 
     from semantic.entities
+    where entity_id in (9582, 10854)
 );
 
 #+END_SRC
@@ -304,17 +309,20 @@ create table triage.active_facilities_9581 as (
 =end_time= with the date '2020-01-01'
 
 #+BEGIN_SRC sql
-select * from triage.active_facilities_9581 limit 1;
+select entity_id, start_time, end_time, state
+ from testing_triage.active_facilities ;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | facility_type | location                                           |  start_time |    end_time | state  |
-|----------+--------------+----------------------------------------------------+------------+------------+--------|
-|        1 | newsstand    | 0101000020E6100000B005FE6352EE55C09053AD5BF3ED4440 | 2013-06-06 | 2020-01-01 | active |
+| entity_id |  start_time |    end_time | state  |
+|----------+------------+------------+--------|
+|     9582 | 2010-02-24 | 2017-09-15 | active |
+|    10854 | 2010-01-08 | 2020-01-01 | active |
 :END:
 
-
+Note that the entity =10854= is still active and =9582= is not active
+after =2017-09-15=.
 
 *** Experiment's configuration file
 
@@ -792,7 +800,7 @@ Let's try to construct that in =SQL=:
 select entity_id, zip_code,
 count(*) as inspections,
 count(*) filter (where risk='high') as flagged_as_high_risk
-from triage.test
+from testing_triage.events
 group by grouping sets(entity_id, zip_code)
 #+END_SRC
 
@@ -819,7 +827,7 @@ select entity_id, zip_code,
 count(*) as inspections,
 count(*) filter (where risk='high') as flagged_as_high_risk,
 avg((risk='high')::int) as proportion_of_flags_as_high_risk
-from triage.test
+from testing_triage.events
 group by grouping sets(entity_id, zip_code)
 #+END_SRC
 
@@ -1240,4 +1248,10 @@ If you want to see *Audition* and *Postmodeling* in action please refer
 ** What's next?
 
 We will begin with [[file:inspections.org][Inspections problem]], let's go for It
+
+* Footnotes
+
+[fn:1] We could consider different states, for example: we can use the column
+=risk= as an state. Another possibility is define a new state called
+=failed= that indicates if the facility failed in the last time it was inspected. 
 
