@@ -21,32 +21,23 @@ evaluation, and list generation. These tasks are complicated in their
 own right, but in addition have to be combined in different ways
 throughout the course of the project.
 
-=triage= aims to provide interfaces to these different phases of a
-project, such as an Experiment. Each phase is defined by configuration
-specific to the needs of the project, and an arrangement of core data
-science components that work together to produce the output of that
-phase.
-
-The domain  problems that =triage= had in mind are (1) early warning systems
-/ early intervention systems and (2) prioritization of resources for
-inspections.
-
 =triage= was created to facilitate the creation of supervised learning
 models, in particular classification models with an strong temporal
 component in the data.
 
-The temporal component in the data set affects the modeling mainly in
-two ways, first, you need to be very careful and avoid /leakage/ of
-information in the data, and second, in the possible temporal drifting of the
-data. =triage= solves the first splitting the data in temporal blocks to be
-used in the temporal crossvalidation and using those blocks for the
-feature generation.
+The dataset's temporal component affects maily in two steps of the
+model creation, first: /feature creation/ :you need to be very careful
+and avoid /leakage/ of information from the future in your /features/;
+second, the model's hyperparameter selection. =triage= solves both by
+splitting the  data in temporal blocks and automating the temporal
+crossvalidation and the feature generation.
 
 =triage= uses the concept of /experiment/. An /experiment/ consists in a
 series of steps which aim to generate a good model for predicting the
-/label/ of an new instance of the data set. The steps are /feature generation/,
-/label generation/, /model training/ and /model scoring/. In each of all
-this steps, =triage= will take care of the temporal nuances of the data.
+/label/ of an entity in the data set. The steps are /data
+time-spliting/, /label generation/, /feature generation/, /model
+training/ and /model scoring/. In each of all this steps, =triage=
+will take care of  the temporal nuances of the data.
 
 You need to specify (via a configuration file) how you want to time
 split your data, which combination of machine learning algorithms and
@@ -54,19 +45,18 @@ their hyperparameters, which kind of features you want to generate and which
 subset of those features you want to try in each model. So, the
 experiment consists in try every combination of algorithm,
 hyperparameters and feature subset, and evaluate their performance
-using a set of metrics (also specified in the config file).
-
-=triage= will train one model for each block generated, so when the
+using a set of metrics (also specified in the config file). =triage=
+will train one model for each block generated, so when the 
 experiment finishes you will have several models for each algorithm
 and selection of hyperparameters. =triage= calls this a =model_group=.
 
-** Triage interface
-:PROPERTIES:
-:ORDERED:  t
-:END:
-
 =triage= is very simple to use, but it contains a lot of complex
-concepts that we will try to clarify in this section of the tutorial.
+concepts that we will try to clarify in this section of the
+tutorial. First we will explain /how/ to run =triage= and afterwards,
+we will create a toy experiment that will help us to explain the main
+concepts of =triage=.
+
+** Triage interface
 
 For running a =triage= experiment you need the following:
 
@@ -85,16 +75,16 @@ triage.__version__
 '2.2.0'
 #+END_SRC
 
-- A database with (obviously) and two tables (at minimum): one that
+- A database with the data that you want to model. =triage= will
+  require additionaly two tables: one that
   describes the /outcome/ of each event on the database and a table
   that contains the state of each entity.
 
 - An /experiment config file/, this is where the magic happen. We will
   discuss this file at length in this section of the tutorial.
 
-With this three components you can create your =experiment= object and
-=run= it. In this tutorial we are providing a =docker= container that
-executes =triage= experiments. 
+
+We are providing a =docker= container that executes =triage= experiments. 
 
 You can run the container from your laptop (i.e. outside =bastion=) as follows:
 
@@ -132,9 +122,70 @@ Commands:
 
 You already had the database (you were working on it the last two
 sections of the tutorial) and the tutorial provide a recent container
-with =triage= installed. So, here, like in a real project you just
-need to worry about the /experiment's configuration file/. But before,
-we need to setup two more tables.
+with =triage= installed. So, like in a real project you just
+need to worry about the /experiment's configuration file/. 
+
+** A simple =triage= experiment 
+
+In order of exemplify and explain the inner workings of =triage=, we will
+create a toy subset of the =semantic.events= with  two facilities
+(=entity_id=s =9582= and =10854=).
+
+Create a new =schema= called =testing_triage=
+
+#+BEGIN_SRC sql :tangle ./sql/create_testing_triage.sql
+create schema if not exists testing_triage;
+#+END_SRC
+
+#+RESULTS:
+
+Create a table named =testing_triage.events= with the entities =9582= and =10854=
+
+#+BEGIN_SRC  sql :tangle ./sql/create_testing_triage.sql
+drop table if exists testing_triage.events;
+
+create table testing_triage.events as (
+select
+event_id, 
+entity_id,
+facility_type,
+result,
+type as inspection_type, risk, -- variables
+violations, -- json array of variables
+date, location, zip_code -- spatio temporal dimensions
+from semantic.events
+where entity_id in (9582, 10854)
+)
+#+END_SRC
+
+#+RESULTS:
+
+We created the =testing_triage.events= table ,with three categorical
+variables (=inspection_type,risk, result=), two differnent groups for
+aggregation (=location, zip_code=), and the date when the inspection happened (=date=).
+
+#+BEGIN_SRC sql
+select 
+entity_id, 
+inspection_type, risk, result,
+date, 
+zip_code 
+from testing_triage.events
+order by date desc
+limit 5
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id | inspection_type | risk   | result |       date | zip_code |
+|----------+----------------+--------+--------+------------+---------|
+|    10854 | complaint      | high   | pass   | 2017-10-04 |   60636 |
+|    10854 | complaint      | high   | fail   | 2017-09-26 |   60636 |
+|    10854 | canvass        | high   | pass   | 2017-06-20 |   60636 |
+|     9582 | complaint      | medium | pass   | 2017-02-21 |   60621 |
+|     9582 | complaint      | medium | fail   | 2017-02-10 |   60621 |
+:END:
+
 
 *** A tale of two tables
 
@@ -160,76 +211,14 @@ the future time horizon? If so, =triage= will generate a positive
 need to create an outcomes table.
 
 The table that is needed describe the /states/ of each entity. 
-The table  should have columns =entity_id=, =start__time, end_time= and =state=.
+The table  should have columns =entity_id=, =start_time, end_time= and =state=.
 The states table allows us to only include rows in your matrices in a
 specific state. The rationale of this comes from the need of only
 predict for entities in a particular state: Do the restaurant still
 open? Do the restaurant is new? etc.
 
-In order of exemplify and explain the working of =triage=, we will
-create a subset of the =semantic.events= : two facilities (=entity_id=s =9582= and =10854=),
-two variables (=inspection_type, risk=), and spatial and temporal dimensions for aggregation (=location=,
-=zip_code= and =date=).
-
-Create a new =schema= called =testing_triage=
-
-#+BEGIN_SRC sql :tangle ./sql/create_testing_triage.sql
-create schema if not exists testing_triage;
-#+END_SRC
-
-#+RESULTS:
-
-Almost all the components of =triage= works with =SQL= tables stored  in
-=PostgreSQL= (this is very important to remember), so, let's create our
-test table with the entities =9582= and =10854=
-
-#+BEGIN_SRC  sql :tangle ./sql/create_testing_triage.sql
-drop table if exists testing_triage.events;
-
-create table testing_triage.events as (
-select
-event_id, 
-entity_id,
-facility_type,
-result,
-type as inspection_type, risk, -- variables
-violations, -- json array of variables
-date, location, zip_code -- spatio temporal dimensions
-from semantic.events
-where entity_id in (9582, 10854)
-)
-#+END_SRC
-
-#+RESULTS:
-
-=testing_triage.events= contains three categorical variables (=inspection_type,risk, result=),
-two differnent groups for aggregation (=location, zip_code=), and the date
-when the inspection happened (=date=).
-
-#+BEGIN_SRC sql
-select 
-entity_id, 
-inspection_type, risk, result,
-date, 
-zip_code 
-from testing_triage.events
-order by date desc
-limit 5
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| entity_id | inspection_type | risk   | result |       date | zip_code |
-|----------+----------------+--------+--------+------------+---------|
-|    10854 | complaint      | high   | pass   | 2017-10-04 |   60636 |
-|    10854 | complaint      | high   | fail   | 2017-09-26 |   60636 |
-|    10854 | canvass        | high   | pass   | 2017-06-20 |   60636 |
-|     9582 | complaint      | medium | pass   | 2017-02-21 |   60621 |
-|     9582 | complaint      | medium | fail   | 2017-02-10 |   60621 |
-:END:
-
-For this test, we will keep things simple and define the /outcome/ as
-=TRUE= if the inspection got a result adverse and =FALSE= Otherwise.
+For the test, we will keep things simple and define the /outcome/ as
+=TRUE= if the inspection got a result adverse and =FALSE= otherwise.
 
 =triage= requires that the table =outcomes= has the column names
 =entity_id=, =outcome_date= and =outcome=:  
@@ -264,6 +253,8 @@ select * from testing_triage.outcomes limit 5;
 |     9582 |  2012-02-21 | t       |
 :END:
 
+The distribution of the outcomes is
+
 #+BEGIN_SRC sql
 select 
 outcome, count(*) 
@@ -279,7 +270,7 @@ group by outcome;
 | t       |    19 |
 :END:
 
-We will only consider only one /state/: Is the
+The /states/ table will be very simple too: Is the
 facility "active" or not?[fn:1]. =triage= also impose some constraints
 to the table that  represents the state: it must include columns Named
 =entity_id=, =start_time=, =end_time= ans =state=
@@ -303,7 +294,7 @@ create table testing_triage.active_facilities as (
 
 #+END_SRC
 
-#+Results:
+#+RESULTS:
 
 =triage= doesn't support open date intervals, so we had to impute
 =end_time= with the date '2020-01-01'
@@ -323,6 +314,7 @@ select entity_id, start_time, end_time, state
 
 Note that the entity =10854= is still active and =9582= is not active
 after =2017-09-15=.
+
 
 *** Experiment's configuration file
 
@@ -358,15 +350,15 @@ The configuration file is a =yaml= file with the following main sections:
 - =scoring= :: Which metrics will be calculated?
 
 
-Two of the more important sections (and the more confusing too) are
+Two of the more important sections (and the two more confusing) are
 =temporal_config= and =feature_generation=. We will explain them at
 detail in the next sections.
 
 **** Temporal crossvalidation
 
-Cross validation is a common technique to reduce overfitting and model and
- hyperparameter. Standard cross validation randomly splits the
- training data into subsets, fits models on all except one of them,
+Cross validation is a common technique to reduce overfitting and
+ select model and  hyperparameters. Standard cross validation randomly
+ splits the  training data into subsets, fits models on all except one of them,
  and calculates the metric of interest (e.g. precision/recall) on the
  remaining, rotating through the subsets and leaving each out
  once. You then select the model that performed best on the test sets,
@@ -377,101 +369,149 @@ real-world data science problems like the ones that we are facing. If
 you are testing your model on temporally 
 correlated data, standard cross validation lets  you peek ahead into
 the future, due to the random split, using time points both before and
-after the target date. To avoid this problem, you should design  your training and
-testing to mimic how your model will be used, making predictions with
-only the data that would be available at  that time (i.e. from the past). 
+after the target date. To avoid this problem, you should design  your
+training and testing to mimic how your model will be used, making
+predictions with only the data that would be available at  that time (i.e. from the past). 
 
 In temporal crossvalidation, rather than randomly splitting the
 dataset into training and test splits, temporal cross validation
-splits the data by time. For example, we can fit models on training
-sets up to  1/1/2010 and see how well those models would have
-predicted 2010; fit more models on
-training sets up to 1/1/2011 and see how  well those models would have
-predicted 2011; and so on. That way, we choose models that have
-historically performed best at our task,  forecasting. It’s why this
-approach is sometimes called “evaluation on a rolling forecast
-origin.”  
-
-The most acute problem is avoiding leakaging information
-in a temporal setting. Note that this spliting will affect the
-generation of features, because you don't want to have leakage on the
-generation. 
-
+splits the data by time. 
 
 =triage= uses the handy =timechop= library for this purpose. =Timechop=
 will build ("chop") the data set in several temporal blocks. These
 blocks will be used for creating the features and matrices for
 the training and evaluation of the machine learning models.
 
-Timechop has several parameters, first, you need to specify The 
- limits of your data:
+For example, in our toy experiment, assume that we want to
+select which one (of two in our dataset) should we inspect the next
+year, since that one is more likely to violate some condition and assume
+that the process of picking which facility is repeated every year at
+January 1st[fn:2] 
 
-- =feature_start_time= :: data aggregated into features begins at this
-     point (earliest date included in features)
-- =feature_end_time= :: data aggregated into features is from before this
-  point (latest date included in features)
-- =label_start_time= :: data aggregated into labels begins at this
-     point (earliest event date included in any label (event date >= label_start_time)
-- =label_end_time= :: data aggregated is from before this point (event
-     date < label_end_time to be included in any label)  
+Following the problem description template given in the section
+[[Description of the problem to solve]] the question that we will attemp to answer is:
 
-Other parameters controls the /labels/' time horizon, you have two
-'knobs', one for training and one for testing.
+#+BEGIN_EXAMPLE
+  Which facility ($n=1$)are likely to violate some
+  inspected condition in the following year ($X=1$)?
+#+END_EXAMPLE
 
-- =training_label_timespans= :: how much time is covered by training
-     labels (e.g., outcomes in the next 1 year? 3 days? 2 months?)
-     (training prediction span) 
+The traditional approach in machine learning is splitting the data in
+training and test datasets. Train or fit the algorithm on the training
+data set to generate a train model  and test or evaluate the model on
+the test data set. We will do the same here, but, with the help of
+=timechop= we will take in account the time:
 
-- =test_label_timespans= :: how much time is covered by test
-     prediction (e.g., outcomes in the next 1 year? 3 days? 2 months?)
-     (test prediction span)
+We will fit models on training
+set up to 2014-01-01 and see how well those models would have
+predicted 2015; fit more models on
+training set up to 2015-01-01 and see how  well those models would have
+predicted 2016; and so on. That way, we choose models that have
+historically performed best at our task, forecasting. It’s why this
+approach is sometimes called /evaluation on a rolling forecast
+origin/ because the origin at which the prediction is made rolls
+forward in time. [fn:3]  
 
-These parameters will be used, together with the /outcomes/ table to
-generate the /labels/. In an *EIS* setting regularly both will have
-the same value. For *inspections prioritization* this value is most of
-the time equal to =test_durations= and to =model_update_frequency=.
+#+NAME: fig:rolling_origin
+#+CAPTION: Cartoonish view of temporal spliting for Machine Learning, each point represents an /as of date/, the orange area are the past of that /as of date/ and is used for feature generation. The blue area is the label span, it lies in the future of the /as of date/.
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/rolling-origin.png]]
 
-- =model_update_frequency= :: amount of time between train/test splits
-     (how frequently to retrain models)
 
-- =test_durations= :: how far into the future should a model be used
-     to make predictions (test span)
-     *NOTE*: in the typical case of wanting a single
-     prediction set immediately after model training, this should be
-     set to 0 days
+The data at which the model will do the predictions is denominated as
+/as of date/ in =triage= (/as of date/ = January first in our
+example). The length of the prediction time window (1 year) is called
+/label span/. Training and predicting with a new model /as of date/ (every year) is the /model update frequency/.
 
-This last parameter is other that differes if the problem is an *EIS*
-or an *inspections prioritization*. In the former is recommended to be
-equal to =model_update_frequency=,  in the latter is determined by the
-organizational process: /how far out are you scheduling for?/.
+Is not efficient to calculate by hand all the /as of date/ or
+prediction points, =timechop= will take care of that for us. In order
+to do so, we need to specify some more constraints besides the /label
+span/ and the /model update frequency/:
 
-The equivalent of =test_durations= for the training matrices is =max_training_histories=
+- Which is the date range covered by our data?
+- Which is the date range in which we have information about labels?
+- How frequently do you receive information about your entities?
+- How far in the future you want to predict?
+- How much of the past data do you want to use?
 
-- =max_training_histories= :: the maximum amount of history for each
-  entity to train on (early matrices may contain less than this time
-  if it goes past label/feature start times)
+With this information =timechop= will start calculating from the last
+date in which you have label data, and using the label span in both
+test and train sets, plus the constraints just mentioned it will
+create the /as  of date/ for both test and train data sets.
 
-Finally, we should specify how many rows per =entity_id= in the train
+In total =timechop= uses 11 configuration Parameters. 
+
+
+- There are parameters related to the boundaries of the available data Set:
+
+  - =feature_start_time= :: data aggregated into features begins at
+       this point (earliest date included in Features)
+  - =feature_end_time= :: data aggregated into features is from
+       before this point (latest date included in Features)
+  - =label_start_time= :: data aggregated into labels begins at this
+       point (earliest event date included in any label (event date >= label_start_Time)
+  - =label_end_time= :: data aggregated is from before this point (event
+       date < label_end_time to be included in any Label)  
+
+- Parameters that controls the /labels/' time horizon on training and Test:
+
+  - =training_label_timespans= :: how much time is covered by
+       training labels (e.g., outcomes in the next 1 year? 3 days? 2
+       months?) (training prediction span) 
+
+  - =test_label_timespans= :: how much time is covered by test prediction (e.g., outcomes in the next 1 year? 3 days? 2 months?) (test prediction Span)
+
+  These parameters will be used, together with the /outcomes/ table
+  to generate the /labels/. In an *EIS* setting regularly both will
+  have the same value. For *inspections prioritization* this value is
+  most of the time equal to =test_durations= and to =model_update_Frequency=.
+
+- Parameters related about how much data we want to use, both in the
+  future and in the past relative to the /as of date/
+
+  - =test_durations= :: how far into the future should a model be used
+       to make predictions (test span)
+
+       *NOTE*: in the typical case of wanting a single prediction set
+       immediately after model training, this should be set to 0 days
+
+  This last parameter is other that differes if the problem is an
+  *EIS* or an *inspections prioritization*. In the former is
+  recommended to be equal to =model_update_frequency=,  in the latter
+  is determined by the organizational process: /how far out are you
+  scheduling  for?/.
+
+  The equivalent of =test_durations= for the training matrices is =max_training_histories=
+
+  - =max_training_histories= :: the maximum amount of history for each
+       entity to train on (early matrices may contain less than this
+       time  if it goes past label/feature start times)
+
+- Finally, we should specify how many rows per =entity_id= in the train
  and test matrix
 
-- =training_as_of_date_frequencies= :: how much time between rows for a
-  single entity in a training matrix (list time between rows for
-  same entity in train matrix) 
+  - =training_as_of_date_frequencies= :: how much time between rows
+       for a single entity in a training matrix (list time between
+       rows for   same entity in train matrix) 
 
-- =test_as_of_date_frequencies= :: how much time between rows for a
-  single entity in a test matrix (time between rows for same entity in test matrix)
+  - =test_as_of_date_frequencies= :: how much time between rows for a
+       single entity in a test matrix (time between rows for same
+       entity in test matrix) 
 
 
 The following images (We will show you how to generate them later)
-shows the time blocks of several configurations. We will change one
-parameter at the time so you could see how that affects the blocks.
+shows the time blocks created by several temporal configurations. We
+will change  one parameter at the time so you could see how that
+affects the resulting blocks.
 
-***** ={feature, label}_{end, start}_Time=
+***** ={feature, label}_{end, start}_time=
 
-The image below shows these ={feature, label}_start_time= equal, and the same for the
-={feature, label}_end_time= ones. These parameters show in the image
-as dashed vertical black lines. This setup would be our *base*
-example.
+The image below shows these ={feature, label}_start_time= equal, and
+the same for the ={feature, label}_end_time= ones. These parameters
+show in the image as dashed vertical black lines. This setup would be
+our *base* example.
 
 The plot is divided in two horizontal lines ("Block 0" and "Block
 1"). Each line is divided by vertical dashed lines, the grey ones are
@@ -480,6 +520,14 @@ this image they coincide. The black dash lines represents the
 beginning and the end of the test set. In the "Block 0" those lines
 are =2017= and =2018=, in "Block 1" they are =2016= and =2017=.
 
+#+NAME: fig:timechop_1
+#+CAPTION: feature and label start, end time equal
+#+ATTR_ORG: :width 100 :height 100
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/timechop_1.svg]]
+
+
 The shaded areas (in this image there is just one per block, but you
 will see another examples below) represents the span of all the /as of dates/
 They start with the oldest /as of date/ and end in the latest. Each
@@ -487,19 +535,13 @@ line inside that area represents the span for the label
 calculation. Those lines begin at the /as of date/. In each /as of
 date/ all the entities will get calculated their features (to the
 past) and the labels (to the future). So in the image, we will have
-two sets of train/test, in the "Block 0" our entity =9587= will have
-13 rows of features,  and 12 on "Block 1". The trainned models will
+two sets of train/test, in the "Block 0" our entities will have
+13 rows of features,  and 12 on "Block 1". The trained models will
 predict the label using the features calculated in that /as of date/
-in the  test data set, the solitary line represents the label's time
+in the  test data set, the lonely line represents the label's time
 horizon in testing.
 
-
-#+NAME: fig:timechop_1
-#+CAPTION: feature and label start, end time equal
-#+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
-#+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_1.svg]]
+This is the temporal configuration that generated the previous image
 
 #+BEGIN_EXAMPLE yaml
 temporal_config:
@@ -519,8 +561,10 @@ temporal_config:
     max_training_histories: '1y'  
 #+END_EXAMPLE
 
-But they can be different (maybe you have more data for features that
-data for labels)
+In that configuration the date ranges of features and labels are equal
+ but they can be different (maybe you have more data for features that
+data for labels) as is shown in the following image and in their
+ configuration parmaeters.
 
 #+NAME: fig:timechop_2
 #+CAPTION: feature_start_time different different that label_start_time.
@@ -550,7 +594,8 @@ temporal_config:
 
 ***** =model_update_frequency= 
 From our *base* =temporal_config= example ([[fig:timechop_1]]), we will
-change how often we want a new model, so we need more train/test sets:
+change how often we want a new model, the effect of this is generate
+more time blocks (if there is time constrains data, obviously)
 
 #+BEGIN_EXAMPLE yaml
 temporal_config:
@@ -666,8 +711,8 @@ temporal_config:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_6.svg]]
 
-Nothing change, that's because the test set doesn't have "space", that
-is controlled by =test_durations=, let's move that to to =6month=
+Nothing change, the reason for that is that the test set doesn't have
+"space" to allow more spans. The "space" is controlled by =test_durations=, let's move that to to =6month=
 
 #+BEGIN_EXAMPLE yaml
 temporal_config:
@@ -777,74 +822,586 @@ temporal_config:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_10.svg]]
 
+That's it! Now you have the power of time bending[fn:4]!
 
-**** TODO Feature engineering
+With the time blocks in place =triage= will create the /labels/ and
+then the features for our train and test data sets. We will explain
+briefly how the /labels/ are created by =triage= here and the
+/feature/ creation will  be discussed in the following section.
+
+***** Label generation
+
+We already did our part related to the /label generation/: the
+/outcomes/ table and the /states/ table. =Triage= will use the both
+tables to generate the labels. We will use our toy tables to mimic the
+inner of triage.
+
+Let's assume that =triage= (using =timechop=)  give us a /as of date/
+of January 1^{st} 2016. Our =test_label_span= is 1 year. We can phrase
+that as "at the given as of date of January 1^{st} 2016 we want to
+predict which facility will likely to fail an inspection between one
+year ahead of January 1^{st} 2016"
+
+Our outcomes table looks like:
+
+#+BEGIN_SRC sql
+select * from 
+testing_triage.outcomes
+where outcome_date <@ daterange('2016-01-01', '2017-01-01')
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id | outcome_date | outcome |
+|----------+-------------+---------|
+|     9582 |  2016-02-17 | f       |
+|     9582 |  2016-02-25 | f       |
+|     9582 |  2016-06-15 | f       |
+|     9582 |  2016-08-26 | f       |
+|     9582 |  2016-12-22 | f       |
+|     9582 |  2016-08-11 | f       |
+|    10854 |  2016-08-03 | t       |
+|    10854 |  2016-08-12 | t       |
+|    10854 |  2016-08-31 | f       |
+|    10854 |  2016-08-16 | f       |
+|    10854 |  2016-07-06 | f       |
+|    10854 |  2016-06-24 | t       |
+|    10854 |  2016-06-17 | t       |
+:END:
+
+We observe that both facilities will receive a bunch of inspections,
+but the facility =10854= actually failed some, so our /label/ for that
+entity should be =TRUE= (or =1=) and for =9582= it will be =FALSE=. We
+can code that As 
+
+#+BEGIN_SRC sql
+select
+entity_id, 
+bool_or(outcome) as label, 
+'2016-01-01' as as_of_date
+from 
+testing_triage.outcomes
+where outcome_date <@ daterange('2016-01-01', '2017-01-01')
+group by entity_id
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id | label |   as_of_date |
+|----------+-------+------------|
+|     9582 | f     | 2016-01-01 |
+|    10854 | t     | 2016-01-01 |
+:End:
+
+=Triage= will take care of doing the previous process for every /as of
+date/ calculated by =timechop=.
+
+The role of the /outcomes/ table if for filtering the resulting labels
+table: the final /labels/ table will only include the *active* facilities.
+
+
+**** Feature engineering
 
 We will show how to create features using the /experiments config
-file/. =triage= for this end, uses =collate=. =Collate= is the python
+file/. =triage= for this end, uses =collate=[fn:5]. =Collate= is a
 library that controls the generation of features (including the imputation rules
-for each feature generated). =Collate= helps the modeler to
-create features based on /spatio-temporal aggregations/ (which is what
-we need in our modeling strategy based on *events*)
+for each feature generated) using the time blocks generated by
+=timechop=. =Collate= helps the modeler to create features based on
+/spatio-temporal aggregations/. =Collate= internally will generate
+=SQL= queries in order to create the /features/.
 
-As a first feature we want to know in a given interval of time, in
-a given specific date (remember /as of date/), /how many Inspections
- do each facility had?/ and /how many flags resulted in "high risk"
-after the last inspection?/ (the =risk= column), 
-happened to that facility and the same questions but aggregated in the
-zip code in which the facility operates. 
+As before, we will try to mimic what =triage= does behind the
+scenario. =collate= will help you to create features based in the
+following template:
 
-Let's try to construct that in =SQL=:
+#+BEGIN_QUOTE
+For a given /as of date/, how the /aggregation function/ operates 
+ into a column taking in account an previous /time interval/ and
+ some /attributes/
+#+END_QUOTE
+
+Two possible features could be framed As: 
+
+#+BEGIN_EXAMPLE
+At 2016-01-01, how many inspections
+ do each facility had in the previous 6 months?
+#+END_Example
+
+ and
+
+#+BEGIN_EXAMPLE
+At 2016-01-01,  how many flags resulted in "high risk" 
+after the inspection do each facility had in the previous 6 months?
+#+END_EXAMPLE
+
+In our data, that date range (between 2016-01-01 and 2015-07-01) looks like:
 
 #+BEGIN_SRC sql
-select entity_id, zip_code,
-count(*) as inspections,
-count(*) filter (where risk='high') as flagged_as_high_risk
-from testing_triage.events
-group by grouping sets(entity_id, zip_code)
+select event_id, date, entity_id, risk from 
+testing_triage.events
+where
+date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
+order by date desc
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | zip_code | inspections | flagged_as_high_risk |
-|----------+---------+-------------+-------------------|
-| 9581     | [NULL]  |          45 |                 0 |
-| [NULL]   | 60621   |          45 |                 0 |
+| event_id |       date | entity_id | risk   |
+|---------+------------+----------+--------|
+| 1591635 | 2015-12-14 |     9582 | medium |
+| 1588811 | 2015-11-24 |     9582 | medium |
+| 1583272 | 2015-10-21 |     9582 | medium |
+| 1575838 | 2015-09-21 |     9582 | medium |
+| 1547420 | 2015-08-28 |    10854 | high   |
+| 1547403 | 2015-08-20 |    10854 | high   |
 :END:
 
-This query is making an /aggregation/.Note that the previous =SQL=
+We can transform that data to two features =number_of_inspections=
+and =flagged_as_high_risk=:
+
+#+BEGIN_SRC sql
+select entity_id, '2016-01-01' as as_of_date,
+count(event_id) as inspections,
+count(event_id) filter (where risk='high') as flagged_as_high_risk
+from testing_triage.events
+where 
+date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
+group by grouping sets(entity_id)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id |   as_of_date | number_of_inspections | flagged_as_high_risk |
+|----------+------------+---------------------+-------------------|
+|     9582 | 2016-01-01 |                   4 |                 0 |
+|    10854 | 2016-01-01 |                   2 |                 2 |
+:END:
+
+This query is making an /aggregation/. Note that the previous =SQL=
 query is composed by four parts: 
-  - The filter ((=risk = 'high')::int=)
-  - The aggregation function (=count()=)
-  - The name of the resulting transformation (=flagged_as_high_risk=)
-  - The context in which it is aggregated (by =entity_id= and =zip_code=).
+  - The /filter/ ((=risk = 'high')::int=)
+  - The /aggregation function/ (=count()=)
+  - The /name/ of the resulting transformation (=flagged_as_high_risk=)
+  - The /context/ in which it is aggregated (by =entity_id=).
+  - The /date range/ (between 2016-01-01 and 6 months before)
 
-What about if we want to add the proportion of all the inspections
-that resulted in be flagged as "high risk"?
+What about if we want to add the proportion and total of all the inspections in
+which the facility failed and passed?
 
 #+BEGIN_SRC sql
-select entity_id, zip_code,
-count(*) as inspections,
-count(*) filter (where risk='high') as flagged_as_high_risk,
-avg((risk='high')::int) as proportion_of_flags_as_high_risk
+select entity_id, '2016-01-01' as as_of_date,
+count(event_id) as inspections,
+count(event_id) filter (where risk='high') as flagged_as_high_risk,
+count(event_id) filter (where result='pass') as passed_inspections,
+round(avg((result='pass')::int), 2) as proportion_of_passed_inspections,
+count(event_id) filter (where result='fail') as failed_inspections,
+round(avg((result='fail')::int), 2) as proportion_of_failed_inspections
 from testing_triage.events
-group by grouping sets(entity_id, zip_code)
+where 
+date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
+group by grouping sets(entity_id)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | zip_code | inspections | flagged_as_high_risk | proportion_of_flags_as_high_risk |
-|----------+---------+-------------+-------------------+-----------------------------|
-| 9581     | [NULL]  |          45 |                 0 |      0.00000000000000000000 |
-| [NULL]   | 60621   |          45 |                 0 |      0.00000000000000000000 |
+| entity_id |   as_of_date | inspections | flagged_as_high_risk | passed_inspections | proportion_of_passed_inspections | failed_inspections | proportion_of_failed_inspections |
+|----------+------------+-------------+-------------------+-------------------+-------------------------------+-------------------+-------------------------------|
+|     9582 | 2016-01-01 |           4 |                 0 |                 4 |                          1.00 |                 0 |                          0.00 |
+|    10854 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
 :END:
 
-But, what if we want to add also "medium" and "low" risk? And note
-that we didn't add the temporal interval neither. You can see that the
-event this simple set of features will require a very complex =SQL= to
-be constructed.
+But, what if we want to add also features for "medium" and "low" risk?
+And how the query look like if we want several time intervals, like 
+/3 months/, /5 years/, etc ? What if we want to contextualize this by
+the location? And remember that we need to calculate all these
+features for several /as of dates/ and manage the imputation strategy of all of
+ them!!! 
+
+You will realize that the even with this simple set of features we
+will require a very complex =SQL= to be constructed.
+
+But fear not. =triage= will automate that for us!
+
+The following  blocks of code represents a snippet of =triage='s
+configuration file related to feature aggregation. It shows the
+=triage= syntax for the =inspections= feature constructed above
+
+#+BEGIN_EXAMPLE yaml
+feature_aggregations:
+  -
+    prefix: 'inspections'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    aggregates:
+      - # number of inspections
+        quantity:
+          total: "*"
+
+        imputation:
+          count:
+            type: 'mean'
+
+        metrics: ['count']
+
+        
+
+    intervals: ['6month']
+
+    groups:
+        - 'entity_id'
+#+END_EXAMPLE
 
 
+=feature_aggregations= is an =yaml= list[fn:6]  of /feature groups construction
+specification/ or just /feature group/ . A /feature group/ is a way of grupping several feature
+definitions that share =intervals= and =groups=. =triage= requires the
+following configuration parameter in every /feature group/: 
+
+- =prefix= :: This will be used for name of the /feature/ created
+- =from_obj= :: Represents a =TABLE= object in =PostgreSQL=, so you
+                could pass a /table/ like in the example above
+                (=semantic.events=) of a =SQL= query that returns a
+                table. We will see an example of this later in this
+                tutorial. =triage= literally will use this like the
+                =FROM= clause in the =SQL= query.
+- =knowlege_date_column= :: Column that indicates the date of the event.
+- =intervals= :: A =yaml= list, =triage= will create one feature per
+                 interval listed
+- =groups= :: A =yaml= list, The attributes that we will use to
+              aggregate, this will be translated to a =SQL='s =GROUP
+              BY= by =triage=.
+
+=Collate= is in charge of create the =SQL= agregation queries, another
+ way of see it, is that it encapsulates the =FROM= 
+ part of the query (=from_obj=) as well as the =GROUP BY= columns (=groups=).
+
+=triage= (=collate=) supports two types of objects to be aggregated:
+=aggregates= and =categoricals= (more on this one later). The
+=aggregates= subsection represents a =yaml= list of /features/ to be
+created. Each element on this represents a column (=quantity=, in the
+example, the whole row =*=) and an alias (=total=), defines the 
+=imputation= strategy for =NULL=s and the =metric= refers to the
+=aggregation function= to be applied to the =quantity= (=Count=). 
+
+=triage= will generate the following (or a very similar one) one per
+each combination of =interval= \times =groups= \times =quantity=
+
+#+BEGIN_EXAMPLE
+SELECT metric(quantity) as alias
+FROM from_obj
+WHERE as_of_date <@ (as_of_date - interval, as_of_date)
+GROUP BY groups
+#+END_EXAMPLE
+
+With the previous configuration =triage= will generate *1* features
+with the following names[fn:7]:
+
+- =inspections_entity_id_6month_total_count=
+
+All the features of that /feature group/ (in this case only 1) will be
+store in the table
+
+- =features.inspections_aggregation_imputed=
+
+In general the names of the generated tables are constructed as follows:
+
+#+BEGIN_EXAMPLE
+schema.prefix_group_aggregation_imputed
+#+END_Example
+
+*NOTE*: =schema= in the current version of =triage= is always
+=Features=.
+*NOTE* =imputed= is added by default at the end of the name, because
+=triage= already made the imputation of all =NULL= values for you.
+
+Inside each of those new tables, the feature name  will follow this
+pattern:
+
+#+BEGIN_EXAMPLE
+prefix_group_interval_alias_aggregation_operation
+#+END_EXAMPLE
+
+If we complicate a little the above configuration adding new
+intervals:
+
+#+BEGIN_EXAMPLE yaml
+feature_aggregations:
+  -
+    prefix: 'inspections'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    aggregates:
+      - # number of inspections
+        quantity:
+          total: "*"
+
+        imputation:
+          count:
+            type: 'mean'
+
+        metrics: ['count']
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+        - 'entity_id'
+#+END_EXAMPLE
+
+You will end with 5 new /features/ one for each interval (5) \times the only
+aggregate definition that we have. Note the weird =all= in the
+=intervals= definition. The =all= interval is the time interval
+between the =feature_start_time= and the  =as_of_date=.
+
+Besides =aggregates= objects, =triage= supports =categorical= ones. In
+the following code, we are adding a /feature/ for the =risk=
+flag. 
+
+#+BEGIN_EXAMPLE yaml
+feature_aggregations:
+  -
+    prefix: 'inspections'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    aggregates:
+      - # number of inspections
+        quantity:
+          total: "*"
+
+        imputation:
+          count:
+            type: 'mean'
+
+        metrics: ['count']
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+        - 'entity_id'
+  -
+    prefix: 'risks'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    categoricals_imputation:
+      sum:
+        type: 'zero'
+
+    categoricals:
+      -
+        column: 'risk'
+        choice_query: 'select distinct risk from testing_triage.events'
+          metrics:
+            - 'sum'
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+      - 'entity_id'
+
+#+END_EXAMPLE
+
+There are several changes. First, the imputation strategy in this new
+/feature group/ is now for all the categorical features in that group
+(in that example only one). The next change is the type, instead of
+=aggregates=, now is =categoricals=. =categoricals= define a =yaml=
+list too. Each =categorical= feature needs to define a =column= to be
+aggregated and the query to get all the distinct values.
+
+=triage= with this configuration will generate two tables (one per
+/feature group/. The new table will be
+=features.risks_aggregation_imputed=. This table will more Columns:
+=intervals= (5) \times =groups= (1) \times =metric= (1) \times /features/ (1) \times /number of choices returned by the query/.
+
+The query:
+
+#+BEGIN_SRC sql
+select distinct risk from testing_triage.events
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| risk   |
+|--------|
+| medium |
+| high   |
+:END:
+
+returns only two. =triage= for all the categoricals will add the
+/unknown/ category (represented by =NULL= in the name) so the total
+number of features created is 15. If you remember, from the section
+[[Reality check]] in [[Data preparation]] the number of values in the risk
+variable is 3: =low, medium, high=. So we are missing one! This could
+cause problems down the road.
+
+Instead of using =choice_query=, you could use =choices= as follows:
+
+#+BEGIN_EXAMPLE yaml
+feature_aggregations:
+  -
+    prefix: 'inspections'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    aggregates:
+      - # number of inspections
+        quantity:
+          total: "*"
+
+        imputation:
+          count:
+            type: 'mean'
+
+        metrics: ['count']
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+        - 'entity_id'
+  -
+    prefix: 'risks'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    categoricals_imputation:
+      sum:
+        type: 'zero'
+
+    categoricals:
+      -
+        column: 'risk'
+        choices: ['low', 'medium', 'high']
+          metrics:
+            - 'sum'
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+      - 'entity_id'
+
+#+END_EXAMPLE
+
+With this change =triage= will generate =20= new features.
+
+The features generated from categorical objects will have the
+following pattern:
+
+#+BEGIN_EXAMPLE
+prefix_group_interval_column_choice_aggregation_operation
+#+END_EXAMPLE
+
+So, we will end with =risks_entity_id_1month_risk_medium_sum= for example.
+
+
+This will create 3 tables (One for the =entity_id=, one for =zip_code=
+and one for the combination: =entity_id + zip_code=) and one extra
+table for the imputated values.
+
+
+For example the tables inside the triage schema are:
+
+#+BEGIN_SRC sql
+\dt triage.risks*
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| List of relations |                         |       |          |
+|-------------------+-------------------------+-------+----------|
+| Schema            | Name                    | Type  | Owner    |
+| triage            | risks_aggregation        | table | food_user |
+| triage            | risks_aggregation_imputed | table | food_user |
+| triage            | risks_entity_id           | table | food_user |
+| triage            | risks_zip_code            | table | food_user |
+:END:
+
+And inside =test_risk_aggregation= the columns are:
+
+#+BEGIN_SRC sql
+\d triage.risks_aggregation
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| Table "triage.risks_aggregation"  |                   |           |
+|----------------------------------+-------------------+-----------|
+| Column                           | Type              | Modifiers |
+| zip_code                          | character varying |           |
+| date                             | date              |           |
+| entity_id                         | bigint            |           |
+| risks_entity_id_1 year_risk_high_avg   | numeric           |           |
+| risks_entity_id_1 year_risk_medium_avg | numeric           |           |
+| risks_entity_id_1 year_risk_low_avg    | numeric           |           |
+| risks_zip_code_1 year_risk_high_avg    | numeric           |           |
+| risks_zip_code_1 year_risk_medium_avg  | numeric           |           |
+| risks_zip_code_1 year_risk_low_avg     | numeric           |           |
+:END:
+
+
+The =triage.risks_zip_code= table
+have two feature columns for every zip code in our table =triage.test=,
+looking at the total and average number of complaints in that
+=zip_code= over the year prior and 2 months prior to the date in the =date= column.
+
+
+#+BEGIN_SRC sql
+select * from triage.risks_zip_code  order by date limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| zip_code |       date | risks_zip_code_1 year_risk_high_avg | risks_zip_code_1 year_risk_medium_avg | risks_zip_code_1 year_risk_low_avg |
+|---------+------------+-------------------------------+---------------------------------+------------------------------|
+|   60621 | 2014-10-06 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2014-10-08 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-01-12 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-10-20 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2016-10-17 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+:END:
+
+The table =triage.risks_entity_id= contains two feature columns for each
+license that describe the total number of complaints
+the past one year.
+
+#+BEGIN_SRC sql
+select * from triage.risks_entity_id  order by date limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id |       date | risks_entity_id_1 year_risk_high_avg | risks_entity_id_1 year_risk_medium_avg | risks_entity_id_1 year_risk_low_avg |
+|----------+------------+--------------------------------+----------------------------------+-------------------------------|
+|     9547 | 2014-10-06 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2014-10-08 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2015-01-12 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2015-10-20 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+|     9547 | 2016-10-17 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
+:END:
+
+The =triage.risk_aggregation= table joins these results together to make
+it easier to look at both zip_code and facility-level effects
+for any given facility.
+
+#+BEGIN_SRC sql
+select * from triage.risks_aggregation order by date limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| zip_code |       date | entity_id | risks_entity_id_1 year_risk_high_avg | risks_entity_id_1 year_risk_medium_avg | risks_entity_id_1 year_risk_low_avg | risks_zip_code_1 year_risk_high_avg | risks_zip_code_1 year_risk_medium_avg | risks_zip_code_1 year_risk_low_avg |
+|---------+------------+----------+--------------------------------+----------------------------------+-------------------------------+-------------------------------+---------------------------------+------------------------------|
+|   60621 | 2014-10-06 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2014-10-08 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-01-12 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2015-10-20 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+|   60621 | 2016-10-17 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
+:END:
+
+
+Finally, the =triage.risks_aggregated_imputed= table fills in null values using the
+imputation rules specified in the =Categorical= constructor.
 
 
 ** Machine learning governance: The =RESULTS= schema
@@ -1250,6 +1807,21 @@ If you want to see *Audition* and *Postmodeling* in action please refer
 We will begin with [[file:inspections.org][Inspections problem]], let's go for It
 
 * Footnotes
+
+
+[fn:7] =triage= will generate also a new binary column that indicates if the
+value of the feature was imputed (=1=) or not (=0=): =inspections_entity_id_6month_total_count_imp=.
+
+[fn:6] =triage= uses *a lot* of =yaml=, [[https://github.com/Animosity/CraftIRC/wiki/Complete-idiot%2527s-introduction-to-yaml][this guide]] could be handy 
+
+[fn:5] =collate= is to /feature generation/ what =timechop= is to
+/date temporal splitting/
+
+[fn:4] Obsure reference to the "The Last Airbender" cartoon series. I'm sorry.
+
+[fn:3] See for example: https://robjhyndman.com/hyndsight/tscv/
+
+[fn:2] The city in this toy example has very low resources.
 
 [fn:1] We could consider different states, for example: we can use the column
 =risk= as an state. Another possibility is define a new state called

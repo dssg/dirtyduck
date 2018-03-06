@@ -1,26 +1,26 @@
-create schema if not exists triage;
+create schema if not exists testing_triage;
 
-drop table if exists triage.test;
+drop table if exists testing_triage.events;
 
-create table triage.test as (
+create table testing_triage.events as (
 select
-inspection, -- event
+event_id, 
 entity_id,
 facility_type,
+result,
 type as inspection_type, risk, -- variables
 violations, -- json array of variables
 date, location, zip_code -- spatio temporal dimensions
 from semantic.events
-where entity_id = 9581
+where entity_id in (9582, 10854)
 )
 
-drop table if exists triage.outcomes_9581;
+drop table if exists testing_triage.outcomes;
 
-create table triage.outcomes_9581 as (
+create table testing_triage.outcomes as (
 select 
 entity_id, 
 date as outcome_date, 
 (result = 'fail') as outcome
-from semantic.events
-where entity_id = 9581
+from testing_triage.events
 );
