@@ -20,7 +20,7 @@ active_entities as (
 select
 a.entity_id, outcome_date,
 case when
-inspection is null then FALSE
+event_id is null then FALSE
 else TRUE
 end as outcome
 from active_entities as a

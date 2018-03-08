@@ -12,7 +12,6 @@
 #+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
 #+PROPERTY: header-args:python    :session food_inspections :results output drawer
 #+PROPERTY: header-args:sh  :results verbatim org
-#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 #+PROPERTY: header-args:sh+  :dir ..
 
 * An Early Intervention System
@@ -75,8 +74,8 @@ select min(date), max(date) from semantic.events
 :RESULTS:
 |        min |        max |
 |------------+------------|
-| 2010-01-04 | 2018-02-13 |
-:End:
+| 2010-01-04 | 2018-03-01 |
+:END:
 
 
 #+NAME: all_days
@@ -89,7 +88,7 @@ from generate_series((select min(date) from semantic.events), current_date, '1 d
 :RESULTS:
 | count |
 |-------|
-|  2972 |
+|  2986 |
 :END:
 
 
@@ -102,25 +101,15 @@ select count(*) from semantic.entities;
 :RESULTS:
 | count |
 |-------|
-| 34812 |
-:END:
-
-#+BEGIN_SRC ipython
-34812*2968
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-
-103322016
+| 34917 |
 :END:
 
 The result is src_python[:var entities=all_entities[2] :var
 days=all_days[2]]{print(int(entities[0])*int(days[0]))}
-{{{results(=103322016=)}}} That's a lot of rows! 
+{{{results(104262162)}}} That's a lot of rows! 
 
-We could improve that taking only the /active/
-Entities
+We could improve that taking only the /active/ entities
+
 #+NAME: actives
 #+BEGIN_SRC sql 
 with dates as (
@@ -141,14 +130,14 @@ on d.days <@ daterange(start_time, end_time)
 :RESULTS:
 |    count |
 |----------|
-| 46772382 |
+| 47139730 |
 :END:
 
 
 That's almost a reduction of src_python[:var entities=all_entities[2]
 :var days=all_days[2] :var
 active_entities=actives[2]]{print(100*float(active_entities[0])/(int(entities[0])*int(days[0])))}
-{{{results(=45.2685534126628=)}}}%, but still a huge number of rows
+{{{results(45.212691829659164)}}}%, but still a huge number of rows
 given our infrastructure.
 
 So we will cheat, and we will only consider /outcomes/ from =2015=
@@ -172,7 +161,7 @@ on d.days <@ daterange(start_time, end_time)
 :RESULTS:
 |    count |
 |----------|
-| 21952711 |
+| 22320059 |
 :END:
 
 
@@ -197,7 +186,7 @@ active_entities as (
 select
 a.entity_id, outcome_date,
 case when
-inspection is null then FALSE
+event_id is null then FALSE
 else TRUE
 end as outcome
 from active_entities as a
@@ -245,7 +234,7 @@ First the usual stuff. Note that we are changing =model_comment= and
 =label_definition= (remember that this is used for generating the
 /hash/ that differentiates models and model groups)
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 config_version: 'v3'
 
 model_comment: 'eis'
@@ -261,11 +250,11 @@ user_metadata:
 
 We will use the =eis= tables for /outcomes/ and /states/ (obviously)
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 events_table: eis.inspected
 #+END_SRC
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 state_config:
     table_name: 'eis.active_facilities'
     state_filters:
@@ -273,12 +262,12 @@ state_config:
 #+END_SRC
 
 **** Temporal configuration
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
-    feature_end_time: '2017-02-13'
+    feature_end_time: '2018-03-13'
     label_start_time: '2015-02-01'
-    label_end_time: '2017-02-13'
+    label_end_time: '2018-03-13'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
@@ -296,16 +285,23 @@ temporal_config:
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/eis_01.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Generating temporal blocks image
 Image stored in:
-/triage/eis.svg
-:END:
+/triage/output/images/eis.svg
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+#+END_SRC
+
+
+
+
 
 [[./triage/eis.svg]]
 
@@ -313,7 +309,7 @@ Image stored in:
 
 Regarding the features, we will use the same ones that were used in [[file:inspections.org][inspections prioritization]]
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_aggregations:
     -
         prefix: 'inspections'
@@ -403,7 +399,7 @@ feature_aggregations:
 
 As before, we declare that we want to use all possible combinations for training:
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_group_definition:
    prefix: ['inspections', 'results', 'risks']
 
@@ -416,7 +412,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 We will collapse the baseline (=DummyClassifier=)  and the exploratory configuration together:
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
         max_depth: [1,null]
@@ -440,7 +436,7 @@ time blocks) i.e. *84*.
 
 We don't want to mix different experiments together, it is very important that the =model_group_keys= distinguish between models, so use it wisely:
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
@@ -463,9 +459,10 @@ As a last step, we validate that the configuration file is correct:
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/eis_01.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
@@ -474,15 +471,20 @@ Experiment validation ran to completion with no errors
 
 ----TIME SPLIT SUMMARY----
 
-Number of time splits: 2
+Number of time splits: 3
 Split index 0:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-11-13 00:00:00 (10 total)
-            Testing as_of_time range: 2015-12-13 00:00:00 to 2015-12-13 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-12-13 00:00:00 (11 total)
+            Testing as_of_time range: 2016-01-13 00:00:00 to 2016-01-13 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-11-13 00:00:00 (22 total)
-            Testing as_of_time range: 2016-12-13 00:00:00 to 2016-12-13 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-12-13 00:00:00 (23 total)
+            Testing as_of_time range: 2017-01-13 00:00:00 to 2017-01-13 00:00:00 (1 total)
+
+
+Split index 2:
+            Training as_of_time_range: 2015-02-13 00:00:00 to 2017-12-13 00:00:00 (35 total)
+            Testing as_of_time range: 2018-01-13 00:00:00 to 2018-01-13 00:00:00 (1 total)
 
 
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
@@ -493,7 +495,13 @@ For more detailed information on your time splits, inspect the experiment `split
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
-:END:
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/base.py:291: SAWarning: Can't validate argument 'autoload_from'; can't locate any SQLAlchemy dialect named 'autoload'
+  (k, dialect_name))
+#+END_SRC
+
+
 
 #+BEGIN_EXAMPLE sh
 ./tutorial.sh triage --config_file eis_01.yaml --no-replace --debug run
@@ -752,7 +760,7 @@ subsequent time window, the *regret*.
 
 We included a simple configuration file with some rules:
 
-#+BEGIN_SRC yaml :tangle ./triage/selection_rules/rules.yaml
+#+BEGIN_SRC yaml :tangle ../triage/selection_rules/rules.yaml
 -
   shared_parameters:
     -

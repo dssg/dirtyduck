@@ -19,9 +19,9 @@ state_config:
 
 temporal_config:
     feature_start_time: '2010-01-04'
-    feature_end_time: '2017-02-13'
+    feature_end_time: '2018-03-13'
     label_start_time: '2015-02-01'
-    label_end_time: '2017-02-13'
+    label_end_time: '2018-03-13'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']

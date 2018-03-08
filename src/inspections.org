@@ -11,7 +11,7 @@
 #+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
 #+PROPERTY: header-args:python    :session food_inspections :results output Drawer
 #+PROPERTY: header-args:sh  :results verbatim org
-#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+# +PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 #+PROPERTY: header-args:sh+  :dir ..
 
 * Inpections prioritization
@@ -504,10 +504,6 @@ For more detailed information on your time splits, inspect the experiment `split
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
-/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
-  """)
-/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/base.py:291: SAWarning: Can't validate argument 'autoload_from'; can't locate any SQLAlchemy dialect named 'autoload'
-  (k, dialect_name))
 #+END_SRC
 
 You can execute the experiment as 
@@ -525,38 +521,12 @@ The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Executing experiment
-/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
-  """)
-/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/elements.py:4360: SAWarning: Textual column expression 'entity_id' should be explicitly declared with text('entity_id'), or use column('entity_id') for more specificity (this warning may be suppressed after 10 occurrences)
-  if guess_is_literal else "column"
-/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/elements.py:4360: SAWarning: Textual column expression 'zip_code' should be explicitly declared with text('zip_code'), or use column('zip_code') for more specificity (this warning may be suppressed after 10 occurrences)
-  if guess_is_literal else "column"
-root                            08/03/2018 08:22:01 PM    WARNING      1  predictors.py              156: 1month
-/usr/local/lib/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
-  'precision', 'predicted', average, warn_for)
-root                            08/03/2018 08:22:08 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:15 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:22 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:29 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:37 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:44 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:51 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:22:59 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:06 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:14 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:21 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:29 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:37 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:46 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:23:54 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:24:03 PM    WARNING      1  predictors.py              156: 1month
-root                            08/03/2018 08:24:10 PM    WARNING      1  predictors.py              156: 1month
 Done
-Experiment completed in 0:02:36.919488 seconds
+Experiment completed in 0:02:36.844420 seconds
 #+END_SRC
 
-This will print a lot of output, and if everything is correct it will create 4 matrices (2 for 
-training, 2 for testing) in =triage/matrices=, every matrix will be
+This will print a lot of output, and if everything is correct it will create  matrices (3 for 
+training, 3 for testing) in =triage/matrices=, every matrix will be
 represented by two files, one with the metadata  of the matrix (a
 =yaml= file) and the actual matrix (the =csv= file). 
 
@@ -566,11 +536,11 @@ ls /triage/output/matrices | awk -F . '{print $NF}' | sort | uniq -c
 
 #+RESULTS:
 :RESULTS:
-     76 csv
-     76 yaml
+      6 csv
+      6 yaml
 :END:
 
-=Triage= also will store 12 trained models in =triage/trained_models=:
+=Triage= also will store 18 trained models in =triage/trained_models=:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
 ls /triage/output/trained_models | wc -l
@@ -578,7 +548,7 @@ ls /triage/output/trained_models | wc -l
 
 #+RESULTS:
 :RESULTS:
-12
+18
 :END:
 
 And it will populate the =results= schema in the database, as
@@ -600,7 +570,7 @@ select model_group_id, model_type, model_parameters from results.model_groups;
 |            6 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "max_features": null}   |
 :END:
 
-And =12= /Models/:
+And =18= /Models/:
 
 
 #+BEGIN_SRC sql 
@@ -616,16 +586,22 @@ order by model_group_id, train_end_time asc
 |--------------+---------+---------------------|
 |            1 |       1 | 2016-01-01 00:00:00 |
 |            1 |       7 | 2017-01-01 00:00:00 |
+|            1 |      13 | 2018-01-01 00:00:00 |
 |            2 |       2 | 2016-01-01 00:00:00 |
 |            2 |       8 | 2017-01-01 00:00:00 |
+|            2 |      14 | 2018-01-01 00:00:00 |
 |            3 |       3 | 2016-01-01 00:00:00 |
 |            3 |       9 | 2017-01-01 00:00:00 |
+|            3 |      15 | 2018-01-01 00:00:00 |
 |            4 |       4 | 2016-01-01 00:00:00 |
 |            4 |      10 | 2017-01-01 00:00:00 |
+|            4 |      16 | 2018-01-01 00:00:00 |
 |            5 |       5 | 2016-01-01 00:00:00 |
 |            5 |      11 | 2017-01-01 00:00:00 |
+|            5 |      17 | 2018-01-01 00:00:00 |
 |            6 |       6 | 2016-01-01 00:00:00 |
 |            6 |      12 | 2017-01-01 00:00:00 |
+|            6 |      18 | 2018-01-01 00:00:00 |
 :END:
 
 From that last query, you should note that the order in which =triage= train
@@ -635,30 +611,37 @@ next block, until all the /models groups/ were trained.
 
 You can check with which matrix the models where trained
 
+#+NAME: train_info
 #+BEGIN_SRC sql
 select
 model_id, model_group_id, train_end_time, 
 model_hash,train_matrix_uuid
 from results.models
 order by model_group_id, train_end_time asc
-#+END_SRC
+#+End_SRC
 
-#+RESULTS:
+#+RESULTS: train_info
 :RESULTS:
 | model_id | model_group_id | train_end_time        | model_hash                        | train_matrix_uuid                  |
 |---------+--------------+---------------------+----------------------------------+----------------------------------|
-|       1 |            1 | 2016-01-01 00:00:00 | 5062bb64aecdbf0f6875de579c4b4845 | c834bd5ba5b9c3ebdf8d6e9ac37abee9 |
-|       7 |            1 | 2017-01-01 00:00:00 | 6bb1c66e613fc9f19f3992ec36d743ab | 53ccca25d2096ad453831883e1e50e1d |
-|       2 |            2 | 2016-01-01 00:00:00 | fd96142f002bdbdfe518dff477048bb9 | c834bd5ba5b9c3ebdf8d6e9ac37abee9 |
-|       8 |            2 | 2017-01-01 00:00:00 | 4473c1076e1479bb1aec875913b354c7 | 53ccca25d2096ad453831883e1e50e1d |
-|       3 |            3 | 2016-01-01 00:00:00 | d140cd9a9de944ab8587efbba8692c99 | c834bd5ba5b9c3ebdf8d6e9ac37abee9 |
-|       9 |            3 | 2017-01-01 00:00:00 | 3f33a1dd1d1047fd4cc7a28695a83514 | 53ccca25d2096ad453831883e1e50e1d |
-|       4 |            4 | 2016-01-01 00:00:00 | a1b6ea17f74ea1877212ea740d1d46d7 | c834bd5ba5b9c3ebdf8d6e9ac37abee9 |
-|      10 |            4 | 2017-01-01 00:00:00 | bbea50a714622b612e6da12722c34ec3 | 53ccca25d2096ad453831883e1e50e1d |
-|       5 |            5 | 2016-01-01 00:00:00 | a85d9be461e9c41d21aee29cbcf421f3 | c834bd5ba5b9c3ebdf8d6e9ac37abee9 |
-|      11 |            5 | 2017-01-01 00:00:00 | 000a39b2678469280132e5b7b791ad42 | 53ccca25d2096ad453831883e1e50e1d |
-|       6 |            6 | 2016-01-01 00:00:00 | 48204ce78ec79c479090c332fab73e26 | c834bd5ba5b9c3ebdf8d6e9ac37abee9 |
-|      12 |            6 | 2017-01-01 00:00:00 | 8cc1037025ef7c97295381434b24977e | 53ccca25d2096ad453831883e1e50e1d |
+|       1 |            1 | 2016-01-01 00:00:00 | 44a91980f60b1b1b46c3ca4f56407b43 | 80a88d6a30313393d8a821660208dbda |
+|       7 |            1 | 2017-01-01 00:00:00 | 973b622e395d0773d8e1a7625820ac07 | df40aaf329dfdcd4e950f7e58218be39 |
+|      13 |            1 | 2018-01-01 00:00:00 | a40dcde3da20123496718c646715f3ed | 19c5aaf3895d5d2f782ed734955b3ab6 |
+|       2 |            2 | 2016-01-01 00:00:00 | f6b6ee09da6a601bc0df6bf3f6edd350 | 80a88d6a30313393d8a821660208dbda |
+|       8 |            2 | 2017-01-01 00:00:00 | 0aaa6187ea359b1b4a12a14f1cf7bba4 | df40aaf329dfdcd4e950f7e58218be39 |
+|      14 |            2 | 2018-01-01 00:00:00 | 7c6b26adfc026acacc65f34f41798f89 | 19c5aaf3895d5d2f782ed734955b3ab6 |
+|       3 |            3 | 2016-01-01 00:00:00 | b919b106d2a728edfc248b356c2e6286 | 80a88d6a30313393d8a821660208dbda |
+|       9 |            3 | 2017-01-01 00:00:00 | 8a66abb8785d790537e31cfda1da4c72 | df40aaf329dfdcd4e950f7e58218be39 |
+|      15 |            3 | 2018-01-01 00:00:00 | 5c7e7cb491bd0494fe6a52c689022e75 | 19c5aaf3895d5d2f782ed734955b3ab6 |
+|       4 |            4 | 2016-01-01 00:00:00 | 4b762fd73f7b8fec1426a6391a781800 | 80a88d6a30313393d8a821660208dbda |
+|      10 |            4 | 2017-01-01 00:00:00 | d03cf44679a06d530784c20d0183b179 | df40aaf329dfdcd4e950f7e58218be39 |
+|      16 |            4 | 2018-01-01 00:00:00 | 79a0ee40119d44b734a603d9a965339e | 19c5aaf3895d5d2f782ed734955b3ab6 |
+|       5 |            5 | 2016-01-01 00:00:00 | 54866a5bcc0cf48cfa43e3876238d246 | 80a88d6a30313393d8a821660208dbda |
+|      11 |            5 | 2017-01-01 00:00:00 | f6c11a74790e3ceaa94248ed61834f04 | df40aaf329dfdcd4e950f7e58218be39 |
+|      17 |            5 | 2018-01-01 00:00:00 | 86e406c438ae80e68665aef2da068ff0 | 19c5aaf3895d5d2f782ed734955b3ab6 |
+|       6 |            6 | 2016-01-01 00:00:00 | bbfc6be74ac7696af859c862092a0e00 | 80a88d6a30313393d8a821660208dbda |
+|      12 |            6 | 2017-01-01 00:00:00 | a00fbade042d73a28f6ee60996650d32 | df40aaf329dfdcd4e950f7e58218be39 |
+|      18 |            6 | 2018-01-01 00:00:00 | 68334513a72301b163927d1fa583f4e3 | 19c5aaf3895d5d2f782ed734955b3ab6 |
 :END:
 
 As expected, we have two models per model group. Each model was trained
@@ -666,15 +649,53 @@ with the matrix indicated in the column =train_matrix_uuid=. This =uuid=
 also is the file name of the stored matrix. The model itself was
 stored under the file named with the =model_hash=.
 
-For example, the model =7= was stored as
-=/triage/trained_models/= src_sql[:results output]{select train_matrix_uuid from
-results.models where model_id = 7}
-using the standard serialization of sklearn models. This model was
-trained with the matrix src_sql[:results output]{select train_matrix_uuid from
-results.models where model_id = 7} stored in the directory
-=/triage/matrices=.
+If you want to see in which matrix the model was /tested/ you need to
+run the following query
 
-The model =7= used the following hyperparameters:
+#+NAME: test_info
+#+BEGIN_SRC  sql
+select distinct 
+model_id, 
+matrix_uuid -- the test matrix
+from results.predictions 
+order by model_id
+#+END_SRC
+
+#+RESULTS: test_info
+:RESULTS:
+| model_id | matrix_uuid                       |
+|---------+----------------------------------|
+|       1 | 72a15fec31a6263d65b05a93d3ca24cf |
+|       2 | 72a15fec31a6263d65b05a93d3ca24cf |
+|       3 | 72a15fec31a6263d65b05a93d3ca24cf |
+|       4 | 72a15fec31a6263d65b05a93d3ca24cf |
+|       5 | 72a15fec31a6263d65b05a93d3ca24cf |
+|       6 | 72a15fec31a6263d65b05a93d3ca24cf |
+|       7 | 9ac1d77c45f375666e9be686c88caef6 |
+|       8 | 9ac1d77c45f375666e9be686c88caef6 |
+|       9 | 9ac1d77c45f375666e9be686c88caef6 |
+|      10 | 9ac1d77c45f375666e9be686c88caef6 |
+|      11 | 9ac1d77c45f375666e9be686c88caef6 |
+|      12 | 9ac1d77c45f375666e9be686c88caef6 |
+|      13 | fba584da9e52f3fa1c8407fa870e00b3 |
+|      14 | fba584da9e52f3fa1c8407fa870e00b3 |
+|      15 | fba584da9e52f3fa1c8407fa870e00b3 |
+|      16 | fba584da9e52f3fa1c8407fa870e00b3 |
+|      17 | fba584da9e52f3fa1c8407fa870e00b3 |
+|      18 | fba584da9e52f3fa1c8407fa870e00b3 |
+:END:
+
+For example, the model =7= was stored as
+=/triage/trained_models/= src_sh[:results raw  :export result :dir /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
+ format=unaligned  -c 'select model_hash from results.models where model_id = 7'} 973b622e395d0773d8e1a7625820ac07
+ df40aaf329dfdcd4e950f7e58218be39
+using the standard serialization of sklearn models. This model was
+trained with the matrix src_sh[:results raw  :export result :dir /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
+ format=unaligned  -c 'select train_matrix_uuid from results.models where model_id = 7'} df40aaf329dfdcd4e950f7e58218be39
+ 973b622e395d0773d8e1a7625820ac07
+ stored in the directory =/triage/matrices=.
+
+Model =7= used the following hyperparameters:
 
 #+BEGIN_SRC sql
 select 
@@ -698,7 +719,7 @@ We can visualize the model
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_baseline.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
 Using data stored in postgresql://food_user:some_password@food_db/food
@@ -706,11 +727,11 @@ The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Generating model image
-postgresql://food_user:some_password@food_db/food
 Plotting tree number 0
 Image stored in: 
 ['/triage/output/images/model_7_tree_0.svg']
-:END:
+#+END_SRC
+
 
 [[./triage/output/images/model_7_tree_0.svg]]
 
@@ -718,8 +739,7 @@ This tree makes kind of sense, if the facility had more than 1.5
 inspections related to food poisoning then it will fail the
 inspection.
 
-The same model =7= is part of the model group src_sql{select model_group_id
-from results.models where model_id = 7}. That model group
+We can also get information about the /model group/
 
 #+BEGIN_SRC sql
 select 
@@ -731,9 +751,9 @@ where model_group_id = 1
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_config                                             |
-|--------------+-------------------------------------+---------------------------------------------------------|
-|            1 | sklearn.tree.DecisionTreeClassifier | {"experiment_type": "test", "label_definition": "failed"} |
+| model_group_id | model_type                           | model_config                                                                                      |
+|--------------+-------------------------------------+--------------------------------------------------------------------------------------------------|
+|            1 | sklearn.tree.DecisionTreeClassifier | {"purpose": "test", "experiment_type": "inspections prioritization", "label_definition": "failed"} |
 :END:
 
 The features used by that model are:
@@ -791,12 +811,12 @@ metric || parameter
 |       7 | recall@5_abs       |                   0.0 |               1173 |                        0 |               269 |
 |       7 | precision@10_abs   |                   1.0 |               1173 |                        1 |               269 |
 |       7 | recall@10_abs      | 0.0037174721189591076 |               1173 |                        1 |               269 |
-|       7 | precision@25_abs   |                   0.6 |               1173 |                        5 |               269 |
-|       7 | recall@25_abs      |  0.011152416356877323 |               1173 |                        5 |               269 |
-|       7 | precision@5.0_pct  |   0.29333333333333333 |               1173 |                       75 |               269 |
-|       7 | recall@5.0_pct     |   0.08178438661710037 |               1173 |                       75 |               269 |
-|       7 | precision@10.0_pct |   0.25190839694656486 |               1173 |                      131 |               269 |
-|       7 | recall@10.0_pct    |   0.12267657992565056 |               1173 |                      131 |               269 |
+|       7 | precision@25_abs   |                   0.4 |               1173 |                        5 |               269 |
+|       7 | recall@25_abs      |  0.007434944237918215 |               1173 |                        5 |               269 |
+|       7 | precision@5.0_pct  |                  0.34 |               1173 |                       50 |               269 |
+|       7 | recall@5.0_pct     |   0.06319702602230483 |               1173 |                       50 |               269 |
+|       7 | precision@10.0_pct |   0.28225806451612906 |               1173 |                      124 |               269 |
+|       7 | recall@10.0_pct    |   0.13011152416356878 |               1173 |                      124 |               269 |
 :END:
 
 The columns  =num_labeled_examples, num_labeled_above_threshold,
@@ -824,7 +844,7 @@ where '2017-01-01'::date <@ daterange(start_time, end_time)
 :RESULTS:
 | count |
 |-------|
-| 19396 |
+| 19397 |
 :END:
 
 And this number matches with the predictions made by the model =7=, as expected.
@@ -837,7 +857,7 @@ select count(*) from results.predictions where model_id = 7
 :RESULTS:
 | count |
 |-------|
-| 19396 |
+| 19397 |
 :END:
 
 The number of /labels/ (=num_labeled_examples= = =1173=) is different,
@@ -895,33 +915,33 @@ limit 25
 
 #+RESULTS:
 :RESULTS:
-| model_id | entity_id | as_of_date            |               score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
-|---------+----------+---------------------+---------------------+------------+---------+---------+----------------------------------+-------------------|
-|       7 |        2 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        4 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        5 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        6 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        7 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        8 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        9 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       10 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       11 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       13 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       14 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       15 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       16 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       19 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       20 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       21 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       22 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       23 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       25 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       27 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       28 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       29 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       30 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |       31 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
-|       7 |        1 | 2017-01-01 00:00:00 | 0.22907692307692307 | [NULL]     | [NULL]  | [NULL]  | 86bad884c84b4c75ad2a127debc810b5 | 1 mon             |
+| model_id | entity_id | as_of_date            |              score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
+|---------+----------+---------------------+--------------------+------------+---------+---------+----------------------------------+-------------------|
+|       7 |        1 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        4 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        2 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        6 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        7 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        8 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        9 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |        5 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       11 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       13 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       14 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       15 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       16 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       19 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       20 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       21 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       10 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       23 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       25 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       27 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       28 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       29 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       30 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       31 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+|       7 |       32 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
 :END:
 
 *** Defining a baseline 
@@ -962,9 +982,10 @@ model group).
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_baseline.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
@@ -973,15 +994,20 @@ Experiment validation ran to completion with no errors
 
 ----TIME SPLIT SUMMARY----
 
-Number of time splits: 2
+Number of time splits: 3
 Split index 0:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-11-13 00:00:00 (10 total)
-            Testing as_of_time range: 2015-12-13 00:00:00 to 2015-12-13 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
+            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-11-13 00:00:00 (22 total)
-            Testing as_of_time range: 2016-12-13 00:00:00 to 2016-12-13 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
+            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
+
+
+Split index 2:
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2017-12-01 00:00:00 (35 total)
+            Testing as_of_time range: 2018-01-01 00:00:00 to 2018-01-01 00:00:00 (1 total)
 
 
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
@@ -992,7 +1018,9 @@ For more detailed information on your time splits, inspect the experiment `split
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
-:END:
+#+END_SRC
+
+
 
 You can execute the experiment as
 
@@ -1001,16 +1029,19 @@ You can execute the experiment as
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_baseline.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Executing experiment
 Done
-Experiment completed in 0:00:28.682451 seconds
-:End:
+Experiment completed in 0:00:40.563533 seconds
+#+END_SRC
+
+
 
 #+BEGIN_SRC sql
 select model_group_id, model_type, model_parameters from results.model_groups;
@@ -1050,14 +1081,17 @@ order by metric || parameter, model_id
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | metric          | value |
-|--------------+---------+-----------------+-------|
-|            7 |      13 | precision@25_abs |   0.0 |
-|            8 |      14 | precision@25_abs |   0.0 |
-|            9 |      15 | precision@25_abs |   0.0 |
-|            7 |      16 | precision@25_abs |   0.6 |
-|            8 |      17 | precision@25_abs |   0.6 |
-|            9 |      18 | precision@25_abs |   0.6 |
+| model_group_id | model_id | metric          |              value |
+|--------------+---------+-----------------+--------------------|
+|            7 |      19 | precision@25_abs | 0.3333333333333333 |
+|            8 |      20 | precision@25_abs | 0.3333333333333333 |
+|            9 |      21 | precision@25_abs | 0.3333333333333333 |
+|            7 |      22 | precision@25_abs |                0.4 |
+|            8 |      23 | precision@25_abs |                0.4 |
+|            9 |      24 | precision@25_abs |                0.4 |
+|            7 |      25 | precision@25_abs |                0.0 |
+|            8 |      26 | precision@25_abs |                0.0 |
+|            9 |      27 | precision@25_abs |                0.0 |
 :END:
 
 
@@ -1097,10 +1131,10 @@ Neither to the temporal configuration:
 
 #+BEGIN_SRC  yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 temporal_config:
-    feature_start_time: '2010-02-01'
-    feature_end_time: '2018-02-01'
+    feature_start_time: '2010-01-04'
+    feature_end_time: '2018-03-01'
     label_start_time: '2015-02-01'
-    label_end_time: '2018-02-01'
+    label_end_time: '2018-03-01'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
@@ -1118,16 +1152,18 @@ temporal_config:
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_label_failed_01.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Generating temporal blocks image
 Image stored in:
-/triage/inspections.svg
-:END:
+/triage/output/images/inspections.svg
+#+END_SRC
+
 
 [[./triage/inspections.svg]]
 
@@ -1274,9 +1310,10 @@ scoring:
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_label_failed_01.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
@@ -1287,13 +1324,13 @@ Experiment validation ran to completion with no errors
 
 Number of time splits: 2
 Split index 0:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
-            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-01-01 00:00:00 (12 total)
+            Testing as_of_time range: 2016-02-01 00:00:00 to 2016-02-01 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
-            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2017-01-01 00:00:00 (24 total)
+            Testing as_of_time range: 2017-02-01 00:00:00 to 2017-02-01 00:00:00 (1 total)
 
 
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
@@ -1304,7 +1341,7 @@ For more detailed information on your time splits, inspect the experiment `split
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
-:END:
+#+END_SRC
 
 You can execute the experiment with
 
@@ -1312,6 +1349,7 @@ You can execute the experiment with
 ./tutorial.sh triage --config_file inspections_label_failed_01.yaml run
 #+END_SRC
 
+This will take a looooong time to run.
 
-Well, know we have a lot of models, How can you pick the best one for
+Well, now we have a lot of models, How can you pick the best one for
 you? We will show you that when we model the /Early Intervention System/.
