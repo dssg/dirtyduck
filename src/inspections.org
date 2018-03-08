@@ -8,10 +8,11 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:shell     :results drawer
 #+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
 #+PROPERTY: header-args:python    :session food_inspections :results output Drawer
-#+PROPERTY: header-args:sh  :results raw Drawer
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:sh+  :dir ..
 
 * Inpections prioritization
 ** Problem description
@@ -53,8 +54,8 @@ following code:
 
 
 #+begin_src sql
-
-select inspection, 
+select 
+event_id,
 date,
 result, 
 array_agg(obj ->>'severity') as violations_severity,
@@ -63,30 +64,42 @@ array_agg(obj ->>'severity') as violations_severity,
 ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
 ) as failed_major_violation
 from
-(select inspection,date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events limit 20)
+(select event_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events limit 20)
 as t1
-group by inspection, date, result
+group by event_id, date, result
 order by date desc
 
 #+end_src
 
 #+RESULTS:
 :RESULTS:
-| inspection |       date | result | violations_severity                                       | failed | failed_major_violation |
-|------------+------------+--------+----------------------------------------------------------+--------+----------------------|
-|    1770568 | 2016-05-11 | pass   | {critical,minor,minor,serious,serious}                   | f      | f                    |
-|    1763967 | 2016-05-03 | fail   | {minor,critical,serious,serious,minor,minor,minor,minor} | t      | t                    |
-|    1343315 | 2013-06-06 | fail   | {minor,serious,serious,serious,serious,minor}            | t      | t                    |
-|     537439 | 2011-06-10 | fail   | {NULL}                                                   | t      | [NULL]               |
+| event_id |       date | result | violations_severity                                       | failed | failed_major_violation |
+|---------+------------+--------+----------------------------------------------------------+--------+----------------------|
+| 1770568 | 2016-05-11 | pass   | {critical,minor,minor,serious,serious}                   | f      | f                    |
+| 1763967 | 2016-05-03 | fail   | {minor,critical,serious,serious,minor,minor,minor,minor} | t      | t                    |
+| 1343315 | 2013-06-06 | fail   | {minor,serious,serious,serious,serious,minor}            | t      | t                    |
+|  537439 | 2011-06-10 | fail   | {NULL}                                                   | t      | [NULL]               |
 :END:
 
+Remember from [[A tale of two tables]] that the /outcome/ will be used by
+=triage= in order of generate the labels. The following image tries to
+show the meaning of the /outcomes/ for /inspection failed/ problem definition.
+
+#+NAME: fig:outcomes-inspections
+#+CAPTION: The image shows three facilities and next to each of them, a temporal line with 6 days (0-5) each dot represents an inspection. Green means that the inspection had a result "Pass", red that the inspection "Fail". Each of the facilities in the image had two inspections, but only the facility in the middle completed both without fails.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/outcomes-inspections.png]]
 
 Let's use the previous query to generate our outcomes in a new
-=inspections= Schema.
+=inspections= schema.
 
 #+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
 create schema if not exists inspections;
 #+END_SRC
+
+#+RESULTS:
 
 =Triage= has some restrictions (at the current version) about how to
 name (some) columns, in specific, our columns should include:
@@ -107,15 +120,15 @@ Since we defined two labels, we will create two tables one per each outcome.
 #+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
 
 create temp table inspections_outcomes as (
-select inspection, entity_id, date,
+select event_id, entity_id, date,
    (result = 'fail') as failed,
    (result = 'fail' and
        ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
    ) as failed_major_violation
 from
-   (select inspection, entity_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
+   (select event_id, entity_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
 as t1
-group by inspection, entity_id, date, result
+group by event_id, entity_id, date, result
 );
 
 
@@ -182,7 +195,7 @@ write the experiment config file for that, let's break it down and
 explain all the sections.
 
 The config file for this first experiment is located in
-[[file:triage/experiment_config/inspections_test.yaml]]
+[[./triage/experiment_config/inspections_test.yaml]]
 
 
 The first lines of the experiment config file are related to the
@@ -201,7 +214,7 @@ inappropriately reused), and if you add the =label_definition= key to
 the =model_group_keys=, models made on different label definition will
 have different groups.
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 config_version: 'v3'
 
 model_comment: 'inspections_test'
@@ -229,7 +242,7 @@ select min(date), max(date) from semantic.events
 :RESULTS:
 |        min |        max |
 |------------+------------|
-| 2010-01-04 | 2018-02-13 |
+| 2010-01-04 | 2018-03-01 |
 :END:
 
 The next parameters are related to the training intervals:
@@ -250,12 +263,12 @@ Let's assume that we need to do rounds of inspections every month
 round in exactly one month (=test_durations = test_label_timespan =
 1month=)
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
-    feature_end_time: '2017-02-13'
+    feature_end_time: '2018-03-01'
     label_start_time: '2015-02-01'
-    label_end_time: '2017-02-13'
+    label_end_time: '2018-03-01'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
@@ -269,31 +282,40 @@ temporal_config:
 #+END_SRC
 
 We can visualize the splitting using the function =show_timechop=
-introduced in [[file:triage_intro.org][Introduction to triage]].
+introduced in [[file:triage_intro.org][Introduction to triage]]. 
 
-#+BEGIN_SRC sh 
+#+BEGIN_SRC sh :dir ..
+
+# Remember to run this in your laptop NOT in bastion!
+
 ./tutorial.sh triage --config_file inspections_test.yaml show_temporal_blocks
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_test.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Generating temporal blocks image
 Image stored in:
-/triage/inspections_test.svg
-:END:
+/triage/output/images/inspections_test.svg
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+#+END_SRC
 
+
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
 [[./triage/inspections_test.svg]]
-
 
 We need to specify the table that keeps our labels, for this first
 experiment we will use the label =failed=, stored in =inspections.labels=.
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 events_table: inspections.failed
 #+END_SRC
 
@@ -315,7 +337,7 @@ the rows in the matrix. In that date (=as_of_date= in =timechop= parlance)
 we will calculate both features, and we will repeat that for every
 other rectangle in that image.
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 feature_aggregations:
     -
         prefix: 'inspections'
@@ -344,7 +366,7 @@ feature_aggregations:
 We just want to include *active* facilities in our matrices, so we tell
 =triage= to take that in account:
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 state_config:
     table_name: 'inspections.active_facilities'
     state_filters:
@@ -360,7 +382,7 @@ hyperparameters. You can use any algorithm that you want, the only
 requirement is that respects the =sklearn= API.
 
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
         max_depth: [1,null]
@@ -380,8 +402,7 @@ subsets except one, do that for all the combinations) or =leave-one-in=
 (just try subset at the time).
 
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
-
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 feature_group_definition:
    prefix: ['inspections']
 
@@ -404,7 +425,7 @@ entity, or the definition of a positive label (=label_definition=, from
 
 The valid =model_group_keys= are
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 model_group_keys:
     - 'label_definition'
     - 'experiment_type'
@@ -414,7 +435,7 @@ model_group_keys:
 Finally, we should define wich metrics we care for evaluating our
 model. Here we will concentrate only in =precision= and =recall=.
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 scoring:
     sort_seed: 5
     metric_groups:
@@ -442,14 +463,15 @@ good practice to  /validate/ the configuration file, /before/ running
 the model. You don't want to wait for hours (or days) and then
 discover that there was something wrong
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC sh 
 ./tutorial.sh triage --config_file inspections_test.yaml validate
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_test.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
@@ -458,15 +480,20 @@ Experiment validation ran to completion with no errors
 
 ----TIME SPLIT SUMMARY----
 
-Number of time splits: 2
+Number of time splits: 3
 Split index 0:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-11-13 00:00:00 (10 total)
-            Testing as_of_time range: 2015-12-13 00:00:00 to 2015-12-13 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
+            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
 
 
 Split index 1:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-11-13 00:00:00 (22 total)
-            Testing as_of_time range: 2016-12-13 00:00:00 to 2016-12-13 00:00:00 (1 total)
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
+            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
+
+
+Split index 2:
+            Training as_of_time_range: 2015-02-01 00:00:00 to 2017-12-01 00:00:00 (35 total)
+            Testing as_of_time range: 2018-01-01 00:00:00 to 2018-01-01 00:00:00 (1 total)
 
 
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
@@ -477,25 +504,56 @@ For more detailed information on your time splits, inspect the experiment `split
            the column names, both due to PostgreSQL limitations.
     
 The experiment looks in good shape. May the force be with you
-:END:
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/base.py:291: SAWarning: Can't validate argument 'autoload_from'; can't locate any SQLAlchemy dialect named 'autoload'
+  (k, dialect_name))
+#+END_SRC
 
-You can execute the experiment as
+You can execute the experiment as 
 
 #+BEGIN_SRC sh
 ./tutorial.sh triage --config_file inspections_test.yaml run
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 Using the config file /triage/experiment_config/inspections_test.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
+Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Executing experiment
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/elements.py:4360: SAWarning: Textual column expression 'entity_id' should be explicitly declared with text('entity_id'), or use column('entity_id') for more specificity (this warning may be suppressed after 10 occurrences)
+  if guess_is_literal else "column"
+/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/elements.py:4360: SAWarning: Textual column expression 'zip_code' should be explicitly declared with text('zip_code'), or use column('zip_code') for more specificity (this warning may be suppressed after 10 occurrences)
+  if guess_is_literal else "column"
+root                            08/03/2018 08:22:01 PM    WARNING      1  predictors.py              156: 1month
+/usr/local/lib/python3.6/site-packages/sklearn/metrics/classification.py:1135: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 due to no predicted samples.
+  'precision', 'predicted', average, warn_for)
+root                            08/03/2018 08:22:08 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:15 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:22 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:29 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:37 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:44 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:51 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:22:59 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:06 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:14 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:21 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:29 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:37 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:46 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:23:54 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:24:03 PM    WARNING      1  predictors.py              156: 1month
+root                            08/03/2018 08:24:10 PM    WARNING      1  predictors.py              156: 1month
 Done
-Experiment completed in 0:01:41.427599 seconds
-:END:
+Experiment completed in 0:02:36.919488 seconds
+#+END_SRC
 
 This will print a lot of output, and if everything is correct it will create 4 matrices (2 for 
 training, 2 for testing) in =triage/matrices=, every matrix will be
@@ -508,9 +566,9 @@ ls /triage/output/matrices | awk -F . '{print $NF}' | sort | uniq -c
 
 #+RESULTS:
 :RESULTS:
-      4 csv
-      4 yaml
-:End:
+     76 csv
+     76 yaml
+:END:
 
 =Triage= also will store 12 trained models in =triage/trained_models=:
 
@@ -614,9 +672,7 @@ results.models where model_id = 7}
 using the standard serialization of sklearn models. This model was
 trained with the matrix src_sql[:results output]{select train_matrix_uuid from
 results.models where model_id = 7} stored in the directory
-=/triage/Matrices=.
-
-
+=/triage/matrices=.
 
 The model =7= used the following hyperparameters:
 
@@ -1010,7 +1066,7 @@ order by metric || parameter, model_id
 Ok, let's add a more complete experiment. First the usual generalities.
 Note that we change =experiment_type=
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 config_version: 'v3'
 
 model_comment: 'inspections'
@@ -1028,7 +1084,7 @@ As before, we set the =triage= special tables that specifies /outcomes/ (that is
 =events_table=) and the one that specifies /states/. These are the
 same, we didn't change anything.
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 events_table: inspections.failed
 
 state_config:
@@ -1039,7 +1095,7 @@ state_config:
 
 Neither to the temporal configuration:
 
-#+BEGIN_SRC  yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC  yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 temporal_config:
     feature_start_time: '2010-02-01'
     feature_end_time: '2018-02-01'
@@ -1080,7 +1136,7 @@ The first big change is that we are adding 3 more /features groups/:
 that all of this referes to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
 /Which is the average of failed inspections in the previous year?/
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 feature_aggregations:
     -
         prefix: 'inspections'
@@ -1175,7 +1231,7 @@ i.e. one model with =inspections= and =results=, another with
 =inspections= and =risks= and another one with =results= and =risks, 
 and then just trying models with =inspections= or =results= or =risks= exclusively.
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 feature_group_definition:
    prefix: ['inspections', 'results', 'risks']
 
@@ -1185,7 +1241,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 Finally, we will try a =RandomForestClassifier=
 
 
-#+BEGIN_SRC yaml :tangle ./triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 grid_config:
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
@@ -1259,10 +1315,3 @@ You can execute the experiment with
 
 Well, know we have a lot of models, How can you pick the best one for
 you? We will show you that when we model the /Early Intervention System/.
-
-
-** What's next?
-
-Do you want to know why the [[file:eis.org][Early Intervention System]] is different
-from the inspections problem? If so, continue reading.
-

@@ -125,6 +125,29 @@ sections of the tutorial) and the tutorial provide a recent container
 with =triage= installed. So, like in a real project you just
 need to worry about the /experiment's configuration file/. 
 
+In the following section of the tutorial we will use an small experiment
+configuration file located in [[../triage/experiment_config/simple_test_skeleton.yaml]]. 
+
+We wll show you how to setup the experiment and at the same time we
+will explain the =triage= inner workings. We will modify the
+configuration file to show the effects of different configuration
+parameters, if you want to follow along, we suggest you copy that file
+and modify by yourself.
+
+You can run that experiment  with:
+
+#+BEGIN_EXAMPLE sh
+
+# Remember to run this in your laptop NOT in bastion!
+
+./tutorial.sh triage --config_file simple_test_skeleton.yaml run
+#+END_EXAMPLE
+
+Everytime that you modify the configuration file and see the effects,
+you should execute the experiment again using the previous command.
+
+
+
 ** A simple =triage= experiment 
 
 In order of exemplify and explain the inner workings of =triage=, we will
@@ -414,7 +437,7 @@ forward in time. [fn:3]
 
 #+NAME: fig:rolling_origin
 #+CAPTION: Cartoonish view of temporal spliting for Machine Learning, each point represents an /as of date/, the orange area are the past of that /as of date/ and is used for feature generation. The blue area is the label span, it lies in the future of the /as of date/.
-#+ATTR_ORG: :width 100 :height 100
+#+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 400
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/rolling-origin.png]]
@@ -505,6 +528,16 @@ The following images (We will show you how to generate them later)
 shows the time blocks created by several temporal configurations. We
 will change  one parameter at the time so you could see how that
 affects the resulting blocks.
+
+If you want to try the modifications (or your own) and generate the
+temporal blocks images run the following:
+
+#+BEGIN_EXAMPLE sh
+
+# Remember to run this in your laptop NOT in bastion!
+
+./tutorial.sh triage --config_file simple_test_skeleton.yaml show_temporal_blocks
+#+END_EXAMPLE
 
 ***** ={feature, label}_{end, start}_time=
 
@@ -1212,7 +1245,7 @@ aggregated and the query to get all the distinct values.
 
 =triage= with this configuration will generate two tables (one per
 /feature group/. The new table will be
-=features.risks_aggregation_imputed=. This table will more Columns:
+=features.risks_aggregation_imputed=. This table will have more columns:
 =intervals= (5) \times =groups= (1) \times =metric= (1) \times /features/ (1) \times /number of choices returned by the query/.
 
 The query:
@@ -1283,137 +1316,84 @@ feature_aggregations:
 
 #+END_EXAMPLE
 
-With this change =triage= will generate =20= new features.
+With this change =triage= will generate =20= new features, as expected.
 
 The features generated from categorical objects will have the
 following pattern:
 
-#+BEGIN_EXAMPLE
+#+BEGIN_EXAMPLE 
 prefix_group_interval_column_choice_aggregation_operation
 #+END_EXAMPLE
 
-So, we will end with =risks_entity_id_1month_risk_medium_sum= for example.
+So,  =risks_entity_id_1month_risk_medium_sum= will be among our new features in the last example.
 
+As a next step, let's investigate the effect of having several
+elements in the =groups= List. 
 
-This will create 3 tables (One for the =entity_id=, one for =zip_code=
-and one for the combination: =entity_id + zip_code=) and one extra
-table for the imputated values.
+#+BEGIN_SRC
+feature_aggregations:
+  -
+    prefix: 'inspections'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
 
+    aggregates:
+      - # number of inspections
+        quantity:
+          total: "*"
 
-For example the tables inside the triage schema are:
+        imputation:
+          count:
+            type: 'mean'
 
-#+BEGIN_SRC sql
-\dt triage.risks*
+        metrics: ['count']
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+        - 'entity_id'
+
+  -
+    prefix: 'risks'
+    from_obj: 'testing_triage.events'
+    knowledge_date_column: 'date'
+
+    categoricals_imputation:
+      sum:
+        type: 'zero'
+
+    categoricals:
+      -
+        column: 'risk'
+        choices: ['low', 'medium', 'high']
+          metrics:
+            - 'sum'
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+      - 'entity_id'
+      - 'zip_code'
+
 #+END_SRC
 
-#+RESULTS:
-:RESULTS:
-| List of relations |                         |       |          |
-|-------------------+-------------------------+-------+----------|
-| Schema            | Name                    | Type  | Owner    |
-| triage            | risks_aggregation        | table | food_user |
-| triage            | risks_aggregation_imputed | table | food_user |
-| triage            | risks_entity_id           | table | food_user |
-| triage            | risks_zip_code            | table | food_user |
-:END:
-
-And inside =test_risk_aggregation= the columns are:
-
-#+BEGIN_SRC sql
-\d triage.risks_aggregation
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| Table "triage.risks_aggregation"  |                   |           |
-|----------------------------------+-------------------+-----------|
-| Column                           | Type              | Modifiers |
-| zip_code                          | character varying |           |
-| date                             | date              |           |
-| entity_id                         | bigint            |           |
-| risks_entity_id_1 year_risk_high_avg   | numeric           |           |
-| risks_entity_id_1 year_risk_medium_avg | numeric           |           |
-| risks_entity_id_1 year_risk_low_avg    | numeric           |           |
-| risks_zip_code_1 year_risk_high_avg    | numeric           |           |
-| risks_zip_code_1 year_risk_medium_avg  | numeric           |           |
-| risks_zip_code_1 year_risk_low_avg     | numeric           |           |
-:END:
-
-
-The =triage.risks_zip_code= table
-have two feature columns for every zip code in our table =triage.test=,
-looking at the total and average number of complaints in that
-=zip_code= over the year prior and 2 months prior to the date in the =date= column.
-
-
-#+BEGIN_SRC sql
-select * from triage.risks_zip_code  order by date limit 5;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| zip_code |       date | risks_zip_code_1 year_risk_high_avg | risks_zip_code_1 year_risk_medium_avg | risks_zip_code_1 year_risk_low_avg |
-|---------+------------+-------------------------------+---------------------------------+------------------------------|
-|   60621 | 2014-10-06 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2014-10-08 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2015-01-12 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2015-10-20 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2016-10-17 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-:END:
-
-The table =triage.risks_entity_id= contains two feature columns for each
-license that describe the total number of complaints
-the past one year.
-
-#+BEGIN_SRC sql
-select * from triage.risks_entity_id  order by date limit 5;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| entity_id |       date | risks_entity_id_1 year_risk_high_avg | risks_entity_id_1 year_risk_medium_avg | risks_entity_id_1 year_risk_low_avg |
-|----------+------------+--------------------------------+----------------------------------+-------------------------------|
-|     9547 | 2014-10-06 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
-|     9547 | 2014-10-08 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
-|     9547 | 2015-01-12 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
-|     9547 | 2015-10-20 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
-|     9547 | 2016-10-17 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |
-:END:
-
-The =triage.risk_aggregation= table joins these results together to make
-it easier to look at both zip_code and facility-level effects
-for any given facility.
-
-#+BEGIN_SRC sql
-select * from triage.risks_aggregation order by date limit 5;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| zip_code |       date | entity_id | risks_entity_id_1 year_risk_high_avg | risks_entity_id_1 year_risk_medium_avg | risks_entity_id_1 year_risk_low_avg | risks_zip_code_1 year_risk_high_avg | risks_zip_code_1 year_risk_medium_avg | risks_zip_code_1 year_risk_low_avg |
-|---------+------------+----------+--------------------------------+----------------------------------+-------------------------------+-------------------------------+---------------------------------+------------------------------|
-|   60621 | 2014-10-06 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2014-10-08 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2015-01-12 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2015-10-20 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-|   60621 | 2016-10-17 |     9547 |         0.00000000000000000000 |           1.00000000000000000000 |        0.00000000000000000000 |        0.00000000000000000000 |          1.00000000000000000000 |       0.00000000000000000000 |
-:END:
-
-
-Finally, the =triage.risks_aggregated_imputed= table fills in null values using the
-imputation rules specified in the =Categorical= constructor.
+The number of features created in the table
+=features.risks_aggregation_imputed= is now 40 
+(=intervals= (5) \times =groups= (1) \times =metric= (2) \times /features/ (1) \times
+/number of choices + 1/ (3 + 1)). 
 
 
 ** Machine learning governance: The =RESULTS= schema
 
-While =triage= is executing the experiment, it will create a new schema,
-called =results=. This schema has the goal of storing the output of the
-models and describing the features, parameters and hyperparameters
-used in their training.
+When =triage= executes the experiment, it creates a new schema for
+storing the output of the experiment, called =results=. This Schema
+ stores the metadata of the trained models, features, parameters and hyperparameters
+used in their training. It also stores the results of the evaluation
+of the models on the test sets.
 
 The tables contained in =results= are:
 
-#+BEGIN_SRC sql
+#+BEGIN_SRC sql 
 \dt results.*
 #+END_SRC
 
@@ -1467,12 +1447,12 @@ This table has the two columns: =experiment_hash= and =config=
 | TABLE "results.models" CONSTRAINT "models_experiment_hash_fkey" FOREIGN KEY (experiment_hash) REFERENCES results.experiments(experiment_hash) |                   |           |
 :END:
 
-=experiment_hash= contains the hash of the config that we used for our
-=triage= run. =config= that  contains the 
-configuration experiment file  that we used for our Triage run, stored
-as =jsonb= 
+=experiment_hash= contains the hash of the configuration file that we used for our
+=triage= run[fn:8]. =config= that  contains the 
+configuration experiment file  that we used for our =triage= run, stored
+as =jsonb= .
 
-We can note for our future selfs: If we are interested in all models 
+We could use the following advise in the future: If we are interested in all models 
 that resulted from a certain config, we could  lookup that config In
 =results.experiments= and then use its =experiment_hash=  on other tables
 to find all the models that resulted from that configuration.
@@ -1480,7 +1460,8 @@ to find all the models that resulted from that configuration.
 **** =results.model_groups=
 
 Do you remember how we defined in =grid_config= the different
-classifiers that we want =triage= to train? For example, we  said:
+classifiers that we want =triage= to train? For example, we could use
+in a configuration file the following:
 
 #+BEGIN_EXAMPLE yaml
     'sklearn.tree.DecisionTreeClassifier':
@@ -1504,6 +1485,15 @@ each configuration (=model_group_id=). We can leverage the =model_group_id=
 to find all the models that were trained by using the  same config,
 but across different slices of time. 
 
+In our simple test configuration file we have:
+
+#+BEGIN_EXAMPLE yaml
+    'sklearn.dummy.DummyClassifier':
+        strategy: [most_frequent]
+#+END_EXAMPLE
+
+Therefore, if we run the following
+
 #+BEGIN_SRC sql
 select 
 model_group_id, model_type, model_parameters, model_config
@@ -1514,9 +1504,9 @@ limit 1
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_parameters                   | model_config                                             |
-|--------------+-------------------------------------+-----------------------------------+---------------------------------------------------------|
-|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1} | {"experiment_type": "test", "label_definition": "failed"} |
+| model_group_id | model_type                     | model_parameters              | model_config                             |
+|--------------+-------------------------------+------------------------------+-----------------------------------------|
+|            1 | sklearn.dummy.DummyClassifier | {"strategy": "most_frequent"} | {"label_definition": "inspection_failed"} |
 :END:
 
 You can see that a model group is defined by the classifier
@@ -1668,13 +1658,13 @@ limit 5
 
 #+RESULTS:
 :RESULTS:
-| model_id | evaluation_start_time | evaluation_end_time   | as_of_date_frequency | metric     | parameter |               value | num_labeled_examples | num_labeled_above_threshold | num_positive_labels | sort_seed |
-|---------+---------------------+---------------------+-------------------+------------+-----------+---------------------+--------------------+--------------------------+-------------------+----------|
-|       1 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | 1 mon             | precision@ | 5.0_pct    |  0.2653061224489796 |               1034 |                       49 |               247 |        5 |
-|       1 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | 1 mon             | recall@    | 5.0_pct    | 0.05263157894736842 |               1034 |                       49 |               247 |        5 |
-|       1 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | 1 mon             | precision@ | 10.0_pct   |  0.2641509433962264 |               1034 |                      106 |               247 |        5 |
-|       1 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | 1 mon             | recall@    | 10.0_pct   | 0.11336032388663968 |               1034 |                      106 |               247 |        5 |
-|       1 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | 1 mon             | precision@ | 5_abs      |                 0.0 |               1034 |                        0 |               247 |        5 |
+| model_id | evaluation_start_time | evaluation_end_time   | as_of_date_frequency | metric     | parameter | value | num_labeled_examples | num_labeled_above_threshold | num_positive_labels | sort_seed |
+|---------+---------------------+---------------------+-------------------+------------+-----------+-------+--------------------+--------------------------+-------------------+----------|
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | 1 year            | precision@ | 1.0_pct    |   0.0 |                  2 |                        0 |                 2 |        5 |
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | 1 year            | recall@    | 1.0_pct    |   0.0 |                  2 |                        0 |                 2 |        5 |
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | 1 year            | precision@ | 5.0_pct    |   0.0 |                  2 |                        0 |                 2 |        5 |
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | 1 year            | recall@    | 5.0_pct    |   0.0 |                  2 |                        0 |                 2 |        5 |
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | 1 year            | precision@ | 10.0_pct   |   0.0 |                  2 |                        0 |                 2 |        5 |
 :END:
 
 This table lets us answer: /how a model_group is performing across the different time slices?/:
@@ -1697,19 +1687,21 @@ order by model_id, evaluation_start_time, parameter;
 
 #+RESULTS:
 :RESULTS:
-| model_id | evaluation_start_time | evaluation_end_time   | metric     | parameter |               value |
-|---------+---------------------+---------------------+------------+-----------+---------------------|
-|       1 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | precision@ | 5.0_pct    |  0.2653061224489796 |
-|       7 | 2017-01-01 00:00:00 | 2017-01-01 00:00:00 | precision@ | 5.0_pct    | 0.29333333333333333 |
+| model_id | evaluation_start_time | evaluation_end_time   | metric     | parameter | value |
+|---------+---------------------+---------------------+------------+-----------+-------|
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | precision@ | 100.0_pct  |   1.0 |
+|       1 | 2015-01-01 00:00:00 | 2015-01-01 00:00:00 | precision@ | 5.0_pct    |   0.0 |
+|       2 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | precision@ | 100.0_pct  |   0.5 |
+|       2 | 2016-01-01 00:00:00 | 2016-01-01 00:00:00 | precision@ | 5.0_pct    |   0.0 |
+|       3 | 2017-01-01 00:00:00 | 2017-01-01 00:00:00 | precision@ | 100.0_pct  |   1.0 |
+|       3 | 2017-01-01 00:00:00 | 2017-01-01 00:00:00 | precision@ | 5.0_pct    |   0.0 |
 :END:
 
 /What does this query tell us?/
 
 We can now see how the different instances (trained on different time
 slices, but with same model params) of one of our models perform over
-time. We are including the =precision@5.0_pct= to see what the *baseline*
-is. As you can see above, our model is beating the baseline in every
-year. Note how we only included the /models/ that belong to Our
+time.  Note how we only included the /models/ that belong to our
 /model group/ =1=. 
 
 **** =results.predictions=
@@ -1732,9 +1724,9 @@ limit 1
 
 #+RESULTS: prediction-example
 :RESULTS:
-| model_id | entity_id | as_of_date            |               score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
-|---------+----------+---------------------+---------------------+------------+---------+---------+----------------------------------+-------------------|
-|       1 |        1 | 2016-01-01 00:00:00 | 0.21631588415182587 | [NULL]     | [NULL]  | [NULL]  | f5ba9602cf9da2cc2fa74eede6ef6d17 | 1 mon             |
+| model_id | entity_id | as_of_date            | score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
+|---------+----------+---------------------+-------+------------+---------+---------+----------------------------------+-------------------|
+|       1 |     9582 | 2015-01-01 00:00:00 |   0.0 |          1 | [NULL]  | [NULL]  | 95bc2ddd9a22090af4e2e3610a913f6e | 1 year            |
 :END:
 
 
@@ -1742,9 +1734,9 @@ limit 1
 As you can see, the table contains our models' predictions for a given
 entity and date. In the case above, our /model/ (=model_id   1=)
 predicted a score of src_emacs-lisp[:var d=prediction-example[2,3]]{d}
-{{{results(=0.21631588415182587=)}}} . The true label was
+{{{results(=0.0=)}}} . The true label was
 src_emacs-lisp[:var d=prediction-example[2,4]]{d}
-{{{results(=[NULL]=)}}}. 
+{{{results(=1=)}}}. 
 
 And do you notice the field =matrix_uuid=? Doesn't it look similar to
 the fields from above that gave us the names of our training matrices?
@@ -1801,13 +1793,33 @@ Triage's postmodeling capabilities include:
 If you want to see *Audition* and *Postmodeling* in action please refer
 [[file:inspections.org][Inspections modeling]] or to [[file:eis.org][EIS modeling]] for practical examples.
 
+** Final cleaning
 
-** What's next?
+In the next section we will start modeling, so it is a good idea to
+clean the =results= schema, and have a fresh Start:
 
-We will begin with [[file:inspections.org][Inspections problem]], let's go for It
+#+BEGIN_SRC sql
+drop schema if exists results cascade;
+drop schema if exists features cascade;
+drop table if exists labels cascade;
+#+END_SRC
+
+#+Results:
+
+=triage= also creates a lot of files (we will see why in the next section), let's remove them too
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+rm -r /triage/output
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+:END:
+
 
 * Footnotes
 
+[fn:8] Literally from the configuration file. If you modify something it will generate a new hash. Handle with care!
 
 [fn:7] =triage= will generate also a new binary column that indicates if the
 value of the feature was imputed (=1=) or not (=0=): =inspections_entity_id_6month_total_count_imp=.
