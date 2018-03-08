@@ -1,15 +1,15 @@
 create schema if not exists inspections;
 
 create temp table inspections_outcomes as (
-select inspection, entity_id, date,
+select event_id, entity_id, date,
    (result = 'fail') as failed,
    (result = 'fail' and
        ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
    ) as failed_major_violation
 from
-   (select inspection, entity_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
+   (select event_id, entity_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
 as t1
-group by inspection, entity_id, date, result
+group by event_id, entity_id, date, result
 );
 
 
