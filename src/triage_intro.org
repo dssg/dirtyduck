@@ -1809,7 +1809,8 @@ drop table if exists labels cascade;
 =triage= also creates a lot of files (we will see why in the next section), let's remove them too
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
-rm -r /triage/output
+rm -r /triage/output/matrices/*
+rm -r /triage/output/trained_models/*
 #+END_SRC
 
 #+RESULTS:
