@@ -151,8 +151,25 @@ you should execute the experiment again using the previous command.
 ** A simple =triage= experiment 
 
 In order of exemplify and explain the inner workings of =triage=, we will
-create a toy subset of the =semantic.events= with  two facilities
-(=entity_id=s =9582= and =10854=).
+create a toy subset of the =semantic.events= with  the top two facilities in number of Inspections
+
+#+BEGIN_SRC sql
+select entity_id, count(*) from
+semantic.events
+group by entity_id
+order by count(*) desc
+limit 2
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id | count |
+|----------+-------|
+|     9583 |    45 |
+|    10855 |    44 |
+:END:
+
+(In our case =entity_id=s =9583= and =10855=, could be different for you).
 
 Create a new =schema= called =testing_triage=
 
@@ -162,7 +179,7 @@ create schema if not exists testing_triage;
 
 #+RESULTS:
 
-Create a table named =testing_triage.events= with the entities =9582= and =10854=
+Create a table named =testing_triage.events= with the entities =9583= and =10855=
 
 #+BEGIN_SRC  sql :tangle ./sql/create_testing_triage.sql
 drop table if exists testing_triage.events;
@@ -177,7 +194,7 @@ type as inspection_type, risk, -- variables
 violations, -- json array of variables
 date, location, zip_code -- spatio temporal dimensions
 from semantic.events
-where entity_id in (9582, 10854)
+where entity_id in (9583, 10855)
 )
 #+END_SRC
 
@@ -202,11 +219,11 @@ limit 5
 :RESULTS:
 | entity_id | inspection_type | risk   | result |       date | zip_code |
 |----------+----------------+--------+--------+------------+---------|
-|    10854 | complaint      | high   | pass   | 2017-10-04 |   60636 |
-|    10854 | complaint      | high   | fail   | 2017-09-26 |   60636 |
-|    10854 | canvass        | high   | pass   | 2017-06-20 |   60636 |
-|     9582 | complaint      | medium | pass   | 2017-02-21 |   60621 |
-|     9582 | complaint      | medium | fail   | 2017-02-10 |   60621 |
+|    10855 | complaint      | high   | pass   | 2017-10-04 |   60636 |
+|    10855 | complaint      | high   | fail   | 2017-09-26 |   60636 |
+|    10855 | canvass        | high   | pass   | 2017-06-20 |   60636 |
+|     9583 | complaint      | medium | pass   | 2017-02-21 |   60621 |
+|     9583 | complaint      | medium | fail   | 2017-02-10 |   60621 |
 :END:
 
 
@@ -269,11 +286,11 @@ select * from testing_triage.outcomes limit 5;
 :RESULTS:
 | entity_id | outcome_date | outcome |
 |----------+-------------+---------|
-|     9582 |  2016-02-17 | f       |
-|     9582 |  2016-02-25 | f       |
-|     9582 |  2011-04-22 | f       |
-|     9582 |  2012-02-29 | t       |
-|     9582 |  2012-02-21 | t       |
+|     9583 |  2016-02-17 | f       |
+|     9583 |  2016-02-25 | f       |
+|     9583 |  2011-04-22 | f       |
+|     9583 |  2012-02-29 | t       |
+|     9583 |  2012-02-21 | t       |
 :END:
 
 The distribution of the outcomes is
@@ -312,7 +329,7 @@ create table testing_triage.active_facilities as (
     end as end_time,
     'active' as state 
     from semantic.entities
-    where entity_id in (9582, 10854)
+    where entity_id in (9583, 10855)
 );
 
 #+END_SRC
@@ -331,8 +348,8 @@ select entity_id, start_time, end_time, state
 :RESULTS:
 | entity_id |  start_time |    end_time | state  |
 |----------+------------+------------+--------|
-|     9582 | 2010-02-24 | 2017-09-15 | active |
-|    10854 | 2010-01-08 | 2020-01-01 | active |
+|     9583 | 2010-02-24 | 2017-09-15 | active |
+|    10855 | 2010-01-08 | 2020-01-01 | active |
 :END:
 
 Note that the entity =10854= is still active and =9582= is not active
@@ -823,7 +840,7 @@ temporal_config:
 
 
 #+NAME: fig:timechop_9
-#+CAPTION: The label time horizon in testing is smaller
+#+CAPTION: The label time horizon in the test dataset now is smaller
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
@@ -850,7 +867,7 @@ temporal_config:
 
 
 #+NAME: fig:timechop_10
-#+CAPTION: The label time horizon is smaller in trainning, also, now we have more room for more rows per entity.
+#+CAPTION: The label time horizon is smaller in the trainning dataset, one side effect is that now we have more room for more rows per entity.
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
