@@ -989,7 +989,7 @@ select count(entity_id) from semantic.entities
 :END:
 
 
-** Events table
+*** Events table
 
 We are ready for creating our events table. This table will describe
 the data related to the inspection, like /where/ and /when/ the

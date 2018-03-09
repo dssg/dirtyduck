@@ -6,7 +6,6 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: Indent
-# +EXPORT_FILE_NAME: ../infrastructure/web/html/index.html
 #+EXPORT_FILE_NAME: index.html
 #+SETUPFILE: tutorial.setup
 
@@ -14,9 +13,8 @@
 #+INCLUDE: infrastructure.org :minlevel 1
 #+INCLUDE: data_preparation.org :minlevel 1
 # +INCLUDE: data_exploration.org :minlevel 1
-#+INCLUDE: triage_intro.org :minlevel 1
+#+INCLUDE: triage_intro.org :minlevel 1x
 #+INCLUDE: inspections.org :minlevel 1
 #+INCLUDE: eis.org :minlevel 1
-# +INCLUDE: triage_deeper.org :minlevel 1
 #+INCLUDE: quick_setup.org :minlevel 1
 
