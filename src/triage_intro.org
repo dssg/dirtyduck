@@ -575,7 +575,7 @@ are =2017= and =2018=, in "Block 1" they are =2016= and =2017=.
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_1.svg]]
+[[./images/timechop_1.png]]
 
 
 The shaded areas (in this image there is just one per block, but you
@@ -621,7 +621,7 @@ data for labels) as is shown in the following image and in their
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_2.svg]]
+[[./images/timechop_2.png]]
 
 
 #+BEGIN_EXAMPLE yaml
@@ -670,7 +670,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_3.svg]]
+[[./images/timechop_3.png]]
 
 
 ***** =max_training_histories=
@@ -703,7 +703,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_4.svg]]
+[[./images/timechop_4.png]]
 
 ***** =_as_of_date_frequencies= and =test_durations=
 
@@ -731,7 +731,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_5.svg]]
+[[./images/timechop_5.png]]
 
 Now, change =test_as_of_date_frequencies=
 
@@ -759,7 +759,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_6.svg]]
+[[./images/timechop_6.png]]
 
 Nothing change, the reason for that is that the test set doesn't have
 "space" to allow more spans. The "space" is controlled by =test_durations=, let's move that to to =6month=
@@ -788,7 +788,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_7.svg]]
+[[./images/timechop_7.png]]
 
 So, now we will move both parameters: =test_durations=, =test_as_of_date_frequencies=
 
@@ -816,7 +816,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_8.svg]]
+[[./images/timechop_8.png]]
 
 ***** =-label_timespans=
 
@@ -844,7 +844,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_9.svg]]
+[[./images/timechop_9.png]]
 
 
 #+BEGIN_EXAMPLE yaml
@@ -871,7 +871,7 @@ temporal_config:
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/timechop_10.svg]]
+[[./images/timechop_10.png]]
 
 That's it! Now you have the power of time bending[fn:4]!
 

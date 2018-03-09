@@ -82,5 +82,4 @@ You could check that (from =psql=) With
 | semantic        | food_user |
 :END:
 
-Now you can continue with [[file:triage_intro.org][Introduction to triage]]. 
-
+Now you can continue to the introduction to triage section.

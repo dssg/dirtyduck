@@ -88,7 +88,7 @@ show the meaning of the /outcomes/ for /inspection failed/ problem definition.
 #+NAME: fig:outcomes-inspections
 #+CAPTION: The image shows three facilities and next to each of them, a temporal line with 6 days (0-5) each dot represents an inspection. Green means that the inspection had a result "Pass", red that the inspection "Fail". Each of the facilities in the image had two inspections, but only the facility in the middle completed both without fails.
 #+ATTR_ORG: :width 600 :height 400
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/outcomes-inspections.png]]
 
@@ -302,12 +302,13 @@ Experiment loaded
 Generating temporal blocks image
 Image stored in:
 /triage/output/images/inspections_test.svg
-#+END_SRC
+#+End_src
 
+#+CAPTION: Temporal blocks for inspections_test experiment
 #+ATTR_ORG: :width 600 :height 400
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/triage/inspections_test.svg]]
+[[./images/inspections_test.png]]
 
 We need to specify the table that keeps our labels, for this first
 experiment we will use the label =failed=, stored in =inspections.labels=.
@@ -531,11 +532,11 @@ represented by two files, one with the metadata  of the matrix (a
 ls /triage/output/matrices | awk -F . '{print $NF}' | sort | uniq -c
 #+END_SRC
 
-#+RESULTS:
-:RESULTS:
+#+Results:
+#+BEGIN_SRC org
       6 csv
       6 yaml
-:END:
+#+END_SRC
 
 =Triage= also will store 18 trained models in =triage/trained_models=:
 
@@ -544,9 +545,9 @@ ls /triage/output/trained_models | wc -l
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
+#+BEGIN_SRC org
 18
-:END:
+#+END_SRC
 
 And it will populate the =results= schema in the database, as
 commented above, we will get =6= /model groups/:
@@ -729,8 +730,11 @@ Image stored in:
 ['/triage/output/images/model_7_tree_0.svg']
 #+End_src
 
-
-[[./images/triage/model_7_tree_0.svg]]
+#+CAPTION: Graphical representation of the trained model no.7: Decision Tree Classifier (max_depth:1, max_features:1) 
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 400 :height 300
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/model_7_tree_0.png]]
 
 This tree makes kind of sense, if the facility had more than 1.5
 inspections related to food poisoning then it will fail the
@@ -1017,8 +1021,6 @@ For more detailed information on your time splits, inspect the experiment `split
 The experiment looks in good shape. May the force be with you
 #+END_SRC
 
-
-
 You can execute the experiment as
 
 #+BEGIN_SRC sh
@@ -1161,8 +1163,11 @@ Image stored in:
 /triage/output/images/inspections.svg
 #+End_src
 
-
-[[./images/triage/inspections.svg]]
+#+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 800 :height 800
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/inspections.png]]
 
 The first big change is that we are adding 3 more /features groups/:
 =inspections= (we already use this), =risks=, and =results=. Remember

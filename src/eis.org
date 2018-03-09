@@ -299,7 +299,11 @@ Image stored in:
   """)
 #+End_src
 
-[[./images/triage/eis.svg]]
+#+CAPTION: Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/eis.png]]
 
 **** Features
 
@@ -835,4 +839,3 @@ Auditing experiment
   - Run =pgdedup= and had a better =semantic.entities=?
   - Routing based on the inspection list?
   - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)? 
-
