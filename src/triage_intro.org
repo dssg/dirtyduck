@@ -438,7 +438,7 @@ forward in time. [fn:3]
 #+NAME: fig:rolling_origin
 #+CAPTION: Cartoonish view of temporal spliting for Machine Learning, each point represents an /as of date/, the orange area are the past of that /as of date/ and is used for feature generation. The blue area is the label span, it lies in the future of the /as of date/.
 #+ATTR_ORG: :width 600 :height 400
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 800
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/rolling-origin.png]]
 
@@ -556,7 +556,7 @@ are =2017= and =2018=, in "Block 1" they are =2016= and =2017=.
 #+NAME: fig:timechop_1
 #+CAPTION: feature and label start, end time equal
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_1.svg]]
 
@@ -602,7 +602,7 @@ data for labels) as is shown in the following image and in their
 #+NAME: fig:timechop_2
 #+CAPTION: feature_start_time different different that label_start_time.
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_2.svg]]
 
@@ -651,7 +651,7 @@ temporal_config:
 #+NAME: fig:timechop_3
 #+CAPTION: A smaller model_update_frequency (from 1y to 6month) (The number of blocks grew)
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_3.svg]]
 
@@ -684,7 +684,7 @@ temporal_config:
 #+NAME: fig:timechop_4
 #+CAPTION: The size of the block is bigger now
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_4.svg]]
 
@@ -712,7 +712,7 @@ temporal_config:
 #+NAME: fig:timechop_5
 #+CAPTION: More rows per entity in the training block
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_5.svg]]
 
@@ -740,7 +740,7 @@ temporal_config:
 #+NAME: fig:timechop_6
 #+CAPTION: We should get more rows per entity in the test matrix, but that didn't happen. Why?
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_6.svg]]
 
@@ -769,7 +769,7 @@ temporal_config:
 #+NAME: fig:timechop_7
 #+CAPTION: The test duration is bigger now, so we got 6 rows (since the "base" frequency is 1 month)
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_7.svg]]
 
@@ -797,7 +797,7 @@ temporal_config:
 #+NAME: fig:timechop_8
 #+CAPTION: With more room in testing, now test_as_of_date_frequencies has some effect.
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_8.svg]]
 
@@ -825,9 +825,10 @@ temporal_config:
 #+NAME: fig:timechop_9
 #+CAPTION: The label time horizon in testing is smaller
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_9.svg]]
+
 
 #+BEGIN_EXAMPLE yaml
 temporal_config:
@@ -851,7 +852,7 @@ temporal_config:
 #+NAME: fig:timechop_10
 #+CAPTION: The label time horizon is smaller in trainning, also, now we have more room for more rows per entity.
 #+ATTR_ORG: :width 100 :height 100
-#+ATTR_HTML: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_10.svg]]
 
