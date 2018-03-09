@@ -297,13 +297,9 @@ Image stored in:
 /triage/output/images/eis.svg
 /usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
   """)
-#+END_SRC
+#+End_src
 
-
-
-
-
-[[./triage/eis.svg]]
+[[./images/triage/eis.svg]]
 
 **** Features
 
