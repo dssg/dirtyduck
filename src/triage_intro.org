@@ -905,19 +905,19 @@ where outcome_date <@ daterange('2016-01-01', '2017-01-01')
 :RESULTS:
 | entity_id | outcome_date | outcome |
 |----------+-------------+---------|
-|     9582 |  2016-02-17 | f       |
-|     9582 |  2016-02-25 | f       |
-|     9582 |  2016-06-15 | f       |
-|     9582 |  2016-08-26 | f       |
-|     9582 |  2016-12-22 | f       |
-|     9582 |  2016-08-11 | f       |
-|    10854 |  2016-08-03 | t       |
-|    10854 |  2016-08-12 | t       |
-|    10854 |  2016-08-31 | f       |
-|    10854 |  2016-08-16 | f       |
-|    10854 |  2016-07-06 | f       |
-|    10854 |  2016-06-24 | t       |
-|    10854 |  2016-06-17 | t       |
+|     9583 |  2016-02-17 | f       |
+|     9583 |  2016-02-25 | f       |
+|     9583 |  2016-06-15 | f       |
+|     9583 |  2016-08-26 | f       |
+|     9583 |  2016-08-11 | f       |
+|     9583 |  2016-12-22 | f       |
+|    10855 |  2016-08-03 | t       |
+|    10855 |  2016-08-12 | t       |
+|    10855 |  2016-08-31 | f       |
+|    10855 |  2016-08-16 | f       |
+|    10855 |  2016-07-06 | f       |
+|    10855 |  2016-06-24 | t       |
+|    10855 |  2016-06-17 | t       |
 :END:
 
 We observe that both facilities will receive a bunch of inspections,
@@ -940,9 +940,9 @@ group by entity_id
 :RESULTS:
 | entity_id | label |   as_of_date |
 |----------+-------+------------|
-|     9582 | f     | 2016-01-01 |
-|    10854 | t     | 2016-01-01 |
-:End:
+|     9583 | f     | 2016-01-01 |
+|    10855 | t     | 2016-01-01 |
+:END:
 
 =Triage= will take care of doing the previous process for every /as of
 date/ calculated by =timechop=.
@@ -999,12 +999,12 @@ order by date desc
 :RESULTS:
 | event_id |       date | entity_id | risk   |
 |---------+------------+----------+--------|
-| 1591635 | 2015-12-14 |     9582 | medium |
-| 1588811 | 2015-11-24 |     9582 | medium |
-| 1583272 | 2015-10-21 |     9582 | medium |
-| 1575838 | 2015-09-21 |     9582 | medium |
-| 1547420 | 2015-08-28 |    10854 | high   |
-| 1547403 | 2015-08-20 |    10854 | high   |
+| 1591635 | 2015-12-14 |     9583 | medium |
+| 1588811 | 2015-11-24 |     9583 | medium |
+| 1583272 | 2015-10-21 |     9583 | medium |
+| 1575838 | 2015-09-21 |     9583 | medium |
+| 1547420 | 2015-08-28 |    10855 | high   |
+| 1547403 | 2015-08-20 |    10855 | high   |
 :END:
 
 We can transform that data to two features =number_of_inspections=
@@ -1022,10 +1022,10 @@ group by grouping sets(entity_id)
 
 #+RESULTS:
 :RESULTS:
-| entity_id |   as_of_date | number_of_inspections | flagged_as_high_risk |
-|----------+------------+---------------------+-------------------|
-|     9582 | 2016-01-01 |                   4 |                 0 |
-|    10854 | 2016-01-01 |                   2 |                 2 |
+| entity_id |   as_of_date | inspections | flagged_as_high_risk |
+|----------+------------+-------------+-------------------|
+|     9583 | 2016-01-01 |           4 |                 0 |
+|    10855 | 2016-01-01 |           2 |                 2 |
 :END:
 
 This query is making an /aggregation/. Note that the previous =SQL=
@@ -1057,8 +1057,8 @@ group by grouping sets(entity_id)
 :RESULTS:
 | entity_id |   as_of_date | inspections | flagged_as_high_risk | passed_inspections | proportion_of_passed_inspections | failed_inspections | proportion_of_failed_inspections |
 |----------+------------+-------------+-------------------+-------------------+-------------------------------+-------------------+-------------------------------|
-|     9582 | 2016-01-01 |           4 |                 0 |                 4 |                          1.00 |                 0 |                          0.00 |
-|    10854 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
+|     9583 | 2016-01-01 |           4 |                 0 |                 4 |                          1.00 |                 0 |                          0.00 |
+|    10855 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
 :END:
 
 But, what if we want to add also features for "medium" and "low" risk?
@@ -1744,7 +1744,7 @@ limit 1
 :RESULTS:
 | model_id | entity_id | as_of_date            | score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
 |---------+----------+---------------------+-------+------------+---------+---------+----------------------------------+-------------------|
-|       1 |     9582 | 2015-01-01 00:00:00 |   0.0 |          1 | [NULL]  | [NULL]  | 95bc2ddd9a22090af4e2e3610a913f6e | 1 year            |
+|       1 |     9583 | 2015-01-01 00:00:00 |   0.0 |          1 | [NULL]  | [NULL]  | 95bc2ddd9a22090af4e2e3610a913f6e | 1 year            |
 :END:
 
 
