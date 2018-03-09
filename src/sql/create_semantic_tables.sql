@@ -86,7 +86,8 @@ i.date, i.risk, i.result
 )
 
 select
-i.inspection, e.entity_id, i.type, i.date, i.risk, i.result,
+i.inspection as event_id, 
+e.entity_id, i.type, i.date, i.risk, i.result,
 e.facility_type, e.zip_code, e.location,
 i.violations
 from entities as e
@@ -98,7 +99,7 @@ using (license_num, facility, facility_aka, facility_type, address, zip_code)
 
 -- Add some indices
 create index events_entity_ix on semantic.events (entity_id);
-create index events_inspection_ix on semantic.events (inspection);
+create index events_event_ix on semantic.events (event_id);
 create index events_type_ix on semantic.events (type);
 create index events_date_ix on semantic.events(date desc nulls last);
 create index events_facility_type_ix on semantic.events  (facility_type);
@@ -111,4 +112,4 @@ create index events_location_gix on semantic.events using gist (location);
 create index events_violations on semantic.events using gin(violations);
 create index events_violations_json_path on semantic.events using gin(violations jsonb_path_ops);
 
-create index events_inspection_entity_zip_code_date on semantic.events (inspection desc nulls last, entity_id, zip_code, date desc nulls last);
+create index events_event_entity_zip_code_date on semantic.events (event_id desc nulls last, entity_id, zip_code, date desc nulls last);

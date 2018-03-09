@@ -145,99 +145,84 @@ The transformation "road" that we will take in this tutorial is as follows:
 5. Finally, =triage= will take over, and it will create the schema =results=.
 
 #+NAME: data_road
-#+CAPTION: Data's roadmap : from raw to triage
-#+BEGIN_SRC ditaa :file img/data_road.png :cmdline -r -s 1.2 :export results
-                                     GRO Architecture
------------------------------------------------------------------------------------------------------ 
-                                       Top Modules
- /----------\                                                                                         
- |    GUI   |                                                                                         
- | cRED     |                                                                                         
- +----------+                                                                                         
----------=----------------------------------------------------------------------------------=--------
- +----------+ +-----------\/-----------------\/--------+ 
- | UCI      | |LUCI-SHARED|| SDK-LIBC-SCRIPT || DNSMASQ| 
- | c516     | | cBLU      || cBLU            ||   cBLU | 
- +----------+ +-----------/\-----------------/\--------+ 
------------------------------------------------------------------------------------------------------ 
-                                       Lower Modules
- +-----------------------------------------------------------------------------------------------+
- |                                         netfilter                                             |
- |  +------------------+                                                                         |
- |  | Access Control   |                                                                         |
- |  |   c277           |                                                                         |
- |  +------------------+                                                                         |
- |                                           cA7A                                                |
- +-----------------------------------------------------------------------------------------------+
- +-----------+  +--------------+ 
- |SDK-LIBC   |  | Busybox      |
- |cBLU       |  | Driver  cPNK |
- +-----------+  +--------------+
-                                
-
-    +-----------+        +---------+
-    |    PLC    |        |         |
-    |  Network  +<------>+   PLC   +<---=---------+
-    |    cRED   |        |  c707   |              |
-    +-----------+        +----+----+              |
-                              ^                   |
-                              |                   |
-                              |  +----------------|-----------------+
-                              |  |                |                 |
-                              v  v                v                 v
-      +----------+       +----+--+--+      +-------+---+      +-----+-----+       Windows clients
-      |          |       |          |      |           |      |           |      +----+      +----+
-      | Database +<----->+  Shared  +<---->+ Executive +<-=-->+ Operator  +<---->|cYEL| . . .|cYEL|
-      |   c707   |       |  Memory  |      |   c707    |      | Server    |      |    |      |    |
-      +--+----+--+       |{d} cGRE  |      +------+----+      |   c707    |      +----+      +----+
-         ^    ^          +----------+             ^           +-------+---+
-         |    |                                   |
-         |    +--------=--------------------------+
-         v
-+--------+--------+
-|                 |
-| Millwide System |            -------- Data ---------
-| cBLU            |            --=----- Signals ---=--
-+-----------------+
-                                                                      
-  +-------------+
-  |   UCI       |
-  |   c516      |
-  +------+------+
-         | config get
-         v                   /----------------------------------------------------\
-  +-------------+            | - Translate configratuion items from UCI to uci    |
-  | LUCI-SHARED |............| - Provide luci script to bring up feature          |
-  |    cBLU     |            | - Provide Ada scripts                              |
-  +------+------+            \----------------------------------------------------/
-         |
+#+CAPTION: Data's transformation roadmap : from raw to triage
+#+BEGIN_SRC ditaa :file images/data_road.png :cmdline -r -s 1.2 :export results
+                   Data transformation roadmap
+------------------------------------------------------------------ 
+                       From raw to triage
+                                                            
+  +----------------+
+  |    Chicago     |
+  |Food Inspections|
+  |cPNK  API   {io}|
+  +-------+--------+
+          | curl
+          v                   
+  +-------------+             
+  | inspections |
+  |     csv     |             
+  |          {d}|             
+  +------+------+             
+         | psql \copy
          v
  +----------------+
- | Openwrt config |
- | cGRE           |
- +-------+--------+
-         |
-         v
-+-------------------+         +------------+
-|  SDK-LIBC-SCRIPT  +-------->|  DNSMASQ   |
-|     cBLU          |         |   cBLU     |
-+---------+---------+         +------+-----+
-          |                          | (Ada configuration)
-          |      /-------------------+
-          |      |
-          v      v
-+-------------------+
-|     SDK-LIBC      |
-|       cBLU        |
-+-------------------+
-
-  
-        
+ | raw.inspections|        sql
+ |                +------------------+
+ | cGRE           |                  |
+ +-------+--------+                  |
+         | sql                       |
+         v                           v
++-------------------+      +----------------------+
+|cleaned.inspections|      |   cleaned.violations |
+|     cBLU          |      |        cBLU          |
++---------+---------+      +---------+------------+
+          | sql                      | 
+          +-------------------\      |
+          |                   |      |
+          |                   \------+
+          |                          | sql
+          v                          V
++-------------------+     +-------------------+ 
+| semantic.entities |     |  semantic.events  |
+|       c004        |     |       c004        |
++-------------------+     +-------------------+
+         |                          |
+         |           sql            |
+         +-----+--------------+-----+          
+               |              |            
+---------------*--------------*---------------------------------
+               |              |               specific to
+               |              |             inspections or eis
+               v              v
+          +---------+     +---------+           /------------\
+          |outcomes |.....| states  |...........|   needed   |     
+          |     c1AB|     |     c1AB|           |     by cYEL|
+          +---------+     +---------+           |   triage   |
+               |              |                 \------------/
+               |              |                        .
+               \--+        +--/                        .
+                  |        |                           .
+                  v        v                 +-------------+  
+               +--------------+              |  experiment |  
+               |   triage {io}|              |    config   |
+               |     run      |<-------------+          {d}|
+               |cRED          |              |             |
+               +------+-------+              +-------------+
+                      |
+                      |
+                      v
+                 +---------+
+                 | results |
+                 |c1FF  {s}|
+                 +---------+
 
 #+END_SRC
 
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 800
+#+ATTR_LATEX: :width 400 :height 500
 #+RESULTS: data_road
-[[file:img/data_road.png]]
+[[file:images/data_road.png]]
 
 
 
@@ -606,7 +591,7 @@ Or, if you are in =psql=
 
 The number of inspections now is:
 
-#+BEGIN_SRC sql :results table
+#+BEGIN_SRC sql 
  select count(inspection) from cleaned.inspections;
 #+END_SRC
 
