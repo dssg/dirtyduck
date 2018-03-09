@@ -284,7 +284,7 @@ temporal_config:
 We can visualize the splitting using the function =show_timechop=
 introduced in [[file:triage_intro.org][Introduction to triage]]. 
 
-#+BEGIN_SRC sh :dir ..
+#+BEGIN_SRC sh 
 
 # Remember to run this in your laptop NOT in bastion!
 
@@ -302,15 +302,12 @@ Experiment loaded
 Generating temporal blocks image
 Image stored in:
 /triage/output/images/inspections_test.svg
-/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
-  """)
 #+END_SRC
-
 
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 400
 #+ATTR_LATEX: :width 400 :height 300
-[[./triage/inspections_test.svg]]
+[[./images/triage/inspections_test.svg]]
 
 We need to specify the table that keeps our labels, for this first
 experiment we will use the label =failed=, stored in =inspections.labels=.
@@ -730,10 +727,10 @@ Generating model image
 Plotting tree number 0
 Image stored in: 
 ['/triage/output/images/model_7_tree_0.svg']
-#+END_SRC
+#+End_src
 
 
-[[./triage/output/images/model_7_tree_0.svg]]
+[[./images/triage/model_7_tree_0.svg]]
 
 This tree makes kind of sense, if the facility had more than 1.5
 inspections related to food poisoning then it will fail the
@@ -1162,10 +1159,10 @@ Experiment loaded
 Generating temporal blocks image
 Image stored in:
 /triage/output/images/inspections.svg
-#+END_SRC
+#+End_src
 
 
-[[./triage/inspections.svg]]
+[[./images/triage/inspections.svg]]
 
 The first big change is that we are adding 3 more /features groups/:
 =inspections= (we already use this), =risks=, and =results=. Remember
