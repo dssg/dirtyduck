@@ -1,5 +1,5 @@
-#+TITLE: Dirty duck: A triage's guided tour
-#+AUTHOR: Center of Data Science for Public Policy
+#+TITLE: Dirty Duck: A Guided Tour of Triage
+#+AUTHOR: Center for Data Science and Public Policy
 #+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
@@ -9,45 +9,40 @@
 * Welcome!
 
 This tutorial will show you how to use =triage=, a data science
- modeling tool developed in  the [[http://dsapp.uchicago.edu][Center for Data Science and Public
+ modeling tool developed at the [[http://dsapp.uchicago.edu][Center for Data Science and Public
  Policy]] (DSaPP) at the University of Chicago. 
 
-=triage= aims to help you to model two complex data problems: /Early
-warning systems/ and /resource prioritization/. 
-Both problems pop up constantly in our daily job at DsaPP. This
-problems serve as templates for real use cases of Data Science and
-Machine Learning in the public policy sector.
+=triage= helps build models for two [[https://dssg.uchicago.edu/data-science-for-social-good-conference-2017/training-workshop-data-science-for-social-good-problem-templates/][common]] applied problems: /Early
+warning systems/ and /resource prioritization/. These problems
+are difficult to model because their conceptualization and
+and implementation are prone to error, thanks to their multi-dimensional,
+multi-entity, time-series structure. 
 
-This problems are difficult to model due the fact that they are prone
-to errors in the conceptualization of the problem or in the
-implementation of the model in a computer. The multi dimensional,
-multi entities time series structure of both problems is the cause of
-these difficulties. 
 
 * What do you need for this tutorial?
 
-[[http://www.docker.com][Docker CE]] and [[https://docs.docker.com/compose/][Docker Compose]] installed. That's it.
-Use the links for installing instructions.
+Install [[http://www.docker.com][Docker CE]] and [[https://docs.docker.com/compose/][Docker Compose]]. That's it.
+Follow the links for instructions.
 
 Note that if you are using =GNU/Linux= you should add your user to the
-=docker= group following the guidance at this [[https://docs.docker.com/install/linux/linux-postinstall/][link]].
+=docker= group following the instructions at this [[https://docs.docker.com/install/linux/linux-postinstall/][link]].
 
-At the moment only operative systems with /real/ command lines are
-supported, as =GNU/Linux= and =MacOS=. Maybe in a recent version of
-=Windows= you could install a =bash= command line. 
+At the moment only operative systems with *nix-type command lines are
+supported, such as =GNU/Linux= and =MacOS=. Recent versions of
+=Windows= may also work. 
 
 * How to use this tutorial?
 
-Clone this repository in your Laptop 
+First, clone this repository on your laptop 
 
 #+BEGIN_EXAMPLE
  git clone https://github.com/dssg/dirtyduck.git
 #+END_EXAMPLE
 
-Then copy the file 
+Second, copy the file 
 =infrastructure/food_db/.env_example= to
-=infrastructure/food_db/.env= then open the file and change the
-string =your_password= for something more meaningful to you.
+=infrastructure/food_db/.env=, open the file, and change the
+string =your_password= to something more meaningful to you.
 
    #+BEGIN_EXAMPLE sh :tangle infrastructure/env_example
     POSTGRES_DB=food
@@ -61,7 +56,7 @@ string =your_password= for something more meaningful to you.
     GID=1000
    #+END_EXAMPLE
 
-And then run
+Third, run
 
 #+BEGIN_EXAMPLE
 ./tutorial.sh start
@@ -69,26 +64,24 @@ And then run
 
 This will take some minutes the first time.
 
-Finally open your browser and type in the location bar =0.0.0.0= that
-will open the tutorial, follow from there[fn:3].
+Finally, open your browser and type =0.0.0.0= into the location bar. That
+will open the tutorial. Follow from there[fn:3].
 
-* How do you can help
+* How you can help
 
-Help is always welcome! How do you want to help? You can help
-reporting errors, improving the tutorial or proposing improvements to
-=triage=. This three cases are discussed below.
+Help is always welcome! You can report errors, improve 
+the tutorial, or propose improvements to
+=triage=. These three cases are discussed below.
 
 ** How can I report errors?
 
-We are almost sure that there will be errors, please open an [[https://github.com/dssg/dirtyduck/issues][issue]] and
-we will try to correct them as soon as possible.
+There are almost surely errors. Please open an [[https://github.com/dssg/dirtyduck/issues][issue]] and
+we will try to issue a fix as soon as possible.
 
-** How can I improve the tutorial itself?
+** How can I improve the tutorial?
 
 This tutorial was created following the practices of [[https://www-cs-faculty.stanford.edu/~knuth/lp.html][Literate
-Programming]] using  [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means that
-the tutorial is a /live/ document that mixes programming languages and
-text.  
+Programming]] using [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means the tutorial is a /live/ document that mixes code and text.  
 
 The steps to help are:
 
@@ -108,4 +101,4 @@ Emacs=. Just follow the =org= files inside the folder =src=.
 
 [fn:2] But it is supported in =vim= if you install a plugin.
 
-[fn:1] Is very similar to =markdown= so, you won't have any problem.
+[fn:1] It's similar to =markdown= so you won't have any problem.
