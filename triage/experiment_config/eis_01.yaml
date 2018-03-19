@@ -125,7 +125,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [1,null]
+        max_depth: [1, null]
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
@@ -134,7 +134,7 @@ grid_config:
         min_samples_split: [50]
         class_weight: ['balanced']
     'sklearn.dummy.DummyClassifier':
-        strategy: [prior,uniform, most_frequent]
+        strategy: [prior, uniform, most_frequent]
 
 model_group_keys:
     - 'label_definition'
