@@ -23,7 +23,7 @@ OPTIONS:
    -a|all
 
 INFRASTRUCTURE:
-   All the infrastructure needed is turned on!
+   Build the infrastructure:
         $ ./tutorial.sh start
 
    Check the status of the containers:
@@ -41,21 +41,21 @@ INFRASTRUCTURE:
 EXPERIMENTS:
    NOTE:
       The following commands assume that "sample_experiment_config.yaml"
-      is located inside triage/experiment_config  directory
+      is located inside the triage/experiment_config directory
 
    Run one experiment:
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
 
-   Run one experiment, without replacing matrices or models if already exist and with debug enabled:
+   Run one experiment, do not replace existing matrices or models, and enable debug:
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
 
    Validate experiment configuration file:
         $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
-   Show experiment's temporal cross-validation blocks:
+   Show the experiment's temporal cross-validation blocks:
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
 
-   Plot the model number 4 (if it is a Decision Tree or a Random Forest):
+   Plot model number 4 (for Decision Trees and Random Forests):
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
 
    Triage help:
