@@ -15,50 +15,51 @@
 
 * Triage
 
-Predictive analytics projects require the coordination of many
-different tasks, such as feature generation, classifier training,
-evaluation, and list generation. These tasks are complicated in their
-own right, but in addition have to be combined in different ways
+Predictive analytics projects require coordinating many
+tasks, such as feature generation, classifier training,
+evaluation, and list generation. Each of these tasks is complicated
+in its own right, but it also needs to be combined in different ways
 throughout the course of the project.
 
-=triage= was created to facilitate the creation of supervised learning
+DSaPP built =triage= to facilitate the creation of supervised learning
 models, in particular classification models with an strong temporal
 component in the data.
 
-The dataset's temporal component affects maily in two steps of the
-model creation, first: /feature creation/ :you need to be very careful
-and avoid /leakage/ of information from the future in your /features/;
-second, the model's hyperparameter selection. =triage= solves both by
-splitting the  data in temporal blocks and automating the temporal
-crossvalidation and the feature generation.
+The dataset's temporal component mainly affects two modeling steps, 
+first: /feature creation/ :you need to be careful to
+avoid /leaking/ information from the future through your /features/;
+second, through hyperparameter selection. =triage= solves both by
+splitting the data into temporal blocks and automating temporal
+cross-validation and the feature generation.
 
-=triage= uses the concept of /experiment/. An /experiment/ consists in a
-series of steps which aim to generate a good model for predicting the
+=triage= uses the concept of an /experiment/. An /experiment/ consists of a
+series of steps that aim to generate a good model for predicting the
 /label/ of an entity in the data set. The steps are /data
-time-spliting/, /label generation/, /feature generation/, /model
-training/ and /model scoring/. In each of all this steps, =triage=
-will take care of  the temporal nuances of the data.
+time-splitting/, /label generation/, /feature generation/, /model
+training/, and /model scoring/. In each of these steps, =triage=
+will handle the temporal nuances of the data.
 
-You need to specify (via a configuration file) how you want to time
-split your data, which combination of machine learning algorithms and
-their hyperparameters, which kind of features you want to generate and which
-subset of those features you want to try in each model. So, the
-experiment consists in try every combination of algorithm,
-hyperparameters and feature subset, and evaluate their performance
-using a set of metrics (also specified in the config file). =triage=
-will train one model for each block generated, so when the 
-experiment finishes you will have several models for each algorithm
-and selection of hyperparameters. =triage= calls this a =model_group=.
+You need to specify (via a configuration file) how you want to
+split your data temporally, which combination of machine learning algorithms and
+their hyperparameters you'd like to use, which kinds of features you want 
+to generate, which subsets of those features you want to try in each 
+model, and which metrics you'd like to use to evaluate performance. 
+So, the experiment consists in fitting every combination of algorithm,
+hyperparameters, and feature subsets to the temporally split data and 
+evaluating their predictive performance on future data splits
+using the user's metrics. =triage= calls a unique combination of algorithm,
+hyperparameters, and feature subsets a =model_group= and a model group fit
+to a specific data matrix a =model=. Our data typically span multiple
+time periods, so triage fits multiple models for each model group.
 
-=triage= is very simple to use, but it contains a lot of complex
-concepts that we will try to clarify in this section of the
-tutorial. First we will explain /how/ to run =triage= and afterwards,
-we will create a toy experiment that will help us to explain the main
-concepts of =triage=.
+=triage= is simple to use, but it contains a lot of complex
+concepts that we will try to clarify in this section. First we will 
+explain /how/ to run =triage=, and then we will create a toy experiment 
+that helps explain triage's main concepts.
 
 ** Triage interface
 
-For running a =triage= experiment you need the following:
+To run a =triage= experiment, you need the following:
 
 - =triage= installed in your environment. You can verify that =triage= is installed (and check
   its version) typying the following inside an =ipython= session *in =bastion=*:
@@ -76,11 +77,12 @@ triage.__version__
 #+END_SRC
 
 - A database with the data that you want to model. =triage= will
-  require additionaly two tables: one that
-  describes the /outcome/ of each event on the database and a table
-  that contains the state of each entity.
+  require two database tables: one that
+  describes the /outcome/ of each event and one
+  that contains the state of each entity (e.g. whether the restaurant
+  is available for inspection at the time of selection).
 
-- An /experiment config file/, this is where the magic happen. We will
+- An /experiment config file/. This is where the magic happens. We will
   discuss this file at length in this section of the tutorial.
 
 
@@ -97,13 +99,13 @@ You can run the container from your laptop (i.e. outside =bastion=) as follows:
 Usage: triage_experiment [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --config_file PATH        Triage's experiment congiguration file name 
+  --config_file PATH        Triage experiment configuration file name 
                             NOTE:
                             It's assumed that the file is located inside
                             triage/experiment_config)  [required]
   --triage_db TEXT          DB URL, in the form of
-                            'postgresql://user:password@host_db:host_port/db',
-                            by default it gets this from the environment
+                            'postgresql://user:password@host_db:host_port/db'.
+                            By default it gets this from the environment
                             (TRIAGE_DB_URL)  [required]
   --replace / --no-replace  Triage will (or won't) replace all the matrices
                             and models
@@ -125,16 +127,16 @@ sections of the tutorial) and the tutorial provide a recent container
 with =triage= installed. So, like in a real project you just
 need to worry about the /experiment's configuration file/. 
 
-In the following section of the tutorial we will use an small experiment
-configuration file located in [[../triage/experiment_config/simple_test_skeleton.yaml]]. 
+In the following section of the tutorial we will use a small experiment
+configuration file located at [[../triage/experiment_config/simple_test_skeleton.yaml]]. 
 
-We wll show you how to setup the experiment and at the same time we
-will explain the =triage= inner workings. We will modify the
-configuration file to show the effects of different configuration
-parameters, if you want to follow along, we suggest you copy that file
+We will show you how to setup the experiment while explaining the
+inner workings of =triage=. We will modify the
+configuration file to show the effects of the configuration
+parameters. If you want to follow along, we suggest you copy that file
 and modify by yourself.
 
-You can run that experiment  with:
+You can run that experiment with:
 
 #+BEGIN_EXAMPLE sh
 
@@ -143,15 +145,15 @@ You can run that experiment  with:
 ./tutorial.sh triage --config_file simple_test_skeleton.yaml run
 #+END_EXAMPLE
 
-Everytime that you modify the configuration file and see the effects,
+Every time you modify the configuration file and see the effects,
 you should execute the experiment again using the previous command.
 
 
 
 ** A simple =triage= experiment 
 
-In order of exemplify and explain the inner workings of =triage=, we will
-create a toy subset of the =semantic.events= with  the top two facilities in number of Inspections
+To exemplify and explain the inner workings of =triage=, we will
+create a toy subset of the =semantic.events= with the top two facilities in number of Inspections
 
 #+BEGIN_SRC sql
 select entity_id, count(*) from
@@ -169,7 +171,7 @@ limit 2
 |    10855 |    44 |
 :END:
 
-(In our case =entity_id=s =9583= and =10855=, could be different for you).
+(In this case =entity_id=s =9583= and =10855=, but you may get different results).
 
 Create a new =schema= called =testing_triage=
 
@@ -200,8 +202,8 @@ where entity_id in (9583, 10855)
 
 #+RESULTS:
 
-We created the =testing_triage.events= table ,with three categorical
-variables (=inspection_type,risk, result=), two differnent groups for
+We created the =testing_triage.events= table with three categorical
+variables (=inspection_type, risk, result=), two groups for
 aggregation (=location, zip_code=), and the date when the inspection happened (=date=).
 
 #+BEGIN_SRC sql
@@ -229,38 +231,31 @@ limit 5
 
 *** A tale of two tables
 
-The first thing that =triage= will do is split the time that the data
+The first thing =triage= does is split the time that the data
 covers in blocks considering the time horizon for the /label/
-(i.e. the thing that we want to predict: /Which facilities will fail an inspection in the following 3 months?/
-In the case of *inspection prioritization* or /Would be my restaurant inspected in the following month?/ 
-If you are working in a *early warning system* problem.) This time
+(i.e. the thing that we want to predict: e.g. /Which facilities will fail an inspection in the following 3 months?/
+in the case of *inspection prioritization* or /Would be my restaurant inspected in the following month?/ 
+in the case of an *early warning system*.) This time
 horizon is calculated from a set of specific dates (=as_of_date= in
 triage parlance) that divide the blocks in past (for training the
 model) and future (for testing the model).
 
 =triage= will create those /labels/ using information about the /outcome/ of
-the event, taking in account the temporal structure of the data. 
-As an example of an /outcome/ consider this  if a inspection is
-realized (the event) and the facility fails the inspection (outcome
+the event, taking into account the temporal structure of the data. 
+As an example of an /outcome/, consider whether a restaurant is inspected 
+(the event) and whether it fails the inspection (outcome
 /true/) or not (outcome /false/). 
 
-So, for a given /as of date/, in our data, for each entity, =triage=
-will ask: Are positive outcomes in
-the future time horizon? If so, =triage= will generate a positive
-/label/ for that specific entity on that /as of date/. Henceforth, we
-need to create an outcomes table.
+So, for a given entity on a given /as of date/, =triage=
+asks whether there's an outcome in
+the future time horizon. If so, =triage= will generate a
+/label/ for that specific entity on that /as of date/. We need
+to create an outcomes table to store this information.
 
-The table that is needed describe the /states/ of each entity. 
-The table  should have columns =entity_id=, =start_time, end_time= and =state=.
-The states table allows us to only include rows in your matrices in a
-specific state. The rationale of this comes from the need of only
-predict for entities in a particular state: Do the restaurant still
-open? Do the restaurant is new? etc.
+For this example, we will keep things simple and define the /outcome/ as
+=TRUE= if the restaurant failed the inspection and =FALSE= otherwise.
 
-For the test, we will keep things simple and define the /outcome/ as
-=TRUE= if the inspection got a result adverse and =FALSE= otherwise.
-
-=triage= requires that the table =outcomes= has the column names
+=triage= requires that the =outcomes= table has the columns
 =entity_id=, =outcome_date= and =outcome=:  
 
 #+BEGIN_SRC sql :tangle ./sql/create_testing_triage.sql
@@ -310,10 +305,16 @@ group by outcome;
 | t       |    19 |
 :END:
 
-The /states/ table will be very simple too: Is the
-facility "active" or not?[fn:1]. =triage= also impose some constraints
-to the table that  represents the state: it must include columns Named
-=entity_id=, =start_time=, =end_time= ans =state=
+
+We also need a table to store the /states/ of each entity. 
+The table should store =entity_id=, =start_time, end_time= and =state=.
+The states table allows us to only include rows in your matrices in a
+specific state. The rationale of this comes from the need to only
+predict for entities in a particular state: Is the restaurant still
+open? Is the restaurant new? etc.
+
+The /states/ table for this example will be very simple too: Is the
+restaurant "active" or not?[fn:1]. 
 
 #+BEGIN_SRC sql :tangle ./sql/create_testing_triage_schema.sql
 drop table if exists testing_triage.active_facilities cascade;
@@ -356,11 +357,11 @@ Note that the entity =10854= is still active and =9582= is not active
 after =2017-09-15=.
 
 
-*** Experiment's configuration file
+*** Experiment configuration file
 
 The /experiment configuration file/ is used to create the =experiment=
 object. Here, you will specify the temporal configuration, the
-features to be generated, the labels to learn and the models that you
+features to be generated, the labels to learn, and the models that you
 want to train in your data.
 
 The configuration file is a =yaml= file with the following main sections:
@@ -390,49 +391,48 @@ The configuration file is a =yaml= file with the following main sections:
 - =scoring= :: Which metrics will be calculated?
 
 
-Two of the more important sections (and the two more confusing) are
-=temporal_config= and =feature_generation=. We will explain them at
+Two of the more important (and potentially confusing) sections are
+=temporal_config= and =feature_generation=. We will explain them in
 detail in the next sections.
 
 **** Temporal crossvalidation
 
-Cross validation is a common technique to reduce overfitting and
- select model and  hyperparameters. Standard cross validation randomly
- splits the  training data into subsets, fits models on all except one of them,
+Cross validation is a common technique to select a model that generalizes
+ well to new data. Standard cross validation randomly
+ splits the training data into subsets, fits models on all except one of them,
  and calculates the metric of interest (e.g. precision/recall) on the
- remaining, rotating through the subsets and leaving each out
- once. You then select the model that performed best on the test sets,
- and then retrain them.  
+ one left out, rotating through the subsets and leaving each out
+ once. You select the model that performed best across the left-out sets,
+ and then retrain it on the complete training data.  
 
-Unfortunately, standard cross validation is usually inappropriate for
-real-world data science problems like the ones that we are facing. If
-you are testing your model on temporally 
-correlated data, standard cross validation lets  you peek ahead into
-the future, due to the random split, using time points both before and
-after the target date. To avoid this problem, you should design  your
+Unfortunately, standard cross validation is inappropriate for most
+real-world data science problems. If your data have temporal correlations, 
+standard cross validation lets the model peek into
+the future, training on some future observations and testing on past
+observations. To avoid this problem, you should design your
 training and testing to mimic how your model will be used, making
-predictions with only the data that would be available at  that time (i.e. from the past). 
+predictions only using the data that would be available at that time (i.e. from the past). 
 
 In temporal crossvalidation, rather than randomly splitting the
 dataset into training and test splits, temporal cross validation
 splits the data by time. 
 
-=triage= uses the handy =timechop= library for this purpose. =Timechop=
-will build ("chop") the data set in several temporal blocks. These
-blocks will be used for creating the features and matrices for
-the training and evaluation of the machine learning models.
+=triage= uses the =timechop= library for this purpose. =Timechop=
+will "chop" the data set in several temporal blocks. These
+blocks are then used for creating the features and matrices for
+training and evaluation of the machine learning models.
 
-For example, in our toy experiment, assume that we want to
-select which one (of two in our dataset) should we inspect the next
-year, since that one is more likely to violate some condition and assume
-that the process of picking which facility is repeated every year at
+Assume we want to 
+select which restaurant (of two in our example dataset) we should inspect next
+year based on its higher risk of violating some condition. Also assume
+that the process of picking which facility is repeated every year on
 January 1st[fn:2] 
 
-Following the problem description template given in the section
-[[Description of the problem to solve]] the question that we will attemp to answer is:
+Following the problem description template given in section
+[[Description of the problem to solve]], the question that we'll attempt to answer is:
 
 #+BEGIN_EXAMPLE
-  Which facility ($n=1$)are likely to violate some
+  Which facility ($n=1$) is likely to violate some
   inspected condition in the following year ($X=1$)?
 #+END_EXAMPLE
 
