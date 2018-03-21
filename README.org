@@ -12,14 +12,14 @@ This tutorial will show you how to use =triage=, a data science
  modeling tool developed at the [[http://dsapp.uchicago.edu][Center for Data Science and Public
  Policy]] (DSaPP) at the University of Chicago. 
 
-=triage= helps build models for two [[https://dssg.uchicago.edu/data-science-for-social-good-conference-2017/training-workshop-data-science-for-social-good-problem-templates/][common]] applied problems: /Early
+=triage= helps build models for two [[https://dssg.uchicago.edu/data-science-for-social-good-conference-2017/training-workshop-data-science-for-social-good-problem-templates/][common applied problems]]: /Early
 warning systems/ and /resource prioritization/. These problems
 are difficult to model because their conceptualization and
 and implementation are prone to error, thanks to their multi-dimensional,
 multi-entity, time-series structure. 
 
 
-* What do you need for this tutorial?
+* What you need for this tutorial
 
 Install [[http://www.docker.com][Docker CE]] and [[https://docs.docker.com/compose/][Docker Compose]]. That's it.
 Follow the links for installation instructions.
@@ -31,7 +31,7 @@ At the moment only operative systems with *nix-type command lines are
 supported, such as =GNU/Linux= and =MacOS=. Recent versions of
 =Windows= may also work. 
 
-* How to use this tutorial?
+* How to use this tutorial
 
 First, clone this repository on your laptop 
 
@@ -73,12 +73,12 @@ Help is always welcome! You can report errors, improve
 the tutorial, or propose improvements to
 =triage=. These three cases are discussed below.
 
-** How can I report errors?
+** How to report errors
 
 There are almost surely errors. Please open an [[https://github.com/dssg/dirtyduck/issues][issue]] and
 we will try to issue a fix as soon as possible.
 
-** How can I improve the tutorial?
+** How to improve the tutorial
 
 This tutorial was created following the practices of [[https://www-cs-faculty.stanford.edu/~knuth/lp.html][Literate
 Programming]] using [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means the tutorial is a /live/ document that mixes code and text.  
@@ -90,7 +90,7 @@ The steps to help are:
 - create a *pull request*.
 
 
-** How can I collaborate developing =triage=?
+** How to help develop =triage=
 
 Go to the [[https://github.com/dssg/triage][triage]] repository and follow the instructions there.
 
