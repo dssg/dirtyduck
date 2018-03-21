@@ -1,4 +1,4 @@
-#+TITLE: Dirty duck: A triage's guided tour
+#+TITLE: Dirty Duck: A Guided Tour of Triage
 #+AUTHOR: Center of Data Science for Public Policy
 #+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
