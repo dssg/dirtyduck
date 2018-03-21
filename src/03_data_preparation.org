@@ -14,19 +14,19 @@
 
 * Data preparation
 
-We need get the data and then transform it into a shape that is suitable for the analysis.
+We need to get the data and transform it into a shape that is suitable for the analysis.
 
-*NOTE* At least is explicity said the contrary, you should run all the following commands inside =bastion=.
+*NOTE* Unless we say otherwise, you should run all the following commands inside =bastion=.
 
 ** Downloading the data
 
-The data could be downloaded from the Chicago's public data website. The following command takes care of that and store the data as a =csv= file in =data/inspections= 
+The data can be downloaded from the City of Chicago's open data portal. The following command downloads the data and stores it as a =csv= file in the =data/= folder 
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results none
      curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > data/inspections.csv
    #+END_SRC
 
-We can check the size of the data set[fn:1],
+We can check the size of the file[fn:1],
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
      ls -lh /data
@@ -38,7 +38,7 @@ We can check the size of the data set[fn:1],
    -rw-rw-r-- 1 1000 1000 189M Mar  3 21:39 inspections.csv
    #+END_SRC
 
-And the (apparent) total number of rows[fn:2]
+And the (apparent) number of rows[fn:2]
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
      wc -l /data/inspections.csv
@@ -49,11 +49,11 @@ And the (apparent) total number of rows[fn:2]
    402526 /data/inspections.csv
    #+END_SRC
 
-Remember this number, it will give you a surprise when you upload the data into the database.
+Remember this number because you'll get a surprise when you load the data into the database.
 
-** Loading data to the database
+** Loading data into the database
 
-Before uploading the file =inspections.csv= into the database, verify that it is empty[fn:3] :
+Before loading =inspections.csv= into the database, verify that the database table is empty[fn:3] :
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
      psql ${FOOD_DB_URL} -c 'select count(*) from raw.inspections'
@@ -68,7 +68,7 @@ Before uploading the file =inspections.csv= into the database, verify that it is
 
    #+END_SRC
 
-We can load the file using the =\copy= command . The command's output will report how many rows where inserted
+We can load the file using the =\copy= command. The command's output will report how many rows were inserted
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      psql ${FOOD_DB_URL} -c "\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"
@@ -79,11 +79,11 @@ We can load the file using the =\copy= command . The command's output will repor
    COPY 165597
    #+END_SRC
 
-This is different to the number of rows that we calculated
-previously! Do we miss several thousands rows? 
+This is different than the number of rows that we calculated
+previously! Did we miss several thousand rows? 
 
-The explanation for this mismatch is that the columns
-=violations= contains several lines in some examples[fn:4]. But don't worry,
+The explanation for this mismatch is that the column
+=violations= contains several lines in some examples[fn:4]. But don't worry:
 the previous command took care about that.
 
 Let's glimpse the data
@@ -99,12 +99,12 @@ select * from raw.inspections limit 1
    |    2145741 | 1914 CLUB | 1914 CLUB |    2569448 | [NULL]       | Risk 1 (High) | 1060 W ADDISON AVE | CHICAGO | IL    | 60613 | 2018-03-01 | License | Not Ready | [NULL]     | 41.94731748901495 | -87.65641794764645 | (41.94731748901495, -87.65641794764645) |
    :END:
 
-Ok, now you have some data loaded! But still, we need to /munging it/ to be able to use it in our Machine learning task.
+Ok, now you have some data loaded! But we still need to /munge/ it to use it in our Machine learning task.
 
 ** Transforming (and cleaning) the data
 
 *** Rationale
-For tackling a Machine Learning problem you need to identify the
+To tackle a Machine Learning problem, you need to identify the
 *entities* of your problem domain, and if your problem involves time,
 how those entities change over time, i.e. which *events* happened to
 that entity or which *events* where acted by the entity in question.
@@ -112,7 +112,7 @@ that entity or which *events* where acted by the entity in question.
 We will materialize that conceptualization in two different tables, one for entities and
 one for events, we will name those tables as =entities= and =events= respectively.
 
-The entity is the *facility*, and the events that happen to that entity
+The entity is the *restaurant*, and the events that happen to that entity
 are the *inspections*.
 
 The table =entities= should contain an unique identifier for the entity,
