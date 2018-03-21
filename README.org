@@ -22,7 +22,7 @@ multi-entity, time-series structure.
 * What do you need for this tutorial?
 
 Install [[http://www.docker.com][Docker CE]] and [[https://docs.docker.com/compose/][Docker Compose]]. That's it.
-Follow the links for instructions.
+Follow the links for installation instructions.
 
 Note that if you are using =GNU/Linux= you should add your user to the
 =docker= group following the instructions at this [[https://docs.docker.com/install/linux/linux-postinstall/][link]].
@@ -62,7 +62,7 @@ Third, run
 ./tutorial.sh start
 #+END_Example
 
-This will take some minutes the first time.
+This will take several minutes the first time you do it.
 
 Finally, open your browser and type =0.0.0.0= into the location bar. That
 will open the tutorial. Follow from there[fn:3].
