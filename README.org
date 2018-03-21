@@ -40,8 +40,8 @@ First, clone this repository on your laptop
 #+END_EXAMPLE
 
 Second, copy the file 
-=infrastructure/food_db/.env_example= to
-=infrastructure/food_db/.env=, open the file, and change the
+=infrastructure/env_example= to
+=infrastructure/.env=, open the file, and change the
 string =your_password= to something more meaningful to you.
 
    #+BEGIN_EXAMPLE sh :tangle infrastructure/env_example
