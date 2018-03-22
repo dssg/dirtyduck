@@ -14,29 +14,30 @@
 
 * Infrastructure
 
-   In every data science project you will need several tools which
-   will help you to analyze the data in an efficient[fn:1] manner.
-   Examples of this tools are: a place to store the data (a database
+   In every data science project you will need several tools that
+   help you to analyze the data in an efficient[fn:1] manner.
+   Examples of these tools include a place to store the data (a database
    management system or *DBMS*), a way
    for putting your model to work, i.e. one way that allows to model
    to ingest new data and predict on it (an *API*) and a interface for
    looking the performace of your trained models (a governance tool). 
 
-   We are proving a little script for managing all the infrastructure[fn:2] in
-   a (hopefully) transparent way.
+   We are providing a script for managing all the infrastructure[fn:2] in
+   a transparent way.
 
-   The provided environment is composed by /four/ Pieces:
+   The environment is comprised of /four/ pieces:
    - a =postgresql= database called =food_db=,
    - a container that executes =triage= experiments,
-   - a /web server/ that shows this tutorial,
-   - and finally =bastion=, which includes a =postgresql= client
+   - a /web server/ that shows this tutorial, and
+   - a container for interacting with the data called =bastion=.
+   This container includes a =postgresql= client
    (so you can interact with the database)[fn:3] and a full =python=
    environment (so you can code or modify the things that we will
    discuss in this Tutorial). 
 
-   The idea is that you don't need to install anything in your laptop.
+   The only thing you should need installed on your laptop is =docker=.
 
-   Run the following
+   From your command line (terminal) run the following:
 
    #+BEGIN_SRC sh 
     ./tutorial.sh
@@ -57,13 +58,13 @@
      -a|all
 
   INFRASTRUCTURE:
-     All the infrastructure needed is turned on!
+     Turn the infrastructure on:
 	  $ ./tutorial.sh start
 
      Check the status of the containers:
 	  $ ./tutorial.sh status
 
-     Stop the tutorial's infrastructure:
+     Stop the infrastructure:
 	  $ ./tutorial.sh stop
 
      Destroy all the resources related to the tutorial:
@@ -75,21 +76,21 @@
   EXPERIMENTS:
      NOTE:
 	The following commands assume that "sample_experiment_config.yaml"
-	is located inside triage/experiment_config  directory
+	is located inside triage/experiment_config directory
 
      Run one experiment:
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
 
-     Run one experiment, without replacing matrices or models if already exist and with debug enabled:
+     Run one experiment, don't replace existing matrices or models, and enable debug:
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
 
      Validate experiment configuration file:
 	  $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
-     Show experiment's temporal cross-validation blocks:
+     Show the experiment's temporal cross-validation blocks:
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
 
-     Plot the model number 4 (if it is a Decision Tree or a Random Forest):
+     Plot model number 4 (if it is a Decision Tree or a Random Forest):
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
 
      Triage help:
@@ -97,7 +98,7 @@
 
    #+END_SRC
 
-   Following the printed instructuons in the screen, we can start the
+   Following the instructions on the screen, we can start the
    infrastructure with:
 
    #+BEGIN_EXAMPLE sh
@@ -119,7 +120,7 @@
   tutorial_server   nginx -g daemon off;            Up      0.0.0.0:80->80/tcp    
    #+END_SRC
 
-   For accessing to the =postgresql= client type:
+   To access the =postgresql= client type:
 
    #+BEGIN_EXAMPLE sh
   ./tutorial.sh bastion
@@ -131,7 +132,7 @@
   root@485373fb3c64:/$
    #+END_EXAMPLE
 
-   *NOTE*: The number surely will be different (i.e. not =485373fb3c64=).
+   *NOTE*: The number you see will be different (i.e. not =485373fb3c64=).
 
    Type the next command to connect to the database
 
@@ -150,12 +151,12 @@
    food=# 
 #+END_EXAMPLE
 
-   The previous command is using =psql= a powerful command line client for the Postgresql database. 
-   If you want to use this client fully check the [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
+   The previous command is using =psql=, a powerful command line client for the Postgresql database. 
+   If you want to use this client fully, check the [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
 
-   The database is running and its named =food=. It should contain a
-   single table named =inspections=  in the =schema= =Raw=. 
-   Let's check the =inspections= table, type the following command:
+   The database is running and it's named =food=. It should contain a
+   single table named =inspections= in the =schema= =raw=. 
+   Let's check the =inspections= table. Type the following command:
 
    #+BEGIN_SRC sql
     \d raw.inspections
@@ -185,7 +186,7 @@
    | location                | character varying |           |
    :END:
 
-   That is it. This is our "raw" data. We will work from here.
+   That's it. We will work from this table of raw data.
 
    You can disconnect from the database typing =\q=. But don't leave
    =bastion= yet. You should return to the same weird prompt:
