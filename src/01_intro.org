@@ -3,64 +3,62 @@
 
 * Description of the problem to solve
 
-  The main goal of this tutorial is introduce the reader to the use of [[https://github.com/dssg/triage][triage]].
-  We will use the well know [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections dataset]] [fn:1]
-  as the data source. We will present the two problems that =triage= helps to Model :
+  This tutorial aims to introduce the reader to [[https://github.com/dssg/triage][triage]], a machine learning modeling tool built by the [[https://dsapp.uchicago.edu][Center for Data Science and Public Policy]].
+  We will use the well known [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections dataset]] [fn:1]
+  as the data source. We will present the two problems that =triage= was built to model:
 
+  1. Creation of *Early  Intervention Systems* (*EIS*)[fn:3] and
   2. Resource prioritization (internally know as the /inspections
      problem/) [fn:4].
   
-  1. Creation of *Early  Intervention Systems*[fn:3] or *EIS*, and  
-
-  In the *inspections prioritization*, we want to generate a list of
+  For *inspection prioritization*, we want to generate a list of
   facilities[fn:2] to inspect in the following $X$ period of time
-  which are /likely/ to have some *critical* o *serious*
-  violation /given that/ they are inspected.
+  that would have a *critical* or *serious*
+  violation if inspected.
 
-#+CAPTION: Inspections problem's definition for the Chicago Food Inspections dataset
+#+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem:
 #+begin_quote
-  Which $n$ facilities are likely to violate some rule in the
+  Which $n$ facilities will violate some rule in the
   following $X$ period of time?
 #+end_quote
 
-    This problem is important because you need
-  to prioritize your resources (i.e. your inspection workforce), since
-  they are limited (let's say that you could make $n$ inspections in
-  the $X$ period of Time.  
+  This is a useful problem to solve if you can only do $n$ inspections
+  in $X$ time. The results can help you prioritize your limited resources 
+  (i.e. your inspection workforce) to find and remediate as many problems
+  as possible.  
 
-  You could refine the definition and include only the more grave: 
+  You can also refine the definition and include only the most serious problems: 
 
-#+CAPTION: Second inspections problem's specification for the Chicago Food Inspections dataset
+#+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem that targets the most serious cases:
 #+begin_quote
-  Which $n$ facilities are likely have a critical o serious violation in the
+  Which $n$ facilities will have a critical or serious violation in the
   following $X$ period of time?
 #+end_quote
 
-  In the *EIS*, as a facility owner or manager, we want to predict if
-  the facility under our control is at /risk/ of been inspected in the
-  following $X$ period of Time:
+  Facility owners or managers might view this as an early intervention problem,
+  where we predict if our facility will be inspected in the following $X$ period
+  of time:
 
-#+CAPTION: EIS problem's definition for the Chicago Food Inspections dataset
+#+CAPTION: How to define Chicago Food Inspections as an early warning problem:
 #+begin_quote
-Will my restaurant be inspected in thenext $X$ period of time?
+  Will my restaurant be inspected in the next $X$ period of time?
 #+end_quote
 
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
+  Knowing when the restaurant will be inspected enables the restaurant
+  owner to prepare for it.
 
   In the previous definitions $X$ could be 1 month, 1 week, 1 year,
-  etc. The election of $X$ depends in your internal process (e.g.  /We plan for inspections every 3 months, so you need a list every 3 months, before the meeting for planning/ ).
+  etc. The election of $X$ depends on your internal process (e.g.  /We plan for inspections every 3 months, so you need a list every 3 months, before the meeting for planning/).
   
-  Without going in technical intricallities, both problems have (or
-  should have) the following data structure: The data describes
-  *events* in which an *entity* was involved, and that event have an 
+  Without going into detail, both problems have (or
+  should have) the following data structure: The data describe
+  *events* in which an *entity* was involved, and each event has a 
   specific *outcome* or result.
 
-  The *entity*, in our tutorial, for both cases, is a
-  /facility/. The *event* is an inspection, The definition of the
-  *outcome* is what differ between those two problems: for *EIS*, the
-  outcome is /inspected/, for *inspections*, the outcome is, for
-  example /major violation found/ or /inspection failed/.
+  The *entity* for both cases in this tutorial is a
+  /facility/. The *event* is an inspection. The *outcome* differs: 
+  for *EIS* the outcome is /inspected/, and for *inspections* the outcome
+  might be /major violation found/ or /inspection failed/.
 
 
 * Footnotes
@@ -71,14 +69,12 @@ of Hazardous Waste Regulations]] , [[http://dsapp.uchicago.edu/projects/health/l
 [fn:3] In DSaPP we frequently work with partners in problems of this
 kind for example: [[http://dsapp.uchicago.edu/projects/education/][Increasing High School Graduation Rates: Early
 Warnings and Predictive Systems]], [[http://dsapp.uchicago.edu/projects/public-safety/police-eis/][Building Data-Driven Early
-Intervention Systems for Police Officers]], [[http://dsapp.uchicago.edu/projects/criminal-justice/data-driven-justice-initiative/][Data-Driven Justice
-Initiative: Identifying Frequent Users of Multiple 
-Public Systems for More Effective Early Assistance]] 
+Intervention Systems for Police Officers]], [[http://dsapp.uchicago.edu/projects/criminal-justice/data-driven-justice-initiative/][Data-Driven Justice Initiative: Identifying Frequent Users of Multiple Public Systems for More Effective Early Assistance]] 
 
 [fn:2] See the definitions below
 
-[fn:1] This dataset  has been   used in several examples around the
-web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]] or [[https://youtu.be/1dKonIT-Yak][here]]) 
+[fn:1] This dataset has been used in several examples around the
+web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]], or [[https://youtu.be/1dKonIT-Yak][here]]) 
   
 
 
