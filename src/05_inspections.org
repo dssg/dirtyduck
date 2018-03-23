@@ -17,39 +17,36 @@
 * Inpections prioritization
 ** Problem description
 
- We will begin with the the *inspections prioritization* problem: we want to generate a list of
-   facilities which are /likely/ to have some *critical* o *serious*
-   violation /given that/ they are inspected.
+ We will begin with the the *inspection prioritization* problem, where we want to generate a list of
+   facilities that will have a *critical* or *serious* food violation /if/ inspected.
 
-The scenario, is the following:  you work for the City of Chicago and you try
-  to prioritize your resources (i.e. your inspection workforce), since
-  they are limited. So, you will use the data for answering the next question:
+The scenario is the following: you work for the City of Chicago and you have 
+  limited food inspectors, so you try to prioritize them to focus on the highest-risk
+  facilities. So you will use the data to answer the next question:
 
 #+begin_quote
-Which X facilities are likely to violate some code in the
+Which X facilities are most likely to fail a food inspection in the
   following Y period of time?
 #+end_quote
 
-  In this case maybe you are interested not
-  in all the violations but in the more severe ones.
+If you want to focus on major violations only, you can do that too.
 
 ** Creating the labels
 
-We will define two different labels:
+We will define two labels:
 
 - *Which facilities are likely to fail an inspection?*
 
-Facilities who failed an inspection (i.e. =result= = ='fail'=)
+The label takes a 1 if the inspection had at least one =result= = ='fail'= and a 0 otherwise.
 
-- *Which facilities are likely  to fail an inspection with a major  violation?*
+- *Which facilities fail an inspection with a major violation?*
 
-Rremember that critical violations are coded between =1-14=, serious violations between
+Critical violations are coded between =1-14=, serious violations between
 =15-29=, everything above =30= is assumed to be a minor violation.
+The label takes a 1 if the inspection had at least one =result= = ='fail'= and a
+violation between 1 and 29, and a 0 otherwise.
 
-Facilities who failed an inspection (i.e. =result= = ='fail'=) and the
-=severity in ('critical', 'serious')=
-
-We could extract the severity of the violation inspected using the
+We can extract the severity of the violation using the
 following code:
 
 
@@ -82,11 +79,11 @@ order by date desc
 :END:
 
 Remember from [[A tale of two tables]] that the /outcome/ will be used by
-=triage= in order of generate the labels. The following image tries to
-show the meaning of the /outcomes/ for /inspection failed/ problem definition.
+=triage= to generate the labels. The following image tries to
+show the meaning of the /outcomes/ for the /inspection failed/ problem definition.
 
 #+NAME: fig:outcomes-inspections
-#+CAPTION: The image shows three facilities and next to each of them, a temporal line with 6 days (0-5) each dot represents an inspection. Green means that the inspection had a result "Pass", red that the inspection "Fail". Each of the facilities in the image had two inspections, but only the facility in the middle completed both without fails.
+#+CAPTION: The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means that the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
@@ -101,21 +98,20 @@ create schema if not exists inspections;
 
 #+RESULTS:
 
-=Triage= has some restrictions (at the current version) about how to
-name (some) columns, in specific, our columns should include:
+=Triage= (version 1.0.3) requires certain columns:
 
 - =entity_id=     :: The entity affected / causing the event (In our
      case the facility)
-- =outcome_date=  :: The date in which the event happen / The date in
-     which we discover the result (The inpection's date)
-- =outcome=       :: The result (label) of the event (One of the labels
-     speecified before)
+- =outcome_date=  :: The date of the event / The date on
+     which we get the result (The inspection date)
+- =outcome=       :: The result (label) of the event (one of the labels
+     specified before)
 
 =entity_id= an identifier for which the labels are applied to,
-=outcome_date= the date at which some outcome was known, =outcome= a
-boolean outcome.
+=outcome_date= the date at which some outcome was known, and =outcome= is a
+1/0 outcome.
 
-Since we defined two labels, we will create two tables one per each outcome.
+Since we defined two labels, we will create two tables, one for each outcome.
 
 #+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
 
@@ -159,9 +155,9 @@ from inspections_outcomes
 
 Also, We need to create a new version of the =semantic.entities=
 table. =Triage= refers to this new table as the *states* table. It should
-have columns =entity_id=, =start__time, end_time= and =state=.
+have =entity_id=, =start__time, end_time=, and =state= columns.
 The states table allows us to only
-include rows in your matrices in a specific state. In our case we only want
+include rows in your matrices with a specific status. For this project, we only want
 to inspect *active* facilities. We will replace all the =NULL= values in
 the =end_time= column for a date in the future, in particular =2020-12-31=.
 
@@ -180,39 +176,37 @@ from semantic.entities
 #+RESULTS:
 
 
-** Modeling using Machine Learning
+** Modeling Using Machine Learning
 
-It is time of getting all the previous steps and put them
-together. Don't worry, actually we are done with coding. =Triage= provides
-you with a configuration file for specifying the experiment that we
-want to run.
+It is time to put these steps together. All the coding is complete;
+we just need to modify =triage='s configuration file.
 
 *** Creating a simple experiment
 
-For this first experiment we will try one of the simplest
+For the first experiment we will try one of the simplest
 machine learning algorithms: a *Decision Tree Classifier*. We need to
-write the experiment config file for that, let's break it down and
-explain all the sections.
+write the experiment config file for that. Let's break it down and
+explain the sections.
 
 The config file for this first experiment is located in
 [[./triage/experiment_config/inspections_test.yaml]]
 
 
-The first lines of the experiment config file are related to the
-version config file (=v3= at the moment of writing this tutorial), a
-comment (=model_comment=), this will end up as
-a value in the =results.models= table, and a list of user defined
-metadata (=user_metadata=) that could be used for identifying the
-resulting model groups. In our test example, if you run experiments that share
+The first lines of the experiment config file specify the
+config-file version (=v3= at the moment of writing this tutorial), 
+a comment (=model_comment=, which will end up as
+a value in the =results.models= table), and a list of user-defined
+metadata (=user_metadata=) that can identify the
+resulting model groups. For this example, if you run experiments that share
 a temporal configuration but that use different label definitions
-(say, labeling building inspections with *any* violation as positive or
-labeling only building inspections with major violations as positive),
+(say, labeling inspections with *any* violation as positive versus
+only labeling inspections with major violations as positive),
 you can use the user metadata keys to indicate that the matrices
 from these experiments have different labeling criteria. The matrices from the
-two experiments will have different filenames (and not be overwritten or
-inappropriately reused), and if you add the =label_definition= key to
-the =model_group_keys=, models made on different label definition will
-have different groups.
+two experiments will have different filenames (and should not be overwritten or
+incorrectly used), and if you add the =label_definition= key to
+the =model_group_keys=, models made on different label definitions will
+belong to different model groups.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 config_version: 'v3'
@@ -228,7 +222,7 @@ user_metadata:
   author: 'Your name here'
 #+END_SRC
 
-Next, the *temporal configuration*  section. The first four parameters
+Next comes the *temporal configuration*  section. The first four parameters
 are related to the availability of data: How much data you have for
 feature creation? How much data you have for label generation? For
 simplicity we will assume that we can use the full =semantic.events= time
@@ -251,11 +245,11 @@ The next parameters are related to the training intervals:
   (=training_as_of_date_frequencies=)
 - How much time is covered by labels in the training matrices? (=training_label_timespans=)
 
-The remaining elements are related to the *testing* matrices, in the
-particular case of *inspections*, you can choose them as follows:
+The remaining elements are related to the *testing* matrices. 
+For *inspections*, you can choose them as follows:
 
 - =test_as_of_date_frequencies= is planning/scheduling frequency
-- =test_durations= is how far out are you scheduling for?
+- =test_durations= how far ahead do you schedule inspections?
 - =test_label_timespan= is equal to =test_durations=
 
 Let's assume that we need to do rounds of inspections every month
@@ -296,7 +290,7 @@ introduced in [[file:triage_intro.org][Introduction to triage]].
 Using the config file /triage/experiment_config/inspections_test.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
 Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
+The experiment will use any preexisting matrix or model: False
 Creating experiment object
 Experiment loaded
 Generating temporal blocks image
@@ -310,21 +304,21 @@ Image stored in:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/inspections_test.png]]
 
-We need to specify the table that keeps our labels, for this first
+We need to specify the table that keeps our labels. For this first
 experiment we will use the label =failed=, stored in =inspections.labels=.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
 events_table: inspections.failed
 #+END_SRC
 
-=Triage= will generate the features for us, we need to tell which ones
-in the section =feature_aggregations=. Here, each entry describes a
-=collate.SpacetimeAggregation= object, and the
+=Triage= will generate the features for us, but we need to tell it which features
+we want in the section =feature_aggregations=. Here, each entry describes a
+=collate.SpacetimeAggregation= object and the
 arguments needed to create it. For this experiment we will try the following
 features:
 
-- Number of different types of inspections  that happened in the
-  facility in the last year from a particular day
+- Number of different types of inspections the facility had in the last year 
+  (calculated xxx
 -
 - Number of different types of inspections  that happened in the
   zip code in the last year from a particular day
