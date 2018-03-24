@@ -1,92 +1,83 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 
-* Description of the problem to solve
+* Description of the problem
 
   This tutorial aims to introduce the reader to [[https://github.com/dssg/triage][triage]], a machine learning modeling tool built by the [[https://dsapp.uchicago.edu][Center for Data Science and Public Policy]].
-  We will use the well known [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago's Food Inspections dataset]] [fn:1]
-  as the data source. We will present the two problems that =triage= was built to model:
+  We will use the well-known [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago Food Inspections dataset]].[fn:1] 
+We will present the two problems that =triage= was built to model:
 
-  1. Creation of *Early  Intervention Systems* (*EIS*)[fn:3] and
-  2. Resource prioritization (internally know as the /inspections
-     problem/) [fn:4].
+  1. *Resource prioritization* (internally known as the /inspections
+     problem/)[fn:2] and
+  2. *Early warning*.[fn:3]
+
   
-  For *inspection prioritization*, we want to generate a list of
-  facilities[fn:2] to inspect in the following $X$ period of time
-  that would have a *critical* or *serious*
-  violation if inspected.
+** Inspection Prioritization
 
-#+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem:
-#+begin_quote
-  Which $n$ facilities will violate some rule in the
-  following $X$ period of time?
-#+end_quote
-
-  This is a useful problem to solve if you can only do $n$ inspections
-  in $X$ time. The results can help you prioritize your limited resources 
-  (i.e. your inspection workforce) to find and remediate as many problems
-  as possible.  
-
-  You can also refine the definition and include only the most serious problems: 
-
-#+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem that targets the most serious cases:
-#+begin_quote
-  Which $n$ facilities will have a critical or serious violation in the
-  following $X$ period of time?
-#+end_quote
-
-  Facility owners or managers might view this as an early intervention problem,
-  where we predict if our facility will be inspected in the following $X$ period
-  of time:
-
-#+CAPTION: How to define Chicago Food Inspections as an early warning problem:
-#+begin_quote
-  Will my restaurant be inspected in the next $X$ period of time?
-#+end_quote
-
-  Knowing when the restaurant will be inspected enables the restaurant
-  owner to prepare for it.
-
-  In the previous definitions $X$ could be 1 month, 1 week, 1 year,
-  etc. The election of $X$ depends on your internal process (e.g.  /We plan for inspections every 3 months, so you need a list every 3 months, before the meeting for planning/).
+  The city views this as an inspection-prioritization problem. 
+  In an ideal world, inspectors would frequently visit every food facility[fn:4] 
+  to ensure it meets safety standards. But the real world doesn't have enough
+  inspectors for that to happen, so the city needs to decide how to allocate
+  its limited inspection workforce to find and remediate as many establishments
+  with food hazards as possible. Assuming the city can inspect $n$ facilities 
+  in the next $X$ period of time, they can define the problem like this:
   
-  Without going into detail, both problems have (or
-  should have) the following data structure: The data describe
-  *events* in which an *entity* was involved, and each event has a 
-  specific *outcome* or result.
+  #+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem:
+  #+begin_quote
+    Which $n$ facilities will have a food violation in the
+    following $X$ period of time?
+  #+end_quote
 
-  The *entity* for both cases in this tutorial is a
-  /facility/. The *event* is an inspection. The *outcome* differs: 
-  for *EIS* the outcome is /inspected/, and for *inspections* the outcome
-  might be /major violation found/ or /inspection failed/.
+  If our inspection workforce is really limited, we should probably just target
+  the most serious violations. Then we'd define the problem like this:
+
+  #+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem 
+  that targets the most serious cases:
+  #+begin_quote
+    Which $n$ facilities will have a critical or serious violation in the
+    following $X$ period of time?
+  #+end_quote
+
+
+
+** Early Warning 
+  Facility owners or managers would view this as an early warning problem.
+  They'd like to know whether an inspector is going to visit their facility 
+  so they can prepare for it. They can define the problem like this:
+
+  #+CAPTION: How to define Chicago Food Inspections as an early warning problem:
+  #+begin_quote
+    Will my facility be inspected in the next $X$ period of time?
+  #+end_quote
+
+
+** Common Issues
+  For either problem, $X$ could be a day, a week, month, a quarter, a year, 56 days,
+  or some other time period. 
+  #The choice of $X$ depends on your internal process; 
+  #for example, /We plan for inspections every 3 months, so you need a list every 3 months, before the meeting for planning/).
+  
+  Without going into detail, both problems use data where each 
+  row describes an *event* in which an *entity* was involved, and
+  each event has a specific *outcome* or result.
+
+  The *entity* for both inspection prioritizations and early warnings 
+  in this tutorial is a food /facility/, and the *event* is an inspection. 
+  But the *outcome* differs: for inspections the outcome is /inspection failed/
+  or /major violation found/, while for early warning the outcome is /inspected/.
+
+
 
 
 * Footnotes
 
-[fn:4] Examples of this type of problems are: [[http://dsapp.uchicago.edu/projects/environment/][Predictive Enforcement
-of Hazardous Waste Regulations]] , [[http://dsapp.uchicago.edu/projects/health/lead-prevention/][Targeting Proactive Inspections for Lead Hazards]]
+[fn:4] Defined as "[[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][restaurants and other food establishments]]".
 
-[fn:3] In DSaPP we frequently work with partners in problems of this
-kind for example: [[http://dsapp.uchicago.edu/projects/education/][Increasing High School Graduation Rates: Early
+[fn:3] Examples include [[http://dsapp.uchicago.edu/projects/education/][Increasing High School Graduation Rates: Early
 Warnings and Predictive Systems]], [[http://dsapp.uchicago.edu/projects/public-safety/police-eis/][Building Data-Driven Early
-Intervention Systems for Police Officers]], [[http://dsapp.uchicago.edu/projects/criminal-justice/data-driven-justice-initiative/][Data-Driven Justice Initiative: Identifying Frequent Users of Multiple Public Systems for More Effective Early Assistance]] 
+Intervention Systems for Police Officers]], and [[http://dsapp.uchicago.edu/projects/criminal-justice/data-driven-justice-initiative/][Data-Driven Justice Initiative: Identifying Frequent Users of Multiple Public Systems for More Effective Early Assistance]]. 
 
-[fn:2] See the definitions below
+[fn:2] Examples include [[http://dsapp.uchicago.edu/projects/environment/][Predictive Enforcement
+of Hazardous Waste Regulations]] and [[http://dsapp.uchicago.edu/projects/health/lead-prevention/][Targeting Proactive Inspections for Lead Hazards]].
 
-[fn:1] This dataset has been used in several examples around the
-web (e.g. [[https://chicago.github.io/food-inspections-evaluation/][here]],  [[https://youtu.be/lyDLAutA88s][here]], or [[https://youtu.be/1dKonIT-Yak][here]]) 
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[fn:1] Several examples use this dataset, such as [[https://chicago.github.io/food-inspections-evaluation/][City of Chicago Food Inspection Forecasting]],  [[https://youtu.be/lyDLAutA88s][PyCon 2016 keynote: Built in Super Heroes]], and [[https://youtu.be/1dKonIT-Yak][PyData 2016: Forecasting critical food violations at restaurants using open data]]. 
