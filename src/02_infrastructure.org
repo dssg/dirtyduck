@@ -14,30 +14,30 @@
 
 * Infrastructure
 
-   In every data science project you will need several tools that
-   help you to analyze the data in an efficient[fn:1] manner.
-   Examples of these tools include a place to store the data (a database
-   management system or *DBMS*), a way
-   for putting your model to work, i.e. one way that allows to model
-   to ingest new data and predict on it (an *API*) and a interface for
-   looking the performace of your trained models (a governance tool). 
+   In every data science project you will need several tools to
+   help analyze the data in an efficient[fn:1] manner.
+   Examples include a place to store the data (a database
+   management system or *DBMS*); a way to put your model to work, 
+   i.e. a way that allows the model to ingest new data and make
+   predictions (an *API*); and a way to examine the performance 
+   of trained models. 
 
-   We are providing a script for managing all the infrastructure[fn:2] in
+   This tutorial includes a script for managing the infrastructure[fn:2] in
    a transparent way.
 
-   The environment is comprised of /four/ pieces:
+   The infrastructure has /four/ pieces:
    - a =postgresql= database called =food_db=,
    - a container that executes =triage= experiments,
    - a /web server/ that shows this tutorial, and
    - a container for interacting with the data called =bastion=.
    This container includes a =postgresql= client
    (so you can interact with the database)[fn:3] and a full =python=
-   environment (so you can code or modify the things that we will
-   discuss in this Tutorial). 
+   environment (so you can code or modify the things for
+   the tutorial). 
 
-   The only thing you should need installed on your laptop is =docker=.
+   The only thing you need installed on your laptop is =docker=.
 
-   From your command line (terminal) run the following:
+   From your command line (terminal) run the following from the repo directory:
 
    #+BEGIN_SRC sh 
     ./tutorial.sh
@@ -70,7 +70,7 @@
      Destroy all the resources related to the tutorial:
 	  $ ./tutorial.sh destroy
 
-     Infrastructure logs:
+     View the infrastructure logs:
 	  $ ./tutorial.sh -l
 
   EXPERIMENTS:
@@ -152,11 +152,12 @@
 #+END_EXAMPLE
 
    The previous command is using =psql=, a powerful command line client for the Postgresql database. 
-   If you want to use this client fully, check the [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
+   If you want to use this client fully, check [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
 
    The database is running and it's named =food=. It should contain a
    single table named =inspections= in the =schema= =raw=. 
-   Let's check the =inspections= table. Type the following command:
+   Let's check the structure of the =inspections= table. 
+   Type the following command:
 
    #+BEGIN_SRC sql
     \d raw.inspections
@@ -198,7 +199,7 @@
 
 * Footnotes
 
-[fn:3] If you have already installed a postgresql client you could use =psql -h 0.0.0.0 -p 5434 -d food -U food_user= instead, and not use the =bastion= container.
+[fn:3] If you have a postgresql client installed, you can use =psql -h 0.0.0.0 -p 5434 -d food -U food_user= rather than the =bastion= container.
 
 [fn:2] And other things through this tutorial, like the execution of
 the model training, etc.
