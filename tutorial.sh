@@ -35,7 +35,7 @@ INFRASTRUCTURE:
    Destroy all the resources related to the tutorial:
         $ ./tutorial.sh destroy
 
-   Infrastructure logs:
+   View the infrastructure logs:
         $ ./tutorial.sh -l
 
 EXPERIMENTS:
