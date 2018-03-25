@@ -18,9 +18,9 @@ We need to get the data and transform it into a shape that is suitable for the a
 
 *NOTE* Unless we say otherwise, you should run all the following commands inside =bastion=.
 
-** Downloading the data
+** Download the data
 
-The data can be downloaded from the City of Chicago's open data portal. The following command downloads the data and stores it as a =csv= file in the =data/= folder: 
+You can download the data from the City of Chicago's open data portal. The following command downloads the data and stores it as a =csv= file in the =data/= folder: 
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results none
      curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > data/inspections.csv
@@ -51,7 +51,7 @@ And the (apparent) number of rows:[fn:2]
 
 Remember this number because you'll get a surprise when you load the data into the database.
 
-** Loading data into the database
+** Load the data into the database
 
 Before loading =inspections.csv= into the database, verify that the database table is empty:[fn:3]
 
@@ -68,7 +68,7 @@ Before loading =inspections.csv= into the database, verify that the database tab
 
    #+END_SRC
 
-We can load the file using the =\copy= command. The command's output will report how many rows were inserted:
+We can load the file using the =\copy= command. The output will report how many rows were inserted:
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      psql ${FOOD_DB_URL} -c "\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"
@@ -80,11 +80,11 @@ We can load the file using the =\copy= command. The command's output will report
    #+END_SRC
 
 This is different than the number of rows that we calculated
-previously! Did we miss several thousand rows? 
+previously! Did tens of thousands of rows get dropped? 
 
-The explanation for this mismatch is that the column
-=violations= contains several lines in some examples[fn:4]. But don't worry:
-the previous command took care about that.
+No, the explanation for this mismatch is that some inspections
+contain several lines in the =violations= column.[fn:4] But don't worry:
+Postgres is smart enough to handle that.
 
 Let's peek at the data:
 
@@ -99,50 +99,45 @@ select * from raw.inspections limit 1
    |    2145741 | 1914 CLUB | 1914 CLUB |    2569448 | [NULL]       | Risk 1 (High) | 1060 W ADDISON AVE | CHICAGO | IL    | 60613 | 2018-03-01 | License | Not Ready | [NULL]     | 41.94731748901495 | -87.65641794764645 | (41.94731748901495, -87.65641794764645) |
    :END:
 
-Ok, now you have some data loaded! But we still need to /munge/ it to use it in our Machine learning task.
+Ok, now you have some data loaded! But we still need to /munge/ it to use it in our machine learning task.
 
 ** Transforming (and cleaning) the data
 
 *** Rationale
 To tackle a Machine Learning problem, you need to identify the
-*entities* of your problem domain, and if your problem involves time,
-how those entities change over time, i.e. which *events* happened to
-that entity or which *events* where acted by the entity in question.
+*entities* for your problem domain, and if your problem involves time,
+how those entities change, either what *events* happen to
+the entity or what *events* the entity effects.
 
-We will materialize that conceptualization in two different tables, one for entities and
-one for events, we will name those tables as =entities= and =events= respectively.
+We will store this information in two tables, one named =entities= and the 
+other =events=.
 
-The entity is the *restaurant*, and the events that happen to that entity
-are the *inspections*.
+The entity is the food *facility*, and the events are the *inspections*.
 
-The table =entities= should contain an unique identifier for the entity,
-some data specific for that entity (like name, age, status). The
-=events= table will include data related to the description of the
-inspection, but don't forget the two most important attributes of an
-event are its spatial position and its temporal location.
+The =entities= table should contain a unique identifier for the entity and
+some data about that entity (like name, age, status). The
+=events= table will include data related to the inspection, including the 
+two most important attributes: its spatial and temporal positions.
 
-Before starting the cleaning, you should know one of the golden rules
--that will make your life easier:
+Before starting the cleaning, make your life easier by following this rule:
 
 #+BEGIN_QUOTE
-   /You must not change your original data/
+   /Do not change the original data/
 #+END_QUOTE
 
-The reason for this is the following: if you make some mistake, or if
-you want to try a different transformation on your data, you could
-always can go back to this =raw= data and start over.
+The reason is, if you make a mistake or want to try a different data 
+transformation, you can always can go back to the =raw= data and start over.
 
 The transformation "road" that we will take in this tutorial is as follows:
 
-1. We put an exact copy of our inse data in the =raw= schema. (We just
-   did that)
-2. We will apply some simple transformations that will clean our data
-   and we will store that version on the =cleaned= schema.
-3. We will organize the data semantically in two /unnormalized/[fn:5] tables:
+1. Put a copy of the data in the =raw= schema. (We just did that.)
+2. Apply some simple transformations and store the resulting
+   data in the =cleaned= schema.
+3. Organize the data in two /unnormalized/[fn:5] tables:
    =events= and =entities= in the =semantic= schema.
-4. Then We need to fulfill some =triage= idiosyncrasies, and create
-   some other tables and store them in the schema =triage=.
-5. Finally, =triage= will take over, and it will create the schema =results=.
+4. Address some =triage= idiosyncrasies, and create
+   other tables and store them in the schema =triage=.
+5. Run =triage=. It will create the schema =results=.
 
 
 #+ATTR_ORG: :width 600 :height 400
@@ -155,12 +150,12 @@ The transformation "road" that we will take in this tutorial is as follows:
 
 *** Dataset documentation
 
-The Chicago's food inspection  dataset has some documentation located
-[[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]. From it, we can make sense about the column's meaning, and the
+The Chicago Food Inspection dataset has documentation
+[[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]. 
+We can make sense there about the column's meaning, and the
 process that generates the data.
 
-The meaning of interesting columns follows[fn:6], all the other
-columns should be self-explanatory
+Most columns are self-explanatory, but some are not:[fn:6]
 
 - *Risk category of facility* (=risk=) ::
 
@@ -177,17 +172,17 @@ columns should be self-explanatory
 #+BEGIN_QUOTE
      An inspection can be one of the following
      types: canvass, the most common type of inspection performed
-     at a frequency relative to the risk of the   establishment;
-     consultation, when the inspection is  done at the request of the
+     at a frequency relative to the risk of the establishment;
+     consultation, when the inspection is done at the request of the
      owner prior to the opening of the establishment; complaint, when
-     the inspection is done in    response to a complaint against the
-     establishment; license, when the inspection is done    as a
+     the inspection is done in response to a complaint against the
+     establishment; license, when the inspection is done as a
      requirement for the establishment to receive its license to
-     operate; suspect food    poisoning, when the inspection is done
-     in response to one or more persons claiming to    have gotten ill
+     operate; suspect food poisoning, when the inspection is done
+     in response to one or more persons claiming to have gotten ill
      as a result of eating at the establishment (a specific type of
-     complaint-   based inspection); task-force inspection, when an
-     inspection of a bar or tavern is done.    Re-inspections can
+     complaint-based inspection); task-force inspection, when an
+     inspection of a bar or tavern is done. Re-inspections can
      occur for most types of these inspections and are indicated as
      such.
 #+END_QUOTE
@@ -195,7 +190,7 @@ columns should be self-explanatory
 - *Results* (=results=) ::
      
 #+BEGIN_QUOTE
-     An inspection can pass, pass with conditions or
+     An inspection can pass, pass with conditions, or
      fail. Establishments receiving a ‘pass’ were found to have no
      critical or serious violations (violation number 1-14 and 15-29,
      respectively). Establishments receiving a ‘pass  with conditions’
@@ -221,37 +216,35 @@ columns should be self-explanatory
      
 We added emphasis to the last one.
 
-From this definitions, we can deduct the following claims:
+From these definitions, we can infer the following:
 
 1. /risk/ is related to the frequency of inspections of type /canvass/.
-2. /consultation/ is a compulsory inspections /before/ the facility opens
-   (so we can remove it from the data), the same happens with /license/.
-3. /complaint/ and /suspect food poisoning/ are types of inspections
-   which are  triggered by the people.
-4. Inspection of type /consultation/ are triggered by the owner of the
-   facility.
-5. /task-force/ occurs against bar or taverns.
+2. /consultation/ is an inspection /before/ the facility opens
+   (so we can remove it from the data). The same happens with /license/.
+3. /complaint/ and /suspected food poisoning/ are triggered by people.
+4. /consultation/ is triggered by the owner of the facility.
+5. /task-force/ occurs at bars or taverns.
 6. *Critical violations* are coded between =1-14=, *serious violations*
-   between =15-29=. So, we can assume that the violations code =30= and
-   onward are /minor/ violations.
-7. The description of the violation is actually what *shouldn't* found,
-   the comment are the steps that the facility should take in order of
-   not receive the violation.
-8. They are only three possible results of the inspection (plus the
-   fact that the facility was not located or out of business).
-9. There are several =violations= per =inspection=.
+   between =15-29=. We can assume that the violations code =30= and
+   higher are /minor/ violations.
+7. /violation/ describes the problems found, and the comment section
+   describes the steps the facility should take to fix the problem.
+8. There are only three possible results of the inspection. (Also,
+   an inspection may not happen if the facility was not located or went
+   out of business).
+9. There can be several =violations= per =inspection=.
 
 
 
 *** Reality check
 
-It is important verify that the documentation is correct. Let's start
-checking that the =risk= column *only* have three different classifications:
+It is important to verify that the documentation is correct. Let's start by
+checking that the =risk= column *only* has three classifications:
 
 *NOTE* Execute this in =psql= inside the container =bastion=.
 
 #+BEGIN_SRC sql
-  select risk, count(*) from raw.inspections group by risk order by count(*) desc
+  select risk, count(*) from raw.inspections group by risk order by count(*) desc;
 #+END_SRC
 
 #+RESULTS:
@@ -265,13 +258,13 @@ checking that the =risk= column *only* have three different classifications:
 | All             |     23 |
 :END:
 
-Ok, we got two more =risk= types: =All= and =NULL= for a grand total
+Ok, there are two extra =risk= types, =All= and =NULL=, for a grand total
 of *5*. 
 
 What about =types= of inspections?
 
 #+BEGIN_SRC sql
-  select count(distinct type) from raw.inspections
+  select count(distinct type) from raw.inspections;
 #+END_SRC
 
 #+RESULTS:
@@ -281,12 +274,12 @@ What about =types= of inspections?
 |   108 |
 :END:
 
-Wow, we got *108* types of inspections instead of *5*.
+Wow, there are *108* types of inspections instead of *5*!
 
-Which are those types? How bad is it?
+What are those types? How bad is it?
 
 #+BEGIN_SRC sql
-select type, count(*) from raw.inspections group by type order by count(*) desc limit 10
+select type, count(*) from raw.inspections group by type order by count(*) desc limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -305,11 +298,13 @@ select type, count(*) from raw.inspections group by type order by count(*) desc 
 | License-Task Force       |   605 |
 :END:
 
-This columns will require also cleaning. Finally, let's look =results=
+This columns will require also cleaning. 
+
+Finally, let's look =results=
 (should be 3)
 
 #+BEGIN_SRC  sql
-  select results, count(*) from raw.inspections group by results order by count(*) desc
+  select results, count(*) from raw.inspections group by results order by count(*) desc;
 #+END_SRC
 
 #+RESULTS:
@@ -325,46 +320,44 @@ This columns will require also cleaning. Finally, let's look =results=
 | Business Not Located |    61 |
 :END:
 
-Ok, disheartening. But, that is the reality of /real/ data. We will try to clean this mess.
+Ok, disheartening. But that's the reality of /real/ data. We'll try to clean this mess.
 
 *** Cleaning
 
-Let's see the data to figure out how we need to be transform it. We
-will concentrate at first in all columns except =violations=, we will
-deal with that later, since is more complex.
+Let's look at the data to figure out how we need to transform it. We'll 
+start with all the columns except =violations=. We'll
+deal with that one later because it's more complex.
 
-First, we will remove superfluous spaces and will transform the columns
+First, we'll remove superfluous spaces; convert the columns
 =type, results, dba_name, aka_name, facility_type, address, city= to
-lower case, also, we will clean =risk= keeping only the description
+lower case; and clean =risk=, keeping only the description
 (e.g. *high* instead of *Risk 1 (High)*).
 
-We still need to clean the column =type= (it contains several more
-variations instead of the *seven* mentioned in the documentation:
-/canvass/, /complaint/, /license/, /re-inspection/, /task-force/, /consultation/
-and /suspect food poisoning/). For simplicity, we will use /regular
-expressions/ and we will ignore /re-inspection/.
+We still need to clean the column =type= (which contains more
+values than the *seven* mentioned in the documentation:
+/canvass/, /complaint/, /license/, /re-inspection/, /task-force/, /consultation/,
+and /suspected food poisoning/). For simplicity, we will use /regular
+expressions/ and ignore /re-inspection/.
 
-For the column =risk= , we will impute as =high= all the =NULL= and =All=
+For the column =risk=, we will impute as =high= all the =NULL= and =All=
 values.
 
-As we have seen (and we will continue see that)  through all this
-tutorial, /data is always messy/, for example, in the column =dba_name=
- we have several different spellings: =SUBWAY= and
+As we have seen (and will continue see) through this
+tutorial, /real data are messy/; for example, the column =dba_name=
+has several spellings for the same thing: =SUBWAY= and
 =Subway=, =MCDONALDS= and =MC DONALD'S=, =DUNKIN DONUTS/BASKIN ROBBINS= and
 =DUNKIN DONUTS / BASKIN ROBBINS=, etc.
 
-We could try a very simple cleaning strategy: convert all the
+We could use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]]
+or machine learning /deduplication/[fn:7] to clean these names,
+but we'll go with a very simple cleaning strategy: convert all the
 names to lowercase, remove the trailing spaces, remove the apostrophe
-"='"= and remove the spaces around "=/=". The problem with this approach
-is that we will be fixing the names that we just saw, but there are
-several other nuances down that list. Another approach is use [[https://www.postgresql.org/docs/current/static/fuzzystrmatch.html][soundex]],
-but that will (potentially) create a lot of mismatches. The real workaround is apply
-some /machine learning/ to /deduplicate/ the entities[fn:7].  We wont follow that
-path here, we will stick with first alternative.
+"='"=, and remove the spaces around "=/=". It won't completely clean
+those names, but it's good enough for this example project.
 
 Let's review the status of the spatial columns (=state, city, zip, latitude,
-longitude=). Beginning with the =state=, all the facilities in the
-data should be located at *Ilinois*:
+longitude=). Beginning with =state=, all the facilities in the
+data should be located in *Ilinois*:
 
 #+begin_src sql
 select state, count(*) from raw.inspections group by state
@@ -379,9 +372,9 @@ select state, count(*) from raw.inspections group by state
 :END:
 
 Ok, almost correct, there are some =NULL= values. We will assume that
-the =NULL= values are actually =IL= (We will impute them). Moving on
-the next spatial column, We expect that all the values in the column
-=city= are Chicago[fn:8]: 
+the =NULL= values are actually =IL= (i.e. we will impute them). Moving to
+the next spatial column, we expect that all the values in the column
+=city= are Chicago:[fn:8]
 
 #+BEGIN_SRC sql
 select 
@@ -408,13 +401,13 @@ order by count(*) desc limit 10
 | inactive          |      8 |
 :END:
 
-Oh boy. There are 140-ish rows with =NULL= values and forty-ish rows with the
-value =cchicago=, some more down the list, we got even
-=chicagochicago=. The rest value are different counties, but all of
-them are near to Chicago. We will ignore this column (or equivalently,
-we will assume that all the records are from Chicago. 
+Oh boy. There are 150-ish rows with =NULL= values and forty-ish rows with the
+value =cchicago=. Farther down the list, we even have
+=chicagochicago=. All the values are near Chicago, even if they're in different 
+counties, so we will ignore this column (or equivalently,
+we will assume that all the records are from Chicago). 
 
-The zip code has a similar =NULL= problem:
+Zip code has a similar =NULL= problem:
 
 #+BEGIN_SRC sql
 select count(*) from raw.inspections where zip is null or btrim(zip) = ''
@@ -427,31 +420,30 @@ select count(*) from raw.inspections where zip is null or btrim(zip) = ''
 |    72 |
 :END:
 
-We could attempt to remove this =NULLs= using the location point or
+We could attempt to replace these =NULL= values using the location point or
 using similar names of restaurants, but for this tutorial we will
 remove them. Also, we will convert the coordinates latitude and
-longitude to a =Point= [fn:10] [fn:9]. 
+longitude to a Postgres =Point=.[fn:10] [fn:9] 
 
-Continuing with the cleaning, we will drop the columns =state=,
-=latitude=, =longitude= (since these are (now) redundant, because the
-=Point= object). We will remove the column =city= since almost
-everything happens in Chicago (this is the Chicago's food inspection data set anyway).
+We will drop the columns =state=,
+=latitude=, and =longitude= because the =Point= contains all that information. 
+We will remove the column =city= because almost
+everything happens in Chicago.
 
-So, if you keep the counting, we are only keeping two columns related
-to the spatial location of the events: the administrative one
-(=zip_code=) and the exact point of the facility (=location=).
+If you're keeping count, we are only keeping two columns related
+to the spatial location of the events: the location of the facility (=location=)
+and one related to inspection assignments (=zip_code=). 
 
-There are several violations inspected per event, for clarity we will
-put the violations in their own table.
+Each inspection can have multiple violations. To handle that as simply as 
+possible, we'll put violations in their own table.
 
-As a final step in the cleaning we will change the name of the columns
-for explicit or better names(e.g =results -> result, dba_name -> facility=, etc).
+Finally, we will improve the names of the columns
+(e.g. =results -> result, dba_name -> facility=, etc).
 
 We will create a new =schema= called =cleaned=. The objective of this
-schema is twofold: keep our raw data /as-is/ and store our assumptions
-and cleaning decisions separated from the /raw/ data in a schema that
-/semantically/ is transmitting the information: "this is our clean
-data".
+schema is twofold: to keep our raw data /as is/ and to store our assumptions
+and cleaning decisions separate from the /raw/ data in a schema that
+/semantically/ transmits that "this is our cleaned data."
 
 The =cleaned= schema will contain two tables: =cleaned.inspections=
 and =cleaned.violations=. 
@@ -498,8 +490,7 @@ select * from cleaned where type is not null
 
 #+RESULTS:
 
-You could execute this code using (if you are not connected to the
-database with =psql=):
+You could execute this code from the command line using =psql=:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
 psql ${FOOD_DB_URL} < /sql/create_cleaned_inspections_table.sql
@@ -510,7 +501,7 @@ psql ${FOOD_DB_URL} < /sql/create_cleaned_inspections_table.sql
 SELECT 164178
 :END:
 
-Or, if you are in =psql=
+If you're in =psql=:
 
 #+BEGIN_EXAMPLE sql
 \i /code/create_cleaned_inspections_table.sql
@@ -538,18 +529,17 @@ Note that  src_sh[:results raw  :export result :dir
  format=unaligned  -c 'select count(*) from
  raw.inspections'} 165597, as expected we throw away some inspections.
 
-With the =cleaned.inspections= table created, let's look closer the
-column =violations= to choose which steps we should take to clean it.
+With the =cleaned.inspections= table created, let's take a closer look at
+the =violations= column to figure out how to clean it.
 
 The first thing to note is that the column =violation= has a lot of information:
-it mixes the official code and name of the /requirement to met/ (see the
- [[Dataset documentation]]), followed by inspector's comments. The
-comments are free text, that means that they can contain line breaks,
-mispellings, etc. If there are more that one violation, they will be
-separated using a pipe: =|=.
+it describes the code violation, what's required to address it (see
+ [[Dataset documentation]]), and the inspector's comments. The
+comments are free text, which means that they can contain line breaks,
+mispellings, etc. Pipes (=|=) seperate multiple violations.
 
 The following =sql= code removes line breaks and multiple spaces and
-creates an array with all the violations of the inspection number =2145736=
+creates an array with all the violations for inspection number =2145736=:
 
 #+BEGIN_SRC sql 
 select 
@@ -564,16 +554,15 @@ from raw.inspections where inspection = '2145736'
 | {"35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: MISSING PART OF THE COVING(BASEBOARD) BY THE EXPOSED HAND SINK IN THE KITCHEN. MUST REPAIR AND MAINTAIN. WATER STAINED CEILING TILES IN THE LUNCH ROOM. MUST REPLACE CEILING TILES AND MAINTAIN. PEELING PAINT ON THE CEILING AND WALLS THROUGHOUT THE SCHOOL. HALLWAYS, INSIDE THE CLASSROOMS, INSIDE THE WASHROOMS IN ALL FLOORS. INSTRUCTED TO SCRAPE PEELING PAINT AND RE PAINT.     "," 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: FIRST FLOOR GIRL'S WASHROOM,MIDDLE WASHBOWL SINK FAUCET NOT IN GOOD REPAIR, MUST REPAIR AND MAINTAIN. ONE OUT OF TWO HAND DRYER NOT WORKING IN THE FOLLOWING WASHROOM: FIRST FLOOR  BOY'S AND GIRL'S WASHROOM, AND  BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR AND MAINTAIN. "," 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: DAMAGED FLOOR INSIDE THE BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR, MAKE THE FLOOR SMOOTH EASILY CLEANABLE."} |
 :END:
 
-The structure of the =violations= column is (check the previous output):
+The structure of the =violations= column follows (check the previous output):
 
    - If there are several violations reported, those violations will
      be separated by ='|'= 
-   - Every violation begins with a code and  a description
-   - Every violation could have *comments*, those comments appear after
+   - Every violation begins with a code and a description
+   - Every violation can have *comments*, which appear after
      the string =- Comments:=
 
-We will take that observations in account and create a new table
-called =cleaned.violations= to store
+We will create a new table called =cleaned.violations= to store
 
    - inspection
    - code
@@ -619,10 +608,10 @@ called =cleaned.violations= to store
 
 #+Results:
  
-This code is in =/sql/create_violations_table.sql=, you can Execute
- it as before.
+This code is in =/sql/create_violations_table.sql=. You can execute
+ it with psql's -f option, as before.
 
-We can verify the result of the previous Script
+We can verify the result of the previous script
 
 #+BEGIN_SRC sql
 select * from cleaned.violations 
@@ -661,21 +650,19 @@ If everything worked correctly you should be able to run the following code:
 :END:
 
 As a last step, we should create from the cleaned tables the =entities=
-and =events= table.
+and =events= tables.
 
 ** Semantic tables
 
 *** Entities table
 
-The =entities= table should uniquely identify each one of the facilities and contain
-the attributes that describes each one of them. First, we should
-investigate how we can identify uniquely a facility. Let's hope that
-this is easy.
+The =entities= table should uniquely identify each facility and contain
+descriptive attributes. First, we should investigate how we can uniquely 
+identify a facility. Let's hope it's easy.
 
-We could expect that =license_num= is the way to go for uniquely
-identify the facility, let's confirm this with some queries.
+Perhaps =license_num= is a unique identifier. Let's confirm with some queries.
 
-We will beging with the following query: /What are the top 5 licenses with more inspections?/
+We will begin with the following query: /What are 5 licenses with the most inspections?/
 
 #+BEGIN_SRC sql
     select
@@ -701,9 +688,9 @@ We will beging with the following query: /What are the top 5 licenses with more 
 :END:
 
 
-This looks weird, there are three license  numbers than concentrates
- most of the inspections (in particular license number =0=) Let's
- investigate a little about the =license_num= = =0=. 
+This looks weird. There are three license numbers, in particular license number =0=, 
+ that have many more inspections than the rest. Let's
+ investigate =license_num= = =0=. 
 
 #+BEGIN_SRC sql
   select
@@ -733,9 +720,9 @@ This looks weird, there are three license  numbers than concentrates
 | long term care  |                9 |             1 |
 :END:
 
-It seems that =license_number= =0= is a generic Placeholder:
-Most of these are related to /special events/, /churchs/, /festivals/
-etc. But, What about  the =restaurants= which have =license_num= =
+It seems that =license_number= =0= is a generic placeholder:
+Most of these are related to /special events/, /churches/, /festivals/,
+etc. But what about the =restaurants= that have =license_num= =
 =0=? Are those the same restaurant?
 
 
@@ -768,13 +755,9 @@ etc. But, What about  the =restaurants= which have =license_num= =
 |          0 | vinces pizzeria & taqueria, inc | 1527 w devon ave      |                3 |             1 |
 :END:
 
-Nope. We conclude that we can't use the =license_num= as the unique
-identifier.
+Nope. Unfortunately, =license_num= is not a unique identifier.
 
-If we go back to the columns of the table, we could try with the
-column =license_num=  (assume that one license represents one
-establishment) and the column =address= (assume that one restaurant is
-in one place).
+Perhaps =license_num= and =address= are a unique identifier. 
 
 #+BEGIN_SRC sql
   select
@@ -792,13 +775,13 @@ in one place).
 :END:
 
 We were expecting (naively) that we should get one =license_num= per
-=facility= per =address=, but it isn't the case. This could be mean that
-several facilities share the name (e.g. "Subway" or "Mc Donalds")  or the
-license; another explanation is that several facilities share the same
-address, as the facilities at the stadium or the airport.
+=facility= per =address=, but that isn't the case. Perhaps
+several facilities share a name (e.g. "Subway" or "McDonalds") or 
+license, or perhaps several facilities share the same
+address, such as facilities at the stadium or the airport.
 
 We will try to use the combination of =license_num=, =facility=, =facility_aka=,
-=facility_type= and =address= to identify a facility:
+=facility_type=, and =address= to identify a facility:
 
 #+BEGIN_SRC sql
 select
@@ -825,19 +808,24 @@ limit 10
 |    1884255 | food 4 less                  | grocery store | food 4 less                  | 4821 w north ave          |    36 |
 :END:
 
-Which attributes should we add to the =entities= table? All the
-attributes that describe the entity and doesn't depend on the
-event and are atemporal. Therefore we will add =zip_code= and
-=location=. We also will add =start_time, end_time= . These columns
-describe the interval in which the facility is on business or /active/.
+Yay, it looks like these columns enable us to identify a facility! 
 
-These columns will be important because we won't make predictions on
-entities that aren't active.  
+The =entities= table should store two other types of attributes. The
+first type describe the entity no matter the time. If the entity were
+a person, date of birth would be an example but age would not because
+the latter changes but the former does not. We'll include =zip_code= 
+and =location= as two facility attributes. 
 
-We don't have this type of date directly in our data source, so we
-will use as an interval between the earliest date in the data source
-and the latest date *or* the greater data in which  the *result* of the
-inspection was =out of business= or =business not located=.
+The second type describes when the entity is available for 
+action (e.g. inspection). In this case, the columns =start_time, end_time= 
+describe the interval in which the facility is in business or /active/.
+These columns are important because we don't want to make predictions for
+inactive entities.  
+
+The data don't contain active/inactive date columns, so we
+will use the date of the facility's first inspection as =start_time=,
+and either =NULL= or the date of inspection if the result was =out of business= 
+or =business not located= as =end_time=.
 
 #+BEGIN_SRC sql :tangle ./sql/create_semantic_tables.sql
 
@@ -902,7 +890,7 @@ create index entities_full_key_ix on semantic.entities (license_num, facility, f
 
 #+RESULTS:
 
-Note that we add a /unique/ identifier (=entity_id=) to this table
+Note that we add a /unique/ identifier (=entity_id=) to this table:
 
 #+BEGIN_SRC sql
 select count(entity_id) from semantic.entities
@@ -1030,30 +1018,30 @@ way and for that we are stuck with that nomenclature.
 [fn:11] If you want to have a deep explanation about why is this good
 check [[http://coussej.github.io/2016/01/14/Replacing-EAV-with-JSONB-in-PostgreSQL/][this blog post]]
 
-[fn:10] We will store the =Point= as a =geography= object, in this way
-all the spatial operation (like calculating the distances between two
-facilities) will return answers in meters instead of degrees See for
-example [[http://workshops.boundlessgeo.com/postgis-intro/geography.html][this.]]
+[fn:10] We will store the =Point= as a =geography= object. As a result,
+spatial database operations (like calculating the distances between two
+facilities) will return answers in meters instead of degrees. See 
+[[http://workshops.boundlessgeo.com/postgis-intro/geography.html][this]].
 
 [fn:9] As a real geographical object [[https://postgis.net/docs/ST_MakePoint.html][check the PostGIS documentation]]
 
-[fn:8] It is the /Chicago/ Food Inspections dataset
+[fn:8] It is the /Chicago/ Food Inspections dataset, after all.
 
-[fn:7] This problem is related to the process of /deduplication/ and there will be another tutorial 
-for that that uses anothe DSaPP tool: =pgdedup=.
+[fn:7] This problem is related to the process of /deduplication/ and there is another DSaPP tutorial 
+for that: [[http://dsapp.uchicago.edu/resources/deduplication/][=pgdedupe=]].
 
-[fn:6] Verbatim from the datasource documentation
+[fn:6] Verbatim from the datasource documentation.
 
 [fn:5] It will make your life easier and most of the Machine Learning
 algorithms only accept data in matrix form (i.e. one big table)
 
-[fn:4] You could check that using the command =head= on =/data/inspections.csv=
+[fn:4] You can check that using the command =less= on =/data/inspections.csv=
 
 [fn:3] If you are connected to the database, you could just type =select count(*) from raw.inspections=
 
 [fn:2] /ibid/
 
-[fn:1] You'll probably get a different number the data is updated every day.
+[fn:1] You'll probably get a different number because the data are updated every day.
 
 
 * No export                                                        :noexport:
