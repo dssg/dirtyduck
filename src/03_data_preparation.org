@@ -906,12 +906,11 @@ select count(entity_id) from semantic.entities
 
 *** Events table
 
-We are ready for creating our events table. This table will describe
-the data related to the inspection, like /where/ and /when/ the
-inspection happened, some attributes of the inspection as /type/ and
-/result/, and we will add the violations as a =JSONB=
-column[fn:11]. As a final detail we will rename the =inspection=
-number to =event_id=[fn:13]  
+We are ready to create the events table. This table will describe
+the inspection, like the /type/ of inspection, /when/ and /where/
+the inspection happened, and the inspection /result/. We will add 
+the violations as a =JSONB= column.[fn:11] Finally, we'll rename 
+=inspection= =event_id=.[fn:13]  
 
 
 #+begin_src sql :tangle ./sql/create_semantic_tables.sql
@@ -979,7 +978,7 @@ create index events_event_entity_zip_code_date on semantic.events (event_id desc
 
 #+RESULTS:
 
-We accomplished to have one row per event[fn:12]. Our semantic data looks like:
+Success! We have one row per event.[fn:12] Our semantic data looks like:
 
 #+begin_src sql
 select event_id, entity_id, type, date, risk, result, facility_type, zip_code from semantic.events limit 1
