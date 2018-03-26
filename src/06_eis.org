@@ -18,40 +18,40 @@
 
 ** Problem description
 
-Our final stop is using =triage= to build a /Early Intervention (or Warning) System/. There are
- several differences between the the *EIS* and the *inspection
- prioritization* problem. The difference that has more impact is that
- the /entity/ in *EIS* is  /active/ 
- i.e. it is doing stuff, and for that stuff the the entity is doing
- some outcome will happen. In the *inspection prioritization* the
- /entity/ is acted on. This will change, from starters the way that
- the /outcome/ is build.
+=triage= is designed to also build early warning systems (also called early intervention, EIS). 
+While there are
+ several differences between modeling early warnings and inspection
+ prioritization, perhaps the biggest is that
+ the /entity/ is active (i.e. it is doing stuff for which 
+ an outcome will happen) in EIS but passive (i.e. inspected)
+ in *inspection prioritization*. Among other things, this difference
+ affects the way the /outcome/ is built.
 
-The question that we want to resolve is the following:
+Here's the question we want to answer:
 
 #+begin_quote
 Will my restaurant be inspected in the
 /next X period of time?/
 #+end_quote
 
-Where $X$ could be 1 month, 1 week, 1 year,
+Where $X$ could be 3 days, 2 months, 1 year,
 etc.
 
-  Knowing the answer to this question, allows you (as the restaurant's
-  owner) to be prepared and take the pertinent actions.
+  Knowing the answer to this question enables you (as the restaurant
+  owner or manager) to prepare for the inspection.
 
 
 ** Creating the labels
 
-The trick to note is that every day there are two possible outcomes:
-/the facility was inspected/ and /the facility wasn't inspected/. So,
-our /outcomes/ table will be more larger, since we need for every date
-in our dataset for every /active/ facility an /outcome/: Does the
-facility inspected? The following image tries to exemplify this reasoning:
+The trick is to note is that on any given day there are two possible outcomes:
+/the facility was inspected/ and /the facility wasn't inspected/. 
+Our /outcomes/ table will be larger than in the inspection prioritization example
+because we need an /outcome/ for every /active/ facility on every date. 
+The following image tries to exemplify this reasoning:
 
 
 #+NAME: fig:outcomes-inspections
-#+CAPTION: The image shows three facilities and next to each of them, a temporal line with 6 days (0-5) each dot represents the event: An inspection happened?. Blue means that the inspection didn't happen (so it is a =FALSE= outcome), yellow represents that the inspection happened (=TRUE= outcome) . Each of the facilities in the image had two inspections, and the three had 6 events.
+#+CAPTION: The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (=TRUE= outcome) and blue means it didn't (=FALSE= outcome). Each facility in the image had two inspections, six in total.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 400
 #+ATTR_LATEX: :width 400 :height 300
@@ -63,8 +63,8 @@ create schema if not exists eis;
 
 #+RESULTS:
 
-For achiving that, we need to create a table (naïvely) of /number of
-days/ \times /number of entities/. Lets see how many rows do we generate.
+To achieve that, we need a table (naïvely) of /number of
+days/ \times /number of entities/. Lets see how many rows we generate.
 
 #+BEGIN_SRC sql
 select min(date), max(date) from semantic.events
@@ -108,7 +108,7 @@ The result is src_python[:var entities=all_entities[2] :var
 days=all_days[2]]{print(int(entities[0])*int(days[0]))}
 {{{results(104262162)}}} That's a lot of rows! 
 
-We could improve that taking only the /active/ entities
+We could improve that taking only the /active/ entities:
 
 #+NAME: actives
 #+BEGIN_SRC sql 
@@ -137,10 +137,10 @@ on d.days <@ daterange(start_time, end_time)
 That's almost a reduction of src_python[:var entities=all_entities[2]
 :var days=all_days[2] :var
 active_entities=actives[2]]{print(100*float(active_entities[0])/(int(entities[0])*int(days[0])))}
-{{{results(45.212691829659164)}}}%, but still a huge number of rows
+{{{results(45)}}}%, but it's still a huge number of rows
 given our infrastructure.
 
-So we will cheat, and we will only consider /outcomes/ from =2015=
+So for this example, we will only consider /outcomes/ from =2015=:
 
 #+BEGIN_SRC sql 
 with dates as (
@@ -206,7 +206,7 @@ create index inspected_date_entity_ix on eis.inspected(outcome_date, entity_id);
 #+RESULTS:
 
 
-The /states/ table is the same that in the inspection's case.
+The /states/ table is the same as the /states/ table in the inspection case.
 
 #+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
 drop table if exists eis.active_facilities;
@@ -225,14 +225,14 @@ from semantic.entities
 #+RESULTS:
 
 
-** Modeling using Machine Learning
+** Modeling Using Machine Learning
 
 
-*** Creating a simple Experiment
+*** Creating a simple experiment
 
 First the usual stuff. Note that we are changing =model_comment= and
 =label_definition= (remember that this is used for generating the
-/hash/ that differentiates models and model groups)
+/hash/ that differentiates models and model groups).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 config_version: 'v3'
@@ -307,7 +307,7 @@ Image stored in:
 
 **** Features
 
-Regarding the features, we will use the same ones that were used in [[file:inspections.org][inspections prioritization]]
+Regarding the features, we will use the same ones that were used in [[file:inspections.org][inspections prioritization]]:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_aggregations:
@@ -397,7 +397,7 @@ feature_aggregations:
 
 #+END_SRC
 
-As before, we declare that we want to use all possible combinations for training:
+As before, we declare that we want to use all possible feature-group combinations for training:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_group_definition:
@@ -410,7 +410,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 **** Algorithm and hyperparameters
 
-We will collapse the baseline (=DummyClassifier=)  and the exploratory configuration together:
+We will collapse the baseline (=DummyClassifier=) and the exploratory configuration together:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 grid_config:
@@ -427,14 +427,13 @@ grid_config:
         strategy: [prior,uniform, most_frequent]
 #+END_SRC
 
-The number of /model groups/ to be generated are 6 algorithms and
+=triage= will create *42* /model groups/: 6 algorithms and
 hyperparameters (2 =DecisionTreeClassifier=, 1
-=RandomForestClassifier=, 3 =DummyClassifier=) \times 7 features groups ( 1
-=all=, 3 =leave-one-in=, 3 =leave-one-out=), which give a total of
-*42*.The total number of /models/ is the double of that (we have 2
-time blocks) i.e. *84*.
+=RandomForestClassifier=, 3 =DummyClassifier=) \times 7 features groups (1
+=all=, 3 =leave-one-in=, 3 =leave-one-out=). The total number of /models/ 
+is double that (we have 2 time blocks, so *84*).
 
-We don't want to mix different experiments together, it is very important that the =model_group_keys= distinguish between models, so use it wisely:
+We don't want to mix experiments together. It is important that the =model_group_keys= distinguish models, so use them wisely:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 model_group_keys:
@@ -494,7 +493,7 @@ For more detailed information on your time splits, inspect the experiment `split
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     
-The experiment looks in good shape. May the force be with you
+The experiment looks in good shape. May the force be with you!
 /usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
   """)
 /usr/local/lib/python3.6/site-packages/sqlalchemy/sql/base.py:291: SAWarning: Can't validate argument 'autoload_from'; can't locate any SQLAlchemy dialect named 'autoload'
@@ -509,19 +508,19 @@ The experiment looks in good shape. May the force be with you
 
 This will take a *lot* amount of time (on my computer took 3h 42m),
 so, grab your coffee, chat with 
-your coworkers or check your email (or all the above). Is taking that
-amount of time for several reasons:
+your coworkers, check your email, or read the [[https://dssg.uchicago.edu/blog][DSSG blog]]. 
+It's taking that long for several reasons:
 
-1. There are a lot of models, parameters, etc
-2. We are running in serial mode (i.e. not in parallel)
-3. Our database, is running in your laptop
+1. There are a lot of models, parameters, etc.
+2. We are running in serial mode (i.e. not in parallel).
+3. The database is running on your laptop.
 
 You can solve 2 and 3. For the second point you could use the =docker=
 container that has the multicore option enabled. For 3, I recommed you
-to use a PostgreSQL database in the cloud, for example in *AWS* the
-service is call *PostgreSQL RDS*.
+to use a PostgreSQL database in the cloud, such as Amazon's
+*PostgreSQL RDS*.
 
-After the experiment had finished we could create the following table
+After the experiment finishes, we can create the following table:
 
 #+BEGIN_SRC sql
 with features_groups as (
@@ -596,8 +595,8 @@ group by model_group_id, model_type, model_parameters, feature_groups order by m
 :END:
 
 
-Let's check the performance of the /model group/ 12 (a Random Forest
-with all the features)
+Let's check the performance of /model group/ 12 (a Random Forest
+with 1,000 trees and all the features):
 
 #+BEGIN_SRC sql
 select
@@ -704,39 +703,39 @@ limit 25
 |      21 | results_zip_code_2y_result_pass w/ conditions_sum |      0.0074907219 |      25 | 0.078125 |
 :END:
 
-This set of features identifies as important looks reasonable, so the results seem solid.
+The list of important features looks reasonable, which confirms the results.
 
 
 ** Postmodeling
 
 *** How can I pick the best one?
 
-Well now you have *42* /model groups/ Which one must you select to
-use? Which one is the best one? This is not as easy as it sounds, due
-several Factors:
+Now you have *42* /model groups/. Which is best? Which should you choose to
+use? This is not as easy as it sounds, due to several factors:
 
-- You could try to pick the best one using just one of the metrics
-  that we establish in the config file (=precision@= and =recall@=)
-  but at what point of time? Maybe different model groups are the best
+- You can try to pick the best using a metric
+  specified in the config file (=precision@= and =recall@=),
+  but at what point of time? Maybe different model groups are best
   at different prediction times.
-- You could just use the one that perfom better in the last temporal point
-- Or you could value that the model is stable across time? Maybe is
-  not the best but is consistent.
-- Also, even if there are several model groups that perform similar,
-  the lists generated are more or less similar, so, it doesn't really
-  matter which one do you Pick.
+- You can just use the one that performs best on the last test set.
+- You can value a model group that provides consistent results over time. 
+  It might not be the best on any test set, but you can feel more 
+  confident that it will continue to perform similarly. 
+- If there are several model groups that perform similarly and
+  their lists are more or less similar, maybe it doesn't really
+  matter which you pick. 
 
-=triage= provides that functionality in =audition= and in
-=postmodel=. At the moment of this writing this two modules require
-more interaction (they aren't integrated to the /configuration
-File/). 
+=triage= provides this functionality in =audition= and in
+=postmodel=. At the moment of this writing, these two modules require
+more interaction (i.e. they aren't integrated with the /configuration
+file/). 
 
 =Audition= formalizes this idea through /selection rules/ that take in
 the data up to a given point in time, apply some rule to choose a
-model group, and evaluate the performance of that chosen model in the
-subsequent time window, the *regret*. 
+model group, and then evaluate the performance (*regret*) of the chosen 
+model group in the subsequent time window. 
 
-=Audition= predefines 7 Rules:
+=Audition= predefines 7 rules:
 
 1. =best_current_value= :: Pick the model group with the best current metric Value.
 2. =best_average_value= :: Pick the model with the highest average metric value so far.
@@ -782,7 +781,7 @@ We included a simple configuration file with some rules:
       n: 1
 #+END_SRC
 
-The result will have each rule give you the best $n$ model groups ids
+=Audition= will have each rule give you the best $n$ model-group IDs
 based on the metric and parameter following that rule for the most
 recent time period (in all the rules shown $n$ = 1).
 
