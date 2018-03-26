@@ -14,10 +14,10 @@
 # +PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 #+PROPERTY: header-args:sh+  :dir ..
 
-* Inpections prioritization
+* Inpection prioritization
 ** Problem description
 
- We will begin with the the *inspection prioritization* problem, where we want to generate a list of
+ We will begin with the *inspection prioritization* problem, where we want to generate a list of
    facilities that will have a *critical* or *serious* food violation /if/ inspected.
 
 The scenario is the following: you work for the City of Chicago and you have 
@@ -29,7 +29,13 @@ Which X facilities are most likely to fail a food inspection in the
   following Y period of time?
 #+end_quote
 
-If you want to focus on major violations only, you can do that too.
+If you want to focus on major violations only, you can do that too:
+
+#+begin_quote
+Which X facilities are most likely to have a critical or serious 
+  violation in the following Y period of time?
+#+end_quote
+
 
 ** Creating the labels
 
@@ -83,7 +89,7 @@ Remember from [[A tale of two tables]] that the /outcome/ will be used by
 show the meaning of the /outcomes/ for the /inspection failed/ problem definition.
 
 #+NAME: fig:outcomes-inspections
-#+CAPTION: The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means that the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.
+#+CAPTION: The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
@@ -100,15 +106,15 @@ create schema if not exists inspections;
 
 =Triage= (version 1.0.3) requires certain columns:
 
-- =entity_id=     :: The entity affected / causing the event (In our
+- =entity_id=     :: The entity affected / causes the event (In our
      case the facility)
-- =outcome_date=  :: The date of the event / The date on
+- =outcome_date=  :: The date of the event / the date on
      which we get the result (The inspection date)
 - =outcome=       :: The result (label) of the event (one of the labels
      specified before)
 
-=entity_id= an identifier for which the labels are applied to,
-=outcome_date= the date at which some outcome was known, and =outcome= is a
+=entity_id= identifies the entities to which the labels are applied to,
+=outcome_date= is the date at which some outcome was known, and =outcome= is a
 1/0 outcome.
 
 Since we defined two labels, we will create two tables, one for each outcome.
@@ -153,7 +159,7 @@ from inspections_outcomes
 
 #+RESULTS:
 
-Also, We need to create a new version of the =semantic.entities=
+Also, we need to create a new version of the =semantic.entities=
 table. =Triage= refers to this new table as the *states* table. It should
 have =entity_id=, =start__time, end_time=, and =state= columns.
 The states table allows us to only
@@ -179,7 +185,7 @@ from semantic.entities
 ** Modeling Using Machine Learning
 
 It is time to put these steps together. All the coding is complete;
-we just need to modify =triage='s configuration file.
+we just need to modify the =triage= configuration file.
 
 *** Creating a simple experiment
 
@@ -222,7 +228,7 @@ user_metadata:
   author: 'Your name here'
 #+END_SRC
 
-Next comes the *temporal configuration*  section. The first four parameters
+Next comes the *temporal configuration* section. The first four parameters
 are related to the availability of data: How much data you have for
 feature creation? How much data you have for label generation? For
 simplicity we will assume that we can use the full =semantic.events= time
@@ -318,10 +324,10 @@ arguments needed to create it. For this experiment we will try the following
 features:
 
 - Number of different types of inspections the facility had in the last year 
-  (calculated xxx
+  (calculated for an as-of date).
 -
-- Number of different types of inspections  that happened in the
-  zip code in the last year from a particular day
+- Number of different types of inspections that happened in the
+  zip code in the last year from a particular day.
 
 If we observe the image generated from the =temporal_config= section,
 each particular date is the beginning of the rectangles that describes
@@ -365,13 +371,13 @@ state_config:
        - 'active'
 #+END_SRC
 
-Now, lets discuss how we will define the different models to try in
-the data (Remember that the model is specified by the algorithm, the
+Now, let's discuss how we will specify the models to try 
+(remember that the model is specified by the algorithm, the
 hyperparameters, and the subset of features to use). In =triage= you
-need to specify in the =grid_config= section, a list of machine learning
-algorithms that you want to train, and a set of list of
-hyperparameters. You can use any algorithm that you want, the only
-requirement is that respects the =sklearn= API.
+need to specify in the =grid_config= section a list of machine learning
+algorithms that you want to train and a list of
+hyperparameters. You can use any algorithm that you want; the only
+requirement is that it respects the =sklearn= API.
 
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
@@ -381,16 +387,16 @@ grid_config:
         max_features: [1, sqrt, null]
 #+END_SRC
 
-Some of the parameters in =sklearn= are =None=, if you want to try those
-you need to indicate that with the =yaml= 's =null= keyword.
+Some of the parameters in =sklearn= are =None=. If you want to try those
+you need to indicate it with =yaml='s =null= keyword.
 
 Besides the algorithm and the hyperparameters, you should specify
 which subset of features use. First, in the section
 =feature_group_definition= you specify how to group the features (you
 can use the =table name= or the =prefix= from the section
-=feature_aggregation=) and then choose one /strategy/ for choosing the
+=feature_aggregation=) and then a /strategy/ for choosing the
 subsets: =all= (all the subsets at once), =leave-one-out= (try all the
-subsets except one, do that for all the combinations) or =leave-one-in=
+subsets except one, do that for all the combinations), or =leave-one-in=
 (just try subset at the time).
 
 
@@ -403,8 +409,8 @@ feature_group_strategies: ['all']
 
 In this experiment we will end with *6* model groups ($algorithms (1) \times
 hyperparameters combinations (2 \times 3)  \times feature groups (1) \times temporal
-combinations (1)$). Also, we will create *12* different models (2 per
-each model group) given that we have 2 temporal blocks (one model per
+combinations (1)$). Also, we will create *12* models (2 per
+model group) given that we have 2 temporal blocks (one model per
 temporal group).
 
 =model_group_keys= defines a list of *additional* matrix metadata keys that
@@ -424,7 +430,7 @@ model_group_keys:
     - 'purpose'
 #+END_SRC
 
-Finally, we should define wich metrics we care for evaluating our
+Finally, we should define wich metrics we care about for evaluating our
 model. Here we will concentrate only in =precision= and =recall=.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
@@ -443,17 +449,17 @@ is kind of ill-defined (because you will end with a lot of =NULL=
 labels, remember, only a few of facilities are inspected in each
 period) ...
 
-We will want as a result of our experiments, a *list* of facilities to
-be inspected. The length of our list is contrained by our inspection
-resources, i.e. the answer to the question How many facilities can I
-inpect in a month?. In this experiment we are assuming that the
+We will want a *list* of facilities to
+be inspected. The length of our list is constrained by our inspection
+resources, i.e. the answer to the question /How many facilities can I
+inpect in a month?/ In this experiment we are assuming that the
 maximum capacity is *25* but we are testing also for a list of length
-*5*, and *10* (see =top_n= Above).
+*5*, and *10* (see =top_n= above).
 
-The execution of the experiments could take a long time, so, it is a
-good practice to  /validate/ the configuration file, /before/ running
+The execution of the experiments can take a long time, so it is a
+good practice to /validate/ the configuration file /before/ running
 the model. You don't want to wait for hours (or days) and then
-discover that there was something wrong
+discover that something went wrong.
 
 #+BEGIN_SRC sh 
 ./tutorial.sh triage --config_file inspections_test.yaml validate
@@ -517,10 +523,10 @@ Done
 Experiment completed in 0:02:36.844420 seconds
 #+END_SRC
 
-This will print a lot of output, and if everything is correct it will create  matrices (3 for 
-training, 3 for testing) in =triage/matrices=, every matrix will be
-represented by two files, one with the metadata  of the matrix (a
-=yaml= file) and the actual matrix (the =csv= file). 
+This will print a lot of output, and if everything is correct it will create matrices (3 for 
+training, 3 for testing) in =triage/matrices= and every matrix will be
+represented by two files, one with the metadata of the matrix (a
+=yaml= file) and one with the actual matrix (the =csv= file). 
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
 ls /triage/output/matrices | awk -F . '{print $NF}' | sort | uniq -c
@@ -543,8 +549,8 @@ ls /triage/output/trained_models | wc -l
 18
 #+END_SRC
 
-And it will populate the =results= schema in the database, as
-commented above, we will get =6= /model groups/:
+And it will populate the =results= schema in the database. As
+mentioned, we will get =6= /model groups/:
 
 #+BEGIN_SRC sql
 select model_group_id, model_type, model_parameters from results.model_groups;
@@ -596,12 +602,12 @@ order by model_group_id, train_end_time asc
 |            6 |      18 | 2018-01-01 00:00:00 |
 :END:
 
-From that last query, you should note that the order in which =triage= train
-the models is by block (=train_end_time=) from oldest to recent, and
-from =model_group=, also in ascending order. It will not go to the
-next block, until all the /models groups/ were trained.
+From that last query, you should note that the order in which =triage= trains
+the models is from oldest to newest =train_end_time=s and
+=model_group=s, also in ascending order. It will not go to the
+next block until all the /models groups/ are trained.
 
-You can check with which matrix the models where trained
+You can check with which matrix the models are trained:
 
 #+NAME: train_info
 #+BEGIN_SRC sql
@@ -638,7 +644,7 @@ order by model_group_id, train_end_time asc
 
 As expected, we have two models per model group. Each model was trained
 with the matrix indicated in the column =train_matrix_uuid=. This =uuid=
-also is the file name of the stored matrix. The model itself was
+is the file name of the stored matrix. The model itself was
 stored under the file named with the =model_hash=.
 
 If you want to see in which matrix the model was /tested/ you need to
@@ -730,11 +736,11 @@ Image stored in:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/model_7_tree_0.png]]
 
-This tree makes kind of sense, if the facility had more than 1.5
-inspections related to food poisoning then it will fail the
+This tree kind of makes sense: if the facility had more than 1.5
+inspections related to food poisoning, then the model predicts it will fail an
 inspection.
 
-We can also get information about the /model group/
+We can also get information about the /model group/:
 
 #+BEGIN_SRC sql
 select 
@@ -814,20 +820,20 @@ metric || parameter
 |       7 | recall@10.0_pct    |   0.13011152416356878 |               1173 |                      124 |               269 |
 :END:
 
-The columns  =num_labeled_examples, num_labeled_above_threshold,
-num_positive_labels= represents the number of selected entities in the
-prediction date which are labeled (there are =1173= entities in the
+The columns =num_labeled_examples, num_labeled_above_threshold,
+num_positive_labels= represent the number of selected entities on the
+prediction date that are labeled (there are =1173= entities in the
 test matrix with a label (=1= or =0=)), the
 number of entities with a positive label above the threshold
-(e.g. there are =1= entity with a positive label =1= in the first 10
+(e.g. there is only =1= entity with a positive label in the first 10
 entities ordered by score) and the number of entities with positive labels among all the
-labeled entities (=269= of =1173=) respectively. We can translate this
-to english: in our case /label/ mean that between the /as of
+labeled entities (=269= of =1173=) respectively. In
+English, between the /as-of
 date/ (=2017-01-01=) and one month later (until =2017-02-01=) there
-were =1173= facilities *inspected* and =269= *failed* the inspection.
+were =1173= facilities *inspected* and =269= *failed*.
 
-We could check that the numbers make sense, the number of /active
-facilities/ at =2017-01-01= (the prediction date) is
+We can check that the numbers make sense. The number of /active
+facilities/ on =2017-01-01= (the prediction date) is
 
 #+BEGIN_SRC sql
 select count(*)
@@ -856,8 +862,8 @@ select count(*) from results.predictions where model_id = 7
 :END:
 
 The number of /labels/ (=num_labeled_examples= = =1173=) is different,
- because only =1173= facilities were inspected in that time span. so,
- many of the facilities weren't inspected, then their label is =NULL=.
+ because only =1173= facilities were inspected in that time span. 
+ Many of the facilities weren't inspected, as indicated by their =NULL= labels.
 
 
 #+BEGIN_SRC sql
@@ -873,8 +879,8 @@ where outcome_date <@ '[2017-01-01, 2017-02-01)'::daterange
 |  1316 |
 :END:
 
-Still far from the =1173=. Do you remember the /states/ table? Using
-it to filter we got the correct number:
+That's far from =1173=. Do you remember the /states/ table? We have to 
+filter on active facilities to get the correct number:
 
 #+BEGIN_SRC sql
 select outcome,count(distinct entity_id)
@@ -898,7 +904,7 @@ group by rollup(outcome)
 | [NULL]  |  1173 |
 :END:
 
-Let's assume that this is our best model, Which is the list of 25 facilities to inspect?
+Let's assume this is our best model. Which 25 facilities does it think we should inspect?
 
 #+BEGIN_SRC sql
 select *
@@ -941,8 +947,8 @@ limit 25
 
 *** Defining a baseline 
 
-As a second step, lets do a new experiment that defines our
-/baseline/. In order to achive this, we will use a similar experiment
+As a second step, lets do an experiment that defines our
+/baseline/. To achieve this, we will use a similar experiment
 config file with the following changes:
 
 #+BEGIN_EXAMPLE yaml
@@ -966,10 +972,10 @@ model_group_keys:
     - 'purpose'
 #+END_EXAMPLE
 
-The complete file is in [[./triage/experiment_config/inspections_baseline.yaml][triage/experiment_config/inspections_baseline.yaml]]
+The complete file is in [[./triage/experiment_config/inspections_baseline.yaml][triage/experiment_config/inspections_baseline.yaml]].
 
 If we execute this experiment, we will get 3 more model groups (one
-for each strategy), and the corresponding 6 new models (2 per each
+for each strategy) and 6 corresponding models (2 per
 model group).
 
 #+BEGIN_SRC sh
@@ -1015,7 +1021,7 @@ For more detailed information on your time splits, inspect the experiment `split
 The experiment looks in good shape. May the force be with you
 #+END_SRC
 
-You can execute the experiment as
+You can execute the experiment like this:
 
 #+BEGIN_SRC sh
 ./tutorial.sh triage --config_file inspections_baseline.yaml run
@@ -1107,9 +1113,9 @@ user_metadata:
   author: 'Your name here'
 #+END_SRC
 
-As before, we set the =triage= special tables that specifies /outcomes/ (that is call
-=events_table=) and the one that specifies /states/. These are the
-same, we didn't change anything.
+As before, =triage= needs special tables that specify /outcomes/ (that is, call
+=events_table=) and /states/. These are the
+same; we didn't change anything.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 events_table: inspections.failed
@@ -1165,8 +1171,8 @@ Image stored in:
 
 The first big change is that we are adding 3 more /features groups/:
 =inspections= (we already use this), =risks=, and =results=. Remember
-that all of this referes to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
-/Which is the average of failed inspections in the previous year?/
+that all this refers to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
+/What is the average rate of failed inspections in the previous year?/
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 feature_aggregations:
@@ -1258,10 +1264,11 @@ feature_aggregations:
 
 We want to use all the features groups
 (=feature_group_definition=). The training will be made on matrices
-with =all= the feature groups, then letting one feature group out, =leave-one-out=,
-i.e. one model with =inspections= and =results=, another with
-=inspections= and =risks= and another one with =results= and =risks, 
-and then just trying models with =inspections= or =results= or =risks= exclusively.
+with =all= the feature groups, then leaving one feature group out at a time, 
+=leave-one-out= (i.e. one model with =inspections= and =results=, another with
+=inspections= and =risks=, and another with =results= and =risks), and finally
+leaving one feature group in at a time (i.e. a model with =inspections= only,
+another with =results= only, and a third with =risks= only).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 feature_group_definition:
@@ -1270,7 +1277,7 @@ feature_group_definition:
 feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
 
-Finally, we will try a =RandomForestClassifier=
+Finally, we will try a =RandomForestClassifier=:
 
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
@@ -1336,7 +1343,7 @@ For more detailed information on your time splits, inspect the experiment `split
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     
-The experiment looks in good shape. May the force be with you
+The experiment looks in good shape. May the force be with you!
 #+END_SRC
 
 You can execute the experiment with
@@ -1347,5 +1354,5 @@ You can execute the experiment with
 
 This will take a looooong time to run.
 
-Well, now we have a lot of models, How can you pick the best one for
-you? We will show you that when we model the /Early Intervention System/.
+Well, now we have a lot of models. How can you pick the best one? 
+We will show you when we model /Early Warning/.
