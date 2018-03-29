@@ -1,4 +1,4 @@
-  create schema if not exists cleaned;
+  create schema if not exists cleaned_randomized;
 
 drop table if exists cleaned_randomized.inspections cascade;
 

@@ -1,4 +1,4 @@
-create schema if not exists inspections;
+create schema if not exists inspections_randomized;
 
 create temp table inspections_outcomes as (
 select inspection, entity_id, date,

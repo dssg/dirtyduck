@@ -1,4 +1,4 @@
-create schema if not exists semantic;
+create schema if not exists semantic_randomized;
 
 drop table if exists semantic_randomized.entities cascade;
 
