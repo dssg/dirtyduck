@@ -431,8 +431,8 @@ year based on its higher risk of violating some condition. Also assume
 that the process of picking which facility is repeated every year on
 January 1st[fn:2] 
 
-Following the problem description template given in section
-[[Description of the problem to solve]], the question that we'll attempt to answer is:
+Following the problem description template given in Section
+*Description of the problem to solve*, the question that we'll attempt to answer is:
 
 #+BEGIN_EXAMPLE
   Which facility ($n=1$) is likely to violate some
