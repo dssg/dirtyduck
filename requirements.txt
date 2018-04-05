@@ -1,0 +1,13 @@
+boto3
+Click
+python-dotenv
+psycopg2-binary
+SQLALchemy
+pandas
+numpy
+scikit-learn
+python-dateutil
+prompt_toolkit
+
+## DSaPP stuff
+git+https://github.com/dssg/triage.git@v2.2.0

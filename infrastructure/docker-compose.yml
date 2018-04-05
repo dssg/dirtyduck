@@ -1,0 +1,57 @@
+version: "3"
+
+services:
+  food_db:
+    build:
+      context: ./food_db
+    image: food/db
+    container_name: food_db
+    env_file: .env
+    volumes:
+      - "../data:/tmp/raw-data"
+    ports:
+      - "5434:5432"
+
+  bastion:
+    build:
+      context: ./bastion
+    image: tutorial/bastion
+    container_name: tutorial_bastion
+    command: bash
+    #user: ${UID}:${GID}
+    tty: true
+    env_file: .env
+    environment:
+      FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
+    volumes:
+      - "../data:/data"
+      - "../triage:/triage"
+      - "../src/sql:/sql"
+
+
+  triage:
+    build:
+      context: ./triage
+    image: tutorial/triage
+    container_name: tutorial_triage
+    env_file: .env
+    environment:
+      TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
+      TRIAGE_OUTPUT_PATH: '/triage/output'
+    volumes:
+      - "../triage:/triage"
+      - "../src/sql:/sql"
+
+  web:
+    #build:
+    #  context: ./web
+    #image: tutorial/web
+    image: nginx
+    container_name: tutorial_server
+    ports:
+      - "80:80"
+    volumes:
+      #- "./web/html/:/usr/share/nginx/html/"
+      - ../src/:/usr/share/nginx/html/
+
+    

@@ -1,0 +1,82 @@
+config_version: 'v3'
+
+
+model_comment: 'inspections_baseline'
+
+user_metadata:
+  label_definition: 'failed'
+  experiment_type: 'inspections prioritization'
+  purpose: 'baseline'
+  org: 'DSaPP'
+  team: 'Tutorial'
+  author: 'Your name here'
+
+temporal_config:
+    feature_start_time: '2010-01-04'
+    feature_end_time: '2018-03-01'
+    label_start_time: '2015-02-01'
+    label_end_time: '2018-03-01'
+
+    model_update_frequency: '1y'
+    training_label_timespans: ['1month']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '1month'
+    test_label_timespans: ['1month']
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '5y'
+
+events_table: inspections.failed
+
+feature_aggregations:
+    -
+        prefix: 'inspections'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -
+                column: 'type'
+                choice_query: 'select distinct type from semantic.events where type is not null'
+                metrics:
+                    - 'sum'
+
+        intervals:
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+
+state_config:
+    table_name: 'inspections.active_facilities'
+    state_filters:
+       - 'active'
+
+grid_config:
+    'sklearn.dummy.DummyClassifier':
+        strategy: [prior,uniform, most_frequent]
+
+feature_group_definition:
+   prefix: ['inspections']
+
+feature_group_strategies: ['all']
+
+model_group_keys:
+    - 'label_definition'
+    - 'experiment_type'
+
+
+scoring:
+    sort_seed: 5
+    metric_groups:
+        -
+            metrics: [precision@, recall@]
+            thresholds:
+                percentiles: [5.0, 10.0]
+                top_n: [5, 10, 25]

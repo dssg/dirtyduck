@@ -1,0 +1,207 @@
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session Food_inspections
+
+
+* Infrastructure
+
+   In every data science project you will need several tools to
+   help analyze the data in an efficient[fn:1] manner.
+   Examples include a place to store the data (a database
+   management system or *DBMS*); a way to put your model to work, 
+   i.e. a way that allows the model to ingest new data and make
+   predictions (an *API*); and a way to examine the performance 
+   of trained models. 
+
+   This tutorial includes a script for managing the infrastructure[fn:2] in
+   a transparent way.
+
+   The infrastructure has /four/ pieces:
+   - a =postgresql= database called =food_db=,
+   - a container that executes =triage= experiments,
+   - a /web server/ that shows this tutorial, and
+   - a container for interacting with the data called =bastion=.
+   This container includes a =postgresql= client
+   (so you can interact with the database)[fn:3] and a full =python=
+   environment (so you can code or modify the things for
+   the tutorial). 
+
+   The only thing you need installed on your laptop is =docker=.
+
+   From your command line (terminal) run the following from the repo directory:
+
+   #+BEGIN_SRC sh 
+    ./tutorial.sh
+   #+END_SRC
+
+   #+RESULTS:
+   #+BEGIN_SRC org
+  Usage: ./tutorial.sh {start|stop|build|rebuild|run|logs|status|destroy|all|}
+
+  OPTIONS:
+     -h|help             Show this message
+     start
+     stop
+     rebuild
+     status
+     destroy
+     -t|triage
+     -a|all
+
+  INFRASTRUCTURE:
+     Turn the infrastructure on:
+	  $ ./tutorial.sh start
+
+     Check the status of the containers:
+	  $ ./tutorial.sh status
+
+     Stop the infrastructure:
+	  $ ./tutorial.sh stop
+
+     Destroy all the resources related to the tutorial:
+	  $ ./tutorial.sh destroy
+
+     View the infrastructure logs:
+	  $ ./tutorial.sh -l
+
+  EXPERIMENTS:
+     NOTE:
+	The following commands assume that "sample_experiment_config.yaml"
+	is located inside triage/experiment_config directory
+
+     Run one experiment:
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
+
+     Run one experiment, don't replace existing matrices or models, and enable debug:
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
+
+     Validate experiment configuration file:
+	  $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
+
+     Show the experiment's temporal cross-validation blocks:
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
+
+     Plot model number 4 (if it is a Decision Tree or a Random Forest):
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
+
+     Triage help:
+	  $ ./tutorial.sh triage --help
+
+   #+END_SRC
+
+   Following the instructions on the screen, we can start the
+   infrastructure with:
+
+   #+BEGIN_EXAMPLE sh
+    ./tutorial.sh start
+   #+END_EXAMPLE
+
+   You can check that everything is running smoothly with =status=
+
+   #+BEGIN_SRC sh
+    ./tutorial.sh status
+    :
+   #+END_SRC
+
+   #+RESULTS:
+   #+BEGIN_SRC org
+       Name                    Command              State           Ports         
+  --------------------------------------------------------------------------------
+  food_db           docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
+  tutorial_server   nginx -g daemon off;            Up      0.0.0.0:80->80/tcp    
+   #+END_SRC
+
+   To access the =postgresql= client type:
+
+   #+BEGIN_EXAMPLE sh
+  ./tutorial.sh bastion
+   #+END_EXAMPLE
+
+   Your prompt should change to something like:
+
+   #+BEGIN_EXAMPLE sh
+  root@485373fb3c64:/$
+   #+END_EXAMPLE
+
+   *NOTE*: The number you see will be different (i.e. not =485373fb3c64=).
+
+   Type the next command to connect to the database
+
+   #+BEGIN_EXAMPLE sh
+  psql ${FOOD_DB_URL}
+   #+END_EXAMPLE
+
+   The prompt will change again to
+
+#+BEGIN_EXAMPLE sh
+   psql (9.6.7, server 10.2 (Debian 10.2-1.pgdg90+1))
+   WARNING: psql major version 9.6, server major version 10.
+         Some psql features might not work.
+   Type "help" for help.
+
+   food=# 
+#+END_EXAMPLE
+
+   The previous command is using =psql=, a powerful command line client for the Postgresql database. 
+   If you want to use this client fully, check [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
+
+   The database is running and it's named =food=. It should contain a
+   single table named =inspections= in the =schema= =raw=. 
+   Let's check the structure of the =inspections= table. 
+   Type the following command:
+
+   #+BEGIN_SRC sql
+    \d raw.inspections
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   | Table "raw.inspections" |                   |           |
+   |-------------------------+-------------------+-----------|
+   | Column                  | Type              | Modifiers |
+   | inspection              | character varying | not null  |
+   | dba_name                 | character varying |           |
+   | aka_name                 | character varying |           |
+   | license_num              | numeric           |           |
+   | facility_type            | character varying |           |
+   | risk                    | character varying |           |
+   | address                 | character varying |           |
+   | city                    | character varying |           |
+   | state                   | character varying |           |
+   | zip                     | character varying |           |
+   | date                    | date              |           |
+   | type                    | character varying |           |
+   | results                 | character varying |           |
+   | violations              | character varying |           |
+   | latitude                | numeric           |           |
+   | longitude               | numeric           |           |
+   | location                | character varying |           |
+   :END:
+
+   That's it. We will work from this table of raw data.
+
+   You can disconnect from the database typing =\q=. But don't leave
+   =bastion= yet. You should return to the same weird prompt:
+
+   #+BEGIN_EXAMPLE sh
+  root@485373fb3c64:/$
+   #+END_EXAMPLE
+
+
+* Footnotes
+
+[fn:3] If you have a postgresql client installed, you can use =psql -h 0.0.0.0 -p 5434 -d food -U food_user= rather than the =bastion= container.
+
+[fn:2] And other things through this tutorial, like the execution of
+the model training, etc.
+
+[fn:1] Reproducible, reportable, scalable, flexible, etc.

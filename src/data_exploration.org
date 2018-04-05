@@ -1,0 +1,338 @@
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+STARTUP: indent
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:shell     :results drawer
+#+PROPERTY: header-args:ipython :session dssg
+#+PROPERTY: header-args:ipython+ :results output drawer
+#+PROPERTY: header-args:R :session :exports results
+
+#+BEGIN_SRC R :results none 
+library(tidyverse)
+library(dbplyr)
+library(ggplot2)
+library(RPostgreSQL)
+library(lubridate)
+
+pg <- RPostgreSQL::PostgreSQL(max.con = 50)
+db <- dbConnect(PostgreSQL(), dbname = 'postgresql://food_user:some_password@0.0.0.0:5434/food')
+
+theme_dssg <- function () { 
+    theme_bw(base_size=12, base_family="Avenir") %+replace% 
+        theme(
+            panel.background  = element_blank(),
+            plot.background = element_rect(fill="gray96", colour=NA), 
+            legend.background = element_rect(fill="transparent", colour=NA),
+            legend.key = element_rect(fill="transparent", colour=NA)
+        )
+}
+
+theme_dssg_dates <- function () { 
+    theme_dssg() %+replace% 
+           theme(axis.text.x = element_text(angle = 30, hjust = 0.5))
+}
+
+theme_dssg2 <- function(base_size=12, base_family="Avenir") {
+      library(grid)
+      library(ggthemes)
+      (theme_foundation(base_size=base_size, base_family=base_family)
+       + theme(plot.title = element_text(face = "bold",
+                                         size = rel(1.2), hjust = 0.5),
+               text = element_text(),
+               panel.background = element_rect(colour = NA),
+               plot.background = element_rect(colour = NA),
+               panel.border = element_rect(colour = NA),
+               axis.title = element_text(face = "bold",size = rel(1)),
+               axis.title.y = element_text(angle=90,vjust =2),
+               axis.title.x = element_text(vjust = -0.2),
+               axis.text = element_text(), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(),
+               panel.grid.major = element_line(colour="#f0f0f0"),
+               panel.grid.minor = element_blank(),
+               legend.key = element_rect(colour = NA),
+               legend.position = "bottom",
+               legend.direction = "horizontal",
+               legend.key.size= unit(0.8, "cm"),
+               legend.margin = unit(0, "cm"),
+               legend.title = element_blank(),
+               legend.text = element_text(size=18),
+               plot.margin = unit(c(10,5,5,5),"mm"),
+               strip.background = element_rect(colour="#f0f0f0",fill="#f0f0f0"),
+               strip.text = element_text(face="bold")
+          ))
+      
+}
+
+theme_dssg2_dates <- function () { 
+    theme_dssg2() %+replace% 
+           theme(axis.text.x = element_text(angle = 30, hjust = 0.5))
+}
+
+
+
+scale_fill_dssg2 <- function(...){
+      library(scales)
+      discrete_scale("fill","Publication",manual_pal(values = c("#386cb0","#fdb462","#7fc97f","#ef3b2c","#662506","#a6cee3","#fb9a99","#984ea3","#ffff33")), ...)
+
+}
+
+scale_colour_dssg2 <- function(...){
+      library(scales)
+      discrete_scale("colour","Publication",manual_pal(values = c("#386cb0","#fdb462","#7fc97f","#ef3b2c","#662506","#a6cee3","#fb9a99","#984ea3","#ffff33")), ...)
+
+}
+
+specify_decimal <- function(x, k) trimws(format(round(x, k), nsmall=k))
+#+END_SRC
+
+
+* Exploring the Data
+
+** /Inspections across time/
+
+#+BEGIN_SRC sql
+select date_trunc('month', date), count(*) from semantic.events
+group by 1
+order by 1 asc
+#+END_SRC
+
+#+BEGIN_SRC R :results output graphics :file images/inspections-time-series.svg
+db %>%
+tbl(sql("select date_trunc('month', date) as date, count(*) as total from semantic.events group by 1 order by 1 asc")) %>%
+collect() %>%
+mutate(date=as.Date(date)) %>%
+ggplot(aes(x=date, y=total)) +
+geom_bar(stat="identity") + theme_dssg()
+#+END_SRC
+
+#+RESULTS:
+[[file:images/inspections-time-series.svg]]
+
+** /Number of facilities across time/
+
+#+BEGIN_SRC sql
+select * from semantic.entities
+#+END_SRC
+
+#+BEGIN_SRC R :export results 
+monthly_series <- seq(ymd('2010-01-01'), ymd('2018-12-01'), by = '1 month')
+
+db %>% 
+ tbl(in_schema("semantic", "entities")) %>%
+ collect()
+#+End_src
+
+** /Inspections on unique facilities across time/
+
+#+BEGIN_SRC R :export output :session :results output graphics :file images/inspections-unique-entitiestime-series.svg 
+db %>%
+  tbl(in_schema("semantic", "events")) %>%
+  mutate(date=date_trunc('month', date)) %>%
+  group_by(date) %>%
+  distinct(entity_id) %>%
+  tally() %>%
+  collect() %>%
+ggplot(aes(x=date, y=n)) + 
+ geom_bar(stat="identity") + theme_dssg()
+#+END_SRC
+
+#+RESULTS:
+[[file:images/inspections-unique-entitiestime-series.svg]]
+
+
+** /Which is the spatial distribution of Inspections?/
+#+NAME: inspections_zip_code
+#+BEGIN_SRC sql 
+select
+zip_code,
+count(*) as total_inspections,
+coalesce(count(*) filter (where result = 'fail'), 0)
+as total_failures
+from semantic.events
+group by zip_code
+order by total_inspections desc
+limit 10
+#+END_SRC
+
+#+RESULTS: inspections_zip_code
+:RESULTS:
+| zip_code | total_inspections | total_failures |
+|---------+------------------+---------------|
+|   60614 |             5290 |          1241 |
+|   60647 |             4848 |          1054 |
+|   60657 |             4822 |          1086 |
+|   60611 |             4559 |           759 |
+|   60622 |             4537 |          1144 |
+|   60618 |             4236 |           739 |
+|   60608 |             4123 |           995 |
+|   60639 |             3801 |           926 |
+|   60607 |             3733 |           844 |
+|   60625 |             3657 |           833 |
+:End:
+
+** /Which is the temporal distribution of the inspections?/
+
+#+BEGIN_SRC sql
+select
+extract(year from date) as year, extract(month from date) as month,
+count(*) as total_inspections,
+coalesce(count(*) filter (where result = 'fail'), 0)
+as total_failures
+from semantic.events
+group by rollup(year, month)
+order by year asc, month asc
+limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| year | month | total_inspections | total_failures |
+|------+-------+------------------+---------------|
+| 2010 |     1 |             1143 |           273 |
+| 2010 |     2 |             1284 |           280 |
+| 2010 |     3 |             1363 |           310 |
+| 2010 |     4 |             1356 |           378 |
+| 2010 |     5 |             1478 |           356 |
+| 2010 |     6 |             1667 |           413 |
+| 2010 |     7 |             1238 |           353 |
+| 2010 |     8 |             1515 |           396 |
+| 2010 |     9 |             1599 |           406 |
+| 2010 |    10 |             1611 |           414 |
+:END:
+
+The number of inspections per month and the number of failed
+inspections seem to be more or less constant.
+
+#+BEGIN_SRC sql
+  select
+  code,
+  description,
+  severity,
+  count(*) as total
+  from cleaned.violations
+  group by code, description, severity
+  order by total desc
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| code | description                                                                                                                            | severity | total |
+|------+----------------------------------------------------------------------------------------------------------------------------------------+----------+-------|
+|   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                                  | minor    | 78383 |
+|   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS                   | minor    | 69637 |
+|   33 | FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS                                                        | minor    | 69117 |
+|   38 | VENTILATION: ROOMS AND EQUIPMENT VENTED AS REQUIRED: PLUMBING: INSTALLED AND MAINTAINED                                                | minor    | 59218 |
+|   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                                       | minor    | 58874 |
+|   41 | PREMISES MAINTAINED FREE OF LITTER, UNNECESSARY ARTICLES, CLEANING  EQUIPMENT PROPERLY STORED                                          | minor    | 37471 |
+|   18 | NO EVIDENCE OF RODENT OR INSECT OUTER OPENINGS PROTECTED/RODENT PROOFED, A WRITTEN LOG SHALL BE MAINTAINED AVAILABLE TO THE INSPECTORS | serious  | 29709 |
+|   36 | LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED                                                           | minor    | 28606 |
+|   40 | REFRIGERATION AND METAL STEM THERMOMETERS PROVIDED AND CONSPICUOUS                                                                     | minor    | 17463 |
+|   30 | FOOD IN ORIGINAL CONTAINER, PROPERLY LABELED: CUSTOMER ADVISORY POSTED AS NEEDED                                                       | minor    | 17414 |
+:END:
+
+This looks weird, the top most "violation" is not an actual
+violation. We will repeat the query, we will group by the =results=
+
+#+BEGIN_SRC sql
+  with inspections_violations as (
+  select
+  i.inspection, i.result,
+  v.code
+  from cleaned.inspections as i inner join cleaned.violations as v
+  using(inspection)
+  )
+
+
+  select code, result,
+  count(code) as count
+  from inspections_violations
+  group by rollup(code, result)
+  order by count desc
+  limit 10
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+|   code | result |  count |
+|--------+--------+--------|
+| [NULL] | [NULL] | 608557 |
+|     34 | [NULL] |  78234 |
+|     35 | [NULL] |  69508 |
+|     33 | [NULL] |  68978 |
+|     38 | [NULL] |  59085 |
+|     32 | [NULL] |  58764 |
+|     34 | pass   |  50751 |
+|     33 | pass   |  44834 |
+|     35 | pass   |  44455 |
+|     38 | pass   |  37577 |
+:END:
+
+
+*NOTE*: You could also split between, /major violation found/ and /minor violation found/,
+but we will keep this simple for the Moment.
+
+
+** /How often change the risk in a facility?/
+
+#+BEGIN_SRC sql
+  select
+  entity_id, risk || '->' || previous_risk as changes,
+  count(*)
+  from
+  (
+  select date, entity_id, risk, lag(risk) over w as previous_risk
+  from semantic.events
+  window w as (partition by entity_id order by date asc)
+  ) as t
+  where (risk <>  previous_risk)
+  group by entity_id, risk || '->' || previous_risk
+  order by  count(*) desc, entity_id
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| entity_id | changes   | count |
+|----------+-----------+-------|
+|    17949 | high->low |     1 |
+|    33725 | high->low |     1 |
+:END:
+
+
+Mmmm, it seems that there aren't a lot of changes in the =risk=
+classification of a facility.
+
+/What are the top 5 locations with more inspections?/
+
+#+BEGIN_SRC sql
+  select
+  address, count(*) as total_inspections,
+  coalesce( count(*) filter (where result = 'fail'), 0)
+  as total_failures
+  from cleaned.inspections
+  group by address
+  order by total_inspections desc
+  limit 5;
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| address           | total_inspections | total_failures |
+|-------------------+------------------+---------------|
+| 11601 w touhy ave |             2020 |           257 |
+| 5700 s cicero ave |              405 |            54 |
+| 324 n leavitt st  |              363 |            86 |
+| 500 w madison st  |              356 |            69 |
+| 131 n clinton st  |              310 |            34 |
+:END:
+
+** What's next?
+
+Well, with the data in place, it is time to know [[file:triage_intro.org][the inner workings of =triage=]].

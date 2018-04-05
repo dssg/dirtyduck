@@ -1,0 +1,151 @@
+config_version: 'v3'
+
+model_comment: 'eis'
+
+user_metadata:
+  label_definition: 'inspected'
+  experiment_type: 'eis'
+  purpose: 'exploring'
+  org: 'DSaPP'
+  team: 'Tutorial'
+  author: 'Your name here'
+
+events_table: eis.inspected
+
+state_config:
+    table_name: 'eis.active_facilities'
+    state_filters:
+       - 'active'
+
+temporal_config:
+    feature_start_time: '2010-01-04'
+    feature_end_time: '2018-03-13'
+    label_start_time: '2015-02-01'
+    label_end_time: '2018-03-13'
+
+    model_update_frequency: '1y'
+    training_label_timespans: ['1month']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '1month'
+    test_label_timespans: ['1month']
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '5y'
+
+feature_aggregations:
+    -
+        prefix: 'inspections'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -   # inspection type
+                column: 'type'
+                choice_query: 'select distinct type from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+
+    -
+        prefix: 'risks'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -   # Facility's Risk
+                column: 'risk'
+                choice_query: 'select distinct risk from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+            - 'facility_type'
+
+
+    -  
+        prefix: 'results'
+        from_obj: 'semantic.events'
+        knowledge_date_column: 'date'
+
+        categoricals_imputation:
+            all:
+                type: 'zero'
+
+        categoricals:
+            -   # Result of previous inspections
+                column: 'result'
+                choice_query: 'select distinct result from semantic.events'
+                metrics:
+                    - 'sum'
+                    - 'avg'
+
+        intervals:
+            - '2y'
+            - '1y'
+            - '6month'
+            - '3month'
+
+        groups:
+            - 'entity_id'
+            - 'zip_code'
+            - 'facility_type'
+
+feature_group_definition:
+   prefix: ['inspections', 'results', 'risks']
+
+feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
+
+grid_config:
+    'sklearn.tree.DecisionTreeClassifier':
+        max_depth: [1, null]
+    'sklearn.ensemble.RandomForestClassifier':
+        max_features: ['sqrt']
+        criterion: ['gini']
+        n_estimators: [1000]
+        min_samples_leaf: [1]
+        min_samples_split: [50]
+        class_weight: ['balanced']
+    'sklearn.dummy.DummyClassifier':
+        strategy: [prior, uniform, most_frequent]
+
+model_group_keys:
+    - 'label_definition'
+    - 'experiment_type'
+    - 'purpose'
+
+scoring:
+    sort_seed: 1234
+    metric_groups:
+        -
+            metrics: ['precision@', 'recall@']
+            thresholds:
+                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+                top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
