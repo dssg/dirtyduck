@@ -18,6 +18,7 @@ are difficult to model because their conceptualization and
 and implementation are prone to error, thanks to their multi-dimensional,
 multi-entity, time-series structure. 
 
+The last version of this tutorial is published in [[https://dssg.github.io/dirtyduck/]]
 
 * What you need for this tutorial
 
@@ -64,7 +65,7 @@ Third, run
 
 This will take several minutes the first time you do it.
 
-Finally, open your browser and type =0.0.0.0= into the location bar. That
+Finally, open your browser and type [[https://dssg.github.io/dirtyduck/]] into the location bar. That
 will open the tutorial. Follow from there[fn:3].
 
 * How you can help
