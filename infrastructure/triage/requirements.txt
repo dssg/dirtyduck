@@ -11,4 +11,4 @@ pgcli
 pydotplus
 
 ## DSaPP stuff
-git+https://github.com/dssg/triage.git@v2.2.0
+git+https://github.com/dssg/triage.git@v3.beta
