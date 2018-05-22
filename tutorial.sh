@@ -65,7 +65,7 @@ EOF
 }
 
 function start_infrastructure () {
-    docker-compose --project-name ${PROJECT} up -d food_db web
+    docker-compose --project-name ${PROJECT} up -d food_db
 	#tyra reverseproxy api
 }
 
@@ -145,7 +145,7 @@ case "$1" in
     bastion)
         bastion
 	        shift
-	;;    
+	;;
    -a|--all)
        all
                 shift
