@@ -343,7 +343,7 @@ The configuration file is a =yaml= file with the following main sections:
 - [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data, used for
      creating the blocks for temporal crossvalidation.
 
-- =state_config=  :: Using the state of the entities, define /cohorts/
+- =cohort_config=  :: Using the state of the entities, define /cohorts/
      to filter out objects that shouldn't be included in the training and
      prediction stages (discussed in the previous section)
 
