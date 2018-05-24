@@ -1,21 +1,36 @@
-config_version: 'v3'
+config_version: 'v5'
 
 model_comment: 'inspections'
 
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'inspections prioritization'
+  description: |
+    First experiment
   purpose: 'development'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
 
-events_table: inspections.failed
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(result = 'fail')::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  #include_missing_labels_in_train_as: False
+  name: 'failed_inspection'
 
-state_config:
-    table_name: 'inspections.active_facilities'
-    state_filters:
-       - 'active'
+cohort_config:
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    tsrange(start_time, end_time, '[]') @> {as_of_date}
+  name: 'active_facilities'
 
 temporal_config:
     feature_start_time: '2010-01-04'
@@ -27,7 +42,7 @@ temporal_config:
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'  
+    test_durations: '1month'
     test_label_timespans: ['1y'] #
     test_as_of_date_frequencies: '1month'
 
@@ -132,12 +147,6 @@ grid_config:
         min_samples_split: [50]
         class_weight: ['balanced']
 
-
-model_group_keys:
-    - 'label_definition'
-    - 'experiment_type'
-    - 'purpose'
-
 scoring:
     sort_seed: 1234
     metric_groups:
@@ -146,3 +155,11 @@ scoring:
             thresholds:
                 percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
                 top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+    training_metric_groups:
+      -
+        metrics: [accuracy]
+      -
+        metrics: [precision@, recall@]
+        thresholds:
+          percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+          top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]

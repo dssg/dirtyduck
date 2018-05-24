@@ -1804,6 +1804,7 @@ clean the ={test, train}_results= schemas and have a fresh start:
 #+BEGIN_SRC sql
 drop schema if exists test_results cascade;
 drop schema if exists train_results cascade;
+drop schema if exists model_metadata cascade;
 drop schema if exists features cascade;
 #+END_SRC
 
