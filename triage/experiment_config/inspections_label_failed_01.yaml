@@ -149,7 +149,7 @@ grid_config:
 
 scoring:
     sort_seed: 1234
-    metric_groups:
+    testing_metric_groups:
         -
             metrics: ['precision@', 'recall@']
             thresholds:

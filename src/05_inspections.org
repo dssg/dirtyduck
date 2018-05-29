@@ -360,7 +360,7 @@ model. Here we will concentrate only in =precision= and =recall=.
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 scoring:
     sort_seed: 5
-    metric_groups:
+    testing_metric_groups:
         -
           metrics: [precision@, recall@]
           thresholds:
@@ -1191,7 +1191,7 @@ grid_config:
 
 scoring:
     sort_seed: 1234
-    metric_groups:
+    testing_metric_groups:
         -
             metrics: ['precision@', 'recall@']
             thresholds:

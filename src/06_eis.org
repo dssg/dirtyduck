@@ -41,9 +41,9 @@ etc.
   owner or manager) to prepare for the inspection.
 
 
-** Creating the labels
+** What are the labels? What are the outcomes?
 
-The trick is to note is that on any given day there are two possible outcomes:
+The trick to note is that on any given day there are two possible outcomes:
 /the facility was inspected/ and /the facility wasn't inspected/.
 Our /outcomes/ table will be larger than in the inspection prioritization example
 because we need an /outcome/ for every /active/ facility on every date.
@@ -57,209 +57,64 @@ The following image tries to exemplify this reasoning:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/outcomes-eis.png]]
 
-#+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
-create schema if not exists eis;
-#+END_Src
+Fortunately, =triage= will help us to create this table. The /cohort/
+table is the same as the /cohort/ table in the inspection case.
 
-#+RESULTS:
-
-To achieve that, we need a table (naïvely) of /number of
-days/ \times /number of entities/. Lets see how many rows we generate.
-
-#+BEGIN_SRC sql
-select min(date), max(date) from semantic.events
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-|        min |        max |
-|------------+------------|
-| 2010-01-04 | 2018-03-01 |
-:END:
-
-
-#+NAME: all_days
-#+BEGIN_SRC sql
-select count(days)
-from generate_series((select min(date) from semantic.events), current_date, '1 day'::interval) days;
-#+END_SRC
-
-#+RESULTS: all_days
-:RESULTS:
-| count |
-|-------|
-|  2986 |
-:END:
-
-
-#+NAME: all_entities
-#+BEGIN_SRC sql
-select count(*) from semantic.entities;
-#+END_SRC
-
-#+RESULTS: all_entities
-:RESULTS:
-| count |
-|-------|
-| 34917 |
-:END:
-
-The result is src_python[:var entities=all_entities[2] :var
-days=all_days[2]]{print(int(entities[0])*int(days[0]))}
-{{{results(104262162)}}} That's a lot of rows!
-
-We could improve that taking only the /active/ entities:
-
-#+NAME: actives
-#+BEGIN_SRC sql
-with dates as (
-    select days::date
-    from
-    generate_series(
-       (select min(date) from semantic.events),
-       current_date, '1 day'::interval) days
-)
-
-select count(*)
-from semantic.entities
-join dates d
-on d.days <@ daterange(start_time, end_time)
-#+END_SRC
-
-#+RESULTS: actives
-:RESULTS:
-|    count |
-|----------|
-| 47139730 |
-:END:
-
-
-That's almost a reduction of src_python[:var entities=all_entities[2]
-:var days=all_days[2] :var
-active_entities=actives[2]]{print(100*float(active_entities[0])/(int(entities[0])*int(days[0])))}
-{{{results(45)}}}%, but it's still a huge number of rows
-given our infrastructure.
-
-So for this example, we will only consider /outcomes/ from =2015=:
-
-#+BEGIN_SRC sql
-with dates as (
-    select days::date
-    from
-    generate_series(
-       '2015-01-01'::date,
-       current_date, '1 day'::interval) days
-)
-
-select count(*)
-from semantic.entities
-join dates d
-on d.days <@ daterange(start_time, end_time)
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-|    count |
-|----------|
-| 22320059 |
-:END:
-
-
-#+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
-drop table if exists eis.inspected;
-
-create table eis.inspected as (
- with dates as (
-    select days::date as outcome_date
-    from
-    generate_series(
-       '2015-01-01'::date,
-       current_date, '1 day'::interval) days
-),
-active_entities as (
-   select entity_id, outcome_date
-   from dates d
-   left  join semantic.entities
-   on outcome_date <@ daterange(start_time, end_time)
-)
-
-select
-a.entity_id, outcome_date,
-case when
-event_id is null then FALSE
-else TRUE
-end as outcome
-from active_entities as a
-left join semantic.events as e
-on a.entity_id = e.entity_id and a.outcome_date = e.date
-);
-
-create index inspected_entity_ix on eis.inspected (entity_id);
-create index inspected_outcome_date_ix on eis.inspected(outcome_date desc nulls last);
-create index inspected_outcome_ix on eis.inspected(outcome);
-
-create index inspected_entity_date_ix on eis.inspected(entity_id, outcome_date);
-create index inspected_date_entity_ix on eis.inspected(outcome_date, entity_id);
-
-#+END_SRC
-
-#+RESULTS:
-
-
-The /states/ table is the same as the /states/ table in the inspection case.
-
-#+BEGIN_SRC sql :tangle ./sql/create_eis_schema.sql
-drop table if exists eis.active_facilities;
-
-create table eis.active_facilities as (
-select
-distinct
-entity_id,
-'active'::VARCHAR  as state,
-start_time,
-coalesce(end_time, current_date) as end_time
-from semantic.entities
-);
-#+END_SRC
-
-#+RESULTS:
-
-
-** Modeling Using Machine Learning
-
-
-*** Creating a simple experiment
 
 First the usual stuff. Note that we are changing =model_comment= and
 =label_definition= (remember that this is used for generating the
 /hash/ that differentiates models and model groups).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
-config_version: 'v3'
+config_version: 'v5'
 
 model_comment: 'eis'
 
 user_metadata:
   label_definition: 'inspected'
   experiment_type: 'eis'
+  description: |
+    Experiment 01
   purpose: 'exploring'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
 #+END_SRC
 
-We will use the =eis= tables for /outcomes/ and /states/ (obviously)
+For the labels the query is pretty simple, if the facility showed in
+the data, it will get a /positive/ outcome, if not they will get a /negative/ outcome
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
-events_table: eis.inspected
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(True)::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  include_missing_labels_in_train_as: False
+  name: 'inspected'
 #+END_SRC
 
+As stated we will use the same configuration block for /cohorts/ that we
+used in inspections:
+
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
-state_config:
-    table_name: 'eis.active_facilities'
-    state_filters:
-       - 'active'
+cohort_config:
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    tsrange(start_time, end_time, '[]') @> {as_of_date}
+  name: 'active_facilities'
 #+END_SRC
+
+
+** Modeling Using Machine Learning
+
+We need to specify the temporal configuration too
 
 **** Temporal configuration
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
@@ -279,6 +134,10 @@ temporal_config:
 
     max_training_histories: '5y'
 #+END_SRC
+
+
+As before, you can generate the image of the temporal blocks:
+
 
 #+BEGIN_SRC sh
 ./tutorial.sh triage --config_file eis_01.yaml show_temporal_blocks
@@ -397,7 +256,7 @@ feature_aggregations:
 
 #+END_SRC
 
-As before, we declare that we want to use all possible feature-group combinations for training:
+We declare that we want to use all possible feature-group combinations for training:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_group_definition:
@@ -406,7 +265,10 @@ feature_group_definition:
 feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
 
-
+i.e. =all= will train models with all the features groups,
+=leave-one-in= will use only one of the feature groups for traning, and
+lastly, =leave-one-out= will train the model with all the features
+except one.
 
 **** Algorithm and hyperparameters
 
@@ -433,22 +295,24 @@ hyperparameters (2 =DecisionTreeClassifier=, 1
 =all=, 3 =leave-one-in=, 3 =leave-one-out=). The total number of /models/
 is double that (we have 2 time blocks, so *84*).
 
-We don't want to mix experiments together. It is important that the =model_group_keys= distinguish models, so use them wisely:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
-model_group_keys:
-    - 'label_definition'
-    - 'experiment_type'
-    - 'purpose'
-
 scoring:
     sort_seed: 1234
-    metric_groups:
+    testing_metric_groups:
         -
             metrics: ['precision@', 'recall@']
             thresholds:
                 percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
                 top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+    training_metric_groups:
+      -
+        metrics: [accuracy]
+      -
+        metrics: [precision@, recall@]
+        thresholds:
+            percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+            top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
 #+END_SRC
 
 As a last step, we validate that the configuration file is correct:
@@ -525,7 +389,7 @@ After the experiment finishes, we can create the following table:
 #+BEGIN_SRC sql
 with features_groups as (
 select model_group_id, split_part(unnest(feature_list), '_', 1) as feature_groups
-from results.model_groups
+from model_metadata.model_groups
 ),
 
 features_arrays as (
@@ -540,7 +404,7 @@ model_type,
 hyperparameters,
 feature_groups,
 array_agg(model_id) as models
-from results.models
+from model_metadata.models
 join features_arrays using(model_group_id)
 where model_comment = 'eis'
 group by model_group_id, model_type, hyperparameters, feature_groups order by model_group_id
@@ -606,7 +470,7 @@ value,
 num_labeled_examples,
 num_labeled_above_threshold,
 num_positive_labels
-from results.evaluations
+from test_results.evaluations
 where model_id in (21, 63)
 and metric || parameter = 'precision@25_abs'
 order by num_labeled_above_threshold asc,
@@ -621,11 +485,11 @@ metric || parameter
 |      63 | 2016-12-13 00:00:00 | precision@25_abs |  0.88 |              19358 |                       25 |               958 |
 :END:
 
-
+Using the model =21= we can generate a list of places to be alerted:
 
 #+BEGIN_SRC sql
 select *
-from results.predictions
+from test_results.predictions
 where model_id = 21
 order by score desc
 limit 25
@@ -665,8 +529,10 @@ limit 25
 
 **** Feature Importances
 
+Which /features/ were important for the picked model?
+
 #+BEGIN_SRC sql
-select * from results.feature_importances
+select * from test_results.feature_importances
 where model_id = 21
 order by feature_importance desc
 limit 25
@@ -703,7 +569,8 @@ limit 25
 |      21 | results_zip_code_2y_result_pass w/ conditions_sum |      0.0074907219 |      25 | 0.078125 |
 :END:
 
-The list of important features looks reasonable, which confirms the results.
+The list of important features looks reasonable, which increases
+our confidence in the results.
 
 
 ** Postmodeling

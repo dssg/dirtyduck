@@ -84,7 +84,7 @@ feature_group_strategies: ['all']
 
 scoring:
     sort_seed: 5
-    metric_groups:
+    testing_metric_groups:
         -
           metrics: [precision@, recall@]
           thresholds:
