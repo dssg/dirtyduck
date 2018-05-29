@@ -89,7 +89,7 @@ label_config:
   query: |
     select
     entity_id,
-    bool_or(True)::integer as outcome
+    True::integer as outcome
     from semantic.events
     where '{as_of_date}'::timestamp <= date
     and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
@@ -97,6 +97,13 @@ label_config:
   include_missing_labels_in_train_as: False
   name: 'inspected'
 #+END_SRC
+
+Note the two introduced changes in this block, first, the /outcome/ is
+=True= , because all our observations represent /inspected/ facilities
+(see discussion above and in particular previous image), second, we
+added the line =include_missing_labels_in_train_as: False=. This line
+tells =triage= to incorporate all the missing facilities with =False=  as
+the /outcome/.
 
 As stated we will use the same configuration block for /cohorts/ that we
 used in inspections:
@@ -691,9 +698,6 @@ Auditing experiment
                       'most_frequent_best_dist_precision@_50_abs_0.05': 0.02}}
 
 #+END_SRC
-
-
-
 
 *** What's next?
 
