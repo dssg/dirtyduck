@@ -1367,7 +1367,7 @@ data sets you could consult =train_results=
 
 *** What are all the results tables about?
 =model_groups= stores the algorithm (=model_type=), the
-hyperparameters (=model_parameters=), and the features shared by a
+hyperparameters (=hyperparameters=), and the features shared by a
 particular set of models. =models= contains data specific to a model:
 the =model_group= (you can use =model_group_id= for linking the model to a
 model group), temporal information (like =train_end_time=), and the train
@@ -1462,7 +1462,7 @@ Therefore, if we run the following
 
 #+BEGIN_SRC sql
 select
-model_group_id, model_type, model_parameters, model_config
+model_group_id, model_type, hyperparameters, model_config
 from
 model_metadata.model_groups
 limit 1
@@ -1470,19 +1470,19 @@ limit 1
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                     | model_parameters              | model_config                                                                                                                                                                                                                                             |
+| model_group_id | model_type                     | hyperparameters              | model_config                                                                                                                                                                                                                                             |
 |--------------+-------------------------------+------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |            1 | sklearn.dummy.DummyClassifier | {"strategy": "most_frequent"} | {"state": "active", "label_name": "failed_inspections", "cohort_name": "active_facilities", "feature_groups": ["prefix: inspections", "prefix: results", "prefix: risks"], "label_timespan": "1y", "as_of_date_frequency": "1month", "max_training_history": "1y"} |
 :END:
 
 You can see that a model group is defined by the classifier
-(=model_type=), its hyperparameters (=model_parameters=), the features
+(=model_type=), its hyperparameters (=hyperparameters=), the features
 (=feature_list=) (not shown), and the =model_config=.
 
 
 /What can we learn from that?/ For example, if we add a new feature and
 rerun =triage=, =triage= will create a new =model_group= even if the
-classifier and the =model_parameters= are the same as before.
+classifier and the =hyperparameters= are the same as before.
 
 **** =model_metadata.models=
 
@@ -1503,7 +1503,7 @@ instances of our classifiers trained on specific temporal slices.
 | run_time                                                                                                                                                | timestamp without time zone |           |          |                                                     |
 | batch_run_time                                                                                                                                           | timestamp without time zone |           |          |                                                     |
 | model_type                                                                                                                                              | character varying           |           |          |                                                     |
-| model_parameters                                                                                                                                        | jsonb                       |           |          |                                                     |
+| hyperparameters                                                                                                                                        | jsonb                       |           |          |                                                     |
 | model_comment                                                                                                                                           | text                        |           |          |                                                     |
 | batch_comment                                                                                                                                           | text                        |           |          |                                                     |
 | config                                                                                                                                                 | json                        |           |          |                                                     |
@@ -1543,7 +1543,7 @@ Noteworthy columns are:
                       decision tree.
     - =run_time= ::  Time when the model was trained.
     - =model_type= ::  The algorithm used for training.
-    - =model_parameters= :: Hyperparameters used for the model configuration.
+    - =hyperparameters= :: Hyperparameters used for the model configuration.
     - =experiment_hash= :: The hash of our experiment. We encountered this value in the =results.experiments= table before.
     - =train_end_time= :: When building the training matrix, we included training samples up to this date.
     - =train_matrix_uuid= :: The /hash/ of the matrix that we used to
@@ -1566,7 +1566,7 @@ models. Important columns are =matrix_uuid= (The matrix gets stored as
         =TRIAGE_OUTPUT_PATH/matrices/{train_matrix_uuid}.csv=),
 =matrix_type= (indicated if the matrix was used for /training/ models or
 /testing/ them), =lookback_duration= and =feature_starttime= (give
-information about the temporal setting of the features) and =n_examples=
+information about the temporal setting of the features) and =num_observations=
 (size of the matrices).
 
 
@@ -1583,7 +1583,7 @@ information about the temporal setting of the features) and =n_examples=
 | matrix_uuid                                                                                                                                               | character varying           |           | not null |         |
 | matrix_type                                                                                                                                               | character varying           |           |          |         |
 | labeling_window                                                                                                                                           | interval                    |           |          |         |
-| n_examples                                                                                                                                                | integer                     |           |          |         |
+| num_observations                                                                                                                                                | integer                     |           |          |         |
 | creation_time                                                                                                                                             | timestamp with time zone    |           |          | now()   |
 | lookback_duration                                                                                                                                         | interval                    |           |          |         |
 | feature_start_time                                                                                                                                         | timestamp without time zone |           |          |         |
@@ -1598,14 +1598,14 @@ information about the temporal setting of the features) and =n_examples=
 :END:
 
 
-**** ={test, train}_results.{test, train}_evaluations=
+**** ={test, train}_results.evaluations=
 
 This table lets us analyze how well our models are doing. Based on the
 config that we used for our =triage= run, =triage= is calculating metrics
 and storing them in this table, e.g., our model's precision in top 10%.
 
 #+BEGIN_SRC sql
-\d test_results.test_evaluations
+\d test_results.evaluations
 #+END_SRC
 
 #+RESULTS:
@@ -1658,7 +1658,7 @@ showing a different performance metric.
 
 #+BEGIN_SRC sql
 select * from
-test_results.test_evaluations
+test_results.evaluations
 limit 5
 #+END_SRC
 
@@ -1683,7 +1683,7 @@ evaluation_end_time,
 metric,
 parameter,
 value
-from test_results.test_evaluations
+from test_results.evaluations
 where model_id in (
       select model_id from model_metadata.models where model_group_id=1
       )
@@ -1706,7 +1706,7 @@ slices, but with the same model params) of a model group performs over
 time.  Note how we only included the /models/ that belong to our
 /model group/ =1=.
 
-****  ={test, train}_results.{test, train}_predictions=
+**** ={test, train}_results.predictions=
 
 You can think of the previous table ={test, train}_results.{test,
 train}_predictions= as a summary
@@ -1721,7 +1721,7 @@ Here is what its first row looks like:
 #+NAME: prediction-example
 #+BEGIN_SRC sql
 select *
-from test_results.test_predictions
+from test_results.predictions
 limit 1
 #+END_SRC
 
@@ -1746,11 +1746,11 @@ the fields from above that gave us the names of our training matrices?
 In fact, it is the same. You can find the test matrix that was used to
 make this prediction under =TRIAGE_OUTPUT_PATH/matrices/{matrix_uuid}.csv=.
 
-**** TODO:  ={test, train}_results.{test, train}_results.feature_importances=
+**** TODO:  ={test, train}_results.feature_importances=
 
-**** TODO:  ={test, train}_results.{test, train}_results.individual_importances=
+**** TODO:  ={test, train}_results.individual_importances=
 
-**** TODO:  ={test, train}_results.{test, train}_results.list_predictions=
+**** TODO:  ={test, train}_results.list_predictions=
 
 
 

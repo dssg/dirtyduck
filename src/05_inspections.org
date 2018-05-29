@@ -488,12 +488,12 @@ And it will populate the =results= schema in the database. As
 mentioned, we will get =6= /model groups/:
 
 #+BEGIN_SRC sql
-select model_group_id, model_type, model_parameters from model_metadata.model_groups;
+select model_group_id, model_type, hyperparameters from model_metadata.model_groups;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_parameters                           |
+| model_group_id | model_type                           | hyperparameters                           |
 |--------------+-------------------------------------+-------------------------------------------|
 |            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1}         |
 |            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": "sqrt"}    |
@@ -549,7 +549,7 @@ You can check with which matrix the models are trained:
 select
 model_id, model_group_id, train_end_time,
 model_hash, train_matrix_uuid,
-ma.n_examples as observations,
+ma.num_observations as observations,
 ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
 from model_metadata.models as mo
 join model_metadata.matrices as ma on train_matrix_uuid = matrix_uuid
@@ -595,10 +595,10 @@ model_id,
 model_group_id, train_end_time,
 model_hash,
 pr.matrix_uuid as test_matrix_uuid,
-ma.n_examples as observations,
+ma.num_observations as observations,
 ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
 from model_metadata.models as mo
-join test_results.test_predictions as pr using (model_id)
+join test_results.predictions as pr using (model_id)
 join model_metadata.matrices as ma on pr.matrix_uuid = ma.matrix_uuid
 order by model_group_id, train_end_time asc
 #+END_SRC
@@ -639,14 +639,14 @@ Model =7= used the following hyperparameters:
 
 #+BEGIN_SRC sql
 select
-model_parameters
+hyperparameters
 from model_metadata.models
 where model_id = 7
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_parameters                   |
+| hyperparameters                   |
 |-----------------------------------|
 | {"max_depth": 1, "max_features": 1} |
 :END:
@@ -749,7 +749,7 @@ value,
 num_labeled_examples,
 num_labeled_above_threshold,
 num_positive_labels
-from test_results.test_evaluations where model_id = 7
+from test_results.evaluations where model_id = 7
 order by num_labeled_above_threshold asc,
 metric || parameter
 #+END_SRC
@@ -788,7 +788,7 @@ Let's assume this is our best model. Which 25 facilities does it think we should
 #+BEGIN_SRC sql
 select entity_id, as_of_date as marked_to_be_inspected_at,
 score, label_value
-from test_results.test_predictions
+from test_results.predictions
 where model_id = 7
 order by score desc
 limit 25
@@ -925,13 +925,13 @@ Experiment completed in 0:01:08.273220 seconds
 After the experiment finishes, you will get 3 new =model_groups= (1 per strategy)
 
 #+BEGIN_SRC sql
-select model_group_id, model_type, model_parameters
+select model_group_id, model_type, hyperparameters
 from model_metadata.model_groups;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_parameters                           |
+| model_group_id | model_type                           | hyperparameters                           |
 |--------------+-------------------------------------+-------------------------------------------|
 |            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1}         |
 |            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": "sqrt"}    |
@@ -955,7 +955,7 @@ where model_type ~ 'DummyClassifier'
 select
 model_group_id, model_id, metric || parameter as metric,
 value
-from test_results.test_evaluations
+from test_results.evaluations
 inner join baseline using(model_id)
 where
 metric || parameter = 'precision@25_abs'

@@ -18,11 +18,11 @@
 
 ** Problem description
 
-=triage= is designed to also build early warning systems (also called early intervention, EIS). 
+=triage= is designed to also build early warning systems (also called early intervention, EIS).
 While there are
  several differences between modeling early warnings and inspection
  prioritization, perhaps the biggest is that
- the /entity/ is active (i.e. it is doing stuff for which 
+ the /entity/ is active (i.e. it is doing stuff for which
  an outcome will happen) in EIS but passive (i.e. inspected)
  in *inspection prioritization*. Among other things, this difference
  affects the way the /outcome/ is built.
@@ -44,9 +44,9 @@ etc.
 ** Creating the labels
 
 The trick is to note is that on any given day there are two possible outcomes:
-/the facility was inspected/ and /the facility wasn't inspected/. 
+/the facility was inspected/ and /the facility wasn't inspected/.
 Our /outcomes/ table will be larger than in the inspection prioritization example
-because we need an /outcome/ for every /active/ facility on every date. 
+because we need an /outcome/ for every /active/ facility on every date.
 The following image tries to exemplify this reasoning:
 
 
@@ -80,7 +80,7 @@ select min(date), max(date) from semantic.events
 
 #+NAME: all_days
 #+BEGIN_SRC sql
-select count(days) 
+select count(days)
 from generate_series((select min(date) from semantic.events), current_date, '1 day'::interval) days;
 #+END_SRC
 
@@ -93,7 +93,7 @@ from generate_series((select min(date) from semantic.events), current_date, '1 d
 
 
 #+NAME: all_entities
-#+BEGIN_SRC sql 
+#+BEGIN_SRC sql
 select count(*) from semantic.entities;
 #+END_SRC
 
@@ -106,15 +106,15 @@ select count(*) from semantic.entities;
 
 The result is src_python[:var entities=all_entities[2] :var
 days=all_days[2]]{print(int(entities[0])*int(days[0]))}
-{{{results(104262162)}}} That's a lot of rows! 
+{{{results(104262162)}}} That's a lot of rows!
 
 We could improve that taking only the /active/ entities:
 
 #+NAME: actives
-#+BEGIN_SRC sql 
+#+BEGIN_SRC sql
 with dates as (
     select days::date
-    from 
+    from
     generate_series(
        (select min(date) from semantic.events),
        current_date, '1 day'::interval) days
@@ -142,10 +142,10 @@ given our infrastructure.
 
 So for this example, we will only consider /outcomes/ from =2015=:
 
-#+BEGIN_SRC sql 
+#+BEGIN_SRC sql
 with dates as (
     select days::date
-    from 
+    from
     generate_series(
        '2015-01-01'::date,
        current_date, '1 day'::interval) days
@@ -190,7 +190,7 @@ event_id is null then FALSE
 else TRUE
 end as outcome
 from active_entities as a
-left join semantic.events as e 
+left join semantic.events as e
 on a.entity_id = e.entity_id and a.outcome_date = e.date
 );
 
@@ -214,9 +214,9 @@ drop table if exists eis.active_facilities;
 create table eis.active_facilities as (
 select
 distinct
-entity_id, 
-'active'::VARCHAR  as state, 
-start_time, 
+entity_id,
+'active'::VARCHAR  as state,
+start_time,
 coalesce(end_time, current_date) as end_time
 from semantic.entities
 );
@@ -280,7 +280,7 @@ temporal_config:
     max_training_histories: '5y'
 #+END_SRC
 
-#+BEGIN_SRC sh 
+#+BEGIN_SRC sh
 ./tutorial.sh triage --config_file eis_01.yaml show_temporal_blocks
 #+END_SRC
 
@@ -367,7 +367,7 @@ feature_aggregations:
             - 'facility_type'
 
 
-    -  
+    -
         prefix: 'results'
         from_obj: 'semantic.events'
         knowledge_date_column: 'date'
@@ -430,7 +430,7 @@ grid_config:
 =triage= will create *42* /model groups/: 6 algorithms and
 hyperparameters (2 =DecisionTreeClassifier=, 1
 =RandomForestClassifier=, 3 =DummyClassifier=) \times 7 features groups (1
-=all=, 3 =leave-one-in=, 3 =leave-one-out=). The total number of /models/ 
+=all=, 3 =leave-one-in=, 3 =leave-one-out=). The total number of /models/
 is double that (we have 2 time blocks, so *84*).
 
 We don't want to mix experiments together. It is important that the =model_group_keys= distinguish models, so use them wisely:
@@ -489,10 +489,10 @@ Split index 2:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
+           Any error that occurs from now on, possibly will be related to hit the maximum
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
-    
+
 The experiment looks in good shape. May the force be with you!
 /usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
   """)
@@ -507,8 +507,8 @@ The experiment looks in good shape. May the force be with you!
 #+END_EXAMPLE
 
 This will take a *lot* amount of time (on my computer took 3h 42m),
-so, grab your coffee, chat with 
-your coworkers, check your email, or read the [[https://dssg.uchicago.edu/blog][DSSG blog]]. 
+so, grab your coffee, chat with
+your coworkers, check your email, or read the [[https://dssg.uchicago.edu/blog][DSSG blog]].
 It's taking that long for several reasons:
 
 1. There are a lot of models, parameters, etc.
@@ -526,7 +526,7 @@ After the experiment finishes, we can create the following table:
 with features_groups as (
 select model_group_id, split_part(unnest(feature_list), '_', 1) as feature_groups
 from results.model_groups
-), 
+),
 
 features_arrays as (
 select model_group_id, array_agg(distinct feature_groups) as feature_groups
@@ -537,18 +537,18 @@ group by model_group_id
 select
 model_group_id,
 model_type,
-model_parameters,
+hyperparameters,
 feature_groups,
 array_agg(model_id) as models
 from results.models
 join features_arrays using(model_group_id)
 where model_comment = 'eis'
-group by model_group_id, model_type, model_parameters, feature_groups order by model_group_id 
+group by model_group_id, model_type, hyperparameters, feature_groups order by model_group_id
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                               | model_parameters                                                                                                                          | feature_groups               | models   |
+| model_group_id | model_type                               | hyperparameters                                                                                                                          | feature_groups               | models   |
 |--------------+-----------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------+----------|
 |           10 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 1}                                                                                                                          | {inspections,results,risks} | {61,19}  |
 |           11 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                                                       | {inspections,results,risks} | {62,20}  |
@@ -603,10 +603,10 @@ select
 model_id, evaluation_start_time,
 metric || parameter as metric,
 value,
-num_labeled_examples, 
+num_labeled_examples,
 num_labeled_above_threshold,
 num_positive_labels
-from results.evaluations 
+from results.evaluations
 where model_id in (21, 63)
 and metric || parameter = 'precision@25_abs'
 order by num_labeled_above_threshold asc,
@@ -666,8 +666,8 @@ limit 25
 **** Feature Importances
 
 #+BEGIN_SRC sql
-select * from results.feature_importances 
-where model_id = 21 
+select * from results.feature_importances
+where model_id = 21
 order by feature_importance desc
 limit 25
 #+END_SRC
@@ -718,22 +718,22 @@ use? This is not as easy as it sounds, due to several factors:
   but at what point of time? Maybe different model groups are best
   at different prediction times.
 - You can just use the one that performs best on the last test set.
-- You can value a model group that provides consistent results over time. 
-  It might not be the best on any test set, but you can feel more 
-  confident that it will continue to perform similarly. 
+- You can value a model group that provides consistent results over time.
+  It might not be the best on any test set, but you can feel more
+  confident that it will continue to perform similarly.
 - If there are several model groups that perform similarly and
   their lists are more or less similar, maybe it doesn't really
-  matter which you pick. 
+  matter which you pick.
 
 =triage= provides this functionality in =audition= and in
 =postmodel=. At the moment of this writing, these two modules require
 more interaction (i.e. they aren't integrated with the /configuration
-file/). 
+file/).
 
 =Audition= formalizes this idea through /selection rules/ that take in
 the data up to a given point in time, apply some rule to choose a
-model group, and then evaluate the performance (*regret*) of the chosen 
-model group in the subsequent time window. 
+model group, and then evaluate the performance (*regret*) of the chosen
+model group in the subsequent time window.
 
 =Audition= predefines 7 rules:
 
@@ -742,15 +742,15 @@ model group in the subsequent time window.
 3. =lowest_metric_variance= :: Pick the model with the lowest metric variance so far.
 4. =most_frequent_best_dist= :: Pick the model that is most frequently
      within =dist_from_best_case= from the best-performing model group
-     across test sets so far. 
+     across test sets so far.
 5. =best_average_two_metrics= :: Pick the model with the highest
      average combined value to date of two metrics weighted together
-     using =metric1_weight=. 
+     using =metric1_weight=.
 6. =best_avg_var_penalized= :: Pick the model with the highest average
-     metric value so far, penalized for relative variance ss:  
+     metric value so far, penalized for relative variance ss:
      =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
      =min_stdev= is the minimum standard deviation of the metric
-     across all model groups 
+     across all model groups
 7.  =best_avg_recency_weight= :: Pick the model with the highest
      average metric value so far, penalized for relative variance as:
      =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
@@ -806,7 +806,7 @@ Auditing experiment
           +          Results of the simulation               +
           +                                                  +
           ++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 {'best_average_value_precision@_50_abs': [24],
  'best_current_value_precision@_50_abs': [48, 24],
  'lowest_metric_variance_precision@_50_abs': [24],
@@ -817,7 +817,7 @@ Auditing experiment
           +          Average regret per rule                 +
           +                                                  +
           ++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+
 {'precision@50_abs': {'best_average_value_precision@_50_abs': 0.0,
                       'best_current_value_precision@_50_abs': 0.0,
                       'lowest_metric_variance_precision@_50_abs': 0.08,
@@ -837,4 +837,4 @@ Auditing experiment
     new /outcomes/ or /features/?
   - Run =pgdedup= and had a better =semantic.entities=?
   - Routing based on the inspection list?
-  - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)? 
+  - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)?
