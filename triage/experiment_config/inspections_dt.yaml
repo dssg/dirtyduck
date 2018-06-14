@@ -1,10 +1,12 @@
-config_version: 'v3'
+config_version: 'v5'
 
-model_comment: 'inspections_test'
+model_comment: 'inspections_dt'
 
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'inspections prioritization'
+  description: |
+    Decision Tree Classifier
   purpose: 'test'
   org: 'DSaPP'
   team: 'Tutorial'
@@ -26,7 +28,25 @@ temporal_config:
 
     max_training_histories: '5y'
 
-events_table: inspections.failed
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(result = 'fail')::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  #include_missing_labels_in_train_as: False
+  name: 'failed_inspection'
+
+cohort_config:
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    tsrange(start_time, end_time, '[]') @> {as_of_date}
+  name: 'active_facilities'
 
 feature_aggregations:
     -
@@ -52,11 +72,6 @@ feature_aggregations:
             - 'entity_id'
             - 'zip_code'
 
-state_config:
-    table_name: 'inspections.active_facilities'
-    state_filters:
-       - 'active'
-
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
         max_depth: [1,null]
@@ -67,16 +82,20 @@ feature_group_definition:
 
 feature_group_strategies: ['all']
 
-model_group_keys:
-    - 'label_definition'
-    - 'experiment_type'
-    - 'purpose'
-
 scoring:
     sort_seed: 5
-    metric_groups:
+    testing_metric_groups:
         -
-            metrics: [precision@, recall@]
-            thresholds:
-                percentiles: [5.0, 10.0]
-                top_n: [5, 10, 25]
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [5.0, 10.0]
+            top_n: [5, 10, 25]
+
+    training_metric_groups:
+      -
+        metrics: [accuracy]
+      -
+        metrics: [precision@, recall@]
+        thresholds:
+          percentiles: [5.0, 10.0]
+          top_n: [5, 10, 25]

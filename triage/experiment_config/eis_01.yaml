@@ -1,21 +1,36 @@
-config_version: 'v3'
+config_version: 'v5'
 
 model_comment: 'eis'
 
 user_metadata:
   label_definition: 'inspected'
   experiment_type: 'eis'
+  description: |
+    Experiment 01
   purpose: 'exploring'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
 
-events_table: eis.inspected
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(True)::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  include_missing_labels_in_train_as: False
+  name: 'inspected'
 
-state_config:
-    table_name: 'eis.active_facilities'
-    state_filters:
-       - 'active'
+cohort_config:
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    tsrange(start_time, end_time, '[]') @> {as_of_date}
+  name: 'active_facilities'
 
 temporal_config:
     feature_start_time: '2010-01-04'
@@ -90,7 +105,7 @@ feature_aggregations:
             - 'facility_type'
 
 
-    -  
+    -
         prefix: 'results'
         from_obj: 'semantic.events'
         knowledge_date_column: 'date'
@@ -125,7 +140,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [1, null]
+        max_depth: [1,null]
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
@@ -134,18 +149,21 @@ grid_config:
         min_samples_split: [50]
         class_weight: ['balanced']
     'sklearn.dummy.DummyClassifier':
-        strategy: [prior, uniform, most_frequent]
-
-model_group_keys:
-    - 'label_definition'
-    - 'experiment_type'
-    - 'purpose'
+        strategy: [prior,uniform, most_frequent]
 
 scoring:
     sort_seed: 1234
-    metric_groups:
+    testing_metric_groups:
         -
             metrics: ['precision@', 'recall@']
             thresholds:
                 percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
                 top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+    training_metric_groups:
+      -
+        metrics: [accuracy]
+      -
+        metrics: [precision@, recall@]
+        thresholds:
+            percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+            top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
