@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.6-stretch
 
 ## Installing clients
 RUN  sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' > /etc/apt/sources.list.d/pgdg.list" && \

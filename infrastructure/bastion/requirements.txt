@@ -10,7 +10,6 @@ scikit-learn
 ipython
 jupyter
 pgcli
-prompt_toolkit
 rq
 
 ## DSaPP stuff
