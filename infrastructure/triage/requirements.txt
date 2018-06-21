@@ -12,4 +12,4 @@ pydotplus
 rq
 
 ## DSaPP stuff
-git+https://github.com/dssg/triage.git@v3.beta
+git+https://github.com/dssg/triage.git
