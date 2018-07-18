@@ -520,14 +520,9 @@ The number of inspections now is:
 | 168046 |
 :END:
 
-Note that  src_sh[:results raw  :export result :dir
- /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select count(inspection) from
- cleaned.inspections'} 164790
- is smaller than src_sh[:results raw  :export result :dir
- /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select count(*) from
- raw.inspections'} 165597, as expected we throw away some inspections.
+Note that  quantity is smaller  is smaller than the one from
+=raw.inspections=,
+since we throw away some inspections.
 
 With the =cleaned.inspections= table created, let's take a closer look at
 the =violations= column to figure out how to clean it.

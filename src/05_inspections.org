@@ -628,11 +628,9 @@ order by model_group_id, train_end_time asc
 :END:
 
 For example, the model =7= was stored as
-=/triage/trained_models/= src_sh[:results raw  :export result :dir
-/docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P  format=unaligned  -c 'select model_hash from model_metadata.models where model_id = 7'} 8b52fd95a5a95de85a0e686eefb9f321
+=/triage/trained_models/8b52fd95a5a95de85a0e686eefb9f321=
 using the standard serialization of sklearn models. This model was
-trained with the matrix src_sh[:results raw  :export result :dir /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select train_matrix_uuid from model_metadata.models where model_id = 7'} c03aaa4812cf316a933c9d1da1c9ade6
+trained with the matrix =c03aaa4812cf316a933c9d1da1c9ade6=
  stored in the directory =/triage/matrices=.
 
 Model =7= used the following hyperparameters:

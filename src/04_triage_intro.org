@@ -1735,11 +1735,7 @@ limit 1
 
 
 As you can see, the table contains our models' predictions for a given
-entity and date. In the case above, our /model/ (=model_id 1=)
-predicted a score of src_emacs-lisp[:var d=prediction-example[2,3]]{d}
-{{{results(=1.0=)}}} . The true label was
-src_emacs-lisp[:var d=prediction-example[2,4]]{d}
-{{{results(=1=)}}}.
+entity and date.
 
 And do you notice the field =matrix_uuid=? Doesn't it look similar to
 the fields from above that gave us the names of our training matrices?

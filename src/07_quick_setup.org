@@ -13,7 +13,8 @@
 
 * Appendix: For the impatient
 
-If you want to skip all the cleansing and transformation you can
+If you want to skip all the cleansing and transformation and deep
+directly into =triage= you can
 execute the following /inside bastion/:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
