@@ -150,10 +150,10 @@ def get_model_hashes(model_id):
 
     rows = db.execute(
         f"""
-        select distinct on (model_hash, train_matrix_uuid, matrix_uuid) 
+        select distinct on (model_hash, train_matrix_uuid, matrix_uuid)
         model_hash, train_matrix_uuid as train_hash, matrix_uuid as test_hash
-        from results.models 
-        inner join results.predictions using(model_id) 
+        from model_metadata.models
+        inner join test_results.test_predictions using(model_id)
         where model_id = {model_id};
        """)
 
@@ -166,13 +166,15 @@ def show_model(model_id):
     model_hash, train_hash, _ = get_model_hashes(model_id)
 
     clf = joblib.load(os.path.join(TRIAGE_OUTPUT_PATH, "trained_models", model_hash))
-    
+
     X = pd.read_csv(os.path.join(TRIAGE_OUTPUT_PATH, "matrices", f"{train_hash}.csv"), nrows = 1)
-    X.drop(['entity_id', 'as_of_date', 'outcome'], axis = 1, inplace=True)
+
+    ## The first two columns are ALWAYS entity_id, as_of_date and the last one in the label
+    X.drop(columns=X.columns[[0,1,-1]], axis = 1, inplace=True)
 
     trees = []
     file_names = []
-    
+
     if isinstance(clf, RandomForestClassifier):
         # We have a forest, we will pick 5 at random
         trees.extend(np.random.choice(clf.estimators_, size=5 , replace=False))
@@ -180,7 +182,7 @@ def show_model(model_id):
         print("""
         ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        IMPORTANT: The decisions trees are being cropped to a maximum depth of 5. 
+        IMPORTANT: The decisions trees are being cropped to a maximum depth of 5.
         If your tree is bigger, remember that you aren't viewing the FULL tree.
 
         ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -197,29 +199,29 @@ def show_model(model_id):
     for i, dtree in enumerate(trees):
         print(f"Plotting tree number {i}")
         dot_data = StringIO()
-        export_graphviz(dtree,out_file=dot_data,  
+        export_graphviz(dtree,out_file=dot_data,
                         filled=True, rounded=True,
                         special_characters=True,
                         feature_names = X.columns,
                         class_names=True,
-                        max_depth=max_depth)  
+                        max_depth=max_depth)
 
         graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
         file_name = os.path.join(TRIAGE_OUTPUT_PATH, "images", f"model_{model_id}_tree_{i}.svg")
         graph.write_svg(file_name)
         file_names.append(file_name)
-    
+
     return file_names
 
 def audit_experiment(experiment_hash, metric, k, rules):
     db = create_engine(TRIAGE_DB_URL)
-    
+
     pre_audition = PreAudition(db)
 
     model_groups = pre_audition.get_model_groups_from_experiment(experiment_hash)
     end_times = pre_audition.get_train_end_times(query=f"""
-                             select distinct train_end_time,  experiment_hash 
-                             from results.models 
+                             select distinct train_end_time,  experiment_hash
+                             from model_metadata.models
                              where experiment_hash = '{experiment_hash}'
                 """)
 
@@ -255,12 +257,12 @@ def audit_experiment(experiment_hash, metric, k, rules):
           +                                                  +
           ++++++++++++++++++++++++++++++++++++++++++++++++++++
     """)
-    
+
     pprint(auditioner.average_regret_for_rules)
 
 # def compare_models_lists(models):
 #     db = create_engine(TRIAGE_DB_URL)
-    
+
 #     list_results=get_list_comparision(conn=conn,
 #                                   model_ids=model_ids_100abs,
 #                                   test_time=test_time,
@@ -273,7 +275,7 @@ def audit_experiment(experiment_hash, metric, k, rules):
 
 # def compare_models_features(models):
 #     db = create_engine(TRIAGE_DB_URL)
-    
+
 #     list_results=get_feature_list_comparision(
 #         conn=conn,
 #         model_ids=model_ids_100abs,
@@ -286,7 +288,7 @@ def audit_experiment(experiment_hash, metric, k, rules):
 
 # def score_distributions(model_group):
 #     db = create_engine(TRIAGE_DB_URL)
-        
+
 #     for model in models:
 #         model_id = model[1]
 #         test_time = model[-1]

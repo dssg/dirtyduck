@@ -20,7 +20,7 @@
  We will begin with the *inspection prioritization* problem, where we want to generate a list of
    facilities that will have a *critical* or *serious* food violation /if/ inspected.
 
-The scenario is the following: you work for the City of Chicago and you have 
+The scenario is the following: you work for the City of Chicago and you have
   limited food inspectors, so you try to prioritize them to focus on the highest-risk
   facilities. So you will use the data to answer the next question:
 
@@ -32,7 +32,7 @@ Which X facilities are most likely to fail a food inspection in the
 If you want to focus on major violations only, you can do that too:
 
 #+begin_quote
-Which X facilities are most likely to have a critical or serious 
+Which X facilities are most likely to have a critical or serious
   violation in the following Y period of time?
 #+end_quote
 
@@ -57,10 +57,10 @@ following code:
 
 
 #+begin_src sql
-select 
+select
 event_id,
 date,
-result, 
+result,
 array_agg(obj ->>'severity') as violations_severity,
 (result = 'fail') as failed,
 (result = 'fail' and
@@ -95,91 +95,6 @@ show the meaning of the /outcomes/ for the /inspection failed/ problem definitio
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/outcomes-inspections.png]]
 
-Let's use the previous query to generate our outcomes in a new
-=inspections= schema.
-
-#+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
-create schema if not exists inspections;
-#+END_SRC
-
-#+RESULTS:
-
-=Triage= (version 1.0.3) requires certain columns:
-
-- =entity_id=     :: The entity affected / causes the event (In our
-     case the facility)
-- =outcome_date=  :: The date of the event / the date on
-     which we get the result (The inspection date)
-- =outcome=       :: The result (label) of the event (one of the labels
-     specified before)
-
-=entity_id= identifies the entities to which the labels are applied to,
-=outcome_date= is the date at which some outcome was known, and =outcome= is a
-1/0 outcome.
-
-Since we defined two labels, we will create two tables, one for each outcome.
-
-#+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
-
-create temp table inspections_outcomes as (
-select event_id, entity_id, date,
-   (result = 'fail') as failed,
-   (result = 'fail' and
-       ('serious' = ANY(array_agg(obj ->> 'severity')) or 'critical' = ANY(array_agg(obj ->> 'severity')))
-   ) as failed_major_violation
-from
-   (select event_id, entity_id, date, result, jsonb_array_elements(violations::jsonb) as obj from semantic.events)
-as t1
-group by event_id, entity_id, date, result
-);
-
-
-drop table if exists inspections.failed;
-
-create table inspections.failed as (
-select
-entity_id,
-date as outcome_date,
-failed as outcome
-from inspections_outcomes
-);
-
-
-drop table if exists inspections.failed_major_violation;
-
-create table inspections.failed_major_violation as (
-select
-entity_id,
-date as outcome_date,
-failed_major_violation as outcome
-from inspections_outcomes
-);
-
-#+END_SRC
-
-#+RESULTS:
-
-Also, we need to create a new version of the =semantic.entities=
-table. =Triage= refers to this new table as the *states* table. It should
-have =entity_id=, =start__time, end_time=, and =state= columns.
-The states table allows us to only
-include rows in your matrices with a specific status. For this project, we only want
-to inspect *active* facilities. We will replace all the =NULL= values in
-the =end_time= column for a date in the future, in particular =2020-12-31=.
-
-#+BEGIN_SRC sql :tangle ./sql/create_inspections_schema.sql
-
-drop table if exists inspections.active_facilities;
-
-create table inspections.active_facilities as (
-select
-distinct
-entity_id, 'active'::VARCHAR  as state, start_time, coalesce(end_time, '2020-12-31'::date) as end_time
-from semantic.entities
-);
-#+END_SRC
-
-#+RESULTS:
 
 
 ** Modeling Using Machine Learning
@@ -190,16 +105,22 @@ we just need to modify the =triage= configuration file.
 *** Creating a simple experiment
 
 For the first experiment we will try one of the simplest
-machine learning algorithms: a *Decision Tree Classifier*. We need to
-write the experiment config file for that. Let's break it down and
-explain the sections.
+machine learning algorithms: a *Decision Tree Classifier* (/DT/)
+The rationale of this is that the DT is very fast to train (so it will
+help us to verify that the experiment configuration is correct without
+waiting for a long time) and it helps you
+to understand the structure of your data. We will train a DT with only
+one split (i.e. one level of depth) and one full growth.
+We need to write the experiment config file for that. Let's break it
+down and explain the sections.
+
 
 The config file for this first experiment is located in
-[[./triage/experiment_config/inspections_test.yaml]]
+[[./triage/experiment_config/inspections_dt.yaml]]
 
 
 The first lines of the experiment config file specify the
-config-file version (=v3= at the moment of writing this tutorial), 
+config-file version (=v5= at the moment of writing this tutorial),
 a comment (=model_comment=, which will end up as
 a value in the =results.models= table), and a list of user-defined
 metadata (=user_metadata=) that can identify the
@@ -214,14 +135,16 @@ incorrectly used), and if you add the =label_definition= key to
 the =model_group_keys=, models made on different label definitions will
 belong to different model groups.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
-config_version: 'v3'
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+config_version: 'v5'
 
-model_comment: 'inspections_test'
+model_comment: 'inspections_dt'
 
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'inspections prioritization'
+  description: |
+    Decision Tree Classifier
   purpose: 'test'
   org: 'DSaPP'
   team: 'Tutorial'
@@ -242,7 +165,7 @@ select min(date), max(date) from semantic.events
 :RESULTS:
 |        min |        max |
 |------------+------------|
-| 2010-01-04 | 2018-03-01 |
+| 2010-01-04 | 2018-05-21 |
 :END:
 
 The next parameters are related to the training intervals:
@@ -251,7 +174,7 @@ The next parameters are related to the training intervals:
   (=training_as_of_date_frequencies=)
 - How much time is covered by labels in the training matrices? (=training_label_timespans=)
 
-The remaining elements are related to the *testing* matrices. 
+The remaining elements are related to the *testing* matrices.
 For *inspections*, you can choose them as follows:
 
 - =test_as_of_date_frequencies= is planning/scheduling frequency
@@ -263,7 +186,7 @@ Let's assume that we need to do rounds of inspections every month
 round in exactly one month (=test_durations = test_label_timespan =
 1month=)
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
     feature_end_time: '2018-03-01'
@@ -282,18 +205,18 @@ temporal_config:
 #+END_SRC
 
 We can visualize the splitting using the function =show_timechop=
-introduced in [[file:triage_intro.org][Introduction to triage]]. 
+introduced in [[file:triage_intro.org][Introduction to triage]].
 
-#+BEGIN_SRC sh 
+#+BEGIN_SRC sh
 
 # Remember to run this in your laptop NOT in bastion!
 
-./tutorial.sh triage --config_file inspections_test.yaml show_temporal_blocks
+./tutorial.sh triage --config_file inspections_dt.yaml show_temporal_blocks
 #+END_SRC
 
 #+RESULTS:
 #+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_test.yaml
+Using the config file /triage/experiment_config/inspections_dt.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
 Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will use any preexisting matrix or model: False
@@ -301,21 +224,47 @@ Creating experiment object
 Experiment loaded
 Generating temporal blocks image
 Image stored in:
-/triage/output/images/inspections_test.svg
+/triage/output/images/inspections_dt.svg
 #+End_src
 
-#+CAPTION: Temporal blocks for inspections_test experiment
+#+CAPTION: Temporal blocks for inspections_dt experiment
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/inspections_test.png]]
+[[./images/inspections_dt.png]]
 
 We need to specify the table that keeps our labels. For this first
-experiment we will use the label =failed=, stored in =inspections.labels=.
+experiment we will use the label =failed=, using the query from the
+previous section
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
-events_table: inspections.failed
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(result = 'fail')::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  #include_missing_labels_in_train_as: False
+  name: 'failed_inspection'
 #+END_SRC
+
+We just want to include *active* facilities in our matrices, so we tell
+=triage= to take that in account:
+
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+cohort_config:
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    tsrange(start_time, end_time, '[]') @> {as_of_date}
+  name: 'active_facilities'
+#+END_SRC
+
+
 
 =Triage= will generate the features for us, but we need to tell it which features
 we want in the section =feature_aggregations=. Here, each entry describes a
@@ -323,7 +272,7 @@ we want in the section =feature_aggregations=. Here, each entry describes a
 arguments needed to create it. For this experiment we will try the following
 features:
 
-- Number of different types of inspections the facility had in the last year 
+- Number of different types of inspections the facility had in the last year
   (calculated for an as-of date).
 -
 - Number of different types of inspections that happened in the
@@ -335,7 +284,7 @@ the rows in the matrix. In that date (=as_of_date= in =timechop= parlance)
 we will calculate both features, and we will repeat that for every
 other rectangle in that image.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 feature_aggregations:
     -
         prefix: 'inspections'
@@ -361,17 +310,8 @@ feature_aggregations:
             - 'zip_code'
 #+END_SRC
 
-We just want to include *active* facilities in our matrices, so we tell
-=triage= to take that in account:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
-state_config:
-    table_name: 'inspections.active_facilities'
-    state_filters:
-       - 'active'
-#+END_SRC
-
-Now, let's discuss how we will specify the models to try 
+Now, let's discuss how we will specify the models to try
 (remember that the model is specified by the algorithm, the
 hyperparameters, and the subset of features to use). In =triage= you
 need to specify in the =grid_config= section a list of machine learning
@@ -380,7 +320,7 @@ hyperparameters. You can use any algorithm that you want; the only
 requirement is that it respects the =sklearn= API.
 
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
         max_depth: [1,null]
@@ -400,7 +340,7 @@ subsets except one, do that for all the combinations), or =leave-one-in=
 (just try subset at the time).
 
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 feature_group_definition:
    prefix: ['inspections']
 
@@ -413,41 +353,35 @@ combinations (1)$). Also, we will create *12* models (2 per
 model group) given that we have 2 temporal blocks (one model per
 temporal group).
 
-=model_group_keys= defines a list of *additional* matrix metadata keys that
-should be considered when creating a model group. For example, if the models are
-built on matrices with different history lengths, different
-labeling windows (e.g., inspection violations in the next month, next year, or
-next two years), the frequency of rows for each
-entity, or the definition of a positive label (=label_definition=, from
-=user_metadata=).
-
-The valid =model_group_keys= are
-
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
-model_group_keys:
-    - 'label_definition'
-    - 'experiment_type'
-    - 'purpose'
-#+END_SRC
 
 Finally, we should define wich metrics we care about for evaluating our
 model. Here we will concentrate only in =precision= and =recall=.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_test.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 scoring:
     sort_seed: 5
-    metric_groups:
+    testing_metric_groups:
         -
-            metrics: [precision@, recall@]
-            thresholds:
-                percentiles: [5.0, 10.0]
-                top_n: [5, 10, 25]
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [5.0, 10.0]
+            top_n: [5, 10, 25]
+
+    training_metric_groups:
+      -
+        metrics: [accuracy]
+      -
+        metrics: [precision@, recall@]
+        thresholds:
+          percentiles: [5.0, 10.0]
+          top_n: [5, 10, 25]
+
 #+END_SRC
 
 You should be warned that precision and recall at $k$ in this setting
 is kind of ill-defined (because you will end with a lot of =NULL=
 labels, remember, only a few of facilities are inspected in each
-period) ...
+period).
 
 We will want a *list* of facilities to
 be inspected. The length of our list is constrained by our inspection
@@ -461,13 +395,13 @@ good practice to /validate/ the configuration file /before/ running
 the model. You don't want to wait for hours (or days) and then
 discover that something went wrong.
 
-#+BEGIN_SRC sh 
-./tutorial.sh triage --config_file inspections_test.yaml validate
+#+BEGIN_SRC sh
+./tutorial.sh triage --config_file inspections_dt.yaml validate
 #+END_SRC
 
 #+RESULTS:
 #+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_test.yaml
+Using the config file /triage/experiment_config/inspections_dt.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
 Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
@@ -497,22 +431,22 @@ Split index 2:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
+           Any error that occurs from now on, possibly will be related to hit the maximum
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
-    
+
 The experiment looks in good shape. May the force be with you
 #+END_SRC
 
-You can execute the experiment as 
+You can execute the experiment as
 
 #+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_test.yaml run
+./tutorial.sh triage --config_file inspections_dt.yaml run
 #+END_SRC
 
 #+RESULTS:
 #+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_test.yaml
+Using the config file /triage/experiment_config/inspections_dt.yaml
 The output (matrices and models) of this experiment will be stored in triage/output
 Using data stored in postgresql://food_user:some_password@food_db/food
 The experiment will utilize any preexisting matrix or model: False
@@ -520,23 +454,24 @@ Creating experiment object
 Experiment loaded
 Executing experiment
 Done
-Experiment completed in 0:02:36.844420 seconds
+Experiment completed in 0:03:17.957022 seconds
 #+END_SRC
 
-This will print a lot of output, and if everything is correct it will create matrices (3 for 
+This will print a lot of output, and if everything is correct it will
+create 6 matrices (3 for
 training, 3 for testing) in =triage/matrices= and every matrix will be
 represented by two files, one with the metadata of the matrix (a
-=yaml= file) and one with the actual matrix (the =csv= file). 
+=yaml= file) and one with the actual matrix (the =csv= file).
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
 ls /triage/output/matrices | awk -F . '{print $NF}' | sort | uniq -c
 #+END_SRC
 
 #+Results:
-#+BEGIN_SRC org
+:RESULTS:
       6 csv
       6 yaml
-#+END_SRC
+:END:
 
 =Triage= also will store 18 trained models in =triage/trained_models=:
 
@@ -545,20 +480,20 @@ ls /triage/output/trained_models | wc -l
 #+END_SRC
 
 #+RESULTS:
-#+BEGIN_SRC org
+:RESULTS:
 18
-#+END_SRC
+:END:
 
 And it will populate the =results= schema in the database. As
 mentioned, we will get =6= /model groups/:
 
 #+BEGIN_SRC sql
-select model_group_id, model_type, model_parameters from results.model_groups;
+select model_group_id, model_type, hyperparameters from model_metadata.model_groups;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_parameters                           |
+| model_group_id | model_type                           | hyperparameters                           |
 |--------------+-------------------------------------+-------------------------------------------|
 |            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1}         |
 |            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": "sqrt"}    |
@@ -568,13 +503,13 @@ select model_group_id, model_type, model_parameters from results.model_groups;
 |            6 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "max_features": null}   |
 :END:
 
-And =18= /Models/:
+And =18= /models/:
 
 
-#+BEGIN_SRC sql 
+#+BEGIN_SRC sql
 select
 model_group_id, model_id, train_end_time
-from results.models
+from model_metadata.models
 order by model_group_id, train_end_time asc
 #+END_SRC
 
@@ -603,8 +538,8 @@ order by model_group_id, train_end_time asc
 :END:
 
 From that last query, you should note that the order in which =triage= trains
-the models is from oldest to newest =train_end_time=s and
-=model_group=s, also in ascending order. It will not go to the
+the models is from oldest to newest =train_end_time= and
+=model_group= , also in ascending order. It will not go to the
 next block until all the /models groups/ are trained.
 
 You can check with which matrix the models are trained:
@@ -612,37 +547,40 @@ You can check with which matrix the models are trained:
 #+NAME: train_info
 #+BEGIN_SRC sql
 select
-model_id, model_group_id, train_end_time, 
-model_hash,train_matrix_uuid
-from results.models
+model_id, model_group_id, train_end_time,
+model_hash, train_matrix_uuid,
+ma.num_observations as observations,
+ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
+from model_metadata.models as mo
+join model_metadata.matrices as ma on train_matrix_uuid = matrix_uuid
 order by model_group_id, train_end_time asc
 #+End_SRC
 
 #+RESULTS: train_info
 :RESULTS:
-| model_id | model_group_id | train_end_time        | model_hash                        | train_matrix_uuid                  |
-|---------+--------------+---------------------+----------------------------------+----------------------------------|
-|       1 |            1 | 2016-01-01 00:00:00 | 44a91980f60b1b1b46c3ca4f56407b43 | 80a88d6a30313393d8a821660208dbda |
-|       7 |            1 | 2017-01-01 00:00:00 | 973b622e395d0773d8e1a7625820ac07 | df40aaf329dfdcd4e950f7e58218be39 |
-|      13 |            1 | 2018-01-01 00:00:00 | a40dcde3da20123496718c646715f3ed | 19c5aaf3895d5d2f782ed734955b3ab6 |
-|       2 |            2 | 2016-01-01 00:00:00 | f6b6ee09da6a601bc0df6bf3f6edd350 | 80a88d6a30313393d8a821660208dbda |
-|       8 |            2 | 2017-01-01 00:00:00 | 0aaa6187ea359b1b4a12a14f1cf7bba4 | df40aaf329dfdcd4e950f7e58218be39 |
-|      14 |            2 | 2018-01-01 00:00:00 | 7c6b26adfc026acacc65f34f41798f89 | 19c5aaf3895d5d2f782ed734955b3ab6 |
-|       3 |            3 | 2016-01-01 00:00:00 | b919b106d2a728edfc248b356c2e6286 | 80a88d6a30313393d8a821660208dbda |
-|       9 |            3 | 2017-01-01 00:00:00 | 8a66abb8785d790537e31cfda1da4c72 | df40aaf329dfdcd4e950f7e58218be39 |
-|      15 |            3 | 2018-01-01 00:00:00 | 5c7e7cb491bd0494fe6a52c689022e75 | 19c5aaf3895d5d2f782ed734955b3ab6 |
-|       4 |            4 | 2016-01-01 00:00:00 | 4b762fd73f7b8fec1426a6391a781800 | 80a88d6a30313393d8a821660208dbda |
-|      10 |            4 | 2017-01-01 00:00:00 | d03cf44679a06d530784c20d0183b179 | df40aaf329dfdcd4e950f7e58218be39 |
-|      16 |            4 | 2018-01-01 00:00:00 | 79a0ee40119d44b734a603d9a965339e | 19c5aaf3895d5d2f782ed734955b3ab6 |
-|       5 |            5 | 2016-01-01 00:00:00 | 54866a5bcc0cf48cfa43e3876238d246 | 80a88d6a30313393d8a821660208dbda |
-|      11 |            5 | 2017-01-01 00:00:00 | f6c11a74790e3ceaa94248ed61834f04 | df40aaf329dfdcd4e950f7e58218be39 |
-|      17 |            5 | 2018-01-01 00:00:00 | 86e406c438ae80e68665aef2da068ff0 | 19c5aaf3895d5d2f782ed734955b3ab6 |
-|       6 |            6 | 2016-01-01 00:00:00 | bbfc6be74ac7696af859c862092a0e00 | 80a88d6a30313393d8a821660208dbda |
-|      12 |            6 | 2017-01-01 00:00:00 | a00fbade042d73a28f6ee60996650d32 | df40aaf329dfdcd4e950f7e58218be39 |
-|      18 |            6 | 2018-01-01 00:00:00 | 68334513a72301b163927d1fa583f4e3 | 19c5aaf3895d5d2f782ed734955b3ab6 |
+| model_id | model_group_id | train_end_time        | model_hash                        | train_matrix_uuid                  | observations | feature_lookback_duration | feature_start_time    |
+|---------+--------------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
+|       1 |            1 | 2016-01-01 00:00:00 | b8760f6ff91cf67a7e13ddde9a6ebc02 | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
+|       7 |            1 | 2017-01-01 00:00:00 | 8b52fd95a5a95de85a0e686eefb9f321 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
+|      13 |            1 | 2018-01-01 00:00:00 | 76e6eafed233e035ebec64802a367f5a | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
+|       2 |            2 | 2016-01-01 00:00:00 | 50c082cdcda8032066324d2b512b6ecd | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
+|       8 |            2 | 2017-01-01 00:00:00 | dca1e0f675b28dccdb21ccf0b0caa6ff | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
+|      14 |            2 | 2018-01-01 00:00:00 | b88f85a042a9291b7c6ba4e4b6ddfc9c | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
+|       3 |            3 | 2016-01-01 00:00:00 | 3693b4df0280b6b7f92d843839fb90af | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
+|       9 |            3 | 2017-01-01 00:00:00 | df0ba21bb46d690ac9894d5efd28be26 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
+|      15 |            3 | 2018-01-01 00:00:00 | 62d1a0ed5b58c42c2bb062ac35145043 | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
+|       4 |            4 | 2016-01-01 00:00:00 | 5a2767ae9d4c0b4c107e86b44700ca88 | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
+|      10 |            4 | 2017-01-01 00:00:00 | 845803b72bc3e9f283fc59946b971f24 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
+|      16 |            4 | 2018-01-01 00:00:00 | 4b9c95c7c5d79ab7d427c9c0dea7b96b | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
+|       5 |            5 | 2016-01-01 00:00:00 | 2f6dd475af37e7c34ec9db4df177ecfd | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
+|      11 |            5 | 2017-01-01 00:00:00 | c0cd05226aca63b1e69c8a684e20f647 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
+|      17 |            5 | 2018-01-01 00:00:00 | b19f971d62806556bb8fb8f32ed38bbb | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
+|       6 |            6 | 2016-01-01 00:00:00 | 3c48165e4b8edf45d00030c8835ad423 | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
+|      12 |            6 | 2017-01-01 00:00:00 | 4aafe62f79ef54e01d7b9c15640dc7e6 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
+|      18 |            6 | 2018-01-01 00:00:00 | 6663e0c150f5c160f74c722b697dc4bd | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
 :END:
 
-As expected, we have two models per model group. Each model was trained
+As expected, we have three models per model group. Each model was trained
 with the matrix indicated in the column =train_matrix_uuid=. This =uuid=
 is the file name of the stored matrix. The model itself was
 stored under the file named with the =model_hash=.
@@ -652,68 +590,70 @@ run the following query
 
 #+NAME: test_info
 #+BEGIN_SRC  sql
-select distinct 
-model_id, 
-matrix_uuid -- the test matrix
-from results.predictions 
-order by model_id
+select distinct
+model_id,
+model_group_id, train_end_time,
+model_hash,
+pr.matrix_uuid as test_matrix_uuid,
+ma.num_observations as observations,
+ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
+from model_metadata.models as mo
+join test_results.predictions as pr using (model_id)
+join model_metadata.matrices as ma on pr.matrix_uuid = ma.matrix_uuid
+order by model_group_id, train_end_time asc
 #+END_SRC
 
 #+RESULTS: test_info
 :RESULTS:
-| model_id | matrix_uuid                       |
-|---------+----------------------------------|
-|       1 | 72a15fec31a6263d65b05a93d3ca24cf |
-|       2 | 72a15fec31a6263d65b05a93d3ca24cf |
-|       3 | 72a15fec31a6263d65b05a93d3ca24cf |
-|       4 | 72a15fec31a6263d65b05a93d3ca24cf |
-|       5 | 72a15fec31a6263d65b05a93d3ca24cf |
-|       6 | 72a15fec31a6263d65b05a93d3ca24cf |
-|       7 | 9ac1d77c45f375666e9be686c88caef6 |
-|       8 | 9ac1d77c45f375666e9be686c88caef6 |
-|       9 | 9ac1d77c45f375666e9be686c88caef6 |
-|      10 | 9ac1d77c45f375666e9be686c88caef6 |
-|      11 | 9ac1d77c45f375666e9be686c88caef6 |
-|      12 | 9ac1d77c45f375666e9be686c88caef6 |
-|      13 | fba584da9e52f3fa1c8407fa870e00b3 |
-|      14 | fba584da9e52f3fa1c8407fa870e00b3 |
-|      15 | fba584da9e52f3fa1c8407fa870e00b3 |
-|      16 | fba584da9e52f3fa1c8407fa870e00b3 |
-|      17 | fba584da9e52f3fa1c8407fa870e00b3 |
-|      18 | fba584da9e52f3fa1c8407fa870e00b3 |
+| model_id | model_group_id | train_end_time        | model_hash                        | test_matrix_uuid                   | observations | feature_lookback_duration | feature_start_time    |
+|---------+--------------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
+|       1 |            1 | 2016-01-01 00:00:00 | b8760f6ff91cf67a7e13ddde9a6ebc02 | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
+|       7 |            1 | 2017-01-01 00:00:00 | 8b52fd95a5a95de85a0e686eefb9f321 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
+|      13 |            1 | 2018-01-01 00:00:00 | 76e6eafed233e035ebec64802a367f5a | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
+|       2 |            2 | 2016-01-01 00:00:00 | 50c082cdcda8032066324d2b512b6ecd | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
+|       8 |            2 | 2017-01-01 00:00:00 | dca1e0f675b28dccdb21ccf0b0caa6ff | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
+|      14 |            2 | 2018-01-01 00:00:00 | b88f85a042a9291b7c6ba4e4b6ddfc9c | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
+|       3 |            3 | 2016-01-01 00:00:00 | 3693b4df0280b6b7f92d843839fb90af | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
+|       9 |            3 | 2017-01-01 00:00:00 | df0ba21bb46d690ac9894d5efd28be26 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
+|      15 |            3 | 2018-01-01 00:00:00 | 62d1a0ed5b58c42c2bb062ac35145043 | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
+|       4 |            4 | 2016-01-01 00:00:00 | 5a2767ae9d4c0b4c107e86b44700ca88 | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
+|      10 |            4 | 2017-01-01 00:00:00 | 845803b72bc3e9f283fc59946b971f24 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
+|      16 |            4 | 2018-01-01 00:00:00 | 4b9c95c7c5d79ab7d427c9c0dea7b96b | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
+|       5 |            5 | 2016-01-01 00:00:00 | 2f6dd475af37e7c34ec9db4df177ecfd | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
+|      11 |            5 | 2017-01-01 00:00:00 | c0cd05226aca63b1e69c8a684e20f647 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
+|      17 |            5 | 2018-01-01 00:00:00 | b19f971d62806556bb8fb8f32ed38bbb | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
+|       6 |            6 | 2016-01-01 00:00:00 | 3c48165e4b8edf45d00030c8835ad423 | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
+|      12 |            6 | 2017-01-01 00:00:00 | 4aafe62f79ef54e01d7b9c15640dc7e6 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
+|      18 |            6 | 2018-01-01 00:00:00 | 6663e0c150f5c160f74c722b697dc4bd | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
 :END:
 
 For example, the model =7= was stored as
-=/triage/trained_models/= src_sh[:results raw  :export result :dir /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select model_hash from results.models where model_id = 7'} 973b622e395d0773d8e1a7625820ac07
- df40aaf329dfdcd4e950f7e58218be39
+=/triage/trained_models/8b52fd95a5a95de85a0e686eefb9f321=
 using the standard serialization of sklearn models. This model was
-trained with the matrix src_sh[:results raw  :export result :dir /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select train_matrix_uuid from results.models where model_id = 7'} df40aaf329dfdcd4e950f7e58218be39
- 973b622e395d0773d8e1a7625820ac07
+trained with the matrix =c03aaa4812cf316a933c9d1da1c9ade6=
  stored in the directory =/triage/matrices=.
 
 Model =7= used the following hyperparameters:
 
 #+BEGIN_SRC sql
-select 
-model_parameters 
-from results.models 
+select
+hyperparameters
+from model_metadata.models
 where model_id = 7
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_parameters                   |
+| hyperparameters                   |
 |-----------------------------------|
 | {"max_depth": 1, "max_features": 1} |
 :END:
 
 
-We can visualize the model 
+We can visualize the model
 
 #+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_baseline.yaml show_model_plot --model 7
+./tutorial.sh triage --config_file inspections_dt.yaml show_model_plot --model 7
 #+END_SRC
 
 #+RESULTS:
@@ -726,44 +666,52 @@ Creating experiment object
 Experiment loaded
 Generating model image
 Plotting tree number 0
-Image stored in: 
+Image stored in:
 ['/triage/output/images/model_7_tree_0.svg']
 #+End_src
 
-#+CAPTION: Graphical representation of the trained model no.7: Decision Tree Classifier (max_depth:1, max_features:1) 
+#+CAPTION: Graphical representation of the trained model no.3: Decision Tree Classifier (max_depth:1, max_features:1)
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 400 :height 300
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/model_7_tree_0.png]]
 
-This tree kind of makes sense: if the facility had more than 1.5
-inspections related to food poisoning, then the model predicts it will fail an
-inspection.
 
 We can also get information about the /model group/:
 
 #+BEGIN_SRC sql
-select 
-model_group_id, model_type, model_config 
-from 
-results.model_groups 
+select
+--model_group_id, model_type,
+jsonb_pretty(model_config) as model_config, model_group_id, model_type
+from
+model_metadata.model_groups
 where model_group_id = 1
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_config                                                                                      |
-|--------------+-------------------------------------+--------------------------------------------------------------------------------------------------|
-|            1 | sklearn.tree.DecisionTreeClassifier | {"purpose": "test", "experiment_type": "inspections prioritization", "label_definition": "failed"} |
+| model_config                       | model_group_id | model_type                           |
+|-----------------------------------+--------------+-------------------------------------|
+| {                                 |              |                                     |
+| "state": "active",                |              |                                     |
+| "label_name": "failed_inspection",  |              |                                     |
+| "cohort_name": "active_facilities", |              |                                     |
+| "feature_groups": [                |              |                                     |
+| "prefix: inspections"             |              |                                     |
+| ],                                |              |                                     |
+| "label_timespan": "1month",        |              |                                     |
+| "as_of_date_frequency": "1month",    |              |                                     |
+| "max_training_history": "5y"        |              |                                     |
+| }                                 |            1 | sklearn.tree.DecisionTreeClassifier |
 :END:
 
 The features used by that model are:
 
 #+BEGIN_SRC sql
-select 
-unnest(feature_list) as features 
-from 
-results.model_groups 
+select
+unnest(feature_list) as features
+from
+model_metadata.model_groups
 where model_group_id = 1
 #+END_SRC
 
@@ -789,163 +737,93 @@ where model_group_id = 1
 | inspections_zip_code_3month_type_task force_sum      |
 :END:
 
-Finally, the performance of the model =7=  are:
+Finally, the performance of the model =3=  are:
 
 #+BEGIN_SRC sql
 select
 model_id,
 metric || parameter as metric,
 value,
-num_labeled_examples, 
+num_labeled_examples,
 num_labeled_above_threshold,
 num_positive_labels
-from results.evaluations where model_id = 7
+from test_results.evaluations where model_id = 7
 order by num_labeled_above_threshold asc,
 metric || parameter
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_id | metric            |                 value | num_labeled_examples | num_labeled_above_threshold | num_positive_labels |
-|---------+-------------------+-----------------------+--------------------+--------------------------+-------------------|
-|       7 | precision@5_abs    |                   0.0 |               1173 |                        0 |               269 |
-|       7 | recall@5_abs       |                   0.0 |               1173 |                        0 |               269 |
-|       7 | precision@10_abs   |                   1.0 |               1173 |                        1 |               269 |
-|       7 | recall@10_abs      | 0.0037174721189591076 |               1173 |                        1 |               269 |
-|       7 | precision@25_abs   |                   0.4 |               1173 |                        5 |               269 |
-|       7 | recall@25_abs      |  0.007434944237918215 |               1173 |                        5 |               269 |
-|       7 | precision@5.0_pct  |                  0.34 |               1173 |                       50 |               269 |
-|       7 | recall@5.0_pct     |   0.06319702602230483 |               1173 |                       50 |               269 |
-|       7 | precision@10.0_pct |   0.28225806451612906 |               1173 |                      124 |               269 |
-|       7 | recall@10.0_pct    |   0.13011152416356878 |               1173 |                      124 |               269 |
+| model_id | metric            |               value | num_labeled_examples | num_labeled_above_threshold | num_positive_labels |
+|---------+-------------------+---------------------+--------------------+--------------------------+-------------------|
+|       7 | precision@10_abs   |                 0.0 |               1174 |                        0 |               269 |
+|       7 | precision@5_abs    |                 0.0 |               1174 |                        0 |               269 |
+|       7 | recall@10_abs      |                 0.0 |               1174 |                        0 |               269 |
+|       7 | recall@5_abs       |                 0.0 |               1174 |                        0 |               269 |
+|       7 | precision@25_abs   |                 0.0 |               1174 |                        2 |               269 |
+|       7 | recall@25_abs      |                 0.0 |               1174 |                        2 |               269 |
+|       7 | precision@5.0_pct  |                0.25 |               1174 |                       56 |               269 |
+|       7 | recall@5.0_pct     | 0.05204460966542751 |               1174 |                       56 |               269 |
+|       7 | precision@10.0_pct |  0.2457627118644068 |               1174 |                      118 |               269 |
+|       7 | recall@10.0_pct    | 0.10780669144981413 |               1174 |                      118 |               269 |
 :END:
 
 The columns =num_labeled_examples, num_labeled_above_threshold,
 num_positive_labels= represent the number of selected entities on the
-prediction date that are labeled (there are =1173= entities in the
+prediction date that are labeled (there are =1174= entities in the
 test matrix with a label (=1= or =0=)), the
 number of entities with a positive label above the threshold
-(e.g. there is only =1= entity with a positive label in the first 10
+(e.g. there is none entities with a positive label in the first 10
 entities ordered by score) and the number of entities with positive labels among all the
-labeled entities (=269= of =1173=) respectively. In
-English, between the /as-of
-date/ (=2017-01-01=) and one month later (until =2017-02-01=) there
-were =1173= facilities *inspected* and =269= *failed*.
-
-We can check that the numbers make sense. The number of /active
-facilities/ on =2017-01-01= (the prediction date) is
-
-#+BEGIN_SRC sql
-select count(*)
-from inspections.active_facilities
-where '2017-01-01'::date <@ daterange(start_time, end_time)
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| count |
-|-------|
-| 19397 |
-:END:
-
-And this number matches with the predictions made by the model =7=, as expected.
-
-#+BEGIN_SRC sql
-select count(*) from results.predictions where model_id = 7 
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| count |
-|-------|
-| 19397 |
-:END:
-
-The number of /labels/ (=num_labeled_examples= = =1173=) is different,
- because only =1173= facilities were inspected in that time span. 
- Many of the facilities weren't inspected, as indicated by their =NULL= labels.
+labeled entities (=269= of =1174=) respectively. In
+English, between the /as of date/ (=2017-01-01=) and one month later (until =2017-02-01=) there
+were =1174=  facilities *inspected* and =269= of those inspections *failed*.
 
 
-#+BEGIN_SRC sql
-select count(distinct entity_id)
-from inspections.failed
-where outcome_date <@ '[2017-01-01, 2017-02-01)'::daterange
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| count |
-|-------|
-|  1316 |
-:END:
-
-That's far from =1173=. Do you remember the /states/ table? We have to 
-filter on active facilities to get the correct number:
-
-#+BEGIN_SRC sql
-select outcome,count(distinct entity_id)
-from inspections.failed
-inner join (
-      select entity_id
-      from inspections.active_facilities
-      where '2017-01-01'::date <@ daterange(start_time, end_time)
-) as t
-using (entity_id)
-where outcome_date <@ '[2017-01-01, 2017-02-01)'::daterange
-group by rollup(outcome)
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| outcome | count |
-|---------+-------|
-| f       |  1085 |
-| t       |   269 |
-| [NULL]  |  1173 |
-:END:
 
 Let's assume this is our best model. Which 25 facilities does it think we should inspect?
 
 #+BEGIN_SRC sql
-select *
-from results.predictions
-where model_id = 7 
+select entity_id, as_of_date as marked_to_be_inspected_at,
+score, label_value
+from test_results.predictions
+where model_id = 7
 order by score desc
 limit 25
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_id | entity_id | as_of_date            |              score | label_value | rank_abs | rank_pct | matrix_uuid                       | test_label_timespan |
-|---------+----------+---------------------+--------------------+------------+---------+---------+----------------------------------+-------------------|
-|       7 |        1 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        4 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        2 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        6 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        7 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        8 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        9 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |        5 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       11 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       13 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       14 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       15 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       16 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       19 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       20 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       21 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       10 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       23 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       25 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       27 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       28 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       29 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       30 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       31 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
-|       7 |       32 | 2017-01-01 00:00:00 | 0.2501382998340402 | [NULL]     | [NULL]  | [NULL]  | 9ac1d77c45f375666e9be686c88caef6 | 1 mon             |
+| entity_id | marked_to_be_inspected_at | score | label_value |
+|----------+-----------------------+-------+------------|
+|        1 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        4 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        2 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        6 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        7 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        8 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        9 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|        5 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       11 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       13 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       14 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       15 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       16 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       19 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       20 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       21 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       10 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       23 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       25 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       27 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       28 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       29 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       30 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       31 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
+|       32 | 2017-01-01 00:00:00   |  0.25 | [NULL]     |
 :END:
 
-*** Defining a baseline 
+*** Defining a baseline
 
 As a second step, lets do an experiment that defines our
 /baseline/. To achieve this, we will use a similar experiment
@@ -957,6 +835,8 @@ model_comment: 'inspections_baseline'
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'inspections prioritization'
+  description: |
+    Baseline calculation
   purpose: 'baseline'
   org: 'DSaPP'
   team: 'Tutorial'
@@ -1014,10 +894,10 @@ Split index 2:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
+           Any error that occurs from now on, possibly will be related to hit the maximum
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
-    
+
 The experiment looks in good shape. May the force be with you
 #+END_SRC
 
@@ -1037,18 +917,19 @@ Creating experiment object
 Experiment loaded
 Executing experiment
 Done
-Experiment completed in 0:00:40.563533 seconds
+Experiment completed in 0:01:08.273220 seconds
 #+END_SRC
 
-
+After the experiment finishes, you will get 3 new =model_groups= (1 per strategy)
 
 #+BEGIN_SRC sql
-select model_group_id, model_type, model_parameters from results.model_groups;
+select model_group_id, model_type, hyperparameters
+from model_metadata.model_groups;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | model_parameters                           |
+| model_group_id | model_type                           | hyperparameters                           |
 |--------------+-------------------------------------+-------------------------------------------|
 |            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1}         |
 |            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": "sqrt"}    |
@@ -1065,13 +946,14 @@ select model_group_id, model_type, model_parameters from results.model_groups;
 
 with baseline as (
 select model_id, model_group_id
-from results.models
+from model_metadata.models
 where model_type ~ 'DummyClassifier'
 )
 
-select 
-model_group_id, model_id, metric || parameter as metric, value
-from results.evaluations
+select
+model_group_id, model_id, metric || parameter as metric,
+value
+from test_results.evaluations
 inner join baseline using(model_id)
 where
 metric || parameter = 'precision@25_abs'
@@ -1080,17 +962,17 @@ order by metric || parameter, model_id
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | metric          |              value |
-|--------------+---------+-----------------+--------------------|
-|            7 |      19 | precision@25_abs | 0.3333333333333333 |
-|            8 |      20 | precision@25_abs | 0.3333333333333333 |
-|            9 |      21 | precision@25_abs | 0.3333333333333333 |
-|            7 |      22 | precision@25_abs |                0.4 |
-|            8 |      23 | precision@25_abs |                0.4 |
-|            9 |      24 | precision@25_abs |                0.4 |
-|            7 |      25 | precision@25_abs |                0.0 |
-|            8 |      26 | precision@25_abs |                0.0 |
-|            9 |      27 | precision@25_abs |                0.0 |
+| model_group_id | model_id | metric          | value |
+|--------------+---------+-----------------+-------|
+|            7 |      19 | precision@25_abs |   0.0 |
+|            8 |      20 | precision@25_abs |   0.0 |
+|            9 |      21 | precision@25_abs |   0.0 |
+|            7 |      22 | precision@25_abs |   0.0 |
+|            8 |      23 | precision@25_abs |   0.0 |
+|            9 |      24 | precision@25_abs |   0.0 |
+|            7 |      25 | precision@25_abs |   0.5 |
+|            8 |      26 | precision@25_abs |   0.5 |
+|            9 |      27 | precision@25_abs |   0.5 |
 :END:
 
 
@@ -1100,13 +982,15 @@ Ok, let's add a more complete experiment. First the usual generalities.
 Note that we change =experiment_type=
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
-config_version: 'v3'
+config_version: 'v5'
 
 model_comment: 'inspections'
 
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'inspections prioritization'
+  description: |
+    First experiment
   purpose: 'development'
   org: 'DSaPP'
   team: 'Tutorial'
@@ -1118,12 +1002,25 @@ As before, =triage= needs special tables that specify /outcomes/ (that is, call
 same; we didn't change anything.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
-events_table: inspections.failed
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(result = 'fail')::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  #include_missing_labels_in_train_as: False
+  name: 'failed_inspection'
 
-state_config:
-    table_name: 'inspections.active_facilities'
-    state_filters:
-       - 'active'
+cohort_config:
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    tsrange(start_time, end_time, '[]') @> {as_of_date}
+  name: 'active_facilities'
 #+END_SRC
 
 Neither to the temporal configuration:
@@ -1139,7 +1036,7 @@ temporal_config:
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'  
+    test_durations: '1month'
     test_label_timespans: ['1y'] #
     test_as_of_date_frequencies: '1month'
 
@@ -1264,7 +1161,7 @@ feature_aggregations:
 
 We want to use all the features groups
 (=feature_group_definition=). The training will be made on matrices
-with =all= the feature groups, then leaving one feature group out at a time, 
+with =all= the feature groups, then leaving one feature group out at a time,
 =leave-one-out= (i.e. one model with =inspections= and =results=, another with
 =inspections= and =risks=, and another with =results= and =risks), and finally
 leaving one feature group in at a time (i.e. a model with =inspections= only,
@@ -1290,21 +1187,22 @@ grid_config:
         min_samples_split: [50]
         class_weight: ['balanced']
 
-
-model_group_keys:
-    - 'label_definition'
-    - 'experiment_type'
-    - 'purpose'
-
 scoring:
     sort_seed: 1234
-    metric_groups:
+    testing_metric_groups:
         -
             metrics: ['precision@', 'recall@']
             thresholds:
                 percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
                 top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
-
+    training_metric_groups:
+      -
+        metrics: [accuracy]
+      -
+        metrics: [precision@, recall@]
+        thresholds:
+          percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
+          top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
 #+END_SRC
 
 
@@ -1339,10 +1237,10 @@ Split index 1:
 For more detailed information on your time splits, inspect the experiment `split_definitions` property
 
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
+           Any error that occurs from now on, possibly will be related to hit the maximum
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
-    
+
 The experiment looks in good shape. May the force be with you!
 #+END_SRC
 
@@ -1354,5 +1252,5 @@ You can execute the experiment with
 
 This will take a looooong time to run.
 
-Well, now we have a lot of models. How can you pick the best one? 
+Well, now we have a lot of models. How can you pick the best one?
 We will show you when we model /Early Warning/.

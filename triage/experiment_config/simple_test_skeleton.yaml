@@ -1,9 +1,9 @@
-config_version: 'v3'
+config_version: 'v5'
 
 model_comment: 'simple_test_skeleton'
 
 user_metadata:
-  label_definition: 'inspection_failed'
+  label_definition: 'failed_inspection'
   experiment_type: 'test'
   org: 'DSaPP'
   team: 'Tutorial'
@@ -12,26 +12,44 @@ user_metadata:
 temporal_config:
     feature_start_time: '2014-01-01'
     feature_end_time: '2018-01-01'
-    label_start_time: '2014-01-01'
+    label_start_time: '2014-01-02'
     label_end_time: '2018-01-01'
 
-    model_update_frequency: '1y' 
+    model_update_frequency: '1y'
     training_label_timespans: ['1y']
-    training_as_of_date_frequencies: '1y'
+    training_as_of_date_frequencies: '1month'
 
     test_durations: '0d'
-    test_label_timespans: ['1y'] 
-    test_as_of_date_frequencies: '1y'
+    test_label_timespans: ['1y']
+    test_as_of_date_frequencies: '1month'
 
-    max_training_histories: '10y'
+    max_training_histories: '1y'
 
-events_table: testing_triage.outcomes
+cohort_config:
+  # entities_table: 'testing_triage.active_facilities'
+  # dense_states:
+  #   table_name: 'states'
+  #   state_filters:
+  #     - 'active'
+  query: |
+    select entity_id
+    from semantic.entities
+    where
+    entity_id in (9588, 10861)
+    and daterange(start_time, end_time, '[]') @> {as_of_date}::date
+  name: 'active_facilities'
 
-state_config:
-    table_name: testing_triage.active_facilities
-    state_filters:
-       - 'active'
-
+label_config:
+  query: |
+    select
+    entity_id,
+    bool_or(result = 'fail')::integer as outcome
+    from semantic.events
+    where '{as_of_date}'::timestamp <= date
+    and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
+    group by entity_id
+  #include_missing_labels_in_train_as: False
+  name: 'failed_inspections'
 
 grid_config:
     'sklearn.dummy.DummyClassifier':
@@ -40,7 +58,7 @@ grid_config:
 feature_aggregations:
     -
         prefix: 'inspections'
-        from_obj: 'testing_triage.events'
+        from_obj: 'semantic.events'
         knowledge_date_column: 'date'
 
         aggregates_imputation:
@@ -55,14 +73,14 @@ feature_aggregations:
               - 'count'
 
         intervals: ['1month', '3month', '6month', '1y', 'all']
-          
+
 
         groups:
           - 'entity_id'
-          
+
     -
         prefix: 'risks'
-        from_obj: 'testing_triage.events'
+        from_obj: 'semantic.events'
         knowledge_date_column: 'date'
 
         categoricals_imputation:
@@ -86,10 +104,10 @@ feature_aggregations:
         groups:
             - 'entity_id'
             - 'zip_code'
-            
+
     -
         prefix: 'results'
-        from_obj: 'testing_triage.events'
+        from_obj: 'semantic.events'
         knowledge_date_column: 'date'
 
         categoricals_imputation:
@@ -99,7 +117,7 @@ feature_aggregations:
         categoricals:
             -
                 column: 'result'
-                choice_query: 'select distinct result from testing_triage.events'
+                choice_query: 'select distinct result from semantic.events'
                 metrics:
                     - 'sum'
                     - 'avg'
@@ -115,14 +133,19 @@ feature_group_definition:
 
 feature_group_strategies: ['all']
 
-model_group_keys:
-   - 'label_definition'
-
 scoring:
    sort_seed: 5
-   metric_groups:
+   testing_metric_groups:
        -
           metrics: ['precision@', 'recall@']
           thresholds:
              percentiles: [1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
              top_n: [1, 5, 10, 25, 50, 100, 150, 300, 500, 1000, 1500]
+   training_metric_groups:
+     -
+       metrics: [accuracy]
+     -
+       metrics: ['precision@', 'recall@']
+       thresholds:
+          percentiles: [1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
+          top_n: [1, 5, 10, 25, 50, 100, 150, 300, 500, 1000, 1500]

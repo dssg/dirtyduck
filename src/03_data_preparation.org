@@ -20,7 +20,7 @@ We need to get the data and transform it into a shape that is suitable for the a
 
 ** Download the data
 
-You can download the data from the City of Chicago's open data portal. The following command downloads the data and stores it as a =csv= file in the =data/= folder: 
+You can download the data from the City of Chicago's open data portal. The following command downloads the data and stores it as a =csv= file in the =data/= folder:
 
    #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results none
      curl "https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD" > data/inspections.csv
@@ -28,25 +28,25 @@ You can download the data from the City of Chicago's open data portal. The follo
 
 We can check the size of the file:[fn:1]
 
-   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      ls -lh /data
    #+END_SRC
 
    #+RESULTS:
    #+BEGIN_SRC org
-   total 189M
-   -rw-rw-r-- 1 1000 1000 189M Mar  3 21:39 inspections.csv
+   total 193M
+   -rw-r--r-- 1 root root 193M May 22 17:13 inspections.csv
    #+END_SRC
 
 And the (apparent) number of rows:[fn:2]
 
-   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      wc -l /data/inspections.csv
    #+END_SRC
 
    #+RESULTS:
    #+BEGIN_SRC org
-   402526 /data/inspections.csv
+   409622 /data/inspections.csv
    #+END_SRC
 
 Remember this number because you'll get a surprise when you load the data into the database.
@@ -55,13 +55,13 @@ Remember this number because you'll get a surprise when you load the data into t
 
 Before loading =inspections.csv= into the database, verify that the database table is empty:[fn:3]
 
-   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ 
+   #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/
      psql ${FOOD_DB_URL} -c 'select count(*) from raw.inspections'
    #+END_SRC
 
    #+RESULTS:
    #+BEGIN_SRC org
-    count 
+    count
    -------
         0
    (1 row)
@@ -76,11 +76,11 @@ We can load the file using the =\copy= command. The output will report how many 
 
    #+RESULTS:
    #+BEGIN_SRC org
-   COPY 165597
+   COPY 168861
    #+END_SRC
 
 This is different than the number of rows that we calculated
-previously! Did tens of thousands of rows get dropped? 
+previously! Did tens of thousands of rows get dropped?
 
 No, the explanation for this mismatch is that some inspections
 contain several lines in the =violations= column.[fn:4] But don't worry:
@@ -89,14 +89,14 @@ Postgres is smart enough to handle that.
 Let's peek at the data:
 
    #+BEGIN_SRC sql
-select * from raw.inspections limit 1
+   select * from raw.inspections limit 1;
    #+END_SRC
 
    #+RESULTS:
    :RESULTS:
-   | inspection | dba_name   | aka_name   | license_num | facility_type | risk          | address            | city    | state |   zip |       date | type    | results   | violations |          latitude |          longitude | location                                |
-   |------------+-----------+-----------+------------+--------------+---------------+--------------------+---------+-------+-------+------------+---------+-----------+------------+-------------------+--------------------+-----------------------------------------|
-   |    2145741 | 1914 CLUB | 1914 CLUB |    2569448 | [NULL]       | Risk 1 (High) | 1060 W ADDISON AVE | CHICAGO | IL    | 60613 | 2018-03-01 | License | Not Ready | [NULL]     | 41.94731748901495 | -87.65641794764645 | (41.94731748901495, -87.65641794764645) |
+   | inspection | dba_name       | aka_name       | license_num | facility_type | risk          | address               | city    | state |   zip |       date | type                    | results | violations                                                                                                                                                                                                                                                                 | latitude                                                                                                    | longitude                                                                                                                                                                                                                                          | location                                                                                                   |                                                                                                         |                   |                    |                                         |
+   |------------+---------------+---------------+------------+--------------+---------------+-----------------------+---------+-------+-------+------------+-------------------------+---------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------+--------------------+-----------------------------------------|
+   |    2170023 | GOLDEN NUGGET | GOLDEN NUGGET |      40565 | Restaurant   | Risk 1 (High) | 3234 W IRVING PARK RD | CHICAGO | IL    | 60618 | 2018-05-21 | Complaint Re-Inspection | Pass    | 19. OUTSIDE GARBAGE WASTE GREASE AND STORAGE AREA; CLEAN, RODENT PROOF, ALL CONTAINERS COVERED - Comments: THE GREASE RECEPTACLE LOCATED BEHIND THE FACILITY WAS POWER WASHED WITH NO EVIDENCE OF GREASE ACCUMULATION ON THE EXTERIOR SURFACE. SERIOUS VIOLATION CORRECTED | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: CORRECTED. | 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: OBSERVED RUSTED CEILING SECTIONS IN THE WALK-IN COOLER. INSTRUCTED TO REPLACE THE RUSTED METAL SUPPORTS THAT HOLD THE CEILING TILES AND MAINTAIN. | 33. FOOD AND NON-FOOD CONTACT EQUIPMENT UTENSILS CLEAN, FREE OF ABRASIVE DETERGENTS - Comments: CORRECTED. | 36. LIGHTING: REQUIRED MINIMUM FOOT-CANDLES OF LIGHT PROVIDED, FIXTURES SHIELDED - Comments: CORRECTED. | 41.95401766139426 | -87.70946165307258 | (41.95401766139426, -87.70946165307258) |
    :END:
 
 Ok, now you have some data loaded! But we still need to /munge/ it to use it in our machine learning task.
@@ -109,14 +109,14 @@ To tackle a Machine Learning problem, you need to identify the
 how those entities change, either what *events* happen to
 the entity or what *events* the entity effects.
 
-We will store this information in two tables, one named =entities= and the 
+We will store this information in two tables, one named =entities= and the
 other =events=.
 
 The entity is the food *facility*, and the events are the *inspections*.
 
 The =entities= table should contain a unique identifier for the entity and
 some data about that entity (like name, age, status). The
-=events= table will include data related to the inspection, including the 
+=events= table will include data related to the inspection, including the
 two most important attributes: its spatial and temporal positions.
 
 Before starting the cleaning, make your life easier by following this rule:
@@ -125,7 +125,7 @@ Before starting the cleaning, make your life easier by following this rule:
    /Do not change the original data/
 #+END_QUOTE
 
-The reason is, if you make a mistake or want to try a different data 
+The reason is, if you make a mistake or want to try a different data
 transformation, you can always can go back to the =raw= data and start over.
 
 The transformation "road" that we will take in this tutorial is as follows:
@@ -151,7 +151,7 @@ The transformation "road" that we will take in this tutorial is as follows:
 *** Dataset documentation
 
 The Chicago Food Inspection dataset has documentation
-[[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]]. 
+[[https://data.cityofchicago.org/api/assets/BAD5301B-681A-4202-9D25-51B2CAE672FF?download=true][here]].
 We can make sense there about the column's meaning, and the
 process that generates the data.
 
@@ -166,7 +166,7 @@ Most columns are self-explanatory, but some are not:[fn:6]
      inspection is tied to this risk, with risk 1 establishments
      inspected most frequently and risk 3 least frequently.
 #+END_QUOTE
-   
+
 - *Inspection type* (=type=) ::
 
 #+BEGIN_QUOTE
@@ -188,7 +188,7 @@ Most columns are self-explanatory, but some are not:[fn:6]
 #+END_QUOTE
 
 - *Results* (=results=) ::
-     
+
 #+BEGIN_QUOTE
      An inspection can pass, pass with conditions, or
      fail. Establishments receiving a ‘pass’ were found to have no
@@ -202,7 +202,7 @@ Most columns are self-explanatory, but some are not:[fn:6]
      licensed is suspended. Establishments found to be out of business
      or not located are indicated as such.
 #+END_QUOTE
-     
+
 - *Violations* (=violations=) ::
 
 #+BEGIN_QUOTE
@@ -213,7 +213,7 @@ Most columns are self-explanatory, but some are not:[fn:6]
      /receive a violation is noted, followed by a specific description
      of the findings that caused the violation to be issued/.
 #+END_QUOTE
-     
+
 We added emphasis to the last one.
 
 From these definitions, we can infer the following:
@@ -251,15 +251,15 @@ checking that the =risk= column *only* has three classifications:
 :RESULTS:
 | risk            |  count |
 |-----------------+--------|
-| Risk 1 (High)   | 116039 |
-| Risk 2 (Medium) |  34012 |
-| Risk 3 (Low)    |  15457 |
-| [NULL]          |     66 |
-| All             |     23 |
+| Risk 1 (High)   | 118860 |
+| Risk 2 (Medium) |  34230 |
+| Risk 3 (Low)    |  15686 |
+| [NULL]          |     65 |
+| All             |     20 |
 :END:
 
 Ok, there are two extra =risk= types, =All= and =NULL=, for a grand total
-of *5*. 
+of *5*.
 
 What about =types= of inspections?
 
@@ -286,19 +286,19 @@ select type, count(*) from raw.inspections group by type order by count(*) desc 
 :RESULTS:
 | type                     | count |
 |--------------------------+-------|
-| Canvass                  | 87871 |
-| License                  | 21119 |
-| Canvass Re-Inspection    | 17010 |
-| Complaint                | 14979 |
-| License Re-Inspection    |  7598 |
-| Complaint Re-Inspection  |  6123 |
-| Short Form Complaint     |  6066 |
-| Suspected Food Poisoning |   735 |
-| Consultation             |   667 |
+| Canvass                  | 89640 |
+| License                  | 21809 |
+| Canvass Re-Inspection    | 17414 |
+| Complaint                | 15487 |
+| License Re-Inspection    |  7808 |
+| Complaint Re-Inspection  |  6325 |
+| Short Form Complaint     |  6136 |
+| Suspected Food Poisoning |   744 |
+| Consultation             |   668 |
 | License-Task Force       |   605 |
 :END:
 
-This columns will require also cleaning. 
+This columns will require also cleaning.
 
 Finally, let's look =results=
 (should be 3)
@@ -311,12 +311,12 @@ Finally, let's look =results=
 :RESULTS:
 | results              | count |
 |----------------------+-------|
-| Pass                 | 96686 |
-| Fail                 | 31939 |
-| Pass w/ Conditions   | 15625 |
-| Out of Business      | 14743 |
-| No Entry             |  4877 |
-| Not Ready            |  1052 |
+| Pass                 | 98928 |
+| Fail                 | 32718 |
+| Pass w/ Conditions   | 16006 |
+| Out of Business      | 14955 |
+| No Entry             |  5022 |
+| Not Ready            |  1171 |
 | Business Not Located |    61 |
 :END:
 
@@ -324,7 +324,7 @@ Ok, disheartening. But that's the reality of /real/ data. We'll try to clean thi
 
 *** Cleaning
 
-Let's look at the data to figure out how we need to transform it. We'll 
+Let's look at the data to figure out how we need to transform it. We'll
 start with all the columns except =violations=. We'll
 deal with that one later because it's more complex.
 
@@ -360,14 +360,14 @@ longitude=). Beginning with =state=, all the facilities in the
 data should be located in *Ilinois*:
 
 #+begin_src sql
-select state, count(*) from raw.inspections group by state
+select state, count(*) from raw.inspections group by state;
 #+end_src
 
 #+RESULTS:
 :RESULTS:
 | state  |  count |
 |--------+--------|
-| IL     | 165575 |
+| IL     | 168839 |
 | [NULL] |     22 |
 :END:
 
@@ -377,64 +377,64 @@ the next spatial column, we expect that all the values in the column
 =city= are Chicago:[fn:8]
 
 #+BEGIN_SRC sql
-select 
-lower(city) as city, 
-count(*) 
-from raw.inspections 
-group by lower(city) 
-order by count(*) desc limit 10
+select
+lower(city) as city,
+count(*)
+from raw.inspections
+group by lower(city)
+order by count(*) desc limit 10;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | city              |  count |
 |-------------------+--------|
-| chicago           | 165221 |
+| chicago           | 168481 |
 | [NULL]            |    148 |
 | cchicago          |     42 |
 | schaumburg        |     20 |
 | maywood           |     16 |
-| elk grove village |     12 |
+| elk grove village |     13 |
+| cicero            |      9 |
 | chicagochicago    |      9 |
 | chestnut street   |      8 |
 | evanston          |      8 |
-| inactive          |      8 |
 :END:
 
 Oh boy. There are 150-ish rows with =NULL= values and forty-ish rows with the
 value =cchicago=. Farther down the list, we even have
-=chicagochicago=. All the values are near Chicago, even if they're in different 
+=chicagochicago=. All the values are near Chicago, even if they're in different
 counties, so we will ignore this column (or equivalently,
-we will assume that all the records are from Chicago). 
+we will assume that all the records are from Chicago).
 
 Zip code has a similar =NULL= problem:
 
 #+BEGIN_SRC sql
-select count(*) from raw.inspections where zip is null or btrim(zip) = ''
+select count(*) from raw.inspections where zip is null or btrim(zip) = '';
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | count |
 |-------|
-|    72 |
+|    70 |
 :END:
 
 We could attempt to replace these =NULL= values using the location point or
 using similar names of restaurants, but for this tutorial we will
 remove them. Also, we will convert the coordinates latitude and
-longitude to a Postgres =Point=.[fn:10] [fn:9] 
+longitude to a Postgres =Point=.[fn:10] [fn:9]
 
 We will drop the columns =state=,
-=latitude=, and =longitude= because the =Point= contains all that information. 
+=latitude=, and =longitude= because the =Point= contains all that information.
 We will remove the column =city= because almost
 everything happens in Chicago.
 
 If you're keeping count, we are only keeping two columns related
 to the spatial location of the events: the location of the facility (=location=)
-and one related to inspection assignments (=zip_code=). 
+and one related to inspection assignments (=zip_code=).
 
-Each inspection can have multiple violations. To handle that as simply as 
+Each inspection can have multiple violations. To handle that as simply as
 possible, we'll put violations in their own table.
 
 Finally, we will improve the names of the columns
@@ -446,7 +446,7 @@ and cleaning decisions separate from the /raw/ data in a schema that
 /semantically/ transmits that "this is our cleaned data."
 
 The =cleaned= schema will contain two tables: =cleaned.inspections=
-and =cleaned.violations=. 
+and =cleaned.violations=.
 
 
 #+BEGIN_SRC sql :tangle ./sql/create_cleaned_inspections_table.sql
@@ -464,7 +464,7 @@ create table cleaned.inspections as (
 with cleaned as (
 select
 inspection::integer,
-btrim(lower(results)) as result, 
+btrim(lower(results)) as result,
 license_num::integer,
 btrim(lower(dba_name)) as facility,
 btrim(lower(aka_name)) as facility_aka,
@@ -498,7 +498,7 @@ psql ${FOOD_DB_URL} < /sql/create_cleaned_inspections_table.sql
 
 #+RESULTS:
 :RESULTS:
-SELECT 164178
+SELECT 168046
 :END:
 
 If you're in =psql=:
@@ -509,7 +509,7 @@ If you're in =psql=:
 
 The number of inspections now is:
 
-#+BEGIN_SRC sql 
+#+BEGIN_SRC sql
  select count(inspection) from cleaned.inspections;
 #+END_SRC
 
@@ -517,17 +517,12 @@ The number of inspections now is:
 :RESULTS:
 |  count |
 |--------|
-| 164790 |
-:End:
+| 168046 |
+:END:
 
-Note that  src_sh[:results raw  :export result :dir
- /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select count(inspection) from
- cleaned.inspections'} 164790
- is smaller than src_sh[:results raw  :export result :dir
- /docker:root@tutorial_bastion:/]{psql ${FOOD_DB_URL}  -t -P
- format=unaligned  -c 'select count(*) from
- raw.inspections'} 165597, as expected we throw away some inspections.
+Note that  quantity is smaller  is smaller than the one from
+=raw.inspections=,
+since we throw away some inspections.
 
 With the =cleaned.inspections= table created, let's take a closer look at
 the =violations= column to figure out how to clean it.
@@ -541,23 +536,23 @@ mispellings, etc. Pipes (=|=) seperate multiple violations.
 The following =sql= code removes line breaks and multiple spaces and
 creates an array with all the violations for inspection number =2145736=:
 
-#+BEGIN_SRC sql 
-select 
+#+BEGIN_SRC sql
+select
 string_to_array(regexp_replace(violations, '[\n\r]+', ' ', 'g' ), '|')  as violations_array
-from raw.inspections where inspection = '2145736'
+from raw.inspections where inspection = '2145736';
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | violations_array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| {"35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: MISSING PART OF THE COVING(BASEBOARD) BY THE EXPOSED HAND SINK IN THE KITCHEN. MUST REPAIR AND MAINTAIN. WATER STAINED CEILING TILES IN THE LUNCH ROOM. MUST REPLACE CEILING TILES AND MAINTAIN. PEELING PAINT ON THE CEILING AND WALLS THROUGHOUT THE SCHOOL. HALLWAYS, INSIDE THE CLASSROOMS, INSIDE THE WASHROOMS IN ALL FLOORS. INSTRUCTED TO SCRAPE PEELING PAINT AND RE PAINT.     "," 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: FIRST FLOOR GIRL'S WASHROOM,MIDDLE WASHBOWL SINK FAUCET NOT IN GOOD REPAIR, MUST REPAIR AND MAINTAIN. ONE OUT OF TWO HAND DRYER NOT WORKING IN THE FOLLOWING WASHROOM: FIRST FLOOR  BOY'S AND GIRL'S WASHROOM, AND  BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR AND MAINTAIN. "," 34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: DAMAGED FLOOR INSIDE THE BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR, MAKE THE FLOOR SMOOTH EASILY CLEANABLE."} |
+| {"34. FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED - Comments: DAMAGED FLOOR INSIDE THE BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR, MAKE THE FLOOR SMOOTH EASILY CLEANABLE. "," 35. WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS - Comments: MISSING PART OF THE COVING(BASEBOARD) BY THE EXPOSED HAND SINK IN THE KITCHEN. MUST REPAIR AND MAINTAIN. WATER STAINED CEILING TILES IN THE LUNCH ROOM. MUST REPLACE CEILING TILES AND MAINTAIN. PEELING PAINT ON THE CEILING AND WALLS THROUGHOUT THE SCHOOL. HALLWAYS, INSIDE THE CLASSROOMS, INSIDE THE WASHROOMS IN ALL FLOORS. INSTRUCTED TO SCRAPE PEELING PAINT AND RE PAINT.     "," 32. FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED - Comments: FIRST FLOOR GIRL'S WASHROOM,MIDDLE WASHBOWL SINK FAUCET NOT IN GOOD REPAIR, MUST REPAIR AND MAINTAIN. ONE OUT OF TWO HAND DRYER NOT WORKING IN THE FOLLOWING WASHROOM: FIRST FLOOR  BOY'S AND GIRL'S WASHROOM, AND  BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR AND MAINTAIN."} |
 :END:
 
 The structure of the =violations= column follows (check the previous output):
 
    - If there are several violations reported, those violations will
-     be separated by ='|'= 
+     be separated by ='|'=
    - Every violation begins with a code and a description
    - Every violation can have *comments*, which appear after
      the string =- Comments:=
@@ -575,13 +570,13 @@ We will create a new table called =cleaned.violations= to store
    create table cleaned.violations as (
    select
    inspection::integer,
-   license_num::integer, 
+   license_num::integer,
    date::date,
    btrim(tuple[1]) as code,
    btrim(tuple[2]) as description,
    btrim(tuple[3]) as comment,
    (case
-     when btrim(tuple[1]) = '' then NULL 
+     when btrim(tuple[1]) = '' then NULL
      when btrim(tuple[1])::int between 1 and 14 then 'critical' -- From the documentation
      when btrim(tuple[1])::int between 15 and 29  then 'serious'
      else 'minor'
@@ -598,7 +593,7 @@ We will create a new table called =cleaned.violations= to store
          regexp_replace(violations, '[\n\r]+', '', 'g' )  -- Remove line breaks
        , '- Comments:')
      , '\|')  -- Split the violations
-   , '(?<=\d+)\.\s*|\s*-\s*Comments:')  -- Split each violation in three 
+   , '(?<=\d+)\.\s*|\s*-\s*Comments:')  -- Split each violation in three
     as tuple
    from raw.inspections
    where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
@@ -606,25 +601,25 @@ We will create a new table called =cleaned.violations= to store
    );
 #+END_SRC
 
-#+Results:
- 
+#+RESULTS:
+
 This code is in =/sql/create_violations_table.sql=. You can execute
  it with psql's -f option, as before.
 
 We can verify the result of the previous script
 
 #+BEGIN_SRC sql
-select * from cleaned.violations 
-where inspection = 2145736
+select * from cleaned.violations
+where inspection = 2145736;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | inspection | license_num |       date | code | description                                                                                                          | comment                                                                                                                                                                                                                                                                                                                                                                            | severity |
 |------------+------------+------------+------+----------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------|
+|    2145736 |      23591 | 2018-03-01 |   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                | DAMAGED FLOOR INSIDE THE BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR, MAKE THE FLOOR SMOOTH EASILY CLEANABLE.                                                                                                                                                                                                                                                                 | minor    |
 |    2145736 |      23591 | 2018-03-01 |   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS | MISSING PART OF THE COVING(BASEBOARD) BY THE EXPOSED HAND SINK IN THE KITCHEN. MUST REPAIR AND MAINTAIN.WATER STAINED CEILING TILES IN THE LUNCH ROOM. MUST REPLACE CEILING TILES AND MAINTAIN.PEELING PAINT ON THE CEILING AND WALLS THROUGHOUT THE SCHOOL. HALLWAYS, INSIDE THE CLASSROOMS, INSIDE THE WASHROOMS IN ALL FLOORS. INSTRUCTED TO SCRAPE PEELING PAINT AND RE PAINT. | minor    |
 |    2145736 |      23591 | 2018-03-01 |   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                     | FIRST FLOOR GIRL'S WASHROOM,MIDDLE WASHBOWL SINK FAUCET NOT IN GOOD REPAIR, MUST REPAIR AND MAINTAIN.ONE OUT OF TWO HAND DRYER NOT WORKING IN THE FOLLOWING WASHROOM:FIRST FLOOR  BOY'S AND GIRL'S WASHROOM, AND  BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR AND MAINTAIN.                                                                                                   | minor    |
-|    2145736 |      23591 | 2018-03-01 |   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                | DAMAGED FLOOR INSIDE THE BOY'S AND GIRL'S WASHROOM 2ND FLOOR. MUST REPAIR, MAKE THE FLOOR SMOOTH EASILY CLEANABLE.                                                                                                                                                                                                                                                                 | minor    |
 :END:
 
 
@@ -635,18 +630,18 @@ If everything worked correctly you should be able to run the following code:
   case when grouping(severity) = 1 then 'TOTAL' else severity end as severity,
   count(*) from cleaned.violations
   group by rollup (severity)
-  order by severity nulls first
+  order by severity nulls first;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | severity |  count |
 |----------+--------|
-| [NULL]   |  12952 |
-| critical |  39120 |
-| minor    | 488954 |
-| serious  |  79242 |
-| TOTAL    | 620268 |
+| [NULL]   |  13168 |
+| critical |  40017 |
+| minor    | 498190 |
+| serious  |  81112 |
+| TOTAL    | 632487 |
 :END:
 
 As a last step, we should create from the cleaned tables the =entities=
@@ -657,7 +652,7 @@ and =events= tables.
 *** Entities table
 
 The =entities= table should uniquely identify each facility and contain
-descriptive attributes. First, we should investigate how we can uniquely 
+descriptive attributes. First, we should investigate how we can uniquely
 identify a facility. Let's hope it's easy.
 
 Perhaps =license_num= is a unique identifier. Let's confirm with some queries.
@@ -666,7 +661,7 @@ We will begin with the following query: /What are 5 licenses with the most inspe
 
 #+BEGIN_SRC sql
     select
-    license_num, 
+    license_num,
     count(*) as total_inspections,
     coalesce(count(*) filter (where result = 'fail'), 0)
     as total_failures
@@ -680,7 +675,7 @@ We will begin with the following query: /What are 5 licenses with the most inspe
 :RESULTS:
 | license_num | total_inspections | total_failures |
 |------------+------------------+---------------|
-|          0 |              420 |           111 |
+|          0 |              432 |           111 |
 |    1354323 |              192 |             1 |
 |      14616 |              172 |            30 |
 |    1574001 |               80 |             4 |
@@ -688,9 +683,9 @@ We will begin with the following query: /What are 5 licenses with the most inspe
 :END:
 
 
-This looks weird. There are three license numbers, in particular license number =0=, 
+This looks weird. There are three license numbers, in particular license number =0=,
  that have many more inspections than the rest. Let's
- investigate =license_num= = =0=. 
+ investigate =license_num= = =0=.
 
 #+BEGIN_SRC sql
   select
@@ -701,22 +696,22 @@ This looks weird. There are three license numbers, in particular license number 
   where license_num=0
   group by  facility_type
   order by total_inspections desc
-  limit 10
+  limit 10;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | facility_type    | total_inspections | total_failures |
 |-----------------+------------------+---------------|
-| restaurant      |              101 |            43 |
-| special event   |               61 |             8 |
+| restaurant      |              102 |            43 |
+| special event   |               69 |             8 |
 | unknown         |               43 |            10 |
 | shelter         |               31 |             6 |
 | navy pier kiosk |               30 |             4 |
 | church          |               28 |             3 |
 | grocery store   |               16 |             7 |
 | church kitchen  |               14 |             6 |
-| private school  |               11 |             1 |
+| school          |               11 |             1 |
 | long term care  |                9 |             1 |
 :END:
 
@@ -736,7 +731,7 @@ etc. But what about the =restaurants= that have =license_num= =
   and facility_type = 'restaurant'
   group by  license_num, facility, address
   order by total_inspections desc
-  limit 10
+  limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -757,26 +752,26 @@ etc. But what about the =restaurants= that have =license_num= =
 
 Nope. Unfortunately, =license_num= is not a unique identifier.
 
-Perhaps =license_num= and =address= are a unique identifier. 
+Perhaps =license_num= and =address= are a unique identifier.
 
 #+BEGIN_SRC sql
   select
   count(distinct license_num) as total_licenses,
   count(distinct facility) as total_facilities,
   count(distinct address) as total_addresses
-  from cleaned.inspections
+  from cleaned.inspections;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | total_licenses | total_facilities | total_addresses |
 |---------------+-----------------+----------------|
-|         33666 |           24937 |          17120 |
+|         34087 |           25197 |          17198 |
 :END:
 
 We were expecting (naively) that we should get one =license_num= per
 =facility= per =address=, but that isn't the case. Perhaps
-several facilities share a name (e.g. "Subway" or "McDonalds") or 
+several facilities share a name (e.g. "Subway" or "McDonalds") or
 license, or perhaps several facilities share the same
 address, such as facilities at the stadium or the airport.
 
@@ -789,7 +784,7 @@ license_num, facility, facility_type, facility_aka, address , count(*)
 from cleaned.inspections
 group by license_num, facility, facility_type, facility_aka, address
 order by count(*) desc, facility, facility_aka, address, license_num, facility_type
-limit 10
+limit 10;
 #+END_SRC
 
 #+RESULTS:
@@ -798,33 +793,33 @@ limit 10
 |------------+------------------------------+---------------+------------------------------+---------------------------+-------|
 |    1490035 | mcdonald's                   | restaurant    | mcdonald's                   | 6900 s lafayette ave      |    46 |
 |    1596210 | food 4 less midwest #552     | grocery store | food 4 less                  | 7030 s ashland ave        |    44 |
-|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345     | 1224 s wabash ave         |    41 |
+|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345     | 1224 s wabash ave         |    42 |
+|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market       | 333 e benton pl           |    40 |
 |    1302136 | mcdonald's                   | restaurant    | mcdonald's                   | 70 e garfield blvd        |    40 |
 |    1476553 | pete's produce               | grocery store | pete's produce               | 1543 e 87th st            |    40 |
-|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market       | 333 e benton pl           |    39 |
+|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |    38 |
+|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito         | 2829 n milwaukee ave      |    38 |
 |    1000572 | jewel food store #3030       | grocery store | jewel food store #3030       | 7530 s stony island ave   |    37 |
-|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |    37 |
-|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito         | 2829 n milwaukee ave      |    37 |
 |    1884255 | food 4 less                  | grocery store | food 4 less                  | 4821 w north ave          |    36 |
 :END:
 
-Yay, it looks like these columns enable us to identify a facility! 
+Yay, it looks like these columns enable us to identify a facility!
 
 The =entities= table should store two other types of attributes. The
 first type describe the entity no matter the time. If the entity were
 a person, date of birth would be an example but age would not because
-the latter changes but the former does not. We'll include =zip_code= 
-and =location= as two facility attributes. 
+the latter changes but the former does not. We'll include =zip_code=
+and =location= as two facility attributes.
 
-The second type describes when the entity is available for 
-action (e.g. inspection). In this case, the columns =start_time, end_time= 
+The second type describes when the entity is available for
+action (e.g. inspection). In this case, the columns =start_time, end_time=
 describe the interval in which the facility is in business or /active/.
 These columns are important because we don't want to make predictions for
-inactive entities.  
+inactive entities.
 
 The data don't contain active/inactive date columns, so we
 will use the date of the facility's first inspection as =start_time=,
-and either =NULL= or the date of inspection if the result was =out of business= 
+and either =NULL= or the date of inspection if the result was =out of business=
 or =business not located= as =end_time=.
 
 #+BEGIN_SRC sql :tangle ./sql/create_semantic_tables.sql
@@ -893,14 +888,14 @@ create index entities_full_key_ix on semantic.entities (license_num, facility, f
 Note that we add a /unique/ identifier (=entity_id=) to this table:
 
 #+BEGIN_SRC sql
-select count(entity_id) from semantic.entities
+select count(entity_id) from semantic.entities;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | count |
 |-------|
-| 34917 |
+| 35360 |
 :END:
 
 
@@ -908,9 +903,9 @@ select count(entity_id) from semantic.entities
 
 We are ready to create the events table. This table will describe
 the inspection, like the /type/ of inspection, /when/ and /where/
-the inspection happened, and the inspection /result/. We will add 
-the violations as a =JSONB= column.[fn:11] Finally, we'll rename 
-=inspection= =event_id=.[fn:13]  
+the inspection happened, and the inspection /result/. We will add
+the violations as a =JSONB= column.[fn:11] Finally, we'll rename
+=inspection= =event_id=.[fn:13]
 
 
 #+begin_src sql :tangle ./sql/create_semantic_tables.sql
@@ -946,7 +941,7 @@ i.date, i.risk, i.result
 )
 
 select
-i.inspection as event_id, 
+i.inspection as event_id,
 e.entity_id, i.type, i.date, i.risk, i.result,
 e.facility_type, e.zip_code, e.location,
 i.violations
@@ -981,7 +976,7 @@ create index events_event_entity_zip_code_date on semantic.events (event_id desc
 Success! We have one row per event.[fn:12] Our semantic data looks like:
 
 #+begin_src sql
-select event_id, entity_id, type, date, risk, result, facility_type, zip_code from semantic.events limit 1
+select event_id, entity_id, type, date, risk, result, facility_type, zip_code from semantic.events limit 1;
 #+end_src
 
 #+RESULTS:
@@ -994,14 +989,14 @@ select event_id, entity_id, type, date, risk, result, facility_type, zip_code fr
 We omitted =violations= and =location= for brevity. The total number of inspections is
 
 #+BEGIN_SRC sql
-select count(event_id) from semantic.events
+select count(event_id) from semantic.events;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 |  count |
 |--------|
-| 142248 |
+| 145123 |
 :END:
 
 
@@ -1019,14 +1014,14 @@ check [[http://coussej.github.io/2016/01/14/Replacing-EAV-with-JSONB-in-PostgreS
 
 [fn:10] We will store the =Point= as a =geography= object. As a result,
 spatial database operations (like calculating the distances between two
-facilities) will return answers in meters instead of degrees. See 
+facilities) will return answers in meters instead of degrees. See
 [[http://workshops.boundlessgeo.com/postgis-intro/geography.html][this]].
 
 [fn:9] As a real geographical object [[https://postgis.net/docs/ST_MakePoint.html][check the PostGIS documentation]]
 
 [fn:8] It is the /Chicago/ Food Inspections dataset, after all.
 
-[fn:7] This problem is related to the process of /deduplication/ and there is another DSaPP tutorial 
+[fn:7] This problem is related to the process of /deduplication/ and there is another DSaPP tutorial
 for that: [[http://dsapp.uchicago.edu/resources/deduplication/][=pgdedupe=]].
 
 [fn:6] Verbatim from the datasource documentation.
@@ -1049,21 +1044,21 @@ algorithms only accept data in matrix form (i.e. one big table)
 #+CAPTION: Data's transformation roadmap : from raw to triage
 #+BEGIN_SRC ditaa :file images/data_road.png :cmdline -r -s 1.2 :export results
                    Data transformation roadmap
------------------------------------------------------------------- 
+------------------------------------------------------------------
                        From raw to triage
-                                                            
+
   +----------------+
   |    Chicago     |
   |Food Inspections|
   |cPNK  API   {io}|
   +-------+--------+
           | curl
-          v                   
-  +-------------+             
+          v
+  +-------------+
   | inspections |
-  |     csv     |             
-  |          {d}|             
-  +------+------+             
+  |     csv     |
+  |          {d}|
+  +------+------+
          | psql \copy
          v
  +----------------+
@@ -1077,34 +1072,34 @@ algorithms only accept data in matrix form (i.e. one big table)
 |cleaned.inspections|      |   cleaned.violations |
 |     cBLU          |      |        cBLU          |
 +---------+---------+      +---------+------------+
-          | sql                      | 
+          | sql                      |
           +-------------------\      |
           |                   |      |
           |                   \------+
           |                          | sql
           v                          V
-+-------------------+     +-------------------+ 
++-------------------+     +-------------------+
 | semantic.entities |     |  semantic.events  |
 |       c004        |     |       c004        |
 +-------------------+     +-------------------+
          |                          |
          |           sql            |
-         +-----+--------------+-----+          
-               |              |            
+         +-----+--------------+-----+
+               |              |
 ---------------*--------------*---------------------------------
                |              |               specific to
                |              |             inspections or eis
                v              v
           +---------+     +---------+           /------------\
-          |outcomes |.....| states  |...........|   needed   |     
+          |outcomes |.....| states  |...........|   needed   |
           |     c1AB|     |     c1AB|           |     by cYEL|
           +---------+     +---------+           |   triage   |
                |              |                 \------------/
                |              |                        .
                \--+        +--/                        .
                   |        |                           .
-                  v        v                 +-------------+  
-               +--------------+              |  experiment |  
+                  v        v                 +-------------+
+               +--------------+              |  experiment |
                |   triage {io}|              |    config   |
                |     run      |<-------------+          {d}|
                |cRED          |              |             |

@@ -10,15 +10,18 @@
 
 This tutorial will show you how to use =triage=, a data science
  modeling tool developed at the [[http://dsapp.uchicago.edu][Center for Data Science and Public
- Policy]] (DSaPP) at the University of Chicago. 
+ Policy]] (DSaPP) at the University of Chicago.
 
 =triage= helps build models for two [[https://dssg.uchicago.edu/data-science-for-social-good-conference-2017/training-workshop-data-science-for-social-good-problem-templates/][common applied problems]]: /Early
 warning systems/ and /resource prioritization/. These problems
 are difficult to model because their conceptualization and
 and implementation are prone to error, thanks to their multi-dimensional,
-multi-entity, time-series structure. 
+multi-entity, time-series structure.
 
 The last version of this tutorial is published in [[https://dssg.github.io/dirtyduck/]]
+
+*NOTE* This tutorial is in sync with the latest version of =triage=. At
+this moment [[https://github.com/dssg/triage/releases/tag/v3.beta][v3.beta]].
 
 * What you need for this tutorial
 
@@ -30,17 +33,17 @@ Note that if you are using =GNU/Linux= you should add your user to the
 
 At the moment only operative systems with *nix-type command lines are
 supported, such as =GNU/Linux= and =MacOS=. Recent versions of
-=Windows= may also work. 
+=Windows= may also work.
 
 * How to use this tutorial
 
-First, clone this repository on your laptop 
+First, clone this repository on your laptop
 
 #+BEGIN_EXAMPLE
  git clone https://github.com/dssg/dirtyduck.git
 #+END_EXAMPLE
 
-Second, copy the file 
+Second, copy the file
 =infrastructure/env_example= to
 =infrastructure/.env=, open the file, and change the
 string =your_password= to something more meaningful to you.
@@ -70,7 +73,7 @@ will open the tutorial. Follow from there[fn:3].
 
 * How you can help
 
-Help is always welcome! You can report errors, improve 
+Help is always welcome! You can report errors, improve
 the tutorial, or propose improvements to
 =triage=. These three cases are discussed below.
 
@@ -82,7 +85,7 @@ we will try to issue a fix as soon as possible.
 ** How to improve the tutorial
 
 This tutorial was created following the practices of [[https://www-cs-faculty.stanford.edu/~knuth/lp.html][Literate
-Programming]] using [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means the tutorial is a /live/ document that mixes code and text.  
+Programming]] using [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means the tutorial is a /live/ document that mixes code and text.
 
 The steps to help are:
 
