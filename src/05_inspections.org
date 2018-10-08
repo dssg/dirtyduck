@@ -204,14 +204,14 @@ temporal_config:
     max_training_histories: '5y'
 #+END_SRC
 
-We can visualize the splitting using the function =show_timechop=
+We can visualize the splitting using the function =show-timechop=
 introduced in [[file:triage_intro.org][Introduction to triage]].
 
 #+BEGIN_SRC sh
 
 # Remember to run this in your laptop NOT in bastion!
 
-./tutorial.sh triage --config_file inspections_dt.yaml show_temporal_blocks
+./tutorial.sh triage --config_file inspections_dt.yaml show-temporal-blocks
 #+END_SRC
 
 #+RESULTS:
@@ -1044,7 +1044,7 @@ temporal_config:
 #+END_SRC
 
 #+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_label_failed_01.yaml show_temporal_blocks
+./tutorial.sh triage --config_file inspections_label_failed_01.yaml show-temporal-blocks
 #+END_SRC
 
 #+RESULTS:

@@ -13,4 +13,4 @@ pgcli
 rq
 
 ## DSaPP stuff
-git+https://github.com/dssg/triage.git
+git+https://github.com/dssg/triage.git@v3.0.2

@@ -2,15 +2,14 @@
 
 import os
 import yaml
-import sqlalchemy
 
 import datetime
 
 import click
 
-from triage.component.catwalk.storage import FSModelStorageEngine
 from triage.experiments import SingleThreadedExperiment
 from triage.component.catwalk.utils import filename_friendly_hash
+from triage import create_engine
 
 from utils import show_timechop, show_features_queries, show_model, audit_experiment
 
@@ -57,9 +56,9 @@ def triage(ctx, config_file, triage_db, replace, debug):
 
     experiment = SingleThreadedExperiment(
         config=experiment_config,
-        db_engine=sqlalchemy.create_engine(triage_db),
-        model_storage_class=FSModelStorageEngine,
+        db_engine=create_engine(triage_db),
         project_path='/triage/output',
+        cleanup=True,
         replace=replace
     )
 

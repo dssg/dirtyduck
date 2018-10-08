@@ -88,7 +88,7 @@
 	  $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
      Show the experiment's temporal cross-validation blocks:
-	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
+	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show-temporal-blocks
 
      Plot model number 4 (if it is a Decision Tree or a Random Forest):
 	  $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4

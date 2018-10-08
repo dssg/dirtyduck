@@ -1,4 +1,4 @@
-config_version: 'v5'
+config_version: 'v6'
 
 model_comment: 'inspections_dt'
 
@@ -45,7 +45,7 @@ cohort_config:
     select entity_id
     from semantic.entities
     where
-    tsrange(start_time, end_time, '[]') @> {as_of_date}
+    tsrange(start_time, end_time, '[]') @> '{as_of_date}'::date
   name: 'active_facilities'
 
 feature_aggregations:

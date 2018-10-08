@@ -789,7 +789,7 @@ temporal blocks configuration, for example [[file:src/inspections_test.yaml][ins
 
 
 #+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_test.yaml show_temporal_blocks
+./tutorial.sh triage --config_file inspections_test.yaml show-temporal-blocks
 #+END_SRC
 
 #+RESULTS:

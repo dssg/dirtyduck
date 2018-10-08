@@ -147,7 +147,7 @@ As before, you can generate the image of the temporal blocks:
 
 
 #+BEGIN_SRC sh
-./tutorial.sh triage --config_file eis_01.yaml show_temporal_blocks
+./tutorial.sh triage --config_file eis_01.yaml show-temporal-blocks
 #+END_SRC
 
 #+RESULTS:
