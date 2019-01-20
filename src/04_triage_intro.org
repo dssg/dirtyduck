@@ -141,7 +141,7 @@ EXPERIMENTS:
         $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
    Show the experiment's temporal cross-validation blocks:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_temporal_blocks
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show-temporal-blocks
 
    Plot model number 4 (for Decision Trees and Random Forests):
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
@@ -522,7 +522,7 @@ temporal blocks images run the following:
 #+BEGIN_EXAMPLE sh
 # Remember to run this in your laptop NOT in bastion!
 
-./tutorial.sh triage --config_file simple_test_skeleton.yaml show_temporal_blocks
+./tutorial.sh triage --config_file simple_test_skeleton.yaml show-temporal-blocks
 #+END_EXAMPLE
 
 ***** ={feature, label}_{end, start}_time=

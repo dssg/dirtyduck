@@ -1,4 +1,4 @@
-config_version: 'v5'
+config_version: 'v6'
 
 model_comment: 'simple_test_skeleton'
 
@@ -16,6 +16,8 @@ temporal_config:
     label_end_time: '2018-01-01'
 
     model_update_frequency: '1y'
+
+    max_training_histories: '1y'
     training_label_timespans: ['1y']
     training_as_of_date_frequencies: '1month'
 
@@ -23,21 +25,19 @@ temporal_config:
     test_label_timespans: ['1y']
     test_as_of_date_frequencies: '1month'
 
-    max_training_histories: '1y'
-
 cohort_config:
-  # entities_table: 'testing_triage.active_facilities'
-  # dense_states:
-  #   table_name: 'states'
-  #   state_filters:
-  #     - 'active'
-  query: |
-    select entity_id
-    from semantic.entities
-    where
-    entity_id in (9588, 10861)
-    and daterange(start_time, end_time, '[]') @> {as_of_date}::date
-  name: 'active_facilities'
+    # entities_table: 'testing_triage.active_facilities'
+    # dense_states:
+    #   table_name: 'states'
+    #   state_filters:
+    #     - 'active'
+    query: |
+      select entity_id
+      from semantic.entities
+      where
+      entity_id in (9588, 10861)
+      and daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
+    name: 'active_facilities'
 
 label_config:
   query: |
