@@ -153,7 +153,7 @@ def get_model_hashes(model_id):
         select distinct on (model_hash, train_matrix_uuid, matrix_uuid)
         model_hash, train_matrix_uuid as train_hash, matrix_uuid as test_hash
         from model_metadata.models
-        inner join test_results.test_predictions using(model_id)
+        inner join test_results.predictions using(model_id)
         where model_id = {model_id};
        """)
 
