@@ -23,7 +23,7 @@ multi-entity, time-series structure.
 The last version of this tutorial is published in [[https://dssg.github.io/dirtyduck/]]
 
 *NOTE* This tutorial is in sync with the latest version of =triage=. At
-this moment [[https://github.com/dssg/triage/releases/tag/v3.2.1][3.2.1]].
+this moment [[https://github.com/dssg/triage/releases/tag/v3.2.1][v3.2.1 (Flaming Hot Cheeto)]].
 
 * What you need for this tutorial
 
