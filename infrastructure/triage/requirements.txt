@@ -1,15 +1,2 @@
-boto3
-Click
-python-dotenv
-psycopg2-binary
-SQLALchemy
-pandas
-numpy
-seaborn
-scikit-learn
-pgcli
-pydotplus
-rq
-
 ## DSaPP stuff
 git+https://github.com/dssg/triage.git@v3.2.1
