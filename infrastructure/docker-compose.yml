@@ -4,7 +4,7 @@ services:
   food_db:
     build:
       context: ./food_db
-    image: food/db
+    image: tutorial/db
     container_name: food_db
     env_file: .env
     volumes:
@@ -32,7 +32,7 @@ services:
   triage:
     build:
       context: ./triage
-    image: tutorial/triage:v3.beta
+    image: tutorial/triage:v3.2.1
     container_name: tutorial_triage
     env_file: .env
     environment:
