@@ -3,43 +3,34 @@ create schema if not exists semantic;
 drop table if exists semantic.entities cascade;
 
 create table semantic.entities as (
+    select
+        distinct on (
+            date,
+            license_num,
+            facility,
+            facility_aka,
+            facility_type,
+            address
+            )
 
-with entities_date as (
-
-  select
-  license_num,
-  facility,
-  facility_aka,
-  facility_type,
-  address,
-  zip_code,
-  location,
-  min(date) over (partition by license_num, facility, facility_aka, address) as start_time,
-  max(case when
-  result in ('out of business', 'business not located')
-  then
-  date
-  else
-  NULL
-  end) over (partition by license_num, facility, facility_aka, address) as end_time
-  from cleaned.inspections
-
-)
-
-select distinct
-   dense_rank() over (w) as entity_id,
-   license_num,
-   facility,
-   facility_aka,
-   facility_type,
-   address,
-   zip_code,
-   location,
-   start_time,
-   end_time
-from entities_date
-   window w as (order by license_num, facility, facility_aka, facility_type, address)
-);
+        license_num,
+        facility,
+        facility_aka,
+        facility_type,
+        address,
+        zip_code,
+        location,
+        min(date) over (partition by license_num, facility, facility_aka, address) as start_time,
+        max(case when result in ('out of business', 'business not located')
+            then date
+            else NULL
+            end)
+        over (partition by license_num, facility, facility_aka, address) as end_time
+    from cleaned.inspections
+    order by
+        date asc,
+        license_num, facility, facility_aka, facility_type, address
+        );
 
 
 -- Adding some indices
@@ -86,7 +77,7 @@ i.date, i.risk, i.result
 )
 
 select
-i.inspection as event_id, 
+i.inspection as event_id,
 e.entity_id, i.type, i.date, i.risk, i.result,
 e.facility_type, e.zip_code, e.location,
 i.violations
