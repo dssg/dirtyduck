@@ -417,8 +417,8 @@ Cross validation is a common technique to select a model that generalizes
  and then retrain it on the complete training data.
 
 Unfortunately, standard cross validation is inappropriate for most
-real-world data science problems. If your data have temporal correlations,
-standard cross validation lets the model peek into
+real-world data science problems. If your data have temporal
+correlations, standard cross validation lets the model peek into
 the future, training on some future observations and testing on past
 observations. To avoid this problem, you should design your
 training and testing to mimic how your model will be used, making
@@ -464,7 +464,7 @@ origin/ because the origin at which the prediction is made rolls
 forward in time. [fn:3]
 
 #+NAME: fig:rolling_origin
-#+CAPTION: Cartoonish view of temporal spliting for Machine Learning, each point represents an /as of date/, the orange area are the past of that /as of date/ and is used for feature generation. The blue area is the label span, it lies in the future of the /as of date/.
+#+CAPTION: Cartoonish view of temporal splitting for Machine Learning, each point represents an /as of date/, the orange area are the past of that /as of date/ and is used for feature generation. The blue area is the label span, it lies in the future of the /as of date/.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 800
 #+ATTR_LATEX: :width 400 :height 300
@@ -476,7 +476,7 @@ The data at which the model will do the predictions is denominated as
 example). The length of the prediction time window (1 year) is called
 /label span/. Training and predicting with a new model /as of date/ (every year) is the /model update frequency/.
 
-Because it's inefficient to calculate by hand all the /as-of date/s or
+Because it's inefficient to calculate by hand all the /as-of dates/ or
 prediction points, =timechop= will take care of that for us.
 To do so, we need to specify some more constraints besides the /label
 span/ and the /model update frequency/:
@@ -491,8 +491,7 @@ With this information, =timechop= will calculate as-of train and test
 dates from the last date in which you have label data, using the label span in both
 test and train sets, plus the constraints just mentioned.
 
-In total =timechop= uses 11 configuration parameters.
-
+In total =timechop= uses 11 configuration parameters[fn:12].
 
 - There are parameters related to the boundaries of the available data set:
 
@@ -511,7 +510,9 @@ In total =timechop= uses 11 configuration parameters.
        training labels (e.g., outcomes in the next 3 days? 2
        months? 1 year?) (training prediction span)
 
-  - =test_label_timespans= :: how much time is covered by test prediction (e.g., outcomes in the next 3 days? 2 months? 1 year?) (test prediction span)
+  - =test_label_timespans= :: how much time is covered by test
+       prediction (e.g., outcomes in the next 3 days? 2 months? 1
+       year?) (test prediction span)
 
   These parameters will be used with the /outcomes/ table
   to generate the /labels/. In an *early warning* setting, they will often
@@ -528,7 +529,7 @@ In total =timechop= uses 11 configuration parameters.
        immediately after model training, this should be set to 0 days
 
   For early warning problems, =test_durations= should equal
-  =model_update_frequency=,. For inspection prioritization, organizational
+  =model_update_frequency=. For inspection prioritization, organizational
   process determines the value: /how far out are you scheduling for?/
 
   The equivalent of =test_durations= for the training matrices is =max_training_histories=:
@@ -550,7 +551,6 @@ In total =timechop= uses 11 configuration parameters.
        single entity in a test matrix (time between rows for same
        entity in test matrix).
 
-
 The following images (we will show how to generate them later)
 shows the time blocks created by several temporal configurations. We
 will change a parameter at a time so you could see how it
@@ -567,8 +567,8 @@ temporal blocks images run the following:
 
 **** ={feature, label}_{end, start}_time=
 
-The image below shows these ={feature, label}_start_time=s are equal, as
-are the ={feature, label}_end_time=s. These parameters
+The image below shows these ={feature, label}_start_time= are equal, as
+are the ={feature, label}_end_time=. These parameters
 show in the image as dashed vertical black lines. This setup will be
 our *baseline* example.
 
@@ -595,8 +595,8 @@ line inside that area represents the label span.
 Those lines begin at the /as of date/. At each /as of date/, timechop
 generates each entity's features (from the past) and labels (from the
 future). So in the image, we will have
-two sets of train/test datasets. Each row will have 13 rows in "Block 0"
-and 12 in "Block 1". The trained models will
+two sets of train/test datasets. Each facility will have 13 rows in "Block 0"
+and 12 rows in "Block 1". The trained models will
 predict the label using the features calculated for that test set /as of date/.
 The single line represents the label's time horizon in testing.
 
@@ -620,7 +620,7 @@ temporal_config:
     max_training_histories: '1y'
 #+END_EXAMPLE
 
-In that configuration the date ranges of features and labels are equal
+In that configuration the date ranges of features and labels are equal,
  but they can be different (maybe you have more data for features that
 data for labels) as is shown in the following image and in their
  configuration parameters.
@@ -652,6 +652,7 @@ temporal_config:
 #+END_EXAMPLE
 
 **** =model_update_frequency=
+
 From our *baseline* =temporal_config= example ([[fig:timechop_1]]), we will
 change how often we want a new model, which generates
 more time blocks (if there are time-constrained data, obviously).
@@ -886,20 +887,18 @@ temporal_config:
 That's it! Now you have the power to bend time![fn:4]
 
 With the time blocks defined, =triage= will create the /labels/ and
-then the features for our train and test sets. We will explain
-briefly how the /labels/ are created by =triage= here, then we will
-discuss /feature/ in the following section.
+then the features for our train and test sets. We will
+discuss /features/ in the following section.
 
-
-*** Feature engineering
+*** Feature generation
 
 We will show how to create features using the /experiments config
 file/. =triage= uses =collate= for this.[fn:5] The =collate=
 library controls the generation of features (including the imputation rules
 for each feature generated) using the time blocks generated by
 =timechop=. =Collate= helps the modeler create features based on
-/spatio-temporal aggregations/. =Collate= generates and executes
-=SQL= queries that create /features/.
+/spatio-temporal aggregations/. =Collate= generates
+=SQL= queries that will create /features/.
 
 As before, we will try to mimic what =triage= does behind the
 scenario. =Collate= will help you to create features based on the
@@ -928,46 +927,63 @@ facility had in the previous 6 months?
 In our data, that date range (between 2016-01-01 and 2015-07-01) looks like:
 
 #+BEGIN_SRC sql
-select event_id, date, entity_id, risk from
-semantic.events
+select
+    event_id,
+    date,
+    entity_id,
+    risk
+from
+    semantic.events
 where
-date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
-and entity_id in (9588, 10861)
-order by date desc
+    date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
+    and entity_id in (219,362,859)
+order by
+    date asc;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | event_id |       date | entity_id | risk   |
 |---------+------------+----------+--------|
-| 1591635 | 2015-12-14 |     9588 | medium |
-| 1588811 | 2015-11-24 |     9588 | medium |
-| 1583272 | 2015-10-21 |     9588 | medium |
-| 1575838 | 2015-09-21 |     9588 | medium |
-| 1547420 | 2015-08-28 |    10861 | high   |
-| 1547403 | 2015-08-20 |    10861 | high   |
+| 1561324 | 2015-07-17 |      859 | high   |
+| 1561517 | 2015-07-24 |      859 | high   |
+| 1562122 | 2015-08-12 |      859 | high   |
+| 1547403 | 2015-08-20 |      219 | high   |
+| 1547420 | 2015-08-28 |      219 | high   |
+| 1547448 | 2015-09-14 |      362 | medium |
+| 1547462 | 2015-09-21 |      362 | medium |
+| 1547504 | 2015-10-09 |      362 | medium |
+| 1547515 | 2015-10-16 |      362 | medium |
+| 1583249 | 2015-10-21 |      859 | high   |
+| 1583577 | 2015-10-28 |      859 | high   |
+| 1583932 | 2015-11-04 |      859 | high   |
 :END:
 
 We can transform those data to two features: =number_of_inspections=
 and =flagged_as_high_risk=:
 
 #+BEGIN_SRC sql
-select entity_id, '2016-01-01' as as_of_date,
-count(event_id) as inspections,
-count(event_id) filter (where risk='high') as flagged_as_high_risk
-from semantic.events
+select
+    entity_id,
+    '2016-01-01' as as_of_date,
+    count(event_id) as inspections,
+    count(event_id) filter (where risk='high') as flagged_as_high_risk
+from
+    semantic.events
 where
-date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
-and entity_id in (9588, 10861)
-group by grouping sets(entity_id)
+    date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
+    and entity_id in (219,362,859)
+group by
+    grouping sets(entity_id);
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | entity_id |   as_of_date | inspections | flagged_as_high_risk |
 |----------+------------+-------------+-------------------|
-|     9588 | 2016-01-01 |           4 |                 0 |
-|    10861 | 2016-01-01 |           2 |                 2 |
+|      219 | 2016-01-01 |           2 |                 2 |
+|      362 | 2016-01-01 |           4 |                 0 |
+|      859 | 2016-01-01 |           6 |                 6 |
 :END:
 
 This query is making an /aggregation/. Note that the previous =SQL=
@@ -982,26 +998,31 @@ What about if we want to add proportions and totals of failed and
 passed inspections?
 
 #+BEGIN_SRC sql
-select entity_id, '2016-01-01' as as_of_date,
-count(event_id) as inspections,
-count(event_id) filter (where risk='high') as flagged_as_high_risk,
-count(event_id) filter (where result='pass') as passed_inspections,
-round(avg((result='pass')::int), 2) as proportion_of_passed_inspections,
-count(event_id) filter (where result='fail') as failed_inspections,
-round(avg((result='fail')::int), 2) as proportion_of_failed_inspections
-from semantic.events
+select
+    entity_id,
+    '2016-01-01' as as_of_date,
+    count(event_id) as inspections,
+    count(event_id) filter (where risk='high') as flagged_as_high_risk,
+    count(event_id) filter (where result='pass') as passed_inspections,
+    round(avg((result='pass')::int), 2) as proportion_of_passed_inspections,
+    count(event_id) filter (where result='fail') as failed_inspections,
+    round(avg((result='fail')::int), 2) as proportion_of_failed_inspections
+from
+    semantic.events
 where
-date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
-and entity_id in (9588, 10861)
-group by grouping sets(entity_id)
+    date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
+    and entity_id in (219,362,859)
+group by
+    grouping sets(entity_id)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 | entity_id |   as_of_date | inspections | flagged_as_high_risk | passed_inspections | proportion_of_passed_inspections | failed_inspections | proportion_of_failed_inspections |
 |----------+------------+-------------+-------------------+-------------------+-------------------------------+-------------------+-------------------------------|
-|     9588 | 2016-01-01 |           4 |                 0 |                 4 |                          1.00 |                 0 |                          0.00 |
-|    10861 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
+|      219 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
+|      362 | 2016-01-01 |           4 |                 0 |                 1 |                          0.25 |                 2 |                          0.50 |
+|      859 | 2016-01-01 |           6 |                 6 |                 4 |                          0.67 |                 2 |                          0.33 |
 :END:
 
 But what if we want to also add features for "medium" and "low" risk?
@@ -1038,8 +1059,6 @@ feature_aggregations:
 
         metrics: ['count']
 
-
-
     intervals: ['6month']
 
     groups:
@@ -1075,17 +1094,17 @@ following configuration parameter for every /feature group/:
 =aggregates= subsection represents a =yaml= list of /features/ to be
 created. Each element on this represents a column (=quantity=, in the
 example, the whole row =*=) and an alias (=total=), defines the
-=imputation= strategy for =NULL=s,  and the =metric= refers to the
+=imputation= strategy for =NULLs=,  and the =metric= refers to the
 =aggregation function= to be applied to the =quantity= (=Count=).
 
 =triage= will generate the following (or a very similar one), one per
 each combination of =interval= \times =groups= \times =quantity=:
 
-#+BEGIN_EXAMPLE
-SELECT metric(quantity) as alias
-FROM from_obj
-WHERE as_of_date <@ (as_of_date - interval, as_of_date)
-GROUP BY groups
+#+BEGIN_EXAMPLE sql
+select metric(quantity) as alias
+from from_obj
+where as_of_date <@ (as_of_date - interval, as_of_date)
+group by groups
 #+END_EXAMPLE
 
 With the previous configuration =triage= will generate *1* feature
@@ -1105,7 +1124,7 @@ schema.prefix_group_aggregation_imputed
 #+END_Example
 
 *NOTE*: the outputs are stored in the =features= schema.
-*NOTE* by default, =triage= inputes =NULL= values and adds
+*NOTE* by default, =triage= imputes =NULL= values and adds
 =imputed= to the end of the name for you.
 
 Inside each of those new tables, the feature name will follow this
@@ -1217,7 +1236,7 @@ select distinct risk from semantic.events;
 :RESULTS:
 | risk   |
 |--------|
-| [NULL] |
+| ¤      |
 | medium |
 | high   |
 | low    |
@@ -1782,8 +1801,6 @@ make this prediction under =TRIAGE_OUTPUT_PATH/matrices/{matrix_uuid}.csv=.
 
 **** TODO:  ={test, train}_results.list_predictions=
 
-
-
 ** Audition
 
 *Audition* is a tool for helping you select a subset of trained
@@ -1838,7 +1855,6 @@ drop schema if exists model_metadata cascade;
 drop schema if exists features cascade;
 #+END_SRC
 
-#+Results:
 
 =triage= also creates a lot of files (we will see why in the next section). Let's remove them too.
 
@@ -1853,6 +1869,9 @@ rm -r /triage/output/trained_models/*
 
 
 * Footnotes
+
+[fn:12] I know, I know. And in order to cover all the cases, we are still
+missing one or two parameters, but we are working on it.
 
 [fn:11] All events produce some /outcome/. In theory *every* event of
 interest in stored in a database. These events are /immutable/: you
