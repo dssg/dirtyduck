@@ -1035,6 +1035,7 @@ from semantic.events;
 | 155,374 |
 :END:
 
+Now that we have our data in a good shape, we are ready to use *Triage*.
 
 * Footnotes
 

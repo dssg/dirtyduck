@@ -1,6 +1,9 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: indent
+#+STARTUP: align
+#+STARTUP: inlineimages
+#+STARTUP: latexpreview
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
@@ -8,9 +11,14 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:sql+ :cmdline -q
 #+PROPERTY: header-args:sh  :results verbatim org
-#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue
-#+PROPERTY: header-args:ipython   :session food_inspections :results org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session Food_inspections
+#+PROPERTY: header-args:ipython+ :results raw drawer
+#+OPTIONS: broken-links:mark
+#+OPTIONS: tasks:todo
+#+OPTIONS: LaTeX:t
 
 
 * Triage
@@ -22,7 +30,7 @@ in its own right, but it also needs to be combined with the other
 tasks throughout the course of the project.
 
 DSaPP built =triage= to facilitate the creation of supervised learning
-models, in particular classification models with a strong temporal
+models, in particular /binary/ classification models with a strong temporal
 component in the data.
 
 The dataset's temporal component mainly affects two modeling steps:
@@ -35,16 +43,23 @@ cross-validation and the feature generation.
 =triage= uses the concept of an /experiment/. An /experiment/ consists of a
 series of steps that aim to generate a good model for predicting the
 /label/ of an entity in the data set. The steps are /data
-time-splitting/, /label generation/, /feature generation/, /model
-training/, and /model scoring/. In each of these steps, =triage=
+time-splitting/, /label generation/, /feature generation/, /matrix creation/,
+/model training/, /predictions/, and /model evaluation/. In each of these steps, =triage=
 will handle the temporal nuances of the data.
+
+Nowadays =triage= will
+help you to select the best model (/model selection/) and it allows you
+to explore and understand the behavior of your models using
+*post-modeling* techniques.
 
 You need to specify (via a configuration file) how you want to
 split your data temporally, which combination of machine learning algorithms and
 their hyperparameters you'd like to use, which kinds of features you want
 to generate, which subsets of those features you want to try in each
-model, and which metrics you'd like to use to evaluate performance.
-The experiment consists in fitting every combination of algorithm,
+model, and which metrics you'd like to use to evaluate performance and
+provide some criteria to select the best model.
+
+An *experiment run* consists in fitting every combination of algorithm,
 hyperparameters, and feature subsets to the temporally split data and
 evaluating their predictive performance on future data splits
 using the user's metrics.
@@ -63,96 +78,53 @@ that helps explain triage's main concepts.
 
 To run a =triage= experiment, you need the following:
 
+- A database with the data that you want to model.
+
 - =triage= installed in your environment. You can verify that =triage= is installed (and check
-  its version) typying the following inside an =ipython= session *in =bastion=*:
+  its version) typying the following inside an =ipython= session in =bastion=:
 
-#+BEGIN_SRC ipython
-import triage
-
-triage.__version__
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer :prologue exec 2>&1 :epilogue
+triage -h
+:
 #+END_SRC
 
 #+RESULTS:
-#+BEGIN_SRC org
-# Out[3]:
-: '2.2.0'
-#+END_SRC
+:RESULTS:
+usage: triage [-h] [--tb] [-d DBFILE] [-s SETUP]
+              {configversion,showtimechops,featuretest,experiment,audition,db}
+              ...
 
-- A database with the data that you want to model. =triage= will
-  require two database tables: one that
-  describes the /outcome/ of each event and one
-  that contains the state of each entity (e.g. whether the restaurant
-  is available for inspection at the time of selection).
+manage Triage database and experiments
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --tb, --traceback     print error tracebacks
+  -d DBFILE, --dbfile DBFILE
+                        database connection file
+  -s SETUP, --setup SETUP
+                        file path to Python module to import before running
+                        the Experiment (default: /experiment.py)
+
+triage commands:
+  {configversion,showtimechops,featuretest,experiment,audition,db}
+                        available commands
+    configversion       Check the experiment config version compatible with
+                        this installation of Triage
+    showtimechops       Visualize time chops (temporal cross-validation
+                        blocks')
+    featuretest         Test a feature aggregation by running it for one date
+    experiment          Run a full modeling experiment
+    audition            Audition models from a completed experiment to pick a
+                        smaller group of promising models
+    db                  Manage experiment database
+:END:
 
 - An /experiment config file/. This is where the magic happens. We will
   discuss this file at length in this section of the tutorial.
 
-
 We are providing a =docker= container that executes =triage= experiments.
-
-You can run the container from your laptop (i.e. outside =bastion=) as follows:
-
-#+BEGIN_SRC sh :prologue exec 2>&1 :epilogue
-./tutorial.sh triage --help
-#+END_SRC
-
-#+RESULTS:
-#+BEGIN_SRC org
-Usage: ./tutorial.sh {start|stop|build|rebuild|run|logs|status|destroy|all|}
-
-OPTIONS:
-   -h|help             Show this message
-   start
-   stop
-   rebuild
-   status
-   destroy
-   -t|triage
-   -a|all
-
-INFRASTRUCTURE:
-   Build the infrastructure:
-        $ ./tutorial.sh start
-
-   Check the status of the containers:
-        $ ./tutorial.sh status
-
-   Stop the tutorial's infrastructure:
-        $ ./tutorial.sh stop
-
-   Destroy all the resources related to the tutorial:
-        $ ./tutorial.sh destroy
-
-   View the infrastructure logs:
-        $ ./tutorial.sh -l
-
-EXPERIMENTS:
-   NOTE:
-      The following commands assume that "sample_experiment_config.yaml"
-      is located inside the triage/experiment_config directory
-
-   Run one experiment:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
-
-   Run one experiment, do not replace existing matrices or models, and enable debug:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
-
-   Validate experiment configuration file:
-        $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
-
-   Show the experiment's temporal cross-validation blocks:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show-temporal-blocks
-
-   Plot model number 4 (for Decision Trees and Random Forests):
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
-
-   Triage help:
-        $ ./tutorial.sh triage --help
-#+END_SRC
-
 You already had the database (you were working on it the last two
-sections of the tutorial) and the tutorial created a container
-with =triage= installed. So, like a real project, you just
+sections of this tutorial, remember?). So, like a real project, you just
 need to worry about the /experiment configuration file/.
 
 In the following section of the tutorial we will use a small experiment
@@ -171,6 +143,7 @@ You can run that experiment with:
 # Remember to run this in your laptop NOT in bastion!
 
 ./tutorial.sh triage --config_file simple_test_skeleton.yaml run
+
 #+END_EXAMPLE
 
 Every time you modify the configuration file and see the effects,
@@ -180,111 +153,177 @@ you should execute the experiment again using the previous command.
 
 ** A simple =triage= experiment
 
-To exemplify and explain the inner workings of =triage=, we will
-use a subset of the =semantic.events= table with the two
-most frequently inspected facilities.
+*** A brief recap of Machine Learning
+
+*Triage* helps you to run a /Machine learning/ experiment. An experiment
+in this context means the use of Machine Learning to explore
+a dynamic system  in order to do some predictions about it.
+
+Before execute the /any/ ML experiment, you need to define some /boundaries/:
+
+- Which are the entities that you want to study?
+- What will you want to know about them?
+
+In DSaPP, we build ML systems that aim to have social impact,
+i.e. help government offices, NGOs or other agents to do their job
+better. "Do their job better" means increase their reach
+(e.g. identify correctly more entities with some characteristics) using more
+efficiently their (scarce) resources (e.g. inspectors, medics, money, etc).
+
+With this optic, the /boundaries/ are:
+
+- Cohort :: Which are the entities that you want to reach?
+- Label :: What will you want to know about them?
+- Label timespan :: In what time period?
+- Update frequency :: How frequently do you want to intervene?
+- How many resources do you have to intervene?
+
+Triage's experiment configuration file structures this information.
+
+*** Cohorts, labels, event dates and as of dates
+
+We will use the /inspections prioritization/ as a narrative to help
+clarify these concepts:
+
+- /Which are the entities that you want to reach?/ :: Active facilities,
+     i.e. facilities that exists at the day of the /planning/ inspections. We
+     don't want to waste city resources (inspectors time) going to
+     facilities that are out of business.
+- What will you want to know about them? :: Will those facilities fail
+     the inspection?
+- In what time period? :: Will those facilities fail the inspection in
+     the following month?
+- How frequently do you want to intervene? :: Every month.
+- How many resources do you have to intervene? :: We only have one
+     inspector, so, one inspection per month
+
+To exemplify and explain the inner workings of =triage= in this
+scenario,  we will use a subset of the =semantic.events= table with the
+following facilities (i.e. imagine that Chicago only has this three
+facilities):
 
 #+BEGIN_SRC sql
-select entity_id, count(*) from
-semantic.events
-group by entity_id
-order by count(*) desc
-limit 2
+select
+    entity_id,
+    license_num,
+    facility_aka,
+    facility_type,
+    activity_period
+from
+    semantic.entities
+where
+    license_num in (1596210, 1874347, 1142451)
+order by
+    entity_id asc;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | count |
-|----------+-------|
-|     9588 |    45 |
-|    10861 |    44 |
+| entity_id | license_num | facility_aka              | facility_type  | activity_period          |
+|----------+------------+--------------------------+---------------+-------------------------|
+|      219 |    1596210 | food 4 less              | grocery store | [2010-01-08,)           |
+|      362 |    1874347 | mcdonald's               | restaurant    | [2010-01-12,2017-11-09) |
+|      859 |    1142451 | jewel food  store # 3345 | grocery store | [2010-01-26,)           |
 :END:
 
-(In this case =entity_id= are =9588= and =10861=, but you may get different results.)
 
-
-*** A tale of two tables
-
-The first thing =triage= does is split the time that the data
+The first thing =triage= does when executes the experiment, is split the time that the data
 covers in blocks considering the time horizon for the /label/
-(i.e. the thing that we want to predict: e.g. /Which facilities will fail an inspection in the following 3 months?/
-in the case of *inspection prioritization* or /Would be my restaurant inspected in the following month?/
-in the case of an *early warning*.) This time
+( /Which facilities will
+fail an inspection in the following  month?/
+in this scenario of *inspection prioritization[fn:10]*) . This time
 horizon is calculated from a set of specific dates (=as_of_date= in
 triage parlance) that divide the blocks in past (for training the
-model) and future (for testing the model).
+model) and future (for testing the model). The set of =as_of_dates= is
+(/mainly/) calculated from the /label timespan/ and the /update
+frequency/[fn:9]. The /as of date/ is not the /event date/. The /event date/
+occurred  /when/ the facility was inspected. The /as of date/
+is when the planning of the future facilities to be inspected happens.
 
 =triage= will create those /labels/ using information about the /outcome/ of
-the event, taking into account the temporal structure of the data.
-As an example of an /outcome/, consider whether a restaurant is inspected
-(the event) and whether it fails the inspection (outcome
+the event[fn:11], taking into account the temporal structure of the data.
+In our example: if a facility is inspected
+is the event, and whether it fails the inspection (outcome
 /true/) or not (outcome /false/).
 
-So, for a given entity on a given /as of date/, =triage=
+For a given entity on a given /as of date/, =triage=
 asks whether there's an outcome in
 the future time horizon. If so, =triage= will generate a
-/label/ for that specific entity on that /as of date/. We need
-to create an outcomes table to store this information.
+/label/ for that specific entity on that /as of date/.
 
-For this example, we will keep things simple and define the /outcome/ as
-=TRUE= if the restaurant failed the inspection and =FALSE= otherwise. The /label/
-will be is given this /as of date/ (e.g. January first, 2014), the
+For this example,  the /label/ will be if given an /as of date/ (e.g. January first, 2014), the
 facility will have a failed inspection in the following year.
-
 
 The following example hopefully will clarify the difference between
 /outcome/ and /label/. We will focus on events (inspections) that happened
-in the year of 2014. Our /as of date/ will be =2014-01-01= and the
-interval will be =1 year=:
+in the year of 2014.
 
 #+BEGIN_SRC sql
-select date, entity_id, (result = 'fail') as outcome
-from semantic.events
-where  '[2014-01-01, 2015-01-01]'::daterange @> date
-and entity_id in (9588, 10861)
+select
+    date,
+    entity_id,
+    (result = 'fail') as outcome
+from
+    semantic.events
+where
+    '[2014-01-01, 2015-01-01]'::daterange @> date
+    and
+    entity_id in (219,362,859)
+order by
+    date asc;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 |       date | entity_id | outcome |
 |------------+----------+---------|
-| 2014-04-11 |     9588 | f       |
-| 2014-04-28 |     9588 | f       |
-| 2014-08-15 |     9588 | t       |
-| 2014-08-26 |     9588 | f       |
-| 2014-05-02 |     9588 | f       |
-| 2014-02-04 |    10861 | f       |
-| 2014-04-15 |    10861 | f       |
-| 2014-09-19 |    10861 | f       |
+| 2014-01-14 |      859 | f       |
+| 2014-02-04 |      219 | f       |
+| 2014-02-24 |      859 | t       |
+| 2014-03-05 |      859 | f       |
+| 2014-04-10 |      362 | t       |
+| 2014-04-15 |      219 | f       |
+| 2014-04-18 |      362 | f       |
+| 2014-05-06 |      859 | f       |
+| 2014-08-28 |      362 | f       |
+| 2014-09-19 |      219 | f       |
+| 2014-09-30 |      362 | t       |
+| 2014-10-10 |      362 | f       |
+| 2014-10-31 |      859 | f       |
 :END:
 
-We can observe that both facilities had several inspections, but in
-that timeframe only the facility =9588= had a failed inspection. That
-means that at the day of =2014-01-01= , the facility =9588= have a
+We can observe that the facilities had several inspections, but in
+that timeframe =362= y =859= had failed inspections.
+
+Continuing the narrative, from the perspective
+of the day of =2014-01-01= (/as of date/), those facilities will have
 positive /label/.
 
-We can express that in a query for getting the /labels/ in a given
-/as of date/
+We can express that in a query and getting the /labels/ for that
+/as of date/ :
 
 #+BEGIN_SRC sql
 select
-'2014-01-01' as as_of_date,
-entity_id,
-bool_or(result = 'fail')::integer as label
-from semantic.events
+    '2014-01-01' as as_of_date,
+    entity_id,
+    bool_or(result = 'fail')::integer as label
+from
+    semantic.events
 where
-'2014-01-01'::timestamp <= date
-and date < '2014-01-01'::timestamp + interval '1 year'
-and entity_id in (9588, 10861)
-group by entity_id
+    '2014-01-01'::timestamp <= date
+    and date < '2014-01-01'::timestamp + interval '1 year'
+    and entity_id in (219,362,859)
+group by
+    entity_id;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 |   as_of_date | entity_id | label |
 |------------+----------+-------|
-| 2014-01-01 |     9588 |     1 |
-| 2014-01-01 |    10861 |     0 |
+| 2014-01-01 |      219 |     0 |
+| 2014-01-01 |      362 |     1 |
+| 2014-01-01 |      859 |     1 |
 :END:
 
 Note that ee transform the /label/ to integer, since the machine learning
@@ -293,45 +332,46 @@ algorithms only work with numeric data.
 
 We also need a way to store the /state/ of each entity. We can group
 entities in /cohorts/ defined by the state. The /cohort/  can be used to decide
-which facilities include in your matrices. The rationale of this comes
+which facilities you want to predict on (i.e. include in the ML
+train/test matrices). The rationale of this comes
 from the need to only predict for entities in a particular state:
-/Is the restaurant still open?/ /Is the restaurant new?/ etc.
+/Is the restaurant new?/
+/Is this facility on this zip code/? /Is the facility "active"?/[fn:1]
 
-In this tutorial, we will keep the things simple, and we only will
-define a state for our entities: /Is the facility "active"?/[fn:1]
-
-We will consider a facilitya as *active* if a given /as of date/ is in the
+We will consider a facility as *active* if a given /as of date/  is in the
 interval defined by the =start_date= and =end_date=.
 
 #+BEGIN_SRC sql
 select
-entity_id, facility_type,
-start_time, end_time,
+    '2018-01-01'::date as as_of_date,
+    entity_id,
+    activity_period,
 case when
-daterange(start_time, end_time, '[]') @> '2018-01-01'::date -- 2018-01-01 is as of date
+activity_period @> '2018-01-01'::date -- 2018-01-01 is as of date
 then 'active'::text
 else 'inactive'::text
 end as state
-from semantic.entities
-where entity_id in (9588, 10861)
+from
+    semantic.entities
+where
+    entity_id in (219,362,859);
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| entity_id | facility_type  |  start_time | end_time    | state    |
-|----------+---------------+------------+------------+----------|
-|     9588 | restaurant    | 2010-02-24 | 2017-09-15 | inactive |
-|    10861 | grocery store | 2010-01-08 | [NULL]     | active   |
+|   as_of_date | entity_id | activity_period          | state    |
+|------------+----------+-------------------------+----------|
+| 2018-01-01 |      219 | [2010-01-08,)           | active   |
+| 2018-01-01 |      362 | [2010-01-12,2017-11-09) | inactive |
+| 2018-01-01 |      859 | [2010-01-26,)           | active   |
 :END:
-
-Note that the entity =10861= is still active and =9582= is not active
-after =2017-09-15=.
 
 =Triage= will use a simple modification of the queries that we just
 discussed for automate the generation of the /cohorts/ and /labels/ for
 our experiment.
 
-*** Experiment configuration file
+
+** Experiment configuration file
 
 The /experiment configuration file/ is used to create the =experiment=
 object. Here, you will specify the temporal configuration, the
@@ -343,12 +383,12 @@ The configuration file is a =yaml= file with the following main sections:
 - [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data, used for
      creating the blocks for temporal crossvalidation.
 
-- =cohort_config=  :: Using the state of the entities, define /cohorts/
+- =cohort_config= :: Using the state of the entities, define /cohorts/
      to filter out objects that shouldn't be included in the training and
-     prediction stages (discussed in the previous section)
+     prediction stages.
 
 - =label_config= :: Specify how to generate /labels/ from the event's
-                    /outcome/ (discussed in the previous section)
+                    /outcome/.
 
 - [[Feature engineering][feature_generation]] :: Which spatio-temporal aggregations of the
      columns in the data set do you want to generate as features for
@@ -366,7 +406,7 @@ Two of the more important (and potentially confusing) sections are
 =temporal_config= and =feature_generation=. We will explain them in
 detail in the next sections.
 
-**** Temporal crossvalidation
+*** Temporal crossvalidation
 
 Cross validation is a common technique to select a model that generalizes
  well to new data. Standard cross validation randomly
@@ -525,7 +565,7 @@ temporal blocks images run the following:
 ./tutorial.sh triage --config_file simple_test_skeleton.yaml show-temporal-blocks
 #+END_EXAMPLE
 
-***** ={feature, label}_{end, start}_time=
+**** ={feature, label}_{end, start}_time=
 
 The image below shows these ={feature, label}_start_time=s are equal, as
 are the ={feature, label}_end_time=s. These parameters
@@ -611,7 +651,7 @@ temporal_config:
     max_training_histories: '1y'
 #+END_EXAMPLE
 
-***** =model_update_frequency=
+**** =model_update_frequency=
 From our *baseline* =temporal_config= example ([[fig:timechop_1]]), we will
 change how often we want a new model, which generates
 more time blocks (if there are time-constrained data, obviously).
@@ -642,7 +682,7 @@ temporal_config:
 [[./images/timechop_3.png]]
 
 
-***** =max_training_histories=
+**** =max_training_histories=
 
 With this parameter you could get a /growing window/ for training
 (depicted in [[fig:timechop_4]]) or as in all the other examples,
@@ -674,7 +714,7 @@ temporal_config:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_4.png]]
 
-***** =_as_of_date_frequencies= and =test_durations=
+**** =_as_of_date_frequencies= and =test_durations=
 
 #+BEGIN_EXAMPLE yaml
 temporal_config:
@@ -788,7 +828,7 @@ temporal_config:
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/timechop_8.png]]
 
-***** =_label_timespans=
+**** =_label_timespans=
 
 #+BEGIN_EXAMPLE yaml
 temporal_config:
@@ -851,7 +891,7 @@ briefly how the /labels/ are created by =triage= here, then we will
 discuss /feature/ in the following section.
 
 
-**** Feature engineering
+*** Feature engineering
 
 We will show how to create features using the /experiments config
 file/. =triage= uses =collate= for this.[fn:5] The =collate=
@@ -1313,7 +1353,6 @@ store the metadata of the trained models, features, parameters, and hyperparamet
 used in their training. It also stores the predictions and evaluations
 of the models on the test sets.
 
-
 The schema =model_metadata= is composed by the tables:
 
 #+BEGIN_SRC sql
@@ -1322,14 +1361,9 @@ The schema =model_metadata= is composed by the tables:
 
 #+RESULTS:
 :RESULTS:
-| List of relations |                 |       |          |
-|-------------------+-----------------+-------+----------|
-| Schema            | Name            | Type  | Owner    |
-| model_metadata     | experiments     | table | food_user |
-| model_metadata     | list_predictions | table | food_user |
-| model_metadata     | matrices        | table | food_user |
-| model_metadata     | model_groups     | table | food_user |
-| model_metadata     | models          | table | food_user |
+| List of relations |      |      |       |
+|-------------------+------+------+-------|
+| Schema            | Name | Type | Owner |
 :END:
 
 The tables contained in =test_results= are:
@@ -1583,7 +1617,7 @@ information about the temporal setting of the features) and =num_observations=
 | matrix_uuid                                                                                                                                               | character varying           |           | not null |         |
 | matrix_type                                                                                                                                               | character varying           |           |          |         |
 | labeling_window                                                                                                                                           | interval                    |           |          |         |
-| num_observations                                                                                                                                                | integer                     |           |          |         |
+| num_observations                                                                                                                                          | integer                     |           |          |         |
 | creation_time                                                                                                                                             | timestamp with time zone    |           |          | now()   |
 | lookback_duration                                                                                                                                         | interval                    |           |          |         |
 | feature_start_time                                                                                                                                         | timestamp without time zone |           |          |         |
@@ -1820,6 +1854,14 @@ rm -r /triage/output/trained_models/*
 
 * Footnotes
 
+[fn:11] All events produce some /outcome/. In theory *every* event of
+interest in stored in a database. These events are /immutable/: you
+can't (shouldn't) change them (they already happen).
+
+[fn:10]  /Would be my restaurant inspected in the following month?/ in the case of an *early warning* case.
+
+[fn:9] It's a little more complicated than that as we will see.
+
 [fn:8] Literally from the configuration file. If you modify something it will generate a new hash. Handle with care!
 
 [fn:7] =triage= will generate also a new binary column that indicates if the
@@ -1830,7 +1872,7 @@ value of the feature was imputed (=1=) or not (=0=): =inspections_entity_id_6mon
 [fn:5] =collate= is to /feature generation/ what =timechop= is to
 /date temporal splitting/
 
-[fn:4] Obsure reference to the "The Last Airbender" cartoon series. I'm sorry.
+[fn:4] Obscure reference to the "The Last Airbender" cartoon series. I'm sorry.
 
 [fn:3] See for example: https://robjhyndman.com/hyndsight/tscv/
 
