@@ -140,9 +140,9 @@ You can run that experiment with:
 
 #+BEGIN_EXAMPLE sh
 
-# Remember to run this in your laptop NOT in bastion!
+# Remember to run this in bastion NOT in your laptop!
 
-./tutorial.sh triage --config_file simple_test_skeleton.yaml run
+triage experiment
 
 #+END_EXAMPLE
 
