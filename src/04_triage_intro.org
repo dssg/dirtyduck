@@ -142,14 +142,12 @@ You can run that experiment with:
 
 # Remember to run this in bastion NOT in your laptop!
 
-triage experiment
+triage experiment experiment_config/simple_test_skeleton.yaml --project-path /triage/output
 
 #+END_EXAMPLE
 
 Every time you modify the configuration file and see the effects,
 you should execute the experiment again using the previous command.
-
-
 
 ** A simple =triage= experiment
 
