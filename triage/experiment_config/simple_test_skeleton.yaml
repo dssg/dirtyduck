@@ -62,7 +62,7 @@ feature_aggregations:
     aggregates:
       -
         quantity:
-        total: "*"
+          total: "*"
         metrics:
           - 'count'
 
