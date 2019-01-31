@@ -8,6 +8,7 @@ user_metadata:
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Adolfo De Unanue'
+  etl_date: '2019-01-18'
 
 temporal_config:
     feature_start_time: '2014-01-01'
@@ -124,11 +125,29 @@ feature_group_definition:
   prefix:
     - 'results'
     - 'risks'
+    - 'inspections'
 
 feature_group_strategies: ['all']
 
+model_group_keys:
+  - 'class_path'
+  - 'parameters'
+  - 'feature_names'
+  - 'feature_groups'
+  - 'cohort_name'
+  - 'state'
+  - 'label_name'
+  - 'label_timespan'
+  - 'training_as_of_date_frequency'
+  - 'max_training_history'
+  - 'label_definition'
+  - 'experiment_type'
+  - 'org'
+  - 'team'
+  - 'author'
+  - 'etl_date'
+
 scoring:
-  sort_seed: 5
   testing_metric_groups:
     -
       metrics: ['precision@', 'recall@']
