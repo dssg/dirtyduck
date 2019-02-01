@@ -12,5 +12,6 @@ RUN apt-get -y update \
 ADD activate_postgis.sql /docker-entrypoint-initdb.d/
 ADD create_inspections_table.sql /docker-entrypoint-initdb.d/
 ADD create_extensions.sql /docker-entrypoint-initdb.d/
+ADD nuke_triage.sql /docker-entrypoint-initdb.d/
 
 RUN chown postgres:postgres /docker-entrypoint-initdb.d/*.sql
