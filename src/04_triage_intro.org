@@ -374,7 +374,7 @@ want to train in your data.
 
 The configuration file is a =yaml= file with the following main sections:
 
-- [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data, used for
+- [[Temporal crossvalidation][=temporal_config=]] :: Temporal specification of the data, used for
      creating the blocks for temporal crossvalidation.
 
 - =cohort_config= :: Using the state of the entities, define (using =sql=)
@@ -386,14 +386,14 @@ The configuration file is a =yaml= file with the following main sections:
                     /outcome/. A table named =labels_{experiment_hash}=
                     will be created.
 
-- [[Feature engineering][feature_generation]] :: Which spatio-temporal aggregations of the
+- [[Feature engineering][=feature_aggregation=]] :: Which spatio-temporal aggregations of the
      columns in the data set do you want to generate as features for
      the models?
 
 - =model_group_keys= :: How do you want to identify the =model_group= in
      the database (so you can run analysis on them)?
 
-- =grid_config= :: Which combination of hyperparameters and algorithms
+- [[The Grid][=grid_config=]] :: Which combination of hyperparameters and algorithms
                    will be trained and evaluated in the data set?
 
 - =scoring= :: Which metrics will be calculated?
@@ -885,7 +885,7 @@ With the time blocks defined, =triage= will create the /labels/ and
 then the features for our train and test sets. We will
 discuss /features/ in the following section.
 
-** Feature generation
+** Feature engineering
 
 We will show how to create features using the /experiments config
 file/. =triage= uses =collate= for this.[fn:5] The =collate=
