@@ -365,7 +365,6 @@ where
 discussed for automate the generation of the /cohorts/ and /labels/ for
 our experiment.
 
-
 ** Experiment configuration file
 
 The /experiment configuration file/ is used to create the =experiment=
@@ -378,12 +377,14 @@ The configuration file is a =yaml= file with the following main sections:
 - [[Temporal crossvalidation][temporal_config]] :: Temporal specification of the data, used for
      creating the blocks for temporal crossvalidation.
 
-- =cohort_config= :: Using the state of the entities, define /cohorts/
-     to filter out objects that shouldn't be included in the training and
-     prediction stages.
+- =cohort_config= :: Using the state of the entities, define (using =sql=)
+     /cohorts/ to filter out objects that shouldn't be included in the training and
+     prediction stages. This will generate a table call
+     =cohort_{experiment_hash}=
 
-- =label_config= :: Specify how to generate /labels/ from the event's
-                    /outcome/.
+- =label_config= :: Specify (using =sql=)how to generate /labels/ from the event's
+                    /outcome/. A table named =labels_{experiment_hash}=
+                    will be created.
 
 - [[Feature engineering][feature_generation]] :: Which spatio-temporal aggregations of the
      columns in the data set do you want to generate as features for
@@ -401,7 +402,7 @@ Two of the more important (and potentially confusing) sections are
 =temporal_config= and =feature_generation=. We will explain them in
 detail in the next sections.
 
-*** Temporal crossvalidation
+** Temporal crossvalidation
 
 Cross validation is a common technique to select a model that generalizes
  well to new data. Standard cross validation randomly
@@ -884,7 +885,7 @@ With the time blocks defined, =triage= will create the /labels/ and
 then the features for our train and test sets. We will
 discuss /features/ in the following section.
 
-*** Feature generation
+** Feature generation
 
 We will show how to create features using the /experiments config
 file/. =triage= uses =collate= for this.[fn:5] The =collate=
@@ -1372,7 +1373,7 @@ columns convey information about if that particular value was /imputed/
 or /not/. So in the last counting we need to add 20 more columns to a
 grand total of 80 columns.
 
-**** Imputation
+*** Imputation
 
 =Triage= currently supports the following imputation strategies:
 
@@ -1403,7 +1404,7 @@ and finally, if you are sure that is not possible to have /NULLS:/
 
 - error :: Raise an exception if ant null values are encountered.
 
-**** Feature groups strategies
+*** Feature groups strategies
 
 Another interesting thing that =triage= controls is how many feature
 groups are used in the machine learning grid. This would help you to
@@ -1456,7 +1457,7 @@ Finally choosing =all-combinations=:
 - ={inspections}, {results}, {risks}, {inspections, results}=,
   ={inspections, risks}, {results, risks}, {inspections, results, risks}=
 
-**** Controlling the size of the tables
+*** Controlling the size of the tables
 
 #+BEGIN_QUOTE
 This section is a little technical, you can skip it if you fell like it.
