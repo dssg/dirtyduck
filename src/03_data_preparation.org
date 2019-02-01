@@ -1139,10 +1139,10 @@ algorithms only accept data in matrix form (i.e. one big table)
                   |        |
                   v        v                 +-------------+
                +--------------+              |  experiment |
-               |   triage {io}|              |    config   |
+               |   triage {io}|              |  config     |
                |     run      |<-------------+          {d}|
-               |cRED          |              |             |
-               +------+-------+              +-------------+
+               |cRED          |              +-------------+
+               +------+-------+
                       |
       +---------------+-----------------------+
       |               |                       |
@@ -1151,5 +1151,26 @@ algorithms only accept data in matrix form (i.e. one big table)
 |train_results |  | model_metadata  |   |test_results|
 |c1FF  {s}     |  |c1FF  {s}        |   |c1FF  {s}   |
 +--------------+  +-----------------+   +------------+
-
+      |                 |
+      |                 |
+------*-----------------*---------------------------------------
+      |                 |                model selection &
+      |                 |                  postmodeling
+      +-------+---------+
+              |
+              V
+        +-------------+
+        |         {io}|                  +----------+
+        |  Audition   |<-----------------| audition |
+        | cRED        |                  | config   |
+        +-----+-------+                  |      {d} |
+              |                          +----------+
+              |   "best"
+              |  model groups
+              V
+       +---------------+
+       |           {io}|
+       |  Postmodeling |
+       |  cRED         |
+       +---------------+
 #+END_SRC
