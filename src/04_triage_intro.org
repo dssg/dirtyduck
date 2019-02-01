@@ -1959,8 +1959,9 @@ the fields from above that gave us the names of our training matrices?
 In fact, it is the same. You can find the test matrix that was used to
 make this prediction under =TRIAGE_OUTPUT_PATH/matrices/{matrix_uuid}.csv=.
 
-**** TODO:  ={test, train}_results.feature_importances=
+**** ={test, train}_results.feature_importances=
 
+This tables store the feature importance of all the models.
 
 ** Audition
 
