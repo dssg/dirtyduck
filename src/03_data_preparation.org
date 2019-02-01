@@ -28,7 +28,7 @@ We need to get the data and transform it into a shape that is suitable for the a
 
 ** Load the data
 
-Before loading the data into the database, verify that the database table is empty[fn:3]:
+Before loading the data into the database, verify that the database table is empty:
 
 #+BEGIN_SRC sql
 select count(*) from raw.inspections;
