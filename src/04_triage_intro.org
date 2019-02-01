@@ -1482,6 +1482,30 @@ column in the /features/ table. Just add =coltype= to the
     coltype: 'smallint'
 #+END_SRC
 
+** The Grid
+
+Before applying Machine Learning to your dataset you don't know which
+combination of algorithm and hyperparameters will be the best given a
+specific matrix.
+
+=Triage= approaches this problem exploring a algorithm +
+hyperparameters + feature groups grid. At this time, this exploration
+is a exhaustive one, i.e. it covers the complete grid, so you would
+get (number of algorithms) $\times$ (number of hyperparameters) $\times$ (number
+of feature group strategies) models groups. The number of models
+trained is (number of model groups)  $\times$ (number of time splits).
+
+In our simple experiment the grid is very simple:
+
+#+BEGIN_SRC yaml
+grid_config:
+    'sklearn.dummy.DummyClassifier':
+        strategy: [most_frequent]
+#+END_SRC
+
+Just one algorithm and one hyperparameter (also we have only one
+feature group strategy: =all=), and two time splits. So we will get 2
+models, 1 model group.
 
 ** Machine learning governance
 
@@ -2011,12 +2035,8 @@ In the next section we will start modeling, so it is a good idea to
 clean the ={test, train}_results= schemas and have a fresh start:
 
 #+BEGIN_SRC sql
-drop schema if exists test_results cascade;
-drop schema if exists train_results cascade;
-drop schema if exists model_metadata cascade;
-drop schema if exists features cascade;
+select nuke_triage();
 #+END_SRC
-
 
 =triage= also creates a lot of files (we will see why in the next section). Let's remove them too.
 
