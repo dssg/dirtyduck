@@ -42,7 +42,7 @@ temporal_config:
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
+    test_durations: '1y'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -160,9 +160,8 @@ feature_aggregations:
 
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [1,2,5,10,~]
-        min_samples_split: [2,5,10]
-        min_samples_leaf: [1,5,10]
+        max_depth: [2,10]
+        min_samples_split: [2,5]
 
 feature_group_definition:
    prefix:
@@ -171,10 +170,9 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-out', 'leave-one-in']
+feature_group_strategies: ['all', 'leave-one-out']
 
 scoring:
-    sort_seed: 5
     testing_metric_groups:
         -
           metrics: [precision@, recall@]

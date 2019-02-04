@@ -13,10 +13,6 @@ user_metadata:
     author: 'Your name here'
     etl_date: '2019-01-18'
 
-grid_config:
-    'sklearn.dummy.DummyClassifier':
-        strategy: [prior,uniform, most_frequent]
-
 model_group_keys:
   - 'class_path'
   - 'parameters'
@@ -36,6 +32,10 @@ model_group_keys:
   - 'etl_date'
   - 'purpose'
 
+grid_config:
+    'sklearn.dummy.DummyClassifier':
+        strategy: [prior,uniform, most_frequent]
+
 temporal_config:
     feature_start_time: '2010-01-04'
     feature_end_time: '2019-01-01'
@@ -46,7 +46,7 @@ temporal_config:
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
+    test_durations: '1y'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -162,12 +162,6 @@ feature_aggregations:
       - 'entity_id'
       - 'zip_code'
 
-grid_config:
-    'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [1,2,5,10,~]
-        min_samples_split: [2,5,10]
-        min_samples_leaf: [1,5,10]
-
 feature_group_definition:
    prefix:
      - 'inspections'
@@ -178,7 +172,6 @@ feature_group_definition:
 feature_group_strategies: ['all']
 
 scoring:
-    sort_seed: 5
     testing_metric_groups:
         -
           metrics: [precision@, recall@]

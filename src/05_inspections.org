@@ -244,7 +244,7 @@ temporal_config:
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
+    test_durations: '1y'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -264,7 +264,7 @@ triage showtimechops experiment_config/inspections_dt.yaml
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/inspections_dt.png]]
+[[./images/inspections_dt.svg]]
 
 We need to specify our labels. For this first
 experiment we will use the label =failed=, using the same query from the
@@ -421,9 +421,8 @@ requirement is that it respects the =sklearn= API.
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [1,2,5,10,~]
-        min_samples_split: [2,5,10]
-        min_samples_leaf: [1,5,10]
+        max_depth: [2,10]
+        min_samples_split: [2,5]
 #+END_SRC
 
 Some of the parameters in =sklearn= are =None=. If you want to try those
@@ -447,17 +446,14 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-out', 'leave-one-in']
+feature_group_strategies: ['all', 'leave-one-out']
 #+END_SRC
 
-In this experiment we will end with *720* model groups ($algorithms (1) \times
-hyperparameters combinations (2 \times 3)  \times feature groups (1) \times temporal
-combinations (1)$).
-(number of algorithms [1] $\times$ number of hyperparameter combinations [5
-$\times$ 3 $\times$ 3 = 45] $\times$ number of feature groups strategies [1 $\times$ 4
-$\times$ 4 = 16]). Also, we will create *1440* models (2 per
-model group) given that we have 2 temporal blocks (one model per
-temporal group).
+In this experiment we will end with *20* model groups
+(number of algorithms [1] $\times$ number of hyperparameter combinations [2
+$\times$ 2 = 4] $\times$ number of feature groups strategies [1 $\plus$ 4 =
+5]). Also, we will create *60* models (3 per
+model group) given that we have 3 temporal blocks (one model per temporal group).
 
 
 Finally, we should define wich metrics we care about for evaluating our
@@ -465,7 +461,6 @@ model. Here we will concentrate only in =precision= and =recall=.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 scoring:
-    sort_seed: 5
     testing_metric_groups:
         -
           metrics: [precision@, recall@]
@@ -504,7 +499,7 @@ discover that something went wrong.
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_dt.yaml --validate-only
+triage experiment experiment_config/inspections_dt.yaml  --validate-only
 #+END_SRC
 
 If everything was ok, you should see an =Experiment validation ran to completion with no errors=.
@@ -513,24 +508,38 @@ You can execute the experiment as
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_dt.yaml
+triage experiment experiment_config/inspections_dt.yaml --no-save-predictions --profile
 #+END_SRC
 
 This will print a lot of output, and if everything is correct it will
-create 6 matrices (3 for
-training, 3 for testing) in =triage/matrices= and every matrix will be
+create *30* matrices (3 for
+training, 3 for testing, 5 per each feature group strategy) in =triage/matrices= and every matrix will be
 represented by two files, one with the metadata of the matrix (a
 =yaml= file) and one with the actual matrix (the =csv= file).
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results raw drawer
-ls output/matrices | awk -F . '{print $NF}' | sort | uniq -c
+
+# We will use some bash magic
+
+ls matrices | awk -F . '{print $NF}' | sort | uniq -c
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+     29 h5
+     29 yaml
+:END:
 
 =Triage= also will store 18 trained models in =triage/trained_models=:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results raw drawer
-ls output/trained_models | wc -l
+ls trained_models | wc -l
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+2
+:END:
 
 And it will populate the =results= schema in the database. As
 mentioned, we will get =6= /model groups/:
@@ -543,6 +552,14 @@ select
 from
     model_metadata.model_groups;
 #+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_group_id | model_type                           | hyperparameters                       |
+|--------------+-------------------------------------+---------------------------------------|
+|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 2} |
+|            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 5} |
+:END:
 
 
 And =18= /models/:
@@ -824,84 +841,44 @@ user_metadata:
 grid_config:
     'sklearn.dummy.DummyClassifier':
         strategy: [prior,uniform, most_frequent]
+
+feature_group_strategies: ['all']
 #+END_SRC
+
+Note that we don't modify the =temporal_config= section neither the
+=feature_aggregations=, =cohort_config= or =label_config=. Triage is smart
+enough to use the previous tables and matrices instead of generating
+them from scratch.
 
 The complete file is in [[./triage/experiment_config/inspections_baseline.yaml][triage/experiment_config/inspections_baseline.yaml]].
 
-If we execute this experiment, we will get 3 more model groups (one
-for each strategy) and 6 corresponding models (2 per
+If we execute this experiment, we will get *3* more model groups (one
+for each strategy) and *9* corresponding models (*3* per
 model group).
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_baseline.yaml --validate-only
-
-#+END_SRC
-
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_baseline.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Validating experiment's configuration
-Experiment validation ran to completion with no errors
-
-----TIME SPLIT SUMMARY----
-
-Number of time splits: 3
-Split index 0:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2015-12-01 00:00:00 (11 total)
-            Testing as_of_time range: 2016-01-01 00:00:00 to 2016-01-01 00:00:00 (1 total)
-
-
-Split index 1:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-12-01 00:00:00 (23 total)
-            Testing as_of_time range: 2017-01-01 00:00:00 to 2017-01-01 00:00:00 (1 total)
-
-
-Split index 2:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2017-12-01 00:00:00 (35 total)
-            Testing as_of_time range: 2018-01-01 00:00:00 to 2018-01-01 00:00:00 (1 total)
-
-
-For more detailed information on your time splits, inspect the experiment `split_definitions` property
-
-           The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum
-           number of columns allowed or collision in
-           the column names, both due to PostgreSQL limitations.
-
-The experiment looks in good shape. May the force be with you
+triage experiment experiment_config/inspections_baseline.yaml  --validate-only
 #+END_SRC
 
 You can execute the experiment like this:
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_baseline.yaml run
-#+END_SRC
 
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_baseline.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Executing experiment
-Done
-Experiment completed in 0:01:08.273220 seconds
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
+# Remember to run this in bastion  NOT in your laptop shell!
+triage experiment experiment_config/inspections_baseline.yaml --no-save-predictions --profile
 #+END_SRC
 
 After the experiment finishes, you will get 3 new =model_groups= (1 per strategy)
 
 #+BEGIN_SRC sql
-select model_group_id, model_type, hyperparameters
-from model_metadata.model_groups;
+select
+    model_group_id,
+    model_type,
+    hyperparameters
+from
+    model_metadata.model_groups;
 #+END_SRC
 
 #+RESULTS:
@@ -920,21 +897,29 @@ from model_metadata.model_groups;
 :END:
 
 #+BEGIN_SRC sql
-
 with baseline as (
-select model_id, model_group_id
-from model_metadata.models
-where model_type ~ 'DummyClassifier'
+select
+    model_id,
+    model_group_id
+from
+    model_metadata.models
+where
+    model_type ~ 'DummyClassifier'
 )
 
 select
-model_group_id, model_id, metric || parameter as metric,
-value
-from test_results.evaluations
-inner join baseline using(model_id)
+    model_group_id,
+    model_id,
+    metric || parameter as metric,
+    value
+from
+    test_results.evaluations
+    inner join
+    baseline using(model_id)
 where
-metric || parameter = 'precision@25_abs'
-order by metric || parameter, model_id
+    metric || parameter = 'precision@25_abs'
+order by
+    metric || parameter, model_id;
 #+END_SRC
 
 #+RESULTS:
@@ -956,22 +941,22 @@ order by metric || parameter, model_id
 *** A more advanced experiment
 
 Ok, let's add a more complete experiment. First the usual generalities.
-Note that we change =experiment_type=
-
+N
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
-config_version: 'v5'
+config_version: 'v6'
 
-model_comment: 'inspections'
+model_comment: 'inspections: advanced'
 
 user_metadata:
   label_definition: 'failed'
   experiment_type: 'inspections prioritization'
   description: |
-    First experiment
-  purpose: 'development'
+    Using Ensamble methods
+  purpose: 'try ensamble algorithms'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
+  etl_date: '2019-01-18'
 #+END_SRC
 
 As before, =triage= needs special tables that specify /outcomes/ (that is, call
@@ -988,15 +973,14 @@ label_config:
     where '{as_of_date}'::timestamp <= date
     and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
     group by entity_id
-  #include_missing_labels_in_train_as: False
-  name: 'failed_inspection'
+  name: 'failed_inspections'
 
 cohort_config:
   query: |
     select entity_id
     from semantic.entities
     where
-    tsrange(start_time, end_time, '[]') @> {as_of_date}
+    daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
   name: 'active_facilities'
 #+END_SRC
 
@@ -1005,37 +989,29 @@ Neither to the temporal configuration:
 #+BEGIN_SRC  yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
-    feature_end_time: '2018-03-01'
+    feature_end_time: '2019-01-01'
     label_start_time: '2015-02-01'
-    label_end_time: '2018-03-01'
+    label_end_time: '2019-01-01'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
-    test_label_timespans: ['1y'] #
+    test_durations: '1y'
+    test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
-    max_training_histories: '10y'
+    max_training_histories: '5y'
+
 #+END_SRC
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_label_failed_01.yaml show-temporal-blocks
-#+END_SRC
+As before, we can check the temporal structure of our crossvalidation:
 
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_label_failed_01.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Generating temporal blocks image
-Image stored in:
-/triage/output/images/inspections.svg
-#+End_src
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
+
+# Remember to run this in bastion  NOT in your laptop shell!
+triage showtimechops experiment_config/inspections_label_failed_01.yaml
+#+END_SRC
 
 #+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
 #+ATTR_ORG: :width 600 :height 400
@@ -1050,91 +1026,97 @@ that all this refers to events in the past, i.e. /How many times the facility wa
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 feature_aggregations:
-    -
-        prefix: 'inspections'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+  -
+    prefix: 'inspections'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    aggregates_imputation:
+      count:
+        type: 'zero_noflag'
 
-        categoricals:
-            -
-                column: 'type'
-                choice_query: 'select distinct type from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    aggregates:
+      -
+        quantity:
+          total: "*"
+        metrics:
+          - 'count'
 
-        intervals:
-            - '2y'
-            - '1y'
-            - '6month'
-            - '3month'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
+    groups:
+      - 'entity_id'
 
-    -
-        prefix: 'risks'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+  -
+    prefix: 'risks'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    categoricals_imputation:
+      sum:
+        type: 'zero'
+      avg:
+        type: 'zero'
 
-        categoricals:
-            -
-                column: 'risk'
-                choice_query: 'select distinct risk from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    categoricals:
+      -
+        column: 'risk'
+        choices: ['low', 'medium', 'high']
+        metrics:
+          - 'sum'
+          - 'avg'
 
-        intervals:
-            - '2y'
-            - '1y'
-            - '6month'
-            - '3month'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
-            - 'facility_type'
+    groups:
+      - 'entity_id'
+      - 'zip_code'
 
+  -
+    prefix: 'results'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-    -
-        prefix: 'results'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+    categoricals_imputation:
+      all:
+        type: 'zero'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    categoricals:
+      -
+        column: 'result'
+        choice_query: 'select distinct result from semantic.events'
+        metrics:
+          - 'sum'
+          - 'avg'
 
-        categoricals:
-            -
-                column: 'result'
-                choice_query: 'select distinct result from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        intervals:
-            - '2y'
-            - '1y'
-            - '6month'
-            - '3month'
+    groups:
+      - 'entity_id'
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
-            - 'facility_type'
+  -
+    prefix: 'inspection_types'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-#+END_Src
+    categoricals_imputation:
+      sum:
+        type: 'zero_noflag'
+
+    categoricals:
+      -
+        column: 'type'
+        choice_query: 'select distinct type from semantic.events where type is not null'
+        metrics:
+          - 'sum'
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+      - 'entity_id'
+      - 'zip_code'
+
+#+END_SRC
 
 We want to use all the features groups
 (=feature_group_definition=). The training will be made on matrices
@@ -1145,8 +1127,13 @@ leaving one feature group in at a time (i.e. a model with =inspections= only,
 another with =results= only, and a third with =risks= only).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
+
 feature_group_definition:
-   prefix: ['inspections', 'results', 'risks']
+   prefix:
+     - 'inspections'
+     - 'results'
+     - 'risks'
+     - 'inspection_types'
 
 feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
@@ -1159,78 +1146,50 @@ grid_config:
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
-        n_estimators: [1000]
-        min_samples_leaf: [1]
-        min_samples_split: [50]
-        class_weight: ['balanced']
+        n_estimators: [100, 250]
+        min_samples_split: [2,10]
 
 scoring:
-    sort_seed: 1234
     testing_metric_groups:
         -
-            metrics: ['precision@', 'recall@']
-            thresholds:
-                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
-                top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [1.0, 5.0, 10.0]
+            top_n: [1, 5, 10, 25, 50]
+
     training_metric_groups:
       -
         metrics: [accuracy]
       -
         metrics: [precision@, recall@]
         thresholds:
-          percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
-          top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+          percentiles: [1.0, 5.0, 10.0]
+          top_n: [1, 5, 10, 25, 50]
+
 #+END_SRC
 
+Before running, let's verify the configuration file
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_label_failed_01.yaml validate
-#+END_SRC
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/inspections_label_failed_01.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Validating experiment's configuration
-Experiment validation ran to completion with no errors
-
-----TIME SPLIT SUMMARY----
-
-Number of time splits: 2
-Split index 0:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2016-01-01 00:00:00 (12 total)
-            Testing as_of_time range: 2016-02-01 00:00:00 to 2016-02-01 00:00:00 (1 total)
-
-
-Split index 1:
-            Training as_of_time_range: 2015-02-01 00:00:00 to 2017-01-01 00:00:00 (24 total)
-            Testing as_of_time range: 2017-02-01 00:00:00 to 2017-02-01 00:00:00 (1 total)
-
-
-For more detailed information on your time splits, inspect the experiment `split_definitions` property
-
-           The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum
-           number of columns allowed or collision in
-           the column names, both due to PostgreSQL limitations.
-
-The experiment looks in good shape. May the force be with you!
+# Remember to run this in bastion  NOT in your laptop shell!
+triage experiment experiment_config/inspections_label_failed_01.yaml  --validate-only
 #+END_SRC
 
 You can execute the experiment with
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file inspections_label_failed_01.yaml run
+
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
+# Remember to run this in bastion  NOT in your laptop shell!
+triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-predictions --profile
 #+END_SRC
 
 This will take a looooong time to run.
 
 Well, now we have a lot of models. How can you pick the best one?
 We will show you when we model /Early Warning/.
+
 
 * Footnotes
 
