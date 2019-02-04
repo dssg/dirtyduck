@@ -446,13 +446,12 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-out']
+feature_group_strategies: ['all']
 #+END_SRC
 
-In this experiment we will end with *20* model groups
+In this experiment we will end with *4* model groups
 (number of algorithms [1] $\times$ number of hyperparameter combinations [2
-$\times$ 2 = 4] $\times$ number of feature groups strategies [1 $\plus$ 4 =
-5]). Also, we will create *60* models (3 per
+$\times$ 2 = 4] $\times$ number of feature groups strategies [1]]). Also, we will create *12* models (3 per
 model group) given that we have 3 temporal blocks (one model per temporal group).
 
 
@@ -504,7 +503,7 @@ triage experiment experiment_config/inspections_dt.yaml  --validate-only
 
 If everything was ok, you should see an =Experiment validation ran to completion with no errors=.
 
-You can execute the experiment as
+You can execute the experiment as[fn:3]
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
@@ -512,8 +511,8 @@ triage experiment experiment_config/inspections_dt.yaml --no-save-predictions --
 #+END_SRC
 
 This will print a lot of output, and if everything is correct it will
-create *30* matrices (3 for
-training, 3 for testing, 5 per each feature group strategy) in =triage/matrices= and every matrix will be
+create *6* matrices (3 for
+training, 3 for testing) in =triage/matrices= and every matrix will be
 represented by two files, one with the metadata of the matrix (a
 =yaml= file) and one with the actual matrix (the =csv= file).
 
@@ -526,8 +525,8 @@ ls matrices | awk -F . '{print $NF}' | sort | uniq -c
 
 #+RESULTS:
 :RESULTS:
-     29 h5
-     29 yaml
+      6 csv
+      6 yaml
 :END:
 
 =Triage= also will store 18 trained models in =triage/trained_models=:
@@ -538,11 +537,11 @@ ls trained_models | wc -l
 
 #+RESULTS:
 :RESULTS:
-2
+10
 :END:
 
 And it will populate the =results= schema in the database. As
-mentioned, we will get =6= /model groups/:
+mentioned, we will get *4* /model groups/:
 
 #+BEGIN_SRC sql
 select
@@ -555,14 +554,16 @@ from
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | hyperparameters                       |
-|--------------+-------------------------------------+---------------------------------------|
-|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 2} |
-|            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 5} |
+| model_group_id | model_type                           | hyperparameters                        |
+|--------------+-------------------------------------+----------------------------------------|
+|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 2}  |
+|            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 5}  |
+|            3 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 10, "min_samples_split": 2} |
+|            4 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 10, "min_samples_split": 5} |
 :END:
 
 
-And =18= /models/:
+And *12* /models/:
 
 
 #+BEGIN_SRC sql
@@ -575,32 +576,17 @@ from
 group by
     model_group_id
 order by
-    model_group_id,
-    train_end_time asc;
+    model_group_id
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | train_end_time        |
-|--------------+---------+---------------------|
-|            1 |       1 | 2016-01-01 00:00:00 |
-|            1 |       7 | 2017-01-01 00:00:00 |
-|            1 |      13 | 2018-01-01 00:00:00 |
-|            2 |       2 | 2016-01-01 00:00:00 |
-|            2 |       8 | 2017-01-01 00:00:00 |
-|            2 |      14 | 2018-01-01 00:00:00 |
-|            3 |       3 | 2016-01-01 00:00:00 |
-|            3 |       9 | 2017-01-01 00:00:00 |
-|            3 |      15 | 2018-01-01 00:00:00 |
-|            4 |       4 | 2016-01-01 00:00:00 |
-|            4 |      10 | 2017-01-01 00:00:00 |
-|            4 |      16 | 2018-01-01 00:00:00 |
-|            5 |       5 | 2016-01-01 00:00:00 |
-|            5 |      11 | 2017-01-01 00:00:00 |
-|            5 |      17 | 2018-01-01 00:00:00 |
-|            6 |       6 | 2016-01-01 00:00:00 |
-|            6 |      12 | 2017-01-01 00:00:00 |
-|            6 |      18 | 2018-01-01 00:00:00 |
+| model_group_id | models   | train_end_times                                                       |
+|--------------+----------+---------------------------------------------------------------------|
+|            1 | {1,5,9}  | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            2 | {2,6,10} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            3 | {3,7,11} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            4 | {4,8}    | {"2015-12-01 00:00:00","2016-12-01 00:00:00"}                       |
 :END:
 
 From that last query, you should note that the order in which =triage= trains
@@ -613,7 +599,8 @@ You can check with which matrix the models are trained:
 #+NAME: train_info
 #+BEGIN_SRC sql
 select
-    model_id, model_group_id, train_end_time,
+    model_group_id,
+    model_id, train_end_time,
     model_hash, train_matrix_uuid,
     ma.num_observations as observations,
     ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
@@ -629,26 +616,19 @@ order by
 
 #+RESULTS: train_info
 :RESULTS:
-| model_id | model_group_id | train_end_time        | model_hash                        | train_matrix_uuid                  | observations | feature_lookback_duration | feature_start_time    |
-|---------+--------------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
-|       1 |            1 | 2016-01-01 00:00:00 | b8760f6ff91cf67a7e13ddde9a6ebc02 | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
-|       7 |            1 | 2017-01-01 00:00:00 | 8b52fd95a5a95de85a0e686eefb9f321 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
-|      13 |            1 | 2018-01-01 00:00:00 | 76e6eafed233e035ebec64802a367f5a | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
-|       2 |            2 | 2016-01-01 00:00:00 | 50c082cdcda8032066324d2b512b6ecd | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
-|       8 |            2 | 2017-01-01 00:00:00 | dca1e0f675b28dccdb21ccf0b0caa6ff | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
-|      14 |            2 | 2018-01-01 00:00:00 | b88f85a042a9291b7c6ba4e4b6ddfc9c | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
-|       3 |            3 | 2016-01-01 00:00:00 | 3693b4df0280b6b7f92d843839fb90af | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
-|       9 |            3 | 2017-01-01 00:00:00 | df0ba21bb46d690ac9894d5efd28be26 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
-|      15 |            3 | 2018-01-01 00:00:00 | 62d1a0ed5b58c42c2bb062ac35145043 | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
-|       4 |            4 | 2016-01-01 00:00:00 | 5a2767ae9d4c0b4c107e86b44700ca88 | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
-|      10 |            4 | 2017-01-01 00:00:00 | 845803b72bc3e9f283fc59946b971f24 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
-|      16 |            4 | 2018-01-01 00:00:00 | 4b9c95c7c5d79ab7d427c9c0dea7b96b | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
-|       5 |            5 | 2016-01-01 00:00:00 | 2f6dd475af37e7c34ec9db4df177ecfd | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
-|      11 |            5 | 2017-01-01 00:00:00 | c0cd05226aca63b1e69c8a684e20f647 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
-|      17 |            5 | 2018-01-01 00:00:00 | b19f971d62806556bb8fb8f32ed38bbb | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
-|       6 |            6 | 2016-01-01 00:00:00 | 3c48165e4b8edf45d00030c8835ad423 | ff127360d74ed8ec4fcf2bcb21a9ebb4 |        11669 | 5 years                 | 2010-01-04 00:00:00 |
-|      12 |            6 | 2017-01-01 00:00:00 | 4aafe62f79ef54e01d7b9c15640dc7e6 | c03aaa4812cf316a933c9d1da1c9ade6 |        26018 | 5 years                 | 2010-01-04 00:00:00 |
-|      18 |            6 | 2018-01-01 00:00:00 | 6663e0c150f5c160f74c722b697dc4bd | f8cf102711b7162ef7d1780613d52f0d |        39394 | 5 years                 | 2010-01-04 00:00:00 |
+| model_group_id | model_id | train_end_time        | model_hash                        | train_matrix_uuid                  | observations | feature_lookback_duration | feature_start_time    |
+|--------------+---------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
+|            1 |       1 | 2015-12-01 00:00:00 | 754614c348179f8d04450d6366770380 | 442c7fb8e1efac9afd2a3c2ad2b5a087 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       5 | 2016-12-01 00:00:00 | aaf2ae73b3898693e8724f17ba2883c8 | 6acdc24d8ed633369148d0fcfcf5dccb |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       9 | 2017-12-01 00:00:00 | ffe2978acd4cb6e187e699e07abeb1b6 | 792cc98c2d15045276b0c9818d46a281 |        38673 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       2 | 2015-12-01 00:00:00 | 988a2312b9ef5ab1dc52b2dfd04de95b | 442c7fb8e1efac9afd2a3c2ad2b5a087 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       6 | 2016-12-01 00:00:00 | 1affee9a5ecf3ae74368e75c6644073d | 6acdc24d8ed633369148d0fcfcf5dccb |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |      10 | 2017-12-01 00:00:00 | 113c583dfe0c353cc6686f2fc088b7b3 | 792cc98c2d15045276b0c9818d46a281 |        38673 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       3 | 2015-12-01 00:00:00 | 852991fe928e72ff862275a9f3326f5e | 442c7fb8e1efac9afd2a3c2ad2b5a087 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       7 | 2016-12-01 00:00:00 | 335929e48b3a922412a32f006846137a | 6acdc24d8ed633369148d0fcfcf5dccb |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |      11 | 2017-12-01 00:00:00 | b63e21446645980359c9cdd134ba5d4f | 792cc98c2d15045276b0c9818d46a281 |        38673 | @ 5 years               | 2010-01-04 00:00:00 |
+|            4 |       4 | 2015-12-01 00:00:00 | 31ee1a220f7bc639cfe6b8a43143cb15 | 442c7fb8e1efac9afd2a3c2ad2b5a087 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            4 |       8 | 2016-12-01 00:00:00 | 496c710f23928cdc83fe6916aa18119d | 6acdc24d8ed633369148d0fcfcf5dccb |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
 :END:
 
 As expected, we have three models per model group. Each model was trained
@@ -680,26 +660,8 @@ order by
 
 #+RESULTS: test_info
 :RESULTS:
-| model_id | model_group_id | train_end_time        | model_hash                        | test_matrix_uuid                   | observations | feature_lookback_duration | feature_start_time    |
-|---------+--------------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
-|       1 |            1 | 2016-01-01 00:00:00 | b8760f6ff91cf67a7e13ddde9a6ebc02 | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
-|       7 |            1 | 2017-01-01 00:00:00 | 8b52fd95a5a95de85a0e686eefb9f321 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
-|      13 |            1 | 2018-01-01 00:00:00 | 76e6eafed233e035ebec64802a367f5a | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
-|       2 |            2 | 2016-01-01 00:00:00 | 50c082cdcda8032066324d2b512b6ecd | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
-|       8 |            2 | 2017-01-01 00:00:00 | dca1e0f675b28dccdb21ccf0b0caa6ff | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
-|      14 |            2 | 2018-01-01 00:00:00 | b88f85a042a9291b7c6ba4e4b6ddfc9c | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
-|       3 |            3 | 2016-01-01 00:00:00 | 3693b4df0280b6b7f92d843839fb90af | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
-|       9 |            3 | 2017-01-01 00:00:00 | df0ba21bb46d690ac9894d5efd28be26 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
-|      15 |            3 | 2018-01-01 00:00:00 | 62d1a0ed5b58c42c2bb062ac35145043 | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
-|       4 |            4 | 2016-01-01 00:00:00 | 5a2767ae9d4c0b4c107e86b44700ca88 | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
-|      10 |            4 | 2017-01-01 00:00:00 | 845803b72bc3e9f283fc59946b971f24 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
-|      16 |            4 | 2018-01-01 00:00:00 | 4b9c95c7c5d79ab7d427c9c0dea7b96b | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
-|       5 |            5 | 2016-01-01 00:00:00 | 2f6dd475af37e7c34ec9db4df177ecfd | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
-|      11 |            5 | 2017-01-01 00:00:00 | c0cd05226aca63b1e69c8a684e20f647 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
-|      17 |            5 | 2018-01-01 00:00:00 | b19f971d62806556bb8fb8f32ed38bbb | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
-|       6 |            6 | 2016-01-01 00:00:00 | 3c48165e4b8edf45d00030c8835ad423 | 8c9404c0189bd4db3bacc104e37df218 |        18728 | 1 mon                   | 2010-01-04 00:00:00 |
-|      12 |            6 | 2017-01-01 00:00:00 | 4aafe62f79ef54e01d7b9c15640dc7e6 | da117a585bd31867a92921e53fe180e9 |        19401 | 1 mon                   | 2010-01-04 00:00:00 |
-|      18 |            6 | 2018-01-01 00:00:00 | 6663e0c150f5c160f74c722b697dc4bd | e1686b2692789dc808e59d50e2d3a595 |        20171 | 1 mon                   | 2010-01-04 00:00:00 |
+| model_id | model_group_id | train_end_time | model_hash | test_matrix_uuid | observations | feature_lookback_duration | feature_start_time |
+|---------+--------------+--------------+-----------+----------------+--------------+-------------------------+------------------|
 :END:
 
 For example, the model =7= was stored as
@@ -1192,6 +1154,14 @@ We will show you when we model /Early Warning/.
 
 
 * Footnotes
+
+[fn:3] The flags =-no-save-predictions= and =profile= are not necessary
+but useful. The first one configure triage to not store the
+predictions (at this stage you don't need them, and you can always
+could recreate them from the model and the matrix). This will save you
+execution time. The flag =profile= stores the /execution/ profile times
+in a file, so you can check which models or matrices are taking a lot
+of time on been built.
 
 [fn:2] We will explore how to one way to tackle this in the advance part of this tutorial.
 
