@@ -170,7 +170,7 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-out']
+feature_group_strategies: ['all']
 
 scoring:
     testing_metric_groups:

@@ -1,0 +1,186 @@
+#+STARTUP: showeverything
+#+STARTUP: nohideblocks
+#+STARTUP: indent
+#+STARTUP: align
+#+STARTUP: inlineimages
+#+STARTUP: latexpreview
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:sql+ :cmdline -q
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session Food_inspections
+#+PROPERTY: header-args:ipython+ :results raw drawer
+#+OPTIONS: broken-links:mark
+#+OPTIONS: tasks:todo
+
+* TODO Scaling out: AWS Batch
+
+For bigger experiments we decided to use =AWS Batch=
+
+AWS Batch requires setup the following infrastructure:
+
+    - An AWS S3 bucket for storing the original data and the successive transformations of it made by the pipeline.
+    - A PostgreSQL database (provided by AWS RDS) for storing the data in a relational form.
+    - An Elastic Container Registry (AWS ECR) for storing the triage's Docker image used in the pipeline.
+    - AWS Batch Job Queue configured and ready to go.
+
+*** Assumptions
+
+    - You have IAM credentials with permissions to run AWS Batch, read
+      AWS S3 and create AWS EC2 machines.
+    - You installed =awscli= and configure your credentials following
+      the standard instructions.
+    - You have access to a S3 bucket with the following form
+      =s3://dssg-${PROJECT_NAME}=
+    - You have a AWS ECR repository with the following form: =dsapp/${PROJECT_NAME}/triage=
+    - You have a AWS Batch job queue configured and have permissions
+      for adding, running, canceling jobs.
+
+
+We need 3 files for running in AWS Batch, copy the files and remove
+the =.example= extension and adapt them to your case:
+
+*** Job definition
+
+Change the =PROJECT_NAME= and =AWS_ACCOUNT= for their real values
+
+ #+BEGIN_SRC json :tangle infrastructure/triage-job-definition.json.example
+ {
+     "jobDefinitionName": "PROJECT_NAME-run-experiment",
+     "type": "container",
+     "containerProperties": {
+         "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dsapp/triage",
+         "vcpus": 60,
+         "memory": 235520,
+         "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
+		 "command": [
+		     "--experiment-file", "Ref::experiment_file", "--output-path", "Ref::output_path", "Ref::replace"
+	     ]
+     },
+     "retryStrategy": {"attempts": 3}
+ }
+ #+END_SRC
+
+*** Environment overrides
+
+Fill out the missing values
+
+#+BEGIN_SRC json :tangle infrastructure/triage-overrides.json.example
+{
+    "environment": [
+        {
+            "name":"AWS_DEFAULT_REGION",
+            "value":"us-west-2"
+        },
+        {
+            "name":"AWS_JOB_QUEUE",
+            "value":""
+        },
+        {
+            "name":"POSTGRES_PASSWORD",
+            "value":""
+        },
+        {
+            "name":"POSTGRES_USER",
+            "value":""
+        },
+        {
+            "name":"POSTGRES_DB",
+            "value":""
+        },
+        {
+            "name":"POSTGRES_PORT",
+            "value":""
+        },
+        {
+            "name":"POSTGRES_HOST",
+            "value":""
+        },
+        {
+            "name":"POSTGRES_ROLE",
+            "value":""
+        },
+        {
+            "name":"NUMBER_OF_PROCESSES",
+            "value":"10"
+        },
+        {
+            "name":"NUMBER_OF_DB_PROCESSES",
+            "value":"1"
+        }
+    ],
+    "command": [
+        "run_experiments"
+    ]
+}
+
+#+END_SRC
+
+*** =credentials-filter=
+
+Leave this file as is (We will use it for storing the temporal token
+in =deploy.sh=)
+
+#+BEGIN_SRC json :tangle infrastructure/credentials.filter.example
+{
+        "environment": [
+                {
+                        "name": "AWS_ACCESS_KEY_ID",
+                        "value": .Credentials.AccessKeyId
+                },
+                {
+                        "name": "AWS_SECRET_ACCESS_KEY",
+                        "value": .Credentials.SecretAccessKey
+                },
+                {
+                        "name": "AWS_SESSION_TOKEN",
+                        "value": .Credentials.SessionToken
+                }
+        ]
+}
+#+END_SRC
+
+
+*** Running an experiment
+
+We provided a simple bash file for creating the image,
+uploading/updating the job definition and running the experiment:
+
+    #+BEGIN_EXAMPLE shell
+    ./deploy.sh -h
+
+    Usage: ./deploy.sh (-h | -i | -u | -b | -r | -a | --sync_{to,from}_s3 )
+    OPTIONS:
+       -h|--help                   Show this message
+       -i|--info                   Show information about the environment
+       -b|--update-images          Build the triage image and push it to the AWS ECR
+       -u|--update-jobs            Update the triage job definition in AWS Batch
+       -r|--run-experiment         Run experiments on chile-dt data
+       -a|--all                    Creates images, pushes them the registry, updates the jobs and runs the pipeline
+       --sync-to-s3                Uploads the experiments and configuration files to s3://your_project
+       --sync-from-s3              Gets the experiments and configuration files from s3://your_project
+    EXAMPLES:
+       Build and push the images to your AWS ECR:
+            $ ./deploy.sh -b
+       Update the job's definitions:
+            $ ./deploy.sh -u
+       Run triage experiments:
+            $ ./deploy.sh -r --experiment_file=s3://your_project/experiments/test.yaml,output_path=s3://your_project/triage,replace=--replace
+       Everything!:
+            $ ./deploy.sh -a --experiment_file=s3://your_project/experiments/test.yaml,output_path=s3://your_project/triage,replace=--replace
+
+    #+END_EXAMPLE
+
+If you have multiple AWS profiles use =deploy.sh= as follows:
+
+#+BEGIN_EXAMPLE sh
+AWS_PROFILE=your_profile ./deploy.sh -b
+#+END_EXAMPLE
+
+Where =your_profile= is the name of the profile in =~/.aws/credentials=
