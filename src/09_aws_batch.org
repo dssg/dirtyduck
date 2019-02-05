@@ -11,13 +11,16 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:sql+ :exports both
+#+PROPERTY: header-args:sql+ :eval no-export
 #+PROPERTY: header-args:sql+ :cmdline -q
 #+PROPERTY: header-args:sh  :results verbatim org
 #+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
-#+PROPERTY: header-args:ipython   :session Food_inspections
+#+PROPERTY: header-args:ipython   :session food_inspections
 #+PROPERTY: header-args:ipython+ :results raw drawer
 #+OPTIONS: broken-links:mark
 #+OPTIONS: tasks:todo
+#+OPTIONS: LaTeX:t
 
 * TODO Scaling out: AWS Batch
 
