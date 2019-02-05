@@ -29,12 +29,8 @@ model_group_keys:
   - 'org'
   - 'team'
   - 'author'
-  - 'etl_date'
   - 'purpose'
-
-grid_config:
-    'sklearn.dummy.DummyClassifier':
-        strategy: [prior,uniform, most_frequent]
+  - 'etl_date'
 
 temporal_config:
     feature_start_time: '2010-01-04'
@@ -88,96 +84,29 @@ feature_aggregations:
         metrics:
           - 'count'
 
-    intervals: ['1month', '3month', '6month', '1y', 'all']
+    intervals: ['all']
 
     groups:
       - 'entity_id'
-
-  -
-    prefix: 'risks'
-    from_obj: 'semantic.events'
-    knowledge_date_column: 'date'
-
-    categoricals_imputation:
-      sum:
-        type: 'zero'
-      avg:
-        type: 'zero'
-
-    categoricals:
-      -
-        column: 'risk'
-        choices: ['low', 'medium', 'high']
-        metrics:
-          - 'sum'
-          - 'avg'
-
-    intervals: ['1month', '3month', '6month', '1y', 'all']
-
-    groups:
-      - 'entity_id'
-      - 'zip_code'
-
-  -
-    prefix: 'results'
-    from_obj: 'semantic.events'
-    knowledge_date_column: 'date'
-
-    categoricals_imputation:
-      all:
-        type: 'zero'
-
-    categoricals:
-      -
-        column: 'result'
-        choice_query: 'select distinct result from semantic.events'
-        metrics:
-          - 'sum'
-          - 'avg'
-
-    intervals: ['1month', '3month', '6month', '1y', 'all']
-
-    groups:
-      - 'entity_id'
-
-  -
-    prefix: 'inspection_types'
-    from_obj: 'semantic.events'
-    knowledge_date_column: 'date'
-
-    categoricals_imputation:
-      sum:
-        type: 'zero_noflag'
-
-    categoricals:
-      -
-        column: 'type'
-        choice_query: 'select distinct type from semantic.events where type is not null'
-        metrics:
-          - 'sum'
-
-    intervals: ['1month', '3month', '6month', '1y', 'all']
-
-    groups:
-      - 'entity_id'
-      - 'zip_code'
 
 feature_group_definition:
    prefix:
      - 'inspections'
-     - 'results'
-     - 'risks'
-     - 'inspection_types'
 
 feature_group_strategies: ['all']
+
+grid_config:
+    'sklearn.dummy.DummyClassifier':
+        strategy: [prior,uniform, most_frequent]
 
 scoring:
     testing_metric_groups:
         -
           metrics: [precision@, recall@]
           thresholds:
-            percentiles: [1.0, 5.0, 10.0]
-            top_n: [1, 5, 10, 25, 50]
+            percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
 
     training_metric_groups:
       -
@@ -185,5 +114,5 @@ scoring:
       -
         metrics: [precision@, recall@]
         thresholds:
-          percentiles: [1.0, 5.0, 10.0]
-          top_n: [1, 5, 10, 25, 50]
+          percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+          top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]

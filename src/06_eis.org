@@ -1,6 +1,9 @@
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
 #+STARTUP: indent
+#+STARTUP: align
+#+STARTUP: inlineimages
+#+STARTUP: latexpreview
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
@@ -8,24 +11,26 @@
 #+PROPERTY: header-args:sql+ :dbpassword some_password
 #+PROPERTY: header-args:sql+ :database food
 #+PROPERTY: header-args:sql+ :results table drawer
-#+PROPERTY: header-args:shell     :results drawer
-#+PROPERTY: header-args:ipython   :session :exports both :results raw drawer
-#+PROPERTY: header-args:python    :session food_inspections :results output drawer
+#+PROPERTY: header-args:sql+ :cmdline -q
 #+PROPERTY: header-args:sh  :results verbatim org
-#+PROPERTY: header-args:sh+  :dir ..
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session Food_inspections
+#+PROPERTY: header-args:ipython+ :results raw drawer
+#+OPTIONS: broken-links:mark
+#+OPTIONS: tasks:todo
+#+OPTIONS: LaTeX:t
 
 * An Early Intervention System
 
 ** Problem description
 
 =triage= is designed to also build early warning systems (also called early intervention, EIS).
-While there are
- several differences between modeling early warnings and inspection
- prioritization, perhaps the biggest is that
- the /entity/ is active (i.e. it is doing stuff for which
+While there are  several differences between modeling early warnings and inspection
+ prioritization, perhaps the biggest is that  the /entity/ is active
+(i.e. it is doing stuff for which
  an outcome will happen) in EIS but passive (i.e. inspected)
  in *inspection prioritization*. Among other things, this difference
- affects the way the /outcome/ is built.
+affects the way the /outcome/ is built.
 
 Here's the question we want to answer:
 
@@ -578,134 +583,3 @@ limit 25
 
 The list of important features looks reasonable, which increases
 our confidence in the results.
-
-
-** Postmodeling
-
-*** How can I pick the best one?
-
-Now you have *42* /model groups/. Which is best? Which should you choose to
-use? This is not as easy as it sounds, due to several factors:
-
-- You can try to pick the best using a metric
-  specified in the config file (=precision@= and =recall@=),
-  but at what point of time? Maybe different model groups are best
-  at different prediction times.
-- You can just use the one that performs best on the last test set.
-- You can value a model group that provides consistent results over time.
-  It might not be the best on any test set, but you can feel more
-  confident that it will continue to perform similarly.
-- If there are several model groups that perform similarly and
-  their lists are more or less similar, maybe it doesn't really
-  matter which you pick.
-
-=triage= provides this functionality in =audition= and in
-=postmodel=. At the moment of this writing, these two modules require
-more interaction (i.e. they aren't integrated with the /configuration
-file/).
-
-=Audition= formalizes this idea through /selection rules/ that take in
-the data up to a given point in time, apply some rule to choose a
-model group, and then evaluate the performance (*regret*) of the chosen
-model group in the subsequent time window.
-
-=Audition= predefines 7 rules:
-
-1. =best_current_value= :: Pick the model group with the best current metric Value.
-2. =best_average_value= :: Pick the model with the highest average metric value so far.
-3. =lowest_metric_variance= :: Pick the model with the lowest metric variance so far.
-4. =most_frequent_best_dist= :: Pick the model that is most frequently
-     within =dist_from_best_case= from the best-performing model group
-     across test sets so far.
-5. =best_average_two_metrics= :: Pick the model with the highest
-     average combined value to date of two metrics weighted together
-     using =metric1_weight=.
-6. =best_avg_var_penalized= :: Pick the model with the highest average
-     metric value so far, penalized for relative variance ss:
-     =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
-     =min_stdev= is the minimum standard deviation of the metric
-     across all model groups
-7.  =best_avg_recency_weight= :: Pick the model with the highest
-     average metric value so far, penalized for relative variance as:
-     =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
-     =min_stdev= is the minimum standard deviation of the metric
-     across all  model groups
-
-We included a simple configuration file with some rules:
-
-#+BEGIN_SRC yaml :tangle ../triage/selection_rules/rules.yaml
--
-  shared_parameters:
-    -
-      metric: 'precision@'
-      parameter: '50_abs'
-  selection_rules:
-    -
-      name: best_current_value
-      n: 1
-    -
-      name: best_average_value
-      n: 1
-    -
-      name: lowest_metric_variance
-      n: 1
-    -
-      name: most_frequent_best_dist
-      dist_from_best_case: [0.05]
-      n: 1
-#+END_SRC
-
-=Audition= will have each rule give you the best $n$ model-group IDs
-based on the metric and parameter following that rule for the most
-recent time period (in all the rules shown $n$ = 1).
-
-We can run the simulation of the rules againts the experiment as:
-
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file eis_01.yaml audit_models --metric precision@50_abs --rules rules.yaml
-#+END_SRC
-
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/eis_01.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Auditing experiment
-
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-          +                                                  +
-          +          Results of the simulation               +
-          +                                                  +
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-{'best_average_value_precision@_50_abs': [24],
- 'best_current_value_precision@_50_abs': [48, 24],
- 'lowest_metric_variance_precision@_50_abs': [24],
- 'most_frequent_best_dist_precision@_50_abs_0.05': [48]}
-
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-          +                                                  +
-          +          Average regret per rule                 +
-          +                                                  +
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-{'precision@50_abs': {'best_average_value_precision@_50_abs': 0.0,
-                      'best_current_value_precision@_50_abs': 0.0,
-                      'lowest_metric_variance_precision@_50_abs': 0.08,
-                      'most_frequent_best_dist_precision@_50_abs_0.05': 0.02}}
-
-#+END_SRC
-
-*** What's next?
-
-  - Add the shape file
-    https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&format=Shapefile
-    and generate geospatial variables using =location=
-  - Text analysis on the /violations/' =comments= column and generate
-    new /outcomes/ or /features/?
-  - Run =pgdedup= and had a better =semantic.entities=?
-  - Routing based on the inspection list?
-  - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)?

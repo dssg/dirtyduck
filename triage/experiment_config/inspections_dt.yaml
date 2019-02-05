@@ -7,7 +7,7 @@ user_metadata:
   experiment_type: 'inspections prioritization'
   description: |
     Decision Tree Classifier
-  purpose: 'test'
+  purpose: 'data mining'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
@@ -160,7 +160,7 @@ feature_aggregations:
 
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [2,10]
+        max_depth: [2,10,~]
         min_samples_split: [2,5]
 
 feature_group_definition:
@@ -177,8 +177,9 @@ scoring:
         -
           metrics: [precision@, recall@]
           thresholds:
-            percentiles: [1.0, 5.0, 10.0]
-            top_n: [1, 5, 10, 25, 50]
+            percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
 
     training_metric_groups:
       -
@@ -186,5 +187,5 @@ scoring:
       -
         metrics: [precision@, recall@]
         thresholds:
-          percentiles: [1.0, 5.0, 10.0]
-          top_n: [1, 5, 10, 25, 50]
+          percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+          top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
