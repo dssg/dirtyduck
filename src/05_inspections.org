@@ -665,7 +665,7 @@ user_metadata:
 
 #+END_SRC
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml :export none
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml :exports none
 model_group_keys:
   - 'class_path'
   - 'parameters'
@@ -908,8 +908,6 @@ You can execute the experiment like this:
 # Remember to run this in bastion  NOT in your laptop shell!
 triage experiment experiment_config/inspections_baseline.yaml --no-save-predictions --profile
 #+END_SRC
-
-
 
 
 
