@@ -605,7 +605,7 @@ from
 where
     ev.metric || ev.parameter = 'precision@100_pct'
 order by
-    train_end_time asc, model_group_id
+    train_end_time asc, model_group_id;
 #+END_SRC
 
 #+RESULTS:
@@ -735,7 +735,16 @@ For this experiment, we will add the following features:
 - Number of different types of inspections that happened in the
   zip code in the last year from a particular day.
 
+- Number of inspections
 
+- Number/proportion of inspections by result type
+
+- Number/proportion of times that a facility was classify with particular risk level
+
+In all of them we will do the aggregation in the last month, 3 months,
+6 months, 1 year and historically. Remember
+that all this refers to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
+/What is the proportion of failed inspections in the previous year?/
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
 feature_aggregations:
@@ -901,88 +910,33 @@ configuration is correct:
 triage experiment experiment_config/inspections_dt.yaml  --validate-only
 #+END_SRC
 
+and check the temporal cross validation:
+
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
+
+# Remember to run this in bastion  NOT in your laptop shell!
+triage showtimechops experiment_config/inspections_dt.yaml
+#+END_SRC
+
+#+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 800 :height 800
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/inspections_dt.png]]
+
+
 You can execute the experiment like this:
 
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_baseline.yaml --no-save-predictions --profile
+triage experiment experiment_config/inspections_dt.yaml --no-save-predictions --profile
 #+END_SRC
 
 
-
-The features used by that model are:
-
-#+BEGIN_SRC sql
-select
-    unnest(feature_list) as features
-from
-    model_metadata.model_groups
-where
-    model_group_id = 1
-limit 10;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| features                                           |
-|----------------------------------------------------|
-| inspections_entity_id_1month_total_count                |
-| inspections_entity_id_1y_total_count                    |
-| inspections_entity_id_3month_total_count                |
-| inspections_entity_id_6month_total_count                |
-| inspections_entity_id_all_total_count                   |
-| inspection_types_entity_id_1month_type_canvass_sum        |
-| inspection_types_entity_id_1month_type_complaint_sum      |
-| inspection_types_entity_id_1month_type_consultation_sum   |
-| inspection_types_entity_id_1month_type_food poisoning_sum |
-| inspection_types_entity_id_1month_type_license_sum        |
-:END:
-
-
-Finally, the performance of the model =7=  are:
-
-#+BEGIN_SRC sql
-select
-    model_id,
-    metric || parameter as metric,
-    value,
-    num_labeled_examples,
-    num_labeled_above_threshold,
-    num_positive_labels
-from
-    test_results.evaluations
-where
-    metric || parameter = 'precision@10.0_pct'
-order by
-    num_labeled_above_threshold asc,
-    metric asc;
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-| model_id | metric            |               value | num_labeled_examples | num_labeled_above_threshold | num_positive_labels |
-|---------+-------------------+---------------------+--------------------+--------------------------+-------------------|
-|      10 | precision@10.0_pct |   0.301792828685259 |              10490 |                     1004 |              2449 |
-|       9 | precision@10.0_pct |   0.301792828685259 |              10490 |                     1004 |              2449 |
-|      11 | precision@10.0_pct | 0.33541341653666146 |              10490 |                     1282 |              2449 |
-|      12 | precision@10.0_pct | 0.33514774494556765 |              10490 |                     1286 |              2449 |
-|       6 | precision@10.0_pct | 0.29917106254709874 |              13637 |                     1327 |              3203 |
-|       5 | precision@10.0_pct | 0.29917106254709874 |              13637 |                     1327 |              3203 |
-|       3 | precision@10.0_pct |  0.2864450127877238 |              14273 |                     1564 |              3460 |
-|       4 | precision@10.0_pct |  0.3032178217821782 |              14273 |                     1616 |              3460 |
-|       8 | precision@10.0_pct |  0.3256797583081571 |              13637 |                     1655 |              3203 |
-|       7 | precision@10.0_pct |  0.3281343731253749 |              13637 |                     1667 |              3203 |
-|       1 | precision@10.0_pct |  0.3380352644836272 |              14273 |                     1985 |              3460 |
-|       2 | precision@10.0_pct |  0.3380352644836272 |              14273 |                     1985 |              3460 |
-:END:
-
-
-
-
-
-
-After the experiment finishes, you will get 3 new =model_groups= (1 per strategy)
+After the experiment finishes, you will get *5* new =model_groups= (1 per
+combination in =grid_config=)
 
 #+BEGIN_SRC sql
 select
@@ -990,73 +944,89 @@ select
     model_type,
     hyperparameters
 from
-    model_metadata.model_groups;
+    model_metadata.model_groups
+where
+    model_group_id not in (1,2,3);
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                           | hyperparameters                           |
-|--------------+-------------------------------------+-------------------------------------------|
-|            1 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": 1}         |
-|            2 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": "sqrt"}    |
-|            3 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 1, "max_features": null}      |
-|            4 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "max_features": 1}      |
-|            5 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "max_features": "sqrt"} |
-|            6 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "max_features": null}   |
-|            7 | sklearn.dummy.DummyClassifier       | {"strategy": "prior"}                     |
-|            8 | sklearn.dummy.DummyClassifier       | {"strategy": "uniform"}                   |
-|            9 | sklearn.dummy.DummyClassifier       | {"strategy": "most_frequent"}              |
+| model_group_id | model_type                           | hyperparameters                          |
+|--------------+-------------------------------------+------------------------------------------|
+|            4 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 2}    |
+|            5 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 5}    |
+|            6 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 10, "min_samples_split": 2}   |
+|            7 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 10, "min_samples_split": 5}   |
+|            8 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "min_samples_split": 2} |
+|            9 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "min_samples_split": 5} |
 :END:
 
+and *15* models
+
 #+BEGIN_SRC sql
-with baseline as (
 select
-    model_id,
-    model_group_id
+    model_group_id,
+    array_agg(model_id) as models,
+    array_agg(train_end_time) as train_end_times
 from
     model_metadata.models
 where
-    model_type ~ 'DummyClassifier'
-)
-
-select
-    model_group_id,
-    model_id,
-    metric || parameter as metric,
-    value
-from
-    test_results.evaluations
-    inner join
-    baseline using(model_id)
-where
-    metric || parameter = 'precision@25_abs'
+    model_group_id not in (1,2,3)
+group by
+    model_group_id
 order by
-    metric || parameter, model_id;
+    model_group_id;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | metric          | value |
-|--------------+---------+-----------------+-------|
-|            7 |      19 | precision@25_abs |   0.0 |
-|            8 |      20 | precision@25_abs |   0.0 |
-|            9 |      21 | precision@25_abs |   0.0 |
-|            7 |      22 | precision@25_abs |   0.0 |
-|            8 |      23 | precision@25_abs |   0.0 |
-|            9 |      24 | precision@25_abs |   0.0 |
-|            7 |      25 | precision@25_abs |   0.5 |
-|            8 |      26 | precision@25_abs |   0.5 |
-|            9 |      27 | precision@25_abs |   0.5 |
+| model_group_id | models     | train_end_times                                                       |
+|--------------+------------+---------------------------------------------------------------------|
+|            4 | {10,16,22} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            5 | {11,17,23} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            6 | {12,18,24} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            7 | {13,19,25} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            8 | {14,20,26} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
+|            9 | {15,21,27} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
 :END:
 
+Let's see the performance of the new models:
 
+#+BEGIN_SRC  sql :async
+select distinct on (train_end_time)
+    model_group_id,
+    model_id,
+    train_end_time::date,
+    ev.evaluation_start_time::date,
+    ev.evaluation_end_time::date,
+    to_char(ev.num_labeled_examples, '999,999') as labeled_examples,
+    to_char(ev.num_labeled_above_threshold, '999,999') as labeled_above_threshold,
+    to_char(ev.num_positive_labels, '999,999') as total_positive_labels,
+    to_char(ev.value, '0.999') as "precision@10%"
+from
+    model_metadata.models as mo
+    join
+    test_results.evaluations as ev using(model_id)
+where
+    ev.metric || ev.parameter = 'precision@10_pct'
+order by
+    train_end_time asc, ev.value desc;
+#+END_SRC
 
+#+RESULTS:
+:RESULTS:
+| model_group_id | model_id | train_end_time | evaluation_start_time | evaluation_end_time | labeled_examples | labeled_above_threshold | total_positive_labels | precision@10% |
+|--------------+---------+--------------+---------------------+-------------------+-----------------+-----------------------+---------------------+---------------|
+|            5 |      11 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 14,273          | 2,014                 | 3,460               |         0.336 |
+|            7 |      19 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 13,637          | 1,675                 | 3,203               |         0.331 |
+|            6 |      24 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 10,490          | 1,254                 | 2,449               |         0.344 |
+:END:
 
 
 *** A more advanced experiment
 
 Ok, let's add a more complete experiment. First the usual generalities.
-N
+
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 config_version: 'v6'
 
@@ -1067,18 +1037,52 @@ user_metadata:
   experiment_type: 'inspections prioritization'
   description: |
     Using Ensamble methods
-  purpose: 'try ensamble algorithms'
+  purpose: 'trying ensamble algorithms'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
   etl_date: '2019-01-18'
 #+END_SRC
 
-As before, =triage= needs special tables that specify /outcomes/ (that is, call
-=events_table=) and /states/. These are the
-same; we didn't change anything.
+We won't change anything related to features, cohort and label
+definition neither to temporal configuration.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml :exports none
+model_group_keys:
+  - 'class_path'
+  - 'parameters'
+  - 'feature_names'
+  - 'feature_groups'
+  - 'cohort_name'
+  - 'state'
+  - 'label_name'
+  - 'label_timespan'
+  - 'training_as_of_date_frequency'
+  - 'max_training_history'
+  - 'label_definition'
+  - 'experiment_type'
+  - 'org'
+  - 'team'
+  - 'author'
+  - 'purpose'
+  - 'etl_date'
+
+temporal_config:
+    feature_start_time: '2010-01-04'
+    feature_end_time: '2019-01-01'
+    label_start_time: '2015-02-01'
+    label_end_time: '2019-01-01'
+
+    model_update_frequency: '1y'
+    training_label_timespans: ['1month']
+    training_as_of_date_frequencies: '1month'
+
+    test_durations: '1y'
+    test_label_timespans: ['1month']
+    test_as_of_date_frequencies: '1month'
+
+    max_training_histories: '5y'
+
 label_config:
   query: |
     select
@@ -1097,49 +1101,7 @@ cohort_config:
     where
     daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
   name: 'active_facilities'
-#+END_SRC
 
-Neither to the temporal configuration:
-
-#+BEGIN_SRC  yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
-temporal_config:
-    feature_start_time: '2010-01-04'
-    feature_end_time: '2019-01-01'
-    label_start_time: '2015-02-01'
-    label_end_time: '2019-01-01'
-
-    model_update_frequency: '1y'
-    training_label_timespans: ['1month']
-    training_as_of_date_frequencies: '1month'
-
-    test_durations: '1y'
-    test_label_timespans: ['1month']
-    test_as_of_date_frequencies: '1month'
-
-    max_training_histories: '5y'
-
-#+END_SRC
-
-As before, we can check the temporal structure of our crossvalidation:
-
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
-
-# Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiment_config/inspections_label_failed_01.yaml
-#+END_SRC
-
-#+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
-#+ATTR_ORG: :width 600 :height 400
-#+ATTR_HTML: :width 800 :height 800
-#+ATTR_LATEX: :width 400 :height 300
-[[./images/inspections.png]]
-
-The first big change is that we are adding 3 more /features groups/:
-=inspections= (we already use this), =risks=, and =results=. Remember
-that all this refers to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
-/What is the average rate of failed inspections in the previous year?/
-
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 feature_aggregations:
   -
     prefix: 'inspections'
@@ -1233,6 +1195,22 @@ feature_aggregations:
 
 #+END_SRC
 
+
+As before, we can check the temporal structure of our crossvalidation:
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
+
+# Remember to run this in bastion  NOT in your laptop shell!
+triage showtimechops experiment_config/inspections_label_failed_01.yaml
+#+END_SRC
+
+#+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 800 :height 800
+#+ATTR_LATEX: :width 400 :height 300
+[[./images/inspections_label_failed_01.png]]
+
+
 We want to use all the features groups
 (=feature_group_definition=). The training will be made on matrices
 with =all= the feature groups, then leaving one feature group out at a time,
@@ -1242,7 +1220,6 @@ leaving one feature group in at a time (i.e. a model with =inspections= only,
 another with =results= only, and a third with =risks= only).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
-
 feature_group_definition:
    prefix:
      - 'inspections'
@@ -1253,8 +1230,7 @@ feature_group_definition:
 feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
 
-Finally, we will try a =RandomForestClassifier=:
-
+Finally, we will try some =RandomForestClassifier=:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
 grid_config:
@@ -1293,8 +1269,6 @@ triage experiment experiment_config/inspections_label_failed_01.yaml  --validate
 
 You can execute the experiment with
 
-
-
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
 triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-predictions --profile
@@ -1303,8 +1277,6 @@ triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-p
 This will take a looooong time to run.
 
 Well, now we have a lot of models. How can you pick the best one?
-We will show you when we model /Early Warning/.
-
 
 * Footnotes
 
