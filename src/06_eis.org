@@ -73,19 +73,40 @@ First the usual stuff. Note that we are changing =model_comment= and
 /hash/ that differentiates models and model groups).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
-config_version: 'v5'
+config_version: 'v6'
 
-model_comment: 'eis'
+model_comment: 'eis: 01'
 
 user_metadata:
   label_definition: 'inspected'
   experiment_type: 'eis'
   description: |
-    Experiment 01
-  purpose: 'exploring'
+    EIS 01
+  purpose: 'model creation'
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
+  etl_date: '2019-01-18'
+
+model_group_keys:
+  - 'class_path'
+  - 'parameters'
+  - 'feature_names'
+  - 'feature_groups'
+  - 'cohort_name'
+  - 'state'
+  - 'label_name'
+  - 'label_timespan'
+  - 'training_as_of_date_frequency'
+  - 'max_training_history'
+  - 'label_definition'
+  - 'experiment_type'
+  - 'org'
+  - 'team'
+  - 'author'
+  - 'purpose'
+  - 'etl_date'
+
 #+END_SRC
 
 For the labels the query is pretty simple, if the facility showed in
@@ -121,7 +142,7 @@ cohort_config:
     select entity_id
     from semantic.entities
     where
-    tsrange(start_time, end_time, '[]') @> {as_of_date}
+    daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
   name: 'active_facilities'
 #+END_SRC
 
@@ -134,15 +155,15 @@ We need to specify the temporal configuration too
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
-    feature_end_time: '2018-03-13'
+    feature_end_time: '2019-01-01'
     label_start_time: '2015-02-01'
-    label_end_time: '2018-03-13'
+    label_end_time: '2019-01-01'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
+    test_durations: '1y'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -153,30 +174,18 @@ temporal_config:
 As before, you can generate the image of the temporal blocks:
 
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file eis_01.yaml show-temporal-blocks
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
+
+# Remember to run this in bastion  NOT in your laptop shell!
+triage showtimechops experiment_config/eis_01.yaml
 #+END_SRC
 
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/eis_01.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Generating temporal blocks image
-Image stored in:
-/triage/output/images/eis.svg
-/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
-  """)
-#+End_src
 
 #+CAPTION: Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/eis.png]]
+[[./images/eis_01.png]]
 
 **** Features
 
@@ -184,89 +193,101 @@ Regarding the features, we will use the same ones that were used in [[file:inspe
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_aggregations:
-    -
-        prefix: 'inspections'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+  -
+    prefix: 'inspections'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    aggregates_imputation:
+      count:
+        type: 'zero_noflag'
 
-        categoricals:
-            -   # inspection type
-                column: 'type'
-                choice_query: 'select distinct type from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    aggregates:
+      -
+        quantity:
+          total: "*"
+        metrics:
+          - 'count'
 
-        intervals:
-            - '2y'
-            - '1y'
-            - '6month'
-            - '3month'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
+    groups:
+      - 'entity_id'
 
-    -
-        prefix: 'risks'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+  -
+    prefix: 'risks'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    categoricals_imputation:
+      sum:
+        type: 'zero'
+      avg:
+        type: 'zero'
 
-        categoricals:
-            -   # Facility's Risk
-                column: 'risk'
-                choice_query: 'select distinct risk from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    categoricals:
+      -
+        column: 'risk'
+        choices: ['low', 'medium', 'high']
+        metrics:
+          - 'sum'
+          - 'avg'
 
-        intervals:
-            - '2y'
-            - '1y'
-            - '6month'
-            - '3month'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
-            - 'facility_type'
+    groups:
+      - 'entity_id'
+      - 'zip_code'
 
+  -
+    prefix: 'results'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-    -
-        prefix: 'results'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+    categoricals_imputation:
+      all:
+        type: 'zero'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    categoricals:
+      -
+        column: 'result'
+        choice_query: 'select distinct result from semantic.events'
+        metrics:
+          - 'sum'
+          - 'avg'
 
-        categoricals:
-            -   # Result of previous inspections
-                column: 'result'
-                choice_query: 'select distinct result from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        intervals:
-            - '2y'
-            - '1y'
-            - '6month'
-            - '3month'
+    groups:
+      - 'entity_id'
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
-            - 'facility_type'
+  -
+    prefix: 'inspection_types'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
+
+    categoricals_imputation:
+      sum:
+        type: 'zero_noflag'
+
+    categoricals:
+      -
+        column: 'type'
+        choice_query: 'select distinct type from semantic.events where type is not null'
+        metrics:
+          - 'sum'
+
+    intervals: ['1month', '3month', '6month', '1y', 'all']
+
+    groups:
+      - 'entity_id'
+      - 'zip_code'
+
+grid_config:
+    'sklearn.tree.DecisionTreeClassifier':
+        max_depth: [2,10,~]
+        min_samples_split: [2,5]
+
 
 #+END_SRC
 
@@ -274,7 +295,11 @@ We declare that we want to use all possible feature-group combinations for train
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 feature_group_definition:
-   prefix: ['inspections', 'results', 'risks']
+   prefix:
+     - 'inspections'
+     - 'results'
+     - 'risks'
+     - 'inspection_types'
 
 feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 #+END_SRC
@@ -291,98 +316,61 @@ We will collapse the baseline (=DummyClassifier=) and the exploratory configurat
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [1,null]
+        max_depth: [2,null]
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
         n_estimators: [1000]
         min_samples_leaf: [1]
         min_samples_split: [50]
-        class_weight: ['balanced']
     'sklearn.dummy.DummyClassifier':
-        strategy: [prior,uniform, most_frequent]
+        strategy: [most_frequent]
 #+END_SRC
 
-=triage= will create *42* /model groups/: 6 algorithms and
+=triage= will create *36* /model groups/: *4* algorithms and
 hyperparameters (2 =DecisionTreeClassifier=, 1
-=RandomForestClassifier=, 3 =DummyClassifier=) \times 7 features groups (1
-=all=, 3 =leave-one-in=, 3 =leave-one-out=). The total number of /models/
-is double that (we have 2 time blocks, so *84*).
+=RandomForestClassifier=, 1 =DummyClassifier=) \times *9* features groups (1
+=all=, 4 =leave-one-in=, 4 =leave-one-out=). The total number of /models/
+is triple that (we have 3 time blocks, so *96*).
 
 
 #+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
 scoring:
-    sort_seed: 1234
     testing_metric_groups:
         -
-            metrics: ['precision@', 'recall@']
-            thresholds:
-                percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
-                top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+          metrics: [precision@, recall@]
+          thresholds:
+            percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
+
     training_metric_groups:
       -
         metrics: [accuracy]
       -
         metrics: [precision@, recall@]
         thresholds:
-            percentiles: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
-            top_n: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
+          percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+          top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
 #+END_SRC
 
 As a last step, we validate that the configuration file is correct:
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file eis_01.yaml validate
-#+END_SRC
 
-#+RESULTS:
-#+BEGIN_SRC org
-Using the config file /triage/experiment_config/eis_01.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Validating experiment's configuration
-Experiment validation ran to completion with no errors
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
-----TIME SPLIT SUMMARY----
-
-Number of time splits: 3
-Split index 0:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2015-12-13 00:00:00 (11 total)
-            Testing as_of_time range: 2016-01-13 00:00:00 to 2016-01-13 00:00:00 (1 total)
-
-
-Split index 1:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2016-12-13 00:00:00 (23 total)
-            Testing as_of_time range: 2017-01-13 00:00:00 to 2017-01-13 00:00:00 (1 total)
-
-
-Split index 2:
-            Training as_of_time_range: 2015-02-13 00:00:00 to 2017-12-13 00:00:00 (35 total)
-            Testing as_of_time range: 2018-01-13 00:00:00 to 2018-01-13 00:00:00 (1 total)
-
-
-For more detailed information on your time splits, inspect the experiment `split_definitions` property
-
-           The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum
-           number of columns allowed or collision in
-           the column names, both due to PostgreSQL limitations.
-
-The experiment looks in good shape. May the force be with you!
-/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
-  """)
-/usr/local/lib/python3.6/site-packages/sqlalchemy/sql/base.py:291: SAWarning: Can't validate argument 'autoload_from'; can't locate any SQLAlchemy dialect named 'autoload'
-  (k, dialect_name))
+# Remember to run this in bastion  NOT in your laptop shell!
+triage experiment experiment_config/eis_01.yaml  --validate-only
 #+END_SRC
 
 
+And then just run it:
 
-#+BEGIN_EXAMPLE sh
-./tutorial.sh triage --config_file eis_01.yaml --no-replace --debug run
-#+END_EXAMPLE
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
+# Remember to run this in bastion  NOT in your laptop shell!
+triage experiment experiment_config/inspections_dt.yaml --profile
+#+END_SRC
 
 This will take a *lot* amount of time (on my computer took 3h 42m),
 so, grab your coffee, chat with
