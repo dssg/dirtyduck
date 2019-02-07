@@ -171,7 +171,7 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
+feature_group_strategies: ['all', 'leave-one-out']
 
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
@@ -179,7 +179,7 @@ grid_config:
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
-        n_estimators: [1000]
+        n_estimators: [250]
         min_samples_leaf: [1]
         min_samples_split: [50]
     'sklearn.dummy.DummyClassifier':
