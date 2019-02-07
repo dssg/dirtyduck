@@ -30,5 +30,5 @@
            as tuple
        from raw.inspections
        where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null
-           ) as t
+           ) as t:
        );
