@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-02-05 Tue 17:27 -->
+<!-- 2019-02-07 Thu 16:59 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -262,106 +262,107 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgcac8305">1. Description of the problem</a>
+<li><a href="#orgf02e41a">1. Description of the problem</a>
 <ul>
-<li><a href="#org5dc2c36">1.1. Inspection Prioritization</a></li>
-<li><a href="#orge0f3433">1.2. Early Warning</a></li>
-<li><a href="#org405463d">1.3. What do they have in common?</a></li>
+<li><a href="#org50a7bdd">1.1. Inspection Prioritization</a></li>
+<li><a href="#orgb453b4a">1.2. Early Warning</a></li>
+<li><a href="#org222020b">1.3. What do they have in common?</a></li>
 </ul>
 </li>
-<li><a href="#orgd8a0dc6">2. Infrastructure</a></li>
-<li><a href="#orgd69bf98">3. Data preparation</a>
+<li><a href="#org82de306">2. Infrastructure</a></li>
+<li><a href="#org77c6036">3. Data preparation</a>
 <ul>
-<li><a href="#org0de99fc">3.1. Load the data</a></li>
-<li><a href="#org16aa6eb">3.2. Transforming (and cleaning) the data</a>
+<li><a href="#orgfe2b699">3.1. Load the data</a></li>
+<li><a href="#org1d5d7e5">3.2. Transforming (and cleaning) the data</a>
 <ul>
-<li><a href="#org4a5abaf">3.2.1. Rationale</a></li>
-<li><a href="#org0679516">3.2.2. Dataset documentation</a></li>
-<li><a href="#org4753f22">3.2.3. Reality check</a></li>
-<li><a href="#org09208c7">3.2.4. Cleaning</a></li>
+<li><a href="#orgfd7629e">3.2.1. Rationale</a></li>
+<li><a href="#org533b5c2">3.2.2. Dataset documentation</a></li>
+<li><a href="#orgc17a762">3.2.3. Reality check</a></li>
+<li><a href="#org4486e60">3.2.4. Cleaning</a></li>
 </ul>
 </li>
-<li><a href="#orgf5f30ec">3.3. Semantic tables</a>
+<li><a href="#orgad39f7f">3.3. Semantic tables</a>
 <ul>
-<li><a href="#orgc7a0556">3.3.1. Entities table</a></li>
-<li><a href="#org44d6e9e">3.3.2. Events table</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#org2fb8f6e">4. Triage</a>
-<ul>
-<li><a href="#org89f70f8">4.1. Triage interface</a></li>
-<li><a href="#org3a13168">4.2. A simple <code>triage</code> experiment</a>
-<ul>
-<li><a href="#org690694a">4.2.1. A brief recap of Machine Learning</a></li>
-<li><a href="#orgaaab30f">4.2.2. Cohorts, labels, event dates and as of dates</a></li>
-</ul>
-</li>
-<li><a href="#org475e47a">4.3. Experiment configuration file</a></li>
-<li><a href="#org5853c8a">4.4. Temporal crossvalidation</a></li>
-<li><a href="#orgf635ff6">4.5. Feature engineering</a>
-<ul>
-<li><a href="#orgf2da15d">4.5.1. Imputation</a></li>
-<li><a href="#org094a8b0">4.5.2. Feature groups strategies</a></li>
-<li><a href="#orga7b8fee">4.5.3. Controlling the size of the tables</a></li>
-</ul>
-</li>
-<li><a href="#org72bbd8b">4.6. The Grid</a></li>
-<li><a href="#org517e812">4.7. Machine learning governance</a>
-<ul>
-<li><a href="#orgb83754d">4.7.1. What are all the results tables about?</a></li>
-</ul>
-</li>
-<li><a href="#org9061018">4.8. Audition</a></li>
-<li><a href="#org6839c7f">4.9. Post-modeling</a></li>
-<li><a href="#org213a745">4.10. Final cleaning</a></li>
-</ul>
-</li>
-<li><a href="#orgdb6bf74">5. Inpection prioritization</a>
-<ul>
-<li><a href="#orgcd11d8a">5.1. Problem description</a></li>
-<li><a href="#org244e3a1">5.2. Creating the labels</a></li>
-<li><a href="#org8e7efd3">5.3. Modeling Using Machine Learning</a>
-<ul>
-<li><a href="#org5fe0e49">5.3.1. Defining a baseline</a></li>
-<li><a href="#org497add6">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
-<li><a href="#org262d137">5.3.3. A more advanced experiment</a></li>
+<li><a href="#org26abfaa">3.3.1. Entities table</a></li>
+<li><a href="#org587ff73">3.3.2. Events table</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org871878b">6. An Early Intervention System</a>
+<li><a href="#orgaaf226f">4. Triage</a>
 <ul>
-<li><a href="#org783534b">6.1. Problem description</a></li>
-<li><a href="#org4c7dbda">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org6063795">6.3. Modeling Using Machine Learning</a></li>
+<li><a href="#orgfae74a9">4.1. Triage interface</a></li>
+<li><a href="#org9808ee1">4.2. A simple <code>triage</code> experiment</a>
+<ul>
+<li><a href="#orga85f561">4.2.1. A brief recap of Machine Learning</a></li>
+<li><a href="#org6603ada">4.2.2. Cohorts, labels, event dates and as of dates</a></li>
 </ul>
 </li>
-<li><a href="#orgd551779">7. <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</a></li>
-<li><a href="#org9cde855">8. <span class="todo TODO">TODO</span> Postmodeling</a></li>
-<li><a href="#org7887854">9. <span class="todo TODO">TODO</span> Scaling out: AWS Batch</a>
+<li><a href="#org909b341">4.3. Experiment configuration file</a></li>
+<li><a href="#org26eb9e7">4.4. Temporal crossvalidation</a></li>
+<li><a href="#org441dad5">4.5. Feature engineering</a>
 <ul>
-<li>
+<li><a href="#orgdb5fe76">4.5.1. Imputation</a></li>
+<li><a href="#org06c3b3b">4.5.2. Feature groups strategies</a></li>
+<li><a href="#org27101f7">4.5.3. Controlling the size of the tables</a></li>
+</ul>
+</li>
+<li><a href="#org4b2cc89">4.6. The Grid</a></li>
+<li><a href="#orgc005e8d">4.7. Machine learning governance</a>
 <ul>
-<li><a href="#org5ac8740">9.0.1. Assumptions</a></li>
-<li><a href="#orgf045c5f">9.0.2. Job definition</a></li>
-<li><a href="#org7bbe87f">9.0.3. Environment overrides</a></li>
-<li><a href="#org3503707">9.0.4. <code>credentials-filter</code></a></li>
-<li><a href="#orgf7aa4c5">9.0.5. Running an experiment</a></li>
+<li><a href="#org4fc1cec">4.7.1. What are all the results tables about?</a></li>
+</ul>
+</li>
+<li><a href="#org22cf206">4.8. Audition</a></li>
+<li><a href="#org789b0ca">4.9. Post-modeling</a></li>
+<li><a href="#org986e628">4.10. Final cleaning</a></li>
+</ul>
+</li>
+<li><a href="#org55ec29e">5. Inpection prioritization</a>
+<ul>
+<li><a href="#orgf690ddd">5.1. Problem description</a></li>
+<li><a href="#org5eec312">5.2. Creating the labels</a></li>
+<li><a href="#orgbca4b37">5.3. Modeling Using Machine Learning</a>
+<ul>
+<li><a href="#orge991974">5.3.1. Defining a baseline</a></li>
+<li><a href="#orga6af812">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
+<li><a href="#org0191026">5.3.3. A more advanced experiment</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orga63ef57">10. What's next?</a></li>
-<li><a href="#orgcb6618a">11. Appendix: For the impatient</a></li>
+<li><a href="#org0f7021e">6. An Early Intervention System</a>
+<ul>
+<li><a href="#org05fea75">6.1. Problem description</a></li>
+<li><a href="#org03f5f0b">6.2. What are the labels? What are the outcomes?</a></li>
+<li><a href="#orgc82a08f">6.3. Modeling Using Machine Learning</a></li>
+</ul>
+</li>
+<li><a href="#orge10ea3d">7. <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</a></li>
+<li><a href="#org5ff9e78">8. <span class="todo TODO">TODO</span> Postmodeling</a></li>
+<li><a href="#org73aa361">9. <span class="todo WORKING">WORKING</span> Scaling out: AWS Batch</a>
+<ul>
+<li><a href="#org466a61c">9.1. What do you need to setup?</a></li>
+<li><a href="#org20a3879">9.2. Assumptions</a></li>
+<li><a href="#org7a10580">9.3. Configuration</a>
+<ul>
+<li><a href="#org80ebb1a">9.3.1. Job definition</a></li>
+<li><a href="#org97aff9e">9.3.2. Environment overrides</a></li>
+<li><a href="#orgaf61d6e">9.3.3. <code>credentials-filter</code></a></li>
+<li><a href="#orgea0ec2f">9.3.4. Running an experiment</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgb97f210">10. What's next?</a></li>
+<li><a href="#orgfee97f0">11. Appendix: For the impatient</a></li>
 </ul>
 </div>
 </div>
 
 
-<div id="outline-container-orgcac8305" class="outline-2">
-<h2 id="orgcac8305"><span class="section-number-2">1</span> Description of the problem</h2>
+<div id="outline-container-orgf02e41a" class="outline-2">
+<h2 id="orgf02e41a"><span class="section-number-2">1</span> Description of the problem</h2>
 <div class="outline-text-2" id="text-1">
 <p>
   This tutorial aims to introduce the reader to <a href="https://github.com/dssg/triage">triage</a>, a machine learning modeling tool built by the <a href="https://dsapp.uchicago.edu">Center for Data Science and Public Policy</a>.
@@ -377,8 +378,8 @@ problem</i>)<sup><a id="fnr.2" class="footref" href="#fn.2">2</a></sup> and</li>
 </div>
 
 
-<div id="outline-container-org5dc2c36" class="outline-3">
-<h3 id="org5dc2c36"><span class="section-number-3">1.1</span> Inspection Prioritization</h3>
+<div id="outline-container-org50a7bdd" class="outline-3">
+<h3 id="org50a7bdd"><span class="section-number-3">1.1</span> Inspection Prioritization</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 In an ideal world, inspectors would frequently visit every food
@@ -415,8 +416,8 @@ following \(X\) period of time?
 </div>
 
 
-<div id="outline-container-orge0f3433" class="outline-3">
-<h3 id="orge0f3433"><span class="section-number-3">1.2</span> Early Warning</h3>
+<div id="outline-container-orgb453b4a" class="outline-3">
+<h3 id="orgb453b4a"><span class="section-number-3">1.2</span> Early Warning</h3>
 <div class="outline-text-3" id="text-1-2">
 <p>
 Using the same data set, facility owners or managers would pose the
@@ -438,8 +439,8 @@ event potentially will happen.
 </div>
 </div>
 
-<div id="outline-container-org405463d" class="outline-3">
-<h3 id="org405463d"><span class="section-number-3">1.3</span> What do they have in common?</h3>
+<div id="outline-container-org222020b" class="outline-3">
+<h3 id="org222020b"><span class="section-number-3">1.3</span> What do they have in common?</h3>
 <div class="outline-text-3" id="text-1-3">
 <p>
 For either problem, \(X\) could be a day, a week, month, a quarter, a year, 56 days,
@@ -462,8 +463,8 @@ or <i>major violation found</i>, while for early warning the outcome is <i>inspe
 </div>
 </div>
 
-<div id="outline-container-orgd8a0dc6" class="outline-2">
-<h2 id="orgd8a0dc6"><span class="section-number-2">2</span> Infrastructure</h2>
+<div id="outline-container-org82de306" class="outline-2">
+<h2 id="org82de306"><span class="section-number-2">2</span> Infrastructure</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 In every data science project you will need several tools to
@@ -767,8 +768,8 @@ the database yet! We still need to do a lot of things <sup><a id="fnr.8" class="
 </div>
 </div>
 
-<div id="outline-container-orgd69bf98" class="outline-2">
-<h2 id="orgd69bf98"><span class="section-number-2">3</span> Data preparation</h2>
+<div id="outline-container-org77c6036" class="outline-2">
+<h2 id="org77c6036"><span class="section-number-2">3</span> Data preparation</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 We need to get the data and transform it into a shape that is suitable for the analysis.
@@ -779,8 +780,8 @@ We need to get the data and transform it into a shape that is suitable for the a
 </p>
 </div>
 
-<div id="outline-container-org0de99fc" class="outline-3">
-<h3 id="org0de99fc"><span class="section-number-3">3.1</span> Load the data</h3>
+<div id="outline-container-orgfe2b699" class="outline-3">
+<h3 id="orgfe2b699"><span class="section-number-3">3.1</span> Load the data</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 Before loading the data into the database, verify that the database table is empty:
@@ -863,12 +864,12 @@ Ok, now you have some data loaded! But we still need to <i>munge</i> it to use i
 </div>
 </div>
 
-<div id="outline-container-org16aa6eb" class="outline-3">
-<h3 id="org16aa6eb"><span class="section-number-3">3.2</span> Transforming (and cleaning) the data</h3>
+<div id="outline-container-org1d5d7e5" class="outline-3">
+<h3 id="org1d5d7e5"><span class="section-number-3">3.2</span> Transforming (and cleaning) the data</h3>
 <div class="outline-text-3" id="text-3-2">
 </div>
-<div id="outline-container-org4a5abaf" class="outline-4">
-<h4 id="org4a5abaf"><span class="section-number-4">3.2.1</span> Rationale</h4>
+<div id="outline-container-orgfd7629e" class="outline-4">
+<h4 id="orgfd7629e"><span class="section-number-4">3.2.1</span> Rationale</h4>
 <div class="outline-text-4" id="text-3-2-1">
 <p>
 To tackle a Machine Learning problem, you need to identify the
@@ -936,8 +937,8 @@ other tables and store them in the schema <code>triage</code>.</li>
 
 
 
-<div id="outline-container-org0679516" class="outline-4">
-<h4 id="org0679516"><span class="section-number-4">3.2.2</span> Dataset documentation</h4>
+<div id="outline-container-org533b5c2" class="outline-4">
+<h4 id="org533b5c2"><span class="section-number-4">3.2.2</span> Dataset documentation</h4>
 <div class="outline-text-4" id="text-3-2-2">
 <p>
 The Chicago Food Inspection dataset has documentation
@@ -1054,8 +1055,8 @@ out of business).</li>
 </div>
 </div>
 
-<div id="outline-container-org4753f22" class="outline-4">
-<h4 id="org4753f22"><span class="section-number-4">3.2.3</span> Reality check</h4>
+<div id="outline-container-orgc17a762" class="outline-4">
+<h4 id="orgc17a762"><span class="section-number-4">3.2.3</span> Reality check</h4>
 <div class="outline-text-4" id="text-3-2-3">
 <p>
 It is important to verify that the documentation is correct. Let's start by
@@ -1296,8 +1297,8 @@ Ok, disheartening. But that's the reality of <i>real</i> data. We'll try to clea
 </div>
 </div>
 
-<div id="outline-container-org09208c7" class="outline-4">
-<h4 id="org09208c7"><span class="section-number-4">3.2.4</span> Cleaning</h4>
+<div id="outline-container-org4486e60" class="outline-4">
+<h4 id="org4486e60"><span class="section-number-4">3.2.4</span> Cleaning</h4>
 <div class="outline-text-4" id="text-3-2-4">
 <p>
 Let's look at the data to figure out how we need to transform it. We'll
@@ -1643,7 +1644,7 @@ the <code>violations</code> column to figure out how to clean it.
 <p>
 The first thing to note is that the column <code>violation</code> has a lot of information:
 it describes the code violation, what's required to address it (see
- <a href="#org0679516">3.2.2</a>), and the inspector's comments. The
+ <a href="#org533b5c2">3.2.2</a>), and the inspector's comments. The
 comments are free text, which means that they can contain line breaks,
 mispellings, etc. In particular, note that pipes (<code>|</code>) seperate multiple violations.
 </p>
@@ -1752,7 +1753,7 @@ We will create a new table called <code>cleaned.violations</code> to store
            <span style="color: #8ac6f2;">as</span> tuple
        <span style="color: #8ac6f2;">from</span> raw.inspections
        <span style="color: #8ac6f2;">where</span> results <span style="color: #8ac6f2;">in</span> <span style="color: #b0b1a3;">(</span><span style="color: #95e454;">'Fail'</span>, <span style="color: #95e454;">'Pass'</span>, <span style="color: #95e454;">'Pass w/ Conditions'</span><span style="color: #b0b1a3;">)</span> <span style="color: #8ac6f2;">and</span> license_num <span style="color: #8ac6f2;">is</span> <span style="color: #8ac6f2;">not</span> <span style="color: #8ac6f2;">null</span>
-           <span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">as</span> t:
+           <span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">as</span> t
        <span style="color: #8c8c8c;">)</span>;
 </pre>
 </div>
@@ -1894,12 +1895,12 @@ and <code>events</code> tables.
 </div>
 </div>
 
-<div id="outline-container-orgf5f30ec" class="outline-3">
-<h3 id="orgf5f30ec"><span class="section-number-3">3.3</span> Semantic tables</h3>
+<div id="outline-container-orgad39f7f" class="outline-3">
+<h3 id="orgad39f7f"><span class="section-number-3">3.3</span> Semantic tables</h3>
 <div class="outline-text-3" id="text-3-3">
 </div>
-<div id="outline-container-orgc7a0556" class="outline-4">
-<h4 id="orgc7a0556"><span class="section-number-4">3.3.1</span> Entities table</h4>
+<div id="outline-container-org26abfaa" class="outline-4">
+<h4 id="org26abfaa"><span class="section-number-4">3.3.1</span> Entities table</h4>
 <div class="outline-text-4" id="text-3-3-1">
 <p>
 The <code>entities</code> table should uniquely identify each facility and contain
@@ -2541,8 +2542,8 @@ We will add some indexes to this table:
 </div>
 </div>
 
-<div id="outline-container-org44d6e9e" class="outline-4">
-<h4 id="org44d6e9e"><span class="section-number-4">3.3.2</span> Events table</h4>
+<div id="outline-container-org587ff73" class="outline-4">
+<h4 id="org587ff73"><span class="section-number-4">3.3.2</span> Events table</h4>
 <div class="outline-text-4" id="text-3-3-2">
 <p>
 We are ready to create the events table. This table will describe
@@ -2720,8 +2721,8 @@ Now that we have our data in a good shape, we are ready to use <b>Triage</b>.
 </div>
 </div>
 
-<div id="outline-container-org2fb8f6e" class="outline-2">
-<h2 id="org2fb8f6e"><span class="section-number-2">4</span> Triage</h2>
+<div id="outline-container-orgaaf226f" class="outline-2">
+<h2 id="orgaaf226f"><span class="section-number-2">4</span> Triage</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 Predictive analytics projects require coordinating many
@@ -2793,8 +2794,8 @@ that helps explain triage's main concepts.
 </p>
 </div>
 
-<div id="outline-container-org89f70f8" class="outline-3">
-<h3 id="org89f70f8"><span class="section-number-3">4.1</span> Triage interface</h3>
+<div id="outline-container-orgfae74a9" class="outline-3">
+<h3 id="orgfae74a9"><span class="section-number-3">4.1</span> Triage interface</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 To run a <code>triage</code> experiment, you need the following:
@@ -2854,12 +2855,12 @@ you should execute the experiment again using the previous command.
 </div>
 </div>
 
-<div id="outline-container-org3a13168" class="outline-3">
-<h3 id="org3a13168"><span class="section-number-3">4.2</span> A simple <code>triage</code> experiment</h3>
+<div id="outline-container-org9808ee1" class="outline-3">
+<h3 id="org9808ee1"><span class="section-number-3">4.2</span> A simple <code>triage</code> experiment</h3>
 <div class="outline-text-3" id="text-4-2">
 </div>
-<div id="outline-container-org690694a" class="outline-4">
-<h4 id="org690694a"><span class="section-number-4">4.2.1</span> A brief recap of Machine Learning</h4>
+<div id="outline-container-orga85f561" class="outline-4">
+<h4 id="orga85f561"><span class="section-number-4">4.2.1</span> A brief recap of Machine Learning</h4>
 <div class="outline-text-4" id="text-4-2-1">
 <p>
 <b>Triage</b> helps you to run a <i>Machine learning</i> experiment. An experiment
@@ -2902,8 +2903,8 @@ Triage's experiment configuration file structures this information.
 </div>
 </div>
 
-<div id="outline-container-orgaaab30f" class="outline-4">
-<h4 id="orgaaab30f"><span class="section-number-4">4.2.2</span> Cohorts, labels, event dates and as of dates</h4>
+<div id="outline-container-org6603ada" class="outline-4">
+<h4 id="org6603ada"><span class="section-number-4">4.2.2</span> Cohorts, labels, event dates and as of dates</h4>
 <div class="outline-text-4" id="text-4-2-2">
 <p>
 We will use the <i>inspections prioritization</i> as a narrative to help
@@ -3314,8 +3315,8 @@ our experiment.
 </div>
 </div>
 
-<div id="outline-container-org475e47a" class="outline-3">
-<h3 id="org475e47a"><span class="section-number-3">4.3</span> Experiment configuration file</h3>
+<div id="outline-container-org909b341" class="outline-3">
+<h3 id="org909b341"><span class="section-number-3">4.3</span> Experiment configuration file</h3>
 <div class="outline-text-3" id="text-4-3">
 <p>
 The <i>experiment configuration file</i> is used to create the <code>experiment</code>
@@ -3329,7 +3330,7 @@ The configuration file is a <code>yaml</code> file with the following main secti
 </p>
 
 <dl class="org-dl">
-<dt><a href="#org5853c8a"><code>temporal_config</code></a></dt><dd>Temporal specification of the data, used for
+<dt><a href="#org26eb9e7"><code>temporal_config</code></a></dt><dd>Temporal specification of the data, used for
 creating the blocks for temporal crossvalidation.</dd>
 
 <dt><code>cohort_config</code></dt><dd>Using the state of the entities, define (using <code>sql</code>)
@@ -3341,14 +3342,14 @@ prediction stages. This will generate a table call
 <i>outcome</i>. A table named <code>labels_{experiment_hash}</code>
 will be created.</dd>
 
-<dt><a href="#orgf635ff6"><code>feature_aggregation</code></a></dt><dd>Which spatio-temporal aggregations of the
+<dt><a href="#org441dad5"><code>feature_aggregation</code></a></dt><dd>Which spatio-temporal aggregations of the
 columns in the data set do you want to generate as features for
 the models?</dd>
 
 <dt><code>model_group_keys</code></dt><dd>How do you want to identify the <code>model_group</code> in
 the database (so you can run analysis on them)?</dd>
 
-<dt><a href="#org72bbd8b"><code>grid_config</code></a></dt><dd>Which combination of hyperparameters and algorithms
+<dt><a href="#org4b2cc89"><code>grid_config</code></a></dt><dd>Which combination of hyperparameters and algorithms
 will be trained and evaluated in the data set?</dd>
 
 <dt><code>scoring</code></dt><dd>Which metrics will be calculated?</dd>
@@ -3362,8 +3363,8 @@ detail in the next sections.
 </div>
 </div>
 
-<div id="outline-container-org5853c8a" class="outline-3">
-<h3 id="org5853c8a"><span class="section-number-3">4.4</span> Temporal crossvalidation</h3>
+<div id="outline-container-org26eb9e7" class="outline-3">
+<h3 id="org26eb9e7"><span class="section-number-3">4.4</span> Temporal crossvalidation</h3>
 <div class="outline-text-3" id="text-4-4">
 <p>
 Cross validation is a common technique to select a model that generalizes
@@ -3437,7 +3438,7 @@ forward in time. <sup><a id="fnr.31" class="footref" href="#fn.31">31</a></sup>
 </p>
 
 
-<div id="org83d71fd" class="figure">
+<div id="org989a7f0" class="figure">
 <p><img src="./images/rolling-origin.png" alt="rolling-origin.png" width="600" height="800" />
 </p>
 <p><span class="figure-number">Figure 2: </span>Cartoonish view of temporal splitting for Machine Learning, each point represents an <i>as of date</i>, the orange area are the past of that <i>as of date</i> and is used for feature generation. The blue area is the label span, it lies in the future of the <i>as of date</i>.</p>
@@ -3579,7 +3580,7 @@ triage showtimechops experiment_config/simple_test_skeleton.yaml
 </div>
 
 <ol class="org-ol">
-<li><a id="orgd39facc"></a><code>{feature, label}_{end, start}_time</code><br />
+<li><a id="org8ba1c89"></a><code>{feature, label}_{end, start}_time</code><br />
 <div class="outline-text-5" id="text-4-4-0-1">
 <p>
 The image below shows these <code>{feature, label}_start_time</code> are equal, as
@@ -3599,7 +3600,7 @@ to <code>2016</code> and <code>2017</code>.
 </p>
 
 
-<div id="org00d46ac" class="figure">
+<div id="orgd41f781" class="figure">
 <p><img src="./images/timechop_1.png" alt="timechop_1.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 3: </span>feature and label start, end time equal</p>
@@ -3650,7 +3651,7 @@ data for labels) as is shown in the following image and in their
 </p>
 
 
-<div id="org409c33a" class="figure">
+<div id="orgb8e1019" class="figure">
 <p><img src="./images/timechop_2.png" alt="timechop_2.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 4: </span>feature<sub>start</sub><sub>time</sub> different different that label<sub>start</sub><sub>time</sub>.</p>
@@ -3677,10 +3678,10 @@ temporal_config:
 </div>
 </li>
 
-<li><a id="orgdffd4fc"></a><code>model_update_frequency</code><br />
+<li><a id="org1f0af4e"></a><code>model_update_frequency</code><br />
 <div class="outline-text-5" id="text-4-4-0-2">
 <p>
-From our <b>baseline</b> <code>temporal_config</code> example (<a href="#org00d46ac">3</a>), we will
+From our <b>baseline</b> <code>temporal_config</code> example (<a href="#orgd41f781">3</a>), we will
 change how often we want a new model, which generates
 more time blocks (if there are time-constrained data, obviously).
 </p>
@@ -3704,7 +3705,7 @@ temporal_config:
 </pre>
 
 
-<div id="org78e4344" class="figure">
+<div id="org1a9e379" class="figure">
 <p><img src="./images/timechop_3.png" alt="timechop_3.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 5: </span>A smaller model<sub>update</sub><sub>frequency</sub> (from 1y to 6month) (The number of blocks grew)</p>
@@ -3713,11 +3714,11 @@ temporal_config:
 </li>
 
 
-<li><a id="org4d15df8"></a><code>max_training_histories</code><br />
+<li><a id="orgdf5b71e"></a><code>max_training_histories</code><br />
 <div class="outline-text-5" id="text-4-4-0-3">
 <p>
 With this parameter you could get a <i>growing window</i> for training
-(depicted in <a href="#org03021c5">6</a>) or as in all the other examples,
+(depicted in <a href="#orgbe40f8e">6</a>) or as in all the other examples,
 <i>fixed training windows</i>.
 </p>
 
@@ -3741,7 +3742,7 @@ temporal_config:
 
 
 
-<div id="org03021c5" class="figure">
+<div id="orgbe40f8e" class="figure">
 <p><img src="./images/timechop_4.png" alt="timechop_4.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 6: </span>The size of the block is bigger now</p>
@@ -3749,7 +3750,7 @@ temporal_config:
 </div>
 </li>
 
-<li><a id="orgdc89ef4"></a><code>_as_of_date_frequencies</code> and <code>test_durations</code><br />
+<li><a id="org6d45622"></a><code>_as_of_date_frequencies</code> and <code>test_durations</code><br />
 <div class="outline-text-5" id="text-4-4-0-4">
 <pre class="example">
 temporal_config:
@@ -3771,7 +3772,7 @@ temporal_config:
 
 
 
-<div id="orgcee2771" class="figure">
+<div id="org3df62ff" class="figure">
 <p><img src="./images/timechop_5.png" alt="timechop_5.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 7: </span>More rows per entity in the training block</p>
@@ -3801,7 +3802,7 @@ temporal_config:
 
 
 
-<div id="org7039f00" class="figure">
+<div id="org7e6dcfe" class="figure">
 <p><img src="./images/timechop_6.png" alt="timechop_6.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 8: </span>We should get more rows per entity in the test matrix, but that didn't happen. Why?</p>
@@ -3833,7 +3834,7 @@ temporal_config:
 
 
 
-<div id="orgf9de130" class="figure">
+<div id="org1c4f0c7" class="figure">
 <p><img src="./images/timechop_7.png" alt="timechop_7.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 9: </span>The test duration is bigger now, so we got 6 rows (since the "base" frequency is 1 month)</p>
@@ -3863,7 +3864,7 @@ temporal_config:
 
 
 
-<div id="org6ebc46a" class="figure">
+<div id="org9f7f210" class="figure">
 <p><img src="./images/timechop_8.png" alt="timechop_8.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 10: </span>With more room in testing, now test<sub>as</sub><sub>of</sub><sub>date</sub><sub>frequencies</sub> has some effect.</p>
@@ -3871,7 +3872,7 @@ temporal_config:
 </div>
 </li>
 
-<li><a id="orgdec71b3"></a><code>_label_timespans</code><br />
+<li><a id="orga99159e"></a><code>_label_timespans</code><br />
 <div class="outline-text-5" id="text-4-4-0-5">
 <pre class="example">
 temporal_config:
@@ -3893,7 +3894,7 @@ temporal_config:
 
 
 
-<div id="orgd230761" class="figure">
+<div id="org2f9bf91" class="figure">
 <p><img src="./images/timechop_9.png" alt="timechop_9.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 11: </span>The label time horizon in the test dataset now is smaller</p>
@@ -3920,7 +3921,7 @@ temporal_config:
 
 
 
-<div id="org2cc85f4" class="figure">
+<div id="orgaa3451a" class="figure">
 <p><img src="./images/timechop_10.png" alt="timechop_10.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 12: </span>The label time horizon is smaller in the trainning dataset. One effect is that now we have more room for more rows per entity.</p>
@@ -3940,8 +3941,8 @@ discuss <i>features</i> in the following section.
 </ol>
 </div>
 
-<div id="outline-container-orgf635ff6" class="outline-3">
-<h3 id="orgf635ff6"><span class="section-number-3">4.5</span> Feature engineering</h3>
+<div id="outline-container-org441dad5" class="outline-3">
+<h3 id="org441dad5"><span class="section-number-3">4.5</span> Feature engineering</h3>
 <div class="outline-text-3" id="text-4-5">
 <p>
 We will show how to create features using the <i>experiments config
@@ -4717,8 +4718,8 @@ grand total of 80 columns.
 </p>
 </div>
 
-<div id="outline-container-orgf2da15d" class="outline-4">
-<h4 id="orgf2da15d"><span class="section-number-4">4.5.1</span> Imputation</h4>
+<div id="outline-container-orgdb5fe76" class="outline-4">
+<h4 id="orgdb5fe76"><span class="section-number-4">4.5.1</span> Imputation</h4>
 <div class="outline-text-4" id="text-4-5-1">
 <p>
 <code>Triage</code> currently supports the following imputation strategies:
@@ -4767,8 +4768,8 @@ and finally, if you are sure that is not possible to have <i>NULLS:</i>
 </div>
 </div>
 
-<div id="outline-container-org094a8b0" class="outline-4">
-<h4 id="org094a8b0"><span class="section-number-4">4.5.2</span> Feature groups strategies</h4>
+<div id="outline-container-org06c3b3b" class="outline-4">
+<h4 id="org06c3b3b"><span class="section-number-4">4.5.2</span> Feature groups strategies</h4>
 <div class="outline-text-4" id="text-4-5-2">
 <p>
 Another interesting thing that <code>triage</code> controls is how many feature
@@ -4851,8 +4852,8 @@ Finally choosing <code>all-combinations</code>:
 </div>
 </div>
 
-<div id="outline-container-orga7b8fee" class="outline-4">
-<h4 id="orga7b8fee"><span class="section-number-4">4.5.3</span> Controlling the size of the tables</h4>
+<div id="outline-container-org27101f7" class="outline-4">
+<h4 id="org27101f7"><span class="section-number-4">4.5.3</span> Controlling the size of the tables</h4>
 <div class="outline-text-4" id="text-4-5-3">
 <blockquote>
 <p>
@@ -4888,8 +4889,8 @@ column in the <i>features</i> table. Just add <code>coltype</code> to the
 </div>
 </div>
 
-<div id="outline-container-org72bbd8b" class="outline-3">
-<h3 id="org72bbd8b"><span class="section-number-3">4.6</span> The Grid</h3>
+<div id="outline-container-org4b2cc89" class="outline-3">
+<h3 id="org4b2cc89"><span class="section-number-3">4.6</span> The Grid</h3>
 <div class="outline-text-3" id="text-4-6">
 <p>
 Before applying Machine Learning to your dataset you don't know which
@@ -4925,7 +4926,7 @@ models, 1 model group.
 
 <p>
 Keep in mind that the grid is providing more than way to select a
-model. You can use the tables generated by the grid (see next section,  <a href="#org517e812">Machine learning governance</a>)
+model. You can use the tables generated by the grid (see next section,  <a href="#orgc005e8d">Machine learning governance</a>)
 and <i>analyze</i> and <i>understand</i> your data. In other words, analyzing the results
 (evaluations, predictions, hyperparameter space, etc.) is like
 applying <b>Data mining</b> concepts to your data using Machine learning. We
@@ -4934,8 +4935,8 @@ will return to this when we apply post modeling to our models.
 </div>
 </div>
 
-<div id="outline-container-org517e812" class="outline-3">
-<h3 id="org517e812"><span class="section-number-3">4.7</span> Machine learning governance</h3>
+<div id="outline-container-orgc005e8d" class="outline-3">
+<h3 id="orgc005e8d"><span class="section-number-3">4.7</span> Machine learning governance</h3>
 <div class="outline-text-3" id="text-4-7">
 <p>
 When <code>triage</code> executes the experiment, it creates a series of new schemas for
@@ -5156,8 +5157,8 @@ data sets you could consult <code>train_results</code>
 </table>
 </div>
 
-<div id="outline-container-orgb83754d" class="outline-4">
-<h4 id="orgb83754d"><span class="section-number-4">4.7.1</span> What are all the results tables about?</h4>
+<div id="outline-container-org4fc1cec" class="outline-4">
+<h4 id="org4fc1cec"><span class="section-number-4">4.7.1</span> What are all the results tables about?</h4>
 <div class="outline-text-4" id="text-4-7-1">
 <p>
 <code>model_groups</code> stores the algorithm (<code>model_type</code>), the
@@ -5178,7 +5179,7 @@ section in the config file.
 </div>
 
 <ol class="org-ol">
-<li><a id="orga6ac9e6"></a><code>model_metadata.experiments</code><br />
+<li><a id="org675010b"></a><code>model_metadata.experiments</code><br />
 <div class="outline-text-5" id="text-4-7-1-1">
 <p>
 This table has the two columns: <code>experiment_hash</code> and <code>config</code>
@@ -5340,7 +5341,7 @@ to find all the models that resulted from that configuration.
 </div>
 </li>
 
-<li><a id="org8fb4789"></a><code>metadata_model.model_groups</code><br />
+<li><a id="orgbf1347b"></a><code>metadata_model.model_groups</code><br />
 <div class="outline-text-5" id="text-4-7-1-2">
 <p>
 Do you remember how we defined in <code>grid_config</code> the different
@@ -5494,7 +5495,7 @@ classifier and the <code>hyperparameters</code> are the same as before.
 </div>
 </li>
 
-<li><a id="orgcfd5b75"></a><code>model_metadata.models</code><br />
+<li><a id="orge1d1826"></a><code>model_metadata.models</code><br />
 <div class="outline-text-5" id="text-4-7-1-3">
 <p>
 This table stores the information about our actual <i>models</i>, i.e.,
@@ -5824,7 +5825,7 @@ sample.</dd>
 </li>
 
 
-<li><a id="org63e66d0"></a><code>model_metadata.matrices</code><br />
+<li><a id="org099a6bf"></a><code>model_metadata.matrices</code><br />
 <div class="outline-text-5" id="text-4-7-1-4">
 <p>
 This schema contains information about the matrices used in the model's
@@ -6040,7 +6041,7 @@ information about the temporal setting of the features) and <code>num_observatio
 </li>
 
 
-<li><a id="orge0b32f0"></a><code>{test, train}_results.evaluations</code><br />
+<li><a id="org81fc35c"></a><code>{test, train}_results.evaluations</code><br />
 <div class="outline-text-5" id="text-4-7-1-5">
 <p>
 These tables lets us analyze how well our models are doing. Based on the
@@ -6348,7 +6349,7 @@ time.  Note how we only included the <i>models</i> that belong to our
 </div>
 </li>
 
-<li><a id="orgb76ddbb"></a><code>{test, train}_results.predictions</code><br />
+<li><a id="orgcc4de58"></a><code>{test, train}_results.predictions</code><br />
 <div class="outline-text-5" id="text-4-7-1-6">
 <p>
 You can think of the previous table <code>{test, train}_results.{test,
@@ -6365,7 +6366,7 @@ Here is what its first row looks like:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sql" id="orgd31767b"><span style="color: #8ac6f2;">select</span>
+<pre class="src src-sql" id="org956c1f3"><span style="color: #8ac6f2;">select</span>
     model_id,
     entity_id,
     as_of_date,
@@ -6451,7 +6452,7 @@ make this prediction under <code>TRIAGE_OUTPUT_PATH/matrices/{matrix_uuid}.csv</
 </div>
 </li>
 
-<li><a id="org8756fb7"></a><code>{test, train}_results.feature_importances</code><br />
+<li><a id="orgb737ee3"></a><code>{test, train}_results.feature_importances</code><br />
 <div class="outline-text-5" id="text-4-7-1-7">
 <p>
 This tables store the feature importance of all the models.
@@ -6462,8 +6463,8 @@ This tables store the feature importance of all the models.
 </div>
 </div>
 
-<div id="outline-container-org9061018" class="outline-3">
-<h3 id="org9061018"><span class="section-number-3">4.8</span> Audition</h3>
+<div id="outline-container-org22cf206" class="outline-3">
+<h3 id="org22cf206"><span class="section-number-3">4.8</span> Audition</h3>
 <div class="outline-text-3" id="text-4-8">
 <p>
 <b>Audition</b> is a tool for helping you select a subset of trained
@@ -6492,8 +6493,8 @@ on what you consider important.
 </div>
 </div>
 
-<div id="outline-container-org6839c7f" class="outline-3">
-<h3 id="org6839c7f"><span class="section-number-3">4.9</span> Post-modeling</h3>
+<div id="outline-container-org789b0ca" class="outline-3">
+<h3 id="org789b0ca"><span class="section-number-3">4.9</span> Post-modeling</h3>
 <div class="outline-text-3" id="text-4-9">
 <p>
 As the name indicates, <b>postmodeling</b> occurs <b>after</b> you have modeled
@@ -6528,8 +6529,8 @@ If you want to see <b>Audition</b> and <b>Postmodeling</b> in action, please see
 </div>
 </div>
 
-<div id="outline-container-org213a745" class="outline-3">
-<h3 id="org213a745"><span class="section-number-3">4.10</span> Final cleaning</h3>
+<div id="outline-container-org986e628" class="outline-3">
+<h3 id="org986e628"><span class="section-number-3">4.10</span> Final cleaning</h3>
 <div class="outline-text-3" id="text-4-10">
 <p>
 In the next section we will start modeling, so it is a good idea to
@@ -6555,12 +6556,12 @@ rm -r /triage/output/trained_models/*
 </div>
 
 
-<div id="outline-container-orgdb6bf74" class="outline-2">
-<h2 id="orgdb6bf74"><span class="section-number-2">5</span> Inpection prioritization</h2>
+<div id="outline-container-org55ec29e" class="outline-2">
+<h2 id="org55ec29e"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-orgcd11d8a" class="outline-3">
-<h3 id="orgcd11d8a"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-orgf690ddd" class="outline-3">
+<h3 id="orgf690ddd"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -6594,8 +6595,8 @@ Which X facilities are most likely to have a critical or serious
 </div>
 
 
-<div id="outline-container-org244e3a1" class="outline-3">
-<h3 id="org244e3a1"><span class="section-number-3">5.2</span> Creating the labels</h3>
+<div id="outline-container-org5eec312" class="outline-3">
+<h3 id="org5eec312"><span class="section-number-3">5.2</span> Creating the labels</h3>
 <div class="outline-text-3" id="text-5-2">
 <p>
 We will define two labels:
@@ -6761,13 +6762,13 @@ following code:
 </table>
 
 <p>
-Remember from the section <a href="#orgaaab30f">Cohorts, labels, event dates and as of dates</a> that the <i>outcome</i> will be used by
+Remember from the section <a href="#org6603ada">Cohorts, labels, event dates and as of dates</a> that the <i>outcome</i> will be used by
 <code>triage</code> to generate the labels. The following image tries to
 show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem definition.
 </p>
 
 
-<div id="org8770bb1" class="figure">
+<div id="org170f084" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 13: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -6777,8 +6778,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org8e7efd3" class="outline-3">
-<h3 id="org8e7efd3"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgbca4b37" class="outline-3">
+<h3 id="orgbca4b37"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -6787,8 +6788,8 @@ configuration file.
 </p>
 </div>
 
-<div id="outline-container-org5fe0e49" class="outline-4">
-<h4 id="org5fe0e49"><span class="section-number-4">5.3.1</span> Defining a baseline</h4>
+<div id="outline-container-orge991974" class="outline-4">
+<h4 id="orge991974"><span class="section-number-4">5.3.1</span> Defining a baseline</h4>
 <div class="outline-text-4" id="text-5-3-1">
 <p>
 As a first step, lets do an experiment that defines our
@@ -7652,7 +7653,7 @@ What's the performance of this model groups?
 <span style="color: #8ac6f2;">where</span>
     ev.metric || ev.<span style="color: #8ac6f2;">parameter</span> = <span style="color: #95e454;">'precision@100_pct'</span>
 <span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span>
-    train_end_time <span style="color: #8ac6f2;">asc</span>, model_group_id
+    train_end_time <span style="color: #8ac6f2;">asc</span>, model_group_id;
 </pre>
 </div>
 
@@ -7849,8 +7850,8 @@ labeled entities  respectively.
 </div>
 </div>
 
-<div id="outline-container-org497add6" class="outline-4">
-<h4 id="org497add6"><span class="section-number-4">5.3.2</span> Creating a simple experiment: ML as a Data Mining technique</h4>
+<div id="outline-container-orga6af812" class="outline-4">
+<h4 id="orga6af812"><span class="section-number-4">5.3.2</span> Creating a simple experiment: ML as a Data Mining technique</h4>
 <div class="outline-text-4" id="text-5-3-2">
 <p>
 For the first experiment we will try one of the simplest
@@ -7909,9 +7910,20 @@ For this experiment, we will add the following features:
 
 <li>Number of different types of inspections that happened in the
 zip code in the last year from a particular day.</li>
+
+<li>Number of inspections</li>
+
+<li>Number/proportion of inspections by result type</li>
+
+<li>Number/proportion of times that a facility was classify with particular risk level</li>
 </ul>
 
-
+<p>
+In all of them we will do the aggregation in the last month, 3 months,
+6 months, 1 year and historically. Remember
+that all this refers to events in the past, i.e. <i>How many times the facility was marked with high risk in the previous 3 Months?</i>,
+<i>What is the proportion of failed inspections in the previous year?</i>
+</p>
 
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="color: #cae682;">feature_aggregations</span>:
@@ -8074,254 +8086,40 @@ triage experiment experiment_config/inspections_dt.yaml  --validate-only
 </div>
 
 <p>
+and check the temporal cross validation:
+</p>
+
+
+<div class="org-src-container">
+<pre class="src src-sh">
+<span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
+triage showtimechops experiment_config/inspections_dt.yaml
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./images/inspections_dt.png" alt="inspections_dt.png" width="800" height="800" />
+</p>
+<p><span class="figure-number">Figure 15: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
+</div>
+
+
+<p>
 You can execute the experiment like this:
 </p>
 
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_baseline.yaml --no-save-predictions --profile
+triage experiment experiment_config/inspections_dt.yaml --no-save-predictions --profile
 </pre>
 </div>
 
 
-
 <p>
-The features used by that model are:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-sql"><span style="color: #8ac6f2;">select</span>
-    <span style="color: #8ac6f2;">unnest</span><span style="color: #8c8c8c;">(</span>feature_list<span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> features
-<span style="color: #8ac6f2;">from</span>
-    model_metadata.model_groups
-<span style="color: #8ac6f2;">where</span>
-    model_group_id = 1
-<span style="color: #8ac6f2;">limit</span> 10;
-</pre>
-</div>
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">features</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">inspections<sub>entity</sub><sub>id</sub><sub>1month</sub><sub>total</sub><sub>count</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspections<sub>entity</sub><sub>id</sub><sub>1y</sub><sub>total</sub><sub>count</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspections<sub>entity</sub><sub>id</sub><sub>3month</sub><sub>total</sub><sub>count</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspections<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>total</sub><sub>count</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspections<sub>entity</sub><sub>id</sub><sub>all</sub><sub>total</sub><sub>count</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>1month</sub><sub>type</sub><sub>canvass</sub><sub>sum</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>1month</sub><sub>type</sub><sub>complaint</sub><sub>sum</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>1month</sub><sub>type</sub><sub>consultation</sub><sub>sum</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>1month</sub><sub>type</sub><sub>food</sub> poisoning<sub>sum</sub></td>
-</tr>
-
-<tr>
-<td class="org-left">inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>1month</sub><sub>type</sub><sub>license</sub><sub>sum</sub></td>
-</tr>
-</tbody>
-</table>
-
-
-<p>
-Finally, the performance of the model <code>7</code>  are:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-sql"><span style="color: #8ac6f2;">select</span>
-    model_id,
-    metric || <span style="color: #8ac6f2;">parameter</span> <span style="color: #8ac6f2;">as</span> metric,
-    <span style="color: #8ac6f2;">value</span>,
-    num_labeled_examples,
-    num_labeled_above_threshold,
-    num_positive_labels
-<span style="color: #8ac6f2;">from</span>
-    test_results.evaluations
-<span style="color: #8ac6f2;">where</span>
-    metric || <span style="color: #8ac6f2;">parameter</span> = <span style="color: #95e454;">'precision@10.0_pct'</span>
-<span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span>
-    num_labeled_above_threshold <span style="color: #8ac6f2;">asc</span>,
-    metric <span style="color: #8ac6f2;">asc</span>;
-</pre>
-</div>
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-right" />
-
-<col  class="org-left" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-right">model<sub>id</sub></th>
-<th scope="col" class="org-left">metric</th>
-<th scope="col" class="org-right">value</th>
-<th scope="col" class="org-right">num<sub>labeled</sub><sub>examples</sub></th>
-<th scope="col" class="org-right">num<sub>labeled</sub><sub>above</sub><sub>threshold</sub></th>
-<th scope="col" class="org-right">num<sub>positive</sub><sub>labels</sub></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">10</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.301792828685259</td>
-<td class="org-right">10490</td>
-<td class="org-right">1004</td>
-<td class="org-right">2449</td>
-</tr>
-
-<tr>
-<td class="org-right">9</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.301792828685259</td>
-<td class="org-right">10490</td>
-<td class="org-right">1004</td>
-<td class="org-right">2449</td>
-</tr>
-
-<tr>
-<td class="org-right">11</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.33541341653666146</td>
-<td class="org-right">10490</td>
-<td class="org-right">1282</td>
-<td class="org-right">2449</td>
-</tr>
-
-<tr>
-<td class="org-right">12</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.33514774494556765</td>
-<td class="org-right">10490</td>
-<td class="org-right">1286</td>
-<td class="org-right">2449</td>
-</tr>
-
-<tr>
-<td class="org-right">6</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.29917106254709874</td>
-<td class="org-right">13637</td>
-<td class="org-right">1327</td>
-<td class="org-right">3203</td>
-</tr>
-
-<tr>
-<td class="org-right">5</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.29917106254709874</td>
-<td class="org-right">13637</td>
-<td class="org-right">1327</td>
-<td class="org-right">3203</td>
-</tr>
-
-<tr>
-<td class="org-right">3</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.2864450127877238</td>
-<td class="org-right">14273</td>
-<td class="org-right">1564</td>
-<td class="org-right">3460</td>
-</tr>
-
-<tr>
-<td class="org-right">4</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.3032178217821782</td>
-<td class="org-right">14273</td>
-<td class="org-right">1616</td>
-<td class="org-right">3460</td>
-</tr>
-
-<tr>
-<td class="org-right">8</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.3256797583081571</td>
-<td class="org-right">13637</td>
-<td class="org-right">1655</td>
-<td class="org-right">3203</td>
-</tr>
-
-<tr>
-<td class="org-right">7</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.3281343731253749</td>
-<td class="org-right">13637</td>
-<td class="org-right">1667</td>
-<td class="org-right">3203</td>
-</tr>
-
-<tr>
-<td class="org-right">1</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.3380352644836272</td>
-<td class="org-right">14273</td>
-<td class="org-right">1985</td>
-<td class="org-right">3460</td>
-</tr>
-
-<tr>
-<td class="org-right">2</td>
-<td class="org-left">precision@10.0<sub>pct</sub></td>
-<td class="org-right">0.3380352644836272</td>
-<td class="org-right">14273</td>
-<td class="org-right">1985</td>
-<td class="org-right">3460</td>
-</tr>
-</tbody>
-</table>
-
-
-
-
-
-
-<p>
-After the experiment finishes, you will get 3 new <code>model_groups</code> (1 per strategy)
+After the experiment finishes, you will get <b>5</b> new <code>model_groups</code> (1 per
+combination in <code>grid_config</code>)
 </p>
 
 <div class="org-src-container">
@@ -8330,7 +8128,9 @@ After the experiment finishes, you will get 3 new <code>model_groups</code> (1 p
     model_type,
     hyperparameters
 <span style="color: #8ac6f2;">from</span>
-    model_metadata.model_groups;
+    model_metadata.model_groups
+<span style="color: #8ac6f2;">where</span>
+    model_group_id <span style="color: #8ac6f2;">not</span> <span style="color: #8ac6f2;">in</span> <span style="color: #8c8c8c;">(</span>1,2,3<span style="color: #8c8c8c;">)</span>;
 </pre>
 </div>
 
@@ -8353,85 +8153,142 @@ After the experiment finishes, you will get 3 new <code>model_groups</code> (1 p
 </thead>
 <tbody>
 <tr>
-<td class="org-right">1</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1, "max<sub>features</sub>": 1}</td>
-</tr>
-
-<tr>
-<td class="org-right">2</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1, "max<sub>features</sub>": "sqrt"}</td>
-</tr>
-
-<tr>
-<td class="org-right">3</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1, "max<sub>features</sub>": null}</td>
-</tr>
-
-<tr>
 <td class="org-right">4</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null, "max<sub>features</sub>": 1}</td>
+<td class="org-left">{"max<sub>depth</sub>": 2, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 </tr>
 
 <tr>
 <td class="org-right">5</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null, "max<sub>features</sub>": "sqrt"}</td>
+<td class="org-left">{"max<sub>depth</sub>": 2, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 </tr>
 
 <tr>
 <td class="org-right">6</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null, "max<sub>features</sub>": null}</td>
+<td class="org-left">{"max<sub>depth</sub>": 10, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 </tr>
 
 <tr>
 <td class="org-right">7</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 10, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 </tr>
 
 <tr>
 <td class="org-right">8</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 </tr>
 
 <tr>
 <td class="org-right">9</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 </tr>
 </tbody>
 </table>
 
+<p>
+and <b>15</b> models
+</p>
+
 <div class="org-src-container">
-<pre class="src src-sql"><span style="color: #8ac6f2;">with</span> baseline <span style="color: #8ac6f2;">as</span> <span style="color: #8c8c8c;">(</span>
-<span style="color: #8ac6f2;">select</span>
-    model_id,
-    model_group_id
+<pre class="src src-sql"><span style="color: #8ac6f2;">select</span>
+    model_group_id,
+    array_agg<span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> models,
+    array_agg<span style="color: #8c8c8c;">(</span>train_end_time<span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> train_end_times
 <span style="color: #8ac6f2;">from</span>
     model_metadata.models
 <span style="color: #8ac6f2;">where</span>
-    model_type ~ <span style="color: #95e454;">'DummyClassifier'</span>
-<span style="color: #8c8c8c;">)</span>
+    model_group_id <span style="color: #8ac6f2;">not</span> <span style="color: #8ac6f2;">in</span> <span style="color: #8c8c8c;">(</span>1,2,3<span style="color: #8c8c8c;">)</span>
+<span style="color: #8ac6f2;">group</span> <span style="color: #8ac6f2;">by</span>
+    model_group_id
+<span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span>
+    model_group_id;
+</pre>
+</div>
 
-<span style="color: #8ac6f2;">select</span>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">model<sub>group</sub><sub>id</sub></th>
+<th scope="col" class="org-left">models</th>
+<th scope="col" class="org-left">train<sub>end</sub><sub>times</sub></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">4</td>
+<td class="org-left">{10,16,22}</td>
+<td class="org-left">{"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"}</td>
+</tr>
+
+<tr>
+<td class="org-right">5</td>
+<td class="org-left">{11,17,23}</td>
+<td class="org-left">{"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"}</td>
+</tr>
+
+<tr>
+<td class="org-right">6</td>
+<td class="org-left">{12,18,24}</td>
+<td class="org-left">{"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"}</td>
+</tr>
+
+<tr>
+<td class="org-right">7</td>
+<td class="org-left">{13,19,25}</td>
+<td class="org-left">{"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"}</td>
+</tr>
+
+<tr>
+<td class="org-right">8</td>
+<td class="org-left">{14,20,26}</td>
+<td class="org-left">{"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"}</td>
+</tr>
+
+<tr>
+<td class="org-right">9</td>
+<td class="org-left">{15,21,27}</td>
+<td class="org-left">{"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"}</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Let's see the performance of the new models:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql"><span style="color: #8ac6f2;">select</span> <span style="color: #8ac6f2;">distinct</span> <span style="color: #8ac6f2;">on</span> <span style="color: #8c8c8c;">(</span>train_end_time<span style="color: #8c8c8c;">)</span>
     model_group_id,
     model_id,
-    metric || <span style="color: #8ac6f2;">parameter</span> <span style="color: #8ac6f2;">as</span> metric,
-    <span style="color: #8ac6f2;">value</span>
+    train_end_time::<span style="color: #92a65e;">date</span>,
+    ev.evaluation_start_time::<span style="color: #92a65e;">date</span>,
+    ev.evaluation_end_time::<span style="color: #92a65e;">date</span>,
+    to_char<span style="color: #8c8c8c;">(</span>ev.num_labeled_examples, <span style="color: #95e454;">'999,999'</span><span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> labeled_examples,
+    to_char<span style="color: #8c8c8c;">(</span>ev.num_labeled_above_threshold, <span style="color: #95e454;">'999,999'</span><span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> labeled_above_threshold,
+    to_char<span style="color: #8c8c8c;">(</span>ev.num_positive_labels, <span style="color: #95e454;">'999,999'</span><span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> total_positive_labels,
+    to_char<span style="color: #8c8c8c;">(</span>ev.<span style="color: #8ac6f2;">value</span>, <span style="color: #95e454;">'0.999'</span><span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> "<span style="color: #92a65e;">precision</span>@10%"
 <span style="color: #8ac6f2;">from</span>
-    test_results.evaluations
-    <span style="color: #8ac6f2;">inner</span> <span style="color: #8ac6f2;">join</span>
-    baseline <span style="color: #8ac6f2;">using</span><span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c8c;">)</span>
+    model_metadata.models <span style="color: #8ac6f2;">as</span> mo
+    <span style="color: #8ac6f2;">join</span>
+    test_results.evaluations <span style="color: #8ac6f2;">as</span> ev <span style="color: #8ac6f2;">using</span><span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c8c;">)</span>
 <span style="color: #8ac6f2;">where</span>
-    metric || <span style="color: #8ac6f2;">parameter</span> = <span style="color: #95e454;">'precision@25_abs'</span>
+    ev.metric || ev.<span style="color: #8ac6f2;">parameter</span> = <span style="color: #95e454;">'precision@10_pct'</span>
 <span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span>
-    metric || <span style="color: #8ac6f2;">parameter</span>, model_id;
+    train_end_time <span style="color: #8ac6f2;">asc</span>, ev.<span style="color: #8ac6f2;">value</span> <span style="color: #8ac6f2;">desc</span>;
 </pre>
 </div>
 
@@ -8443,6 +8300,16 @@ After the experiment finishes, you will get 3 new <code>model_groups</code> (1 p
 
 <col  class="org-right" />
 
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
 <col  class="org-left" />
 
 <col  class="org-right" />
@@ -8451,72 +8318,50 @@ After the experiment finishes, you will get 3 new <code>model_groups</code> (1 p
 <tr>
 <th scope="col" class="org-right">model<sub>group</sub><sub>id</sub></th>
 <th scope="col" class="org-right">model<sub>id</sub></th>
-<th scope="col" class="org-left">metric</th>
-<th scope="col" class="org-right">value</th>
+<th scope="col" class="org-right">train<sub>end</sub><sub>time</sub></th>
+<th scope="col" class="org-right">evaluation<sub>start</sub><sub>time</sub></th>
+<th scope="col" class="org-right">evaluation<sub>end</sub><sub>time</sub></th>
+<th scope="col" class="org-left">labeled<sub>examples</sub></th>
+<th scope="col" class="org-left">labeled<sub>above</sub><sub>threshold</sub></th>
+<th scope="col" class="org-left">total<sub>positive</sub><sub>labels</sub></th>
+<th scope="col" class="org-right">precision@10%</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td class="org-right">5</td>
+<td class="org-right">11</td>
+<td class="org-right">2015-12-01</td>
+<td class="org-right">2015-12-01</td>
+<td class="org-right">2016-11-01</td>
+<td class="org-left">14,273</td>
+<td class="org-left">2,014</td>
+<td class="org-left">3,460</td>
+<td class="org-right">0.336</td>
+</tr>
+
+<tr>
 <td class="org-right">7</td>
 <td class="org-right">19</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.0</td>
+<td class="org-right">2016-12-01</td>
+<td class="org-right">2016-12-01</td>
+<td class="org-right">2017-11-01</td>
+<td class="org-left">13,637</td>
+<td class="org-left">1,675</td>
+<td class="org-left">3,203</td>
+<td class="org-right">0.331</td>
 </tr>
 
 <tr>
-<td class="org-right">8</td>
-<td class="org-right">20</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.0</td>
-</tr>
-
-<tr>
-<td class="org-right">9</td>
-<td class="org-right">21</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.0</td>
-</tr>
-
-<tr>
-<td class="org-right">7</td>
-<td class="org-right">22</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.0</td>
-</tr>
-
-<tr>
-<td class="org-right">8</td>
-<td class="org-right">23</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.0</td>
-</tr>
-
-<tr>
-<td class="org-right">9</td>
+<td class="org-right">6</td>
 <td class="org-right">24</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.0</td>
-</tr>
-
-<tr>
-<td class="org-right">7</td>
-<td class="org-right">25</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.5</td>
-</tr>
-
-<tr>
-<td class="org-right">8</td>
-<td class="org-right">26</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.5</td>
-</tr>
-
-<tr>
-<td class="org-right">9</td>
-<td class="org-right">27</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.5</td>
+<td class="org-right">2017-12-01</td>
+<td class="org-right">2017-12-01</td>
+<td class="org-right">2018-11-01</td>
+<td class="org-left">10,490</td>
+<td class="org-left">1,254</td>
+<td class="org-left">2,449</td>
+<td class="org-right">0.344</td>
 </tr>
 </tbody>
 </table>
@@ -8524,16 +8369,13 @@ After the experiment finishes, you will get 3 new <code>model_groups</code> (1 p
 </div>
 
 
-
-
-
-<div id="outline-container-org262d137" class="outline-4">
-<h4 id="org262d137"><span class="section-number-4">5.3.3</span> A more advanced experiment</h4>
+<div id="outline-container-org0191026" class="outline-4">
+<h4 id="org0191026"><span class="section-number-4">5.3.3</span> A more advanced experiment</h4>
 <div class="outline-text-4" id="text-5-3-3">
 <p>
 Ok, let's add a more complete experiment. First the usual generalities.
-N
 </p>
+
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="color: #cae682;">config_version</span>: <span style="color: #95e454;">'v6'</span>
 
@@ -8544,7 +8386,7 @@ N
   <span style="color: #cae682;">experiment_type</span>: <span style="color: #95e454;">'inspections prioritization'</span>
   <span style="color: #cae682;">description</span>: |
     <span style="color: #95e454;">Using Ensamble methods</span>
-  <span style="color: #cae682;">purpose</span>: <span style="color: #95e454;">'try ensamble algorithms'</span>
+  <span style="color: #cae682;">purpose</span>: <span style="color: #95e454;">'trying ensamble algorithms'</span>
   <span style="color: #cae682;">org</span>: <span style="color: #95e454;">'DSaPP'</span>
   <span style="color: #cae682;">team</span>: <span style="color: #95e454;">'Tutorial'</span>
   <span style="color: #cae682;">author</span>: <span style="color: #95e454;">'Your name here'</span>
@@ -8553,9 +8395,229 @@ N
 </div>
 
 <p>
-As before, <code>triage</code> needs special tables that specify <i>outcomes</i> (that is, call
-<code>events_table</code>) and <i>states</i>. These are the
-same; we didn't change anything.
+We won't change anything related to features, cohort and label
+definition neither to temporal configuration.
+</p>
+
+<p>
+As before, we can check the temporal structure of our crossvalidation:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">
+<span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
+triage showtimechops experiment_config/inspections_label_failed_01.yaml
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="./images/inspections_label_failed_01.png" alt="inspections_label_failed_01.png" width="800" height="800" />
+</p>
+<p><span class="figure-number">Figure 16: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
+</div>
+
+
+<p>
+We want to use all the features groups
+(<code>feature_group_definition</code>). The training will be made on matrices
+with <code>all</code> the feature groups, then leaving one feature group out at a time,
+<code>leave-one-out</code> (i.e. one model with <code>inspections</code> and <code>results</code>, another with
+<code>inspections</code> and <code>risks</code>, and another with <code>results</code> and <code>risks), and finally
+leaving one feature group in at a time (i.e. a model with =inspections</code> only,
+another with <code>results</code> only, and a third with <code>risks</code> only).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #cae682;">feature_group_definition</span>:
+   <span style="color: #cae682;">prefix</span>:
+     - <span style="color: #95e454;">'inspections'</span>
+     - <span style="color: #95e454;">'results'</span>
+     - <span style="color: #95e454;">'risks'</span>
+     - <span style="color: #95e454;">'inspection_types'</span>
+
+<span style="color: #cae682;">feature_group_strategies</span>: [<span style="color: #95e454;">'all'</span>, <span style="color: #95e454;">'leave-one-in'</span>, <span style="color: #95e454;">'leave-one-out'</span>]
+</pre>
+</div>
+
+<p>
+Finally, we will try some <code>RandomForestClassifier</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #cae682;">grid_config</span>:
+    <span style="color: #95e454;">'sklearn.ensemble.RandomForestClassifier'</span>:
+        <span style="color: #cae682;">max_features</span>: [<span style="color: #95e454;">'sqrt'</span>]
+        <span style="color: #cae682;">criterion</span>: [<span style="color: #95e454;">'gini'</span>]
+        <span style="color: #cae682;">n_estimators</span>: [100, 250]
+        <span style="color: #cae682;">min_samples_split</span>: [2,10]
+
+<span style="color: #cae682;">scoring</span>:
+    <span style="color: #cae682;">testing_metric_groups</span>:
+        <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">          metrics</span>: [precision@, recall@]
+          <span style="color: #cae682;">thresholds</span>:
+            <span style="color: #cae682;">percentiles</span>: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            <span style="color: #cae682;">top_n</span>: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
+    <span style="color: #cae682;">training_metric_groups</span>:
+      <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">        metrics</span>: [accuracy]
+      <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">        metrics</span>: [precision@, recall@]
+        <span style="color: #cae682;">thresholds</span>:
+          <span style="color: #cae682;">percentiles</span>: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+          <span style="color: #cae682;">top_n</span>: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
+</pre>
+</div>
+
+<p>
+Before running, let's verify the configuration file
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">
+<span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
+triage experiment experiment_config/inspections_label_failed_01.yaml  --validate-only
+</pre>
+</div>
+
+<p>
+You can execute the experiment with
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
+triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-predictions --profile
+</pre>
+</div>
+
+<p>
+This will take a looooong time to run.
+</p>
+
+<p>
+Well, now we have a lot of models. How can you pick the best one?
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0f7021e" class="outline-2">
+<h2 id="org0f7021e"><span class="section-number-2">6</span> An Early Intervention System</h2>
+<div class="outline-text-2" id="text-6">
+</div>
+<div id="outline-container-org05fea75" class="outline-3">
+<h3 id="org05fea75"><span class="section-number-3">6.1</span> Problem description</h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+<code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
+While there are  several differences between modeling early warnings and inspection
+ prioritization, perhaps the biggest is that  the <i>entity</i> is active
+(i.e. it is doing stuff for which
+ an outcome will happen) in EIS but passive (i.e. inspected)
+ in <b>inspection prioritization</b>. Among other things, this difference
+affects the way the <i>outcome</i> is built.
+</p>
+
+<p>
+Here's the question we want to answer:
+</p>
+
+<blockquote>
+<p>
+Will my restaurant be inspected in the
+<i>next X period of time?</i>
+</p>
+</blockquote>
+
+<p>
+Where \(X\) could be 3 days, 2 months, 1 year,
+etc.
+</p>
+
+<p>
+Knowing the answer to this question enables you (as the restaurant
+owner or manager) to prepare for the inspection.
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-org03f5f0b" class="outline-3">
+<h3 id="org03f5f0b"><span class="section-number-3">6.2</span> What are the labels? What are the outcomes?</h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+The trick to note is that on any given day there are two possible outcomes:
+<i>the facility was inspected</i> and <i>the facility wasn't inspected</i>.
+Our <i>outcomes</i> table will be larger than in the inspection prioritization example
+because we need an <i>outcome</i> for every <i>active</i> facility on every date.
+The following image tries to exemplify this reasoning:
+</p>
+
+
+
+<div id="org23035c3" class="figure">
+<p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
+</p>
+<p><span class="figure-number">Figure 17: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
+</div>
+
+<p>
+Fortunately, <code>triage</code> will help us to create this table. The <i>cohort</i>
+table is the same as the <i>cohort</i> table in the inspection case.
+</p>
+
+
+<p>
+First the usual stuff. Note that we are changing <code>model_comment</code> and
+<code>label_definition</code> (remember that this is used for generating the
+<i>hash</i> that differentiates models and model groups).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #cae682;">config_version</span>: <span style="color: #95e454;">'v6'</span>
+
+<span style="color: #cae682;">model_comment</span>: <span style="color: #95e454;">'eis: 01'</span>
+
+<span style="color: #cae682;">user_metadata</span>:
+  <span style="color: #cae682;">label_definition</span>: <span style="color: #95e454;">'inspected'</span>
+  <span style="color: #cae682;">experiment_type</span>: <span style="color: #95e454;">'eis'</span>
+  <span style="color: #cae682;">description</span>: |
+    <span style="color: #95e454;">EIS 01</span>
+  <span style="color: #cae682;">purpose</span>: <span style="color: #95e454;">'model creation'</span>
+  <span style="color: #cae682;">org</span>: <span style="color: #95e454;">'DSaPP'</span>
+  <span style="color: #cae682;">team</span>: <span style="color: #95e454;">'Tutorial'</span>
+  <span style="color: #cae682;">author</span>: <span style="color: #95e454;">'Your name here'</span>
+  <span style="color: #cae682;">etl_date</span>: <span style="color: #95e454;">'2019-01-18'</span>
+
+<span style="color: #cae682;">model_group_keys</span>:
+  - <span style="color: #95e454;">'class_path'</span>
+  - <span style="color: #95e454;">'parameters'</span>
+  - <span style="color: #95e454;">'feature_names'</span>
+  - <span style="color: #95e454;">'feature_groups'</span>
+  - <span style="color: #95e454;">'cohort_name'</span>
+  - <span style="color: #95e454;">'state'</span>
+  - <span style="color: #95e454;">'label_name'</span>
+  - <span style="color: #95e454;">'label_timespan'</span>
+  - <span style="color: #95e454;">'training_as_of_date_frequency'</span>
+  - <span style="color: #95e454;">'max_training_history'</span>
+  - <span style="color: #95e454;">'label_definition'</span>
+  - <span style="color: #95e454;">'experiment_type'</span>
+  - <span style="color: #95e454;">'org'</span>
+  - <span style="color: #95e454;">'team'</span>
+  - <span style="color: #95e454;">'author'</span>
+  - <span style="color: #95e454;">'purpose'</span>
+  - <span style="color: #95e454;">'etl_date'</span>
+
+</pre>
+</div>
+
+<p>
+For the labels the query is pretty simple, if the facility showed in
+the data, it will get a <i>positive</i> outcome, if not they will get a <i>negative</i> outcome
 </p>
 
 <div class="org-src-container">
@@ -8563,14 +8625,32 @@ same; we didn't change anything.
   <span style="color: #cae682;">query</span>: |
     <span style="color: #95e454;">select</span>
 <span style="color: #95e454;">    entity_id,</span>
-    bool_or(result = <span style="color: #95e454;">'fail'</span>)::integer as outcome
+<span style="color: #95e454;">    True::integer as outcome</span>
 <span style="color: #95e454;">    from semantic.events</span>
     where <span style="color: #95e454;">'{as_of_date}'</span>::timestamp &lt;= date
     and date &lt; <span style="color: #95e454;">'{as_of_date}'</span>::timestamp + interval <span style="color: #95e454;">'{label_timespan}'</span>
 <span style="color: #95e454;">    group by entity_id</span>
-  <span style="color: #cae682;">name</span>: <span style="color: #95e454;">'failed_inspections'</span>
+  <span style="color: #cae682;">include_missing_labels_in_train_as</span>: <span style="color: #e5786d;">False</span>
+  <span style="color: #cae682;">name</span>: <span style="color: #95e454;">'inspected'</span>
+</pre>
+</div>
 
-<span style="color: #cae682;">cohort_config</span>:
+<p>
+Note the two introduced changes in this block, first, the <i>outcome</i> is
+<code>True</code> , because all our observations represent <i>inspected</i> facilities
+(see discussion above and in particular previous image), second, we
+added the line <code>include_missing_labels_in_train_as: False</code>. This line
+tells <code>triage</code> to incorporate all the missing facilities with <code>False</code>  as
+the <i>outcome</i>.
+</p>
+
+<p>
+As stated we will use the same configuration block for <i>cohorts</i> that we
+used in inspections:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #cae682;">cohort_config</span>:
   <span style="color: #cae682;">query</span>: |
     <span style="color: #95e454;">select entity_id</span>
 <span style="color: #95e454;">    from semantic.entities</span>
@@ -8579,11 +8659,21 @@ same; we didn't change anything.
   <span style="color: #cae682;">name</span>: <span style="color: #95e454;">'active_facilities'</span>
 </pre>
 </div>
+</div>
+</div>
 
+
+<div id="outline-container-orgc82a08f" class="outline-3">
+<h3 id="orgc82a08f"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div class="outline-text-3" id="text-6-3">
 <p>
-Neither to the temporal configuration:
+We need to specify the temporal configuration too
 </p>
+</div>
 
+<ol class="org-ol">
+<li><a id="org904d6a4"></a>Temporal configuration<br />
+<div class="outline-text-5" id="text-6-3-0-1">
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="color: #cae682;">temporal_config</span>:
     <span style="color: #cae682;">feature_start_time</span>: <span style="color: #95e454;">'2010-01-04'</span>
@@ -8600,33 +8690,36 @@ Neither to the temporal configuration:
     <span style="color: #cae682;">test_as_of_date_frequencies</span>: <span style="color: #95e454;">'1month'</span>
 
     <span style="color: #cae682;">max_training_histories</span>: <span style="color: #95e454;">'5y'</span>
-
 </pre>
 </div>
 
+
 <p>
-As before, we can check the temporal structure of our crossvalidation:
+As before, you can generate the image of the temporal blocks:
 </p>
+
 
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiment_config/inspections_label_failed_01.yaml
+triage showtimechops experiment_config/eis_01.yaml
 </pre>
 </div>
 
 
-<div class="figure">
-<p><img src="./images/inspections.png" alt="inspections.png" width="800" height="800" />
-</p>
-<p><span class="figure-number">Figure 15: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
-</div>
 
+<div class="figure">
+<p><img src="./images/eis_01.png" alt="eis_01.png" width="600" height="600" />
+</p>
+<p><span class="figure-number">Figure 18: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
+</div>
+</div>
+</li>
+
+<li><a id="org3dde173"></a>Features<br />
+<div class="outline-text-5" id="text-6-3-0-2">
 <p>
-The first big change is that we are adding 3 more <i>features groups</i>:
-<code>inspections</code> (we already use this), <code>risks</code>, and <code>results</code>. Remember
-that all this refers to events in the past, i.e. <i>How many times the facility was marked with high risk in the previous 3 Months?</i>,
-<i>What is the average rate of failed inspections in the previous year?</i>
+Regarding the features, we will use the same ones that were used in <a href="inspections.html">inspections prioritization</a>:
 </p>
 
 <div class="org-src-container">
@@ -8721,52 +8814,78 @@ that all this refers to events in the past, i.e. <i>How many times the facility 
       - <span style="color: #95e454;">'entity_id'</span>
       - <span style="color: #95e454;">'zip_code'</span>
 
+<span style="color: #cae682;">grid_config</span>:
+    <span style="color: #95e454;">'sklearn.tree.DecisionTreeClassifier'</span>:
+        <span style="color: #cae682;">max_depth</span>: [2,10,~]
+        <span style="color: #cae682;">min_samples_split</span>: [2,5]
+
+
 </pre>
 </div>
 
 <p>
-We want to use all the features groups
-(<code>feature_group_definition</code>). The training will be made on matrices
-with <code>all</code> the feature groups, then leaving one feature group out at a time,
-<code>leave-one-out</code> (i.e. one model with <code>inspections</code> and <code>results</code>, another with
-<code>inspections</code> and <code>risks</code>, and another with <code>results</code> and <code>risks), and finally
-leaving one feature group in at a time (i.e. a model with =inspections</code> only,
-another with <code>results</code> only, and a third with <code>risks</code> only).
+We declare that we want to use all possible feature-group combinations for training:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-yaml">
-<span style="color: #cae682;">feature_group_definition</span>:
+<pre class="src src-yaml"><span style="color: #cae682;">feature_group_definition</span>:
    <span style="color: #cae682;">prefix</span>:
      - <span style="color: #95e454;">'inspections'</span>
      - <span style="color: #95e454;">'results'</span>
      - <span style="color: #95e454;">'risks'</span>
      - <span style="color: #95e454;">'inspection_types'</span>
 
-<span style="color: #cae682;">feature_group_strategies</span>: [<span style="color: #95e454;">'all'</span>, <span style="color: #95e454;">'leave-one-in'</span>, <span style="color: #95e454;">'leave-one-out'</span>]
+<span style="color: #cae682;">feature_group_strategies</span>: [<span style="color: #95e454;">'all'</span>, <span style="color: #95e454;">'leave-one-out'</span>]
 </pre>
 </div>
 
 <p>
-Finally, we will try a <code>RandomForestClassifier</code>:
+i.e. <code>all</code> will train models with all the features groups,
+<code>leave-one-in</code> will use only one of the feature groups for traning, and
+lastly, <code>leave-one-out</code> will train the model with all the features
+except one.
 </p>
+</div>
+</li>
 
+<li><a id="org5ffa263"></a>Algorithm and hyperparameters<br />
+<div class="outline-text-5" id="text-6-3-0-3">
+<p>
+We will collapse the baseline (<code>DummyClassifier</code>) and the exploratory configuration together:
+</p>
 
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="color: #cae682;">grid_config</span>:
+    <span style="color: #95e454;">'sklearn.tree.DecisionTreeClassifier'</span>:
+        <span style="color: #cae682;">max_depth</span>: [2,null]
     <span style="color: #95e454;">'sklearn.ensemble.RandomForestClassifier'</span>:
         <span style="color: #cae682;">max_features</span>: [<span style="color: #95e454;">'sqrt'</span>]
         <span style="color: #cae682;">criterion</span>: [<span style="color: #95e454;">'gini'</span>]
-        <span style="color: #cae682;">n_estimators</span>: [100, 250]
-        <span style="color: #cae682;">min_samples_split</span>: [2,10]
+        <span style="color: #cae682;">n_estimators</span>: [250]
+        <span style="color: #cae682;">min_samples_leaf</span>: [1]
+        <span style="color: #cae682;">min_samples_split</span>: [50]
+    <span style="color: #95e454;">'sklearn.dummy.DummyClassifier'</span>:
+        <span style="color: #cae682;">strategy</span>: [most_frequent]
+</pre>
+</div>
 
-<span style="color: #cae682;">scoring</span>:
+<p>
+<code>triage</code> will create <b>20</b> <i>model groups</i>: <b>4</b> algorithms and
+hyperparameters (2 <code>DecisionTreeClassifier</code>, 1
+<code>RandomForestClassifier</code>, 1 <code>DummyClassifier</code>) &times; <b>5</b> features groups (1
+<code>all</code>, 4 <code>leave-one-out</code>). The total number of <i>models</i>
+is triple that (we have 3 time blocks, so <b>60</b>).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="color: #cae682;">scoring</span>:
     <span style="color: #cae682;">testing_metric_groups</span>:
         <span style="color: #cae682;">-</span>
 <span style="color: #cae682;">          metrics</span>: [precision@, recall@]
           <span style="color: #cae682;">thresholds</span>:
             <span style="color: #cae682;">percentiles</span>: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
             <span style="color: #cae682;">top_n</span>: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
 
     <span style="color: #cae682;">training_metric_groups</span>:
       <span style="color: #cae682;">-</span>
@@ -8781,410 +8900,27 @@ Finally, we will try a <code>RandomForestClassifier</code>:
 </div>
 
 <p>
-Before running, let's verify the configuration file
+As a last step, we validate that the configuration file is correct:
 </p>
+
 
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_label_failed_01.yaml  --validate-only
+triage experiment experiment_config/eis_01.yaml  --validate-only
 </pre>
 </div>
 
+
 <p>
-You can execute the experiment with
+And then just run it:
 </p>
-
-
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="color: #99968b;"># </span><span style="color: #99968b;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-predictions --profile
+triage experiment experiment_config/eis_01.yaml --profile
 </pre>
 </div>
-
-<p>
-This will take a looooong time to run.
-</p>
-
-<p>
-Well, now we have a lot of models. How can you pick the best one?
-We will show you when we model <i>Early Warning</i>.
-</p>
-</div>
-</div>
-</div>
-</div>
-
-
-<div id="outline-container-org871878b" class="outline-2">
-<h2 id="org871878b"><span class="section-number-2">6</span> An Early Intervention System</h2>
-<div class="outline-text-2" id="text-6">
-</div>
-<div id="outline-container-org783534b" class="outline-3">
-<h3 id="org783534b"><span class="section-number-3">6.1</span> Problem description</h3>
-<div class="outline-text-3" id="text-6-1">
-<p>
-<code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
-While there are  several differences between modeling early warnings and inspection
- prioritization, perhaps the biggest is that  the <i>entity</i> is active
-(i.e. it is doing stuff for which
- an outcome will happen) in EIS but passive (i.e. inspected)
- in <b>inspection prioritization</b>. Among other things, this difference
-affects the way the <i>outcome</i> is built.
-</p>
-
-<p>
-Here's the question we want to answer:
-</p>
-
-<blockquote>
-<p>
-Will my restaurant be inspected in the
-<i>next X period of time?</i>
-</p>
-</blockquote>
-
-<p>
-Where \(X\) could be 3 days, 2 months, 1 year,
-etc.
-</p>
-
-<p>
-Knowing the answer to this question enables you (as the restaurant
-owner or manager) to prepare for the inspection.
-</p>
-</div>
-</div>
-
-
-<div id="outline-container-org4c7dbda" class="outline-3">
-<h3 id="org4c7dbda"><span class="section-number-3">6.2</span> What are the labels? What are the outcomes?</h3>
-<div class="outline-text-3" id="text-6-2">
-<p>
-The trick to note is that on any given day there are two possible outcomes:
-<i>the facility was inspected</i> and <i>the facility wasn't inspected</i>.
-Our <i>outcomes</i> table will be larger than in the inspection prioritization example
-because we need an <i>outcome</i> for every <i>active</i> facility on every date.
-The following image tries to exemplify this reasoning:
-</p>
-
-
-
-<div id="org3a69719" class="figure">
-<p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
-</p>
-<p><span class="figure-number">Figure 16: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
-</div>
-
-<p>
-Fortunately, <code>triage</code> will help us to create this table. The <i>cohort</i>
-table is the same as the <i>cohort</i> table in the inspection case.
-</p>
-
-
-<p>
-First the usual stuff. Note that we are changing <code>model_comment</code> and
-<code>label_definition</code> (remember that this is used for generating the
-<i>hash</i> that differentiates models and model groups).
-</p>
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">config_version</span>: <span style="color: #95e454;">'v5'</span>
-
-<span style="color: #cae682;">model_comment</span>: <span style="color: #95e454;">'eis'</span>
-
-<span style="color: #cae682;">user_metadata</span>:
-  <span style="color: #cae682;">label_definition</span>: <span style="color: #95e454;">'inspected'</span>
-  <span style="color: #cae682;">experiment_type</span>: <span style="color: #95e454;">'eis'</span>
-  <span style="color: #cae682;">description</span>: |
-    <span style="color: #95e454;">Experiment 01</span>
-  <span style="color: #cae682;">purpose</span>: <span style="color: #95e454;">'exploring'</span>
-  <span style="color: #cae682;">org</span>: <span style="color: #95e454;">'DSaPP'</span>
-  <span style="color: #cae682;">team</span>: <span style="color: #95e454;">'Tutorial'</span>
-  <span style="color: #cae682;">author</span>: <span style="color: #95e454;">'Your name here'</span>
-</pre>
-</div>
-
-<p>
-For the labels the query is pretty simple, if the facility showed in
-the data, it will get a <i>positive</i> outcome, if not they will get a <i>negative</i> outcome
-</p>
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">label_config</span>:
-  <span style="color: #cae682;">query</span>: |
-    <span style="color: #95e454;">select</span>
-<span style="color: #95e454;">    entity_id,</span>
-<span style="color: #95e454;">    True::integer as outcome</span>
-<span style="color: #95e454;">    from semantic.events</span>
-    where <span style="color: #95e454;">'{as_of_date}'</span>::timestamp &lt;= date
-    and date &lt; <span style="color: #95e454;">'{as_of_date}'</span>::timestamp + interval <span style="color: #95e454;">'{label_timespan}'</span>
-<span style="color: #95e454;">    group by entity_id</span>
-  <span style="color: #cae682;">include_missing_labels_in_train_as</span>: <span style="color: #e5786d;">False</span>
-  <span style="color: #cae682;">name</span>: <span style="color: #95e454;">'inspected'</span>
-</pre>
-</div>
-
-<p>
-Note the two introduced changes in this block, first, the <i>outcome</i> is
-<code>True</code> , because all our observations represent <i>inspected</i> facilities
-(see discussion above and in particular previous image), second, we
-added the line <code>include_missing_labels_in_train_as: False</code>. This line
-tells <code>triage</code> to incorporate all the missing facilities with <code>False</code>  as
-the <i>outcome</i>.
-</p>
-
-<p>
-As stated we will use the same configuration block for <i>cohorts</i> that we
-used in inspections:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">cohort_config</span>:
-  <span style="color: #cae682;">query</span>: |
-    <span style="color: #95e454;">select entity_id</span>
-<span style="color: #95e454;">    from semantic.entities</span>
-<span style="color: #95e454;">    where</span>
-    tsrange(start_time, end_time, <span style="color: #95e454;">'[]'</span>) @&gt; {as_of_date}
-  <span style="color: #cae682;">name</span>: <span style="color: #95e454;">'active_facilities'</span>
-</pre>
-</div>
-</div>
-</div>
-
-
-<div id="outline-container-org6063795" class="outline-3">
-<h3 id="org6063795"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
-<div class="outline-text-3" id="text-6-3">
-<p>
-We need to specify the temporal configuration too
-</p>
-</div>
-
-<ol class="org-ol">
-<li><a id="org5dc1985"></a>Temporal configuration<br />
-<div class="outline-text-5" id="text-6-3-0-1">
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">temporal_config</span>:
-    <span style="color: #cae682;">feature_start_time</span>: <span style="color: #95e454;">'2010-01-04'</span>
-    <span style="color: #cae682;">feature_end_time</span>: <span style="color: #95e454;">'2018-03-13'</span>
-    <span style="color: #cae682;">label_start_time</span>: <span style="color: #95e454;">'2015-02-01'</span>
-    <span style="color: #cae682;">label_end_time</span>: <span style="color: #95e454;">'2018-03-13'</span>
-
-    <span style="color: #cae682;">model_update_frequency</span>: <span style="color: #95e454;">'1y'</span>
-    <span style="color: #cae682;">training_label_timespans</span>: [<span style="color: #95e454;">'1month'</span>]
-    <span style="color: #cae682;">training_as_of_date_frequencies</span>: <span style="color: #95e454;">'1month'</span>
-
-    <span style="color: #cae682;">test_durations</span>: <span style="color: #95e454;">'1month'</span>
-    <span style="color: #cae682;">test_label_timespans</span>: [<span style="color: #95e454;">'1month'</span>]
-    <span style="color: #cae682;">test_as_of_date_frequencies</span>: <span style="color: #95e454;">'1month'</span>
-
-    <span style="color: #cae682;">max_training_histories</span>: <span style="color: #95e454;">'5y'</span>
-</pre>
-</div>
-
-
-<p>
-As before, you can generate the image of the temporal blocks:
-</p>
-
-
-<div class="org-src-container">
-<pre class="src src-sh">./tutorial.sh triage --config_file eis_01.yaml show-temporal-blocks
-</pre>
-</div>
-
-
-<div class="figure">
-<p><img src="./images/eis.png" alt="eis.png" width="600" height="600" />
-</p>
-<p><span class="figure-number">Figure 17: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
-</div>
-</div>
-</li>
-
-<li><a id="orge6cabae"></a>Features<br />
-<div class="outline-text-5" id="text-6-3-0-2">
-<p>
-Regarding the features, we will use the same ones that were used in <a href="inspections.html">inspections prioritization</a>:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">feature_aggregations</span>:
-    <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">        prefix</span>: <span style="color: #95e454;">'inspections'</span>
-        <span style="color: #cae682;">from_obj</span>: <span style="color: #95e454;">'semantic.events'</span>
-        <span style="color: #cae682;">knowledge_date_column</span>: <span style="color: #95e454;">'date'</span>
-
-        <span style="color: #cae682;">categoricals_imputation</span>:
-            <span style="color: #cae682;">all</span>:
-                <span style="color: #cae682;">type</span>: <span style="color: #95e454;">'zero'</span>
-
-        <span style="color: #cae682;">categoricals</span>:
-            -   <span style="color: #99968b;"># </span><span style="color: #99968b;">inspection type</span>
-                <span style="color: #cae682;">column</span>: <span style="color: #95e454;">'type'</span>
-                <span style="color: #cae682;">choice_query</span>: <span style="color: #95e454;">'select distinct type from semantic.events'</span>
-                <span style="color: #cae682;">metrics</span>:
-                    - <span style="color: #95e454;">'sum'</span>
-                    - <span style="color: #95e454;">'avg'</span>
-
-        <span style="color: #cae682;">intervals</span>:
-            - <span style="color: #95e454;">'2y'</span>
-            - <span style="color: #95e454;">'1y'</span>
-            - <span style="color: #95e454;">'6month'</span>
-            - <span style="color: #95e454;">'3month'</span>
-
-        <span style="color: #cae682;">groups</span>:
-            - <span style="color: #95e454;">'entity_id'</span>
-            - <span style="color: #95e454;">'zip_code'</span>
-
-    <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">        prefix</span>: <span style="color: #95e454;">'risks'</span>
-        <span style="color: #cae682;">from_obj</span>: <span style="color: #95e454;">'semantic.events'</span>
-        <span style="color: #cae682;">knowledge_date_column</span>: <span style="color: #95e454;">'date'</span>
-
-        <span style="color: #cae682;">categoricals_imputation</span>:
-            <span style="color: #cae682;">all</span>:
-                <span style="color: #cae682;">type</span>: <span style="color: #95e454;">'zero'</span>
-
-        <span style="color: #cae682;">categoricals</span>:
-            -   <span style="color: #99968b;"># </span><span style="color: #99968b;">Facility's Risk</span>
-                <span style="color: #cae682;">column</span>: <span style="color: #95e454;">'risk'</span>
-                <span style="color: #cae682;">choice_query</span>: <span style="color: #95e454;">'select distinct risk from semantic.events'</span>
-                <span style="color: #cae682;">metrics</span>:
-                    - <span style="color: #95e454;">'sum'</span>
-                    - <span style="color: #95e454;">'avg'</span>
-
-        <span style="color: #cae682;">intervals</span>:
-            - <span style="color: #95e454;">'2y'</span>
-            - <span style="color: #95e454;">'1y'</span>
-            - <span style="color: #95e454;">'6month'</span>
-            - <span style="color: #95e454;">'3month'</span>
-
-        <span style="color: #cae682;">groups</span>:
-            - <span style="color: #95e454;">'entity_id'</span>
-            - <span style="color: #95e454;">'zip_code'</span>
-            - <span style="color: #95e454;">'facility_type'</span>
-
-
-    <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">        prefix</span>: <span style="color: #95e454;">'results'</span>
-        <span style="color: #cae682;">from_obj</span>: <span style="color: #95e454;">'semantic.events'</span>
-        <span style="color: #cae682;">knowledge_date_column</span>: <span style="color: #95e454;">'date'</span>
-
-        <span style="color: #cae682;">categoricals_imputation</span>:
-            <span style="color: #cae682;">all</span>:
-                <span style="color: #cae682;">type</span>: <span style="color: #95e454;">'zero'</span>
-
-        <span style="color: #cae682;">categoricals</span>:
-            -   <span style="color: #99968b;"># </span><span style="color: #99968b;">Result of previous inspections</span>
-                <span style="color: #cae682;">column</span>: <span style="color: #95e454;">'result'</span>
-                <span style="color: #cae682;">choice_query</span>: <span style="color: #95e454;">'select distinct result from semantic.events'</span>
-                <span style="color: #cae682;">metrics</span>:
-                    - <span style="color: #95e454;">'sum'</span>
-                    - <span style="color: #95e454;">'avg'</span>
-
-        <span style="color: #cae682;">intervals</span>:
-            - <span style="color: #95e454;">'2y'</span>
-            - <span style="color: #95e454;">'1y'</span>
-            - <span style="color: #95e454;">'6month'</span>
-            - <span style="color: #95e454;">'3month'</span>
-
-        <span style="color: #cae682;">groups</span>:
-            - <span style="color: #95e454;">'entity_id'</span>
-            - <span style="color: #95e454;">'zip_code'</span>
-            - <span style="color: #95e454;">'facility_type'</span>
-
-</pre>
-</div>
-
-<p>
-We declare that we want to use all possible feature-group combinations for training:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">feature_group_definition</span>:
-   <span style="color: #cae682;">prefix</span>: [<span style="color: #95e454;">'inspections'</span>, <span style="color: #95e454;">'results'</span>, <span style="color: #95e454;">'risks'</span>]
-
-<span style="color: #cae682;">feature_group_strategies</span>: [<span style="color: #95e454;">'all'</span>, <span style="color: #95e454;">'leave-one-in'</span>, <span style="color: #95e454;">'leave-one-out'</span>]
-</pre>
-</div>
-
-<p>
-i.e. <code>all</code> will train models with all the features groups,
-<code>leave-one-in</code> will use only one of the feature groups for traning, and
-lastly, <code>leave-one-out</code> will train the model with all the features
-except one.
-</p>
-</div>
-</li>
-
-<li><a id="org70e275c"></a>Algorithm and hyperparameters<br />
-<div class="outline-text-5" id="text-6-3-0-3">
-<p>
-We will collapse the baseline (<code>DummyClassifier</code>) and the exploratory configuration together:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">grid_config</span>:
-    <span style="color: #95e454;">'sklearn.tree.DecisionTreeClassifier'</span>:
-        <span style="color: #cae682;">max_depth</span>: [1,null]
-    <span style="color: #95e454;">'sklearn.ensemble.RandomForestClassifier'</span>:
-        <span style="color: #cae682;">max_features</span>: [<span style="color: #95e454;">'sqrt'</span>]
-        <span style="color: #cae682;">criterion</span>: [<span style="color: #95e454;">'gini'</span>]
-        <span style="color: #cae682;">n_estimators</span>: [1000]
-        <span style="color: #cae682;">min_samples_leaf</span>: [1]
-        <span style="color: #cae682;">min_samples_split</span>: [50]
-        <span style="color: #cae682;">class_weight</span>: [<span style="color: #95e454;">'balanced'</span>]
-    <span style="color: #95e454;">'sklearn.dummy.DummyClassifier'</span>:
-        <span style="color: #cae682;">strategy</span>: [prior,uniform, most_frequent]
-</pre>
-</div>
-
-<p>
-<code>triage</code> will create <b>42</b> <i>model groups</i>: 6 algorithms and
-hyperparameters (2 <code>DecisionTreeClassifier</code>, 1
-<code>RandomForestClassifier</code>, 3 <code>DummyClassifier</code>) &times; 7 features groups (1
-<code>all</code>, 3 <code>leave-one-in</code>, 3 <code>leave-one-out</code>). The total number of <i>models</i>
-is double that (we have 2 time blocks, so <b>84</b>).
-</p>
-
-
-<div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">scoring</span>:
-    <span style="color: #cae682;">sort_seed</span>: 1234
-    <span style="color: #cae682;">testing_metric_groups</span>:
-        <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">            metrics</span>: [<span style="color: #95e454;">'precision@'</span>, <span style="color: #95e454;">'recall@'</span>]
-            <span style="color: #cae682;">thresholds</span>:
-                <span style="color: #cae682;">percentiles</span>: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
-                <span style="color: #cae682;">top_n</span>: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
-    <span style="color: #cae682;">training_metric_groups</span>:
-      <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">        metrics</span>: [accuracy]
-      <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">        metrics</span>: [precision@, recall@]
-        <span style="color: #cae682;">thresholds</span>:
-            <span style="color: #cae682;">percentiles</span>: [1.0, 2.0, 5.0, 10.0, 25.0, 50.0, 75.0, 95.0, 100.0]
-            <span style="color: #cae682;">top_n</span>: [5, 10, 25, 50, 75, 100, 150, 200, 300, 500, 1000, 2000]
-</pre>
-</div>
-
-<p>
-As a last step, we validate that the configuration file is correct:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-sh">./tutorial.sh triage --config_file eis_01.yaml validate
-</pre>
-</div>
-
-
-
-<pre class="example">
-./tutorial.sh triage --config_file eis_01.yaml --no-replace --debug run
-</pre>
 
 <p>
 This will take a <b>lot</b> amount of time (on my computer took 3h 42m),
@@ -9203,7 +8939,7 @@ It's taking that long for several reasons:
 You can solve 2 and 3. For the second point you could use the <code>docker</code>
 container that has the multicore option enabled. For 3, I recommed you
 to use a PostgreSQL database in the cloud, such as Amazon's
-<b>PostgreSQL RDS</b>.
+<b>PostgreSQL RDS</b> (we will explore this later in running triage in AWS Batch).
 </p>
 
 <p>
@@ -9212,26 +8948,48 @@ After the experiment finishes, we can create the following table:
 
 <div class="org-src-container">
 <pre class="src src-sql"><span style="color: #8ac6f2;">with</span> features_groups <span style="color: #8ac6f2;">as</span> <span style="color: #8c8c8c;">(</span>
-<span style="color: #8ac6f2;">select</span> model_group_id, split_part<span style="color: #93a8c6;">(</span><span style="color: #8ac6f2;">unnest</span><span style="color: #b0b1a3;">(</span>feature_list<span style="color: #b0b1a3;">)</span>, <span style="color: #95e454;">'_'</span>, 1<span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">as</span> feature_groups
-<span style="color: #8ac6f2;">from</span> model_metadata.model_groups
+<span style="color: #8ac6f2;">select</span>
+    model_group_id,
+    split_part<span style="color: #93a8c6;">(</span><span style="color: #8ac6f2;">unnest</span><span style="color: #b0b1a3;">(</span>feature_list<span style="color: #b0b1a3;">)</span>, <span style="color: #95e454;">'_'</span>, 1<span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">as</span> feature_groups
+<span style="color: #8ac6f2;">from</span>
+    model_metadata.model_groups
 <span style="color: #8c8c8c;">)</span>,
 
 features_arrays <span style="color: #8ac6f2;">as</span> <span style="color: #8c8c8c;">(</span>
-<span style="color: #8ac6f2;">select</span> model_group_id, array_agg<span style="color: #93a8c6;">(</span><span style="color: #8ac6f2;">distinct</span> feature_groups<span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">as</span> feature_groups
-<span style="color: #8ac6f2;">from</span> features_groups
-<span style="color: #8ac6f2;">group</span> <span style="color: #8ac6f2;">by</span> model_group_id
+<span style="color: #8ac6f2;">select</span>
+    model_group_id,
+    array_agg<span style="color: #93a8c6;">(</span><span style="color: #8ac6f2;">distinct</span> feature_groups<span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">as</span> feature_groups
+<span style="color: #8ac6f2;">from</span>
+    features_groups
+<span style="color: #8ac6f2;">group</span> <span style="color: #8ac6f2;">by</span>
+    model_group_id
 <span style="color: #8c8c8c;">)</span>
 
 <span style="color: #8ac6f2;">select</span>
-model_group_id,
-model_type,
-hyperparameters,
-feature_groups,
-array_agg<span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> models
-<span style="color: #8ac6f2;">from</span> model_metadata.models
-<span style="color: #8ac6f2;">join</span> features_arrays <span style="color: #8ac6f2;">using</span><span style="color: #8c8c8c;">(</span>model_group_id<span style="color: #8c8c8c;">)</span>
-<span style="color: #8ac6f2;">where</span> model_comment = <span style="color: #95e454;">'eis'</span>
-<span style="color: #8ac6f2;">group</span> <span style="color: #8ac6f2;">by</span> model_group_id, model_type, hyperparameters, feature_groups <span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span> model_group_id
+    model_group_id,
+    model_type,
+    hyperparameters,
+    feature_groups,
+    array_agg<span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> models,
+    array_agg<span style="color: #8c8c8c;">(</span>train_end_time::<span style="color: #92a65e;">date</span> <span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span> train_end_time <span style="color: #8ac6f2;">asc</span><span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> times,
+    array_agg<span style="color: #8c8c8c;">(</span>to_char<span style="color: #93a8c6;">(</span><span style="color: #8ac6f2;">value</span>, <span style="color: #95e454;">'0.999'</span><span style="color: #93a8c6;">)</span> <span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span> train_end_time <span style="color: #8ac6f2;">asc</span><span style="color: #8c8c8c;">)</span> <span style="color: #8ac6f2;">as</span> "<span style="color: #92a65e;">precision</span>@5%"
+<span style="color: #8ac6f2;">from</span>
+    model_metadata.models
+    <span style="color: #8ac6f2;">join</span>
+    features_arrays <span style="color: #8ac6f2;">using</span><span style="color: #8c8c8c;">(</span>model_group_id<span style="color: #8c8c8c;">)</span>
+    <span style="color: #8ac6f2;">join</span>
+    test_results.evaluations <span style="color: #8ac6f2;">using</span><span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c8c;">)</span>
+<span style="color: #8ac6f2;">where</span>
+    model_comment ~ <span style="color: #95e454;">'eis'</span>
+    <span style="color: #8ac6f2;">and</span>
+    metric || <span style="color: #8ac6f2;">parameter</span> = <span style="color: #95e454;">'precision@5.0_pct'</span>
+<span style="color: #8ac6f2;">group</span> <span style="color: #8ac6f2;">by</span>
+    model_group_id,
+    model_type,
+    hyperparameters,
+    feature_groups
+<span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span>
+    model_group_id;
 </pre>
 </div>
 
@@ -9240,6 +8998,10 @@ array_agg<span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c
 
 <colgroup>
 <col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
 
 <col  class="org-left" />
 
@@ -9256,1019 +9018,252 @@ array_agg<span style="color: #8c8c8c;">(</span>model_id<span style="color: #8c8c
 <th scope="col" class="org-left">hyperparameters</th>
 <th scope="col" class="org-left">feature<sub>groups</sub></th>
 <th scope="col" class="org-left">models</th>
+<th scope="col" class="org-left">times</th>
+<th scope="col" class="org-left">precision@5%</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td class="org-right">10</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
-<td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{61,19}</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{28}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.171"}</td>
 </tr>
 
 <tr>
 <td class="org-right">11</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": null}</td>
-<td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{62,20}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{29}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.179"}</td>
 </tr>
 
 <tr>
 <td class="org-right">12</td>
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{63,21}</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{30}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.316"}</td>
 </tr>
 
 <tr>
 <td class="org-right">13</td>
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{64,22}</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{31}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.063"}</td>
 </tr>
 
 <tr>
 <td class="org-right">14</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{65,23}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspections}</td>
+<td class="org-left">{32}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.102"}</td>
 </tr>
 
 <tr>
 <td class="org-right">15</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{66,24}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspections}</td>
+<td class="org-left">{33}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.116"}</td>
 </tr>
 
 <tr>
 <td class="org-right">16</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{67,25}</td>
+<td class="org-left">{34}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.116"}</td>
 </tr>
 
 <tr>
 <td class="org-right">17</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{68,26}</td>
+<td class="org-left">{35}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.063"}</td>
 </tr>
 
 <tr>
 <td class="org-right">18</td>
-<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{inspections}</td>
-<td class="org-left">{69,27}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{36}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.172"}</td>
 </tr>
 
 <tr>
 <td class="org-right">19</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{inspections}</td>
-<td class="org-left">{70,28}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{37}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.232"}</td>
 </tr>
 
 <tr>
 <td class="org-right">20</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{inspections}</td>
-<td class="org-left">{71,29}</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{38}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.267"}</td>
 </tr>
 
 <tr>
 <td class="org-right">21</td>
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
 <td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{inspections}</td>
-<td class="org-left">{72,30}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{39}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.063"}</td>
 </tr>
 
 <tr>
 <td class="org-right">22</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
-<td class="org-left">{results}</td>
-<td class="org-left">{73,31}</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{40}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.164"}</td>
 </tr>
 
 <tr>
 <td class="org-right">23</td>
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": null}</td>
-<td class="org-left">{results}</td>
-<td class="org-left">{74,32}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{41}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.126"}</td>
 </tr>
 
 <tr>
 <td class="org-right">24</td>
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{results}</td>
-<td class="org-left">{75,33}</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{42}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.226"}</td>
 </tr>
 
 <tr>
 <td class="org-right">25</td>
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{results}</td>
-<td class="org-left">{76,34}</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{43}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.063"}</td>
 </tr>
 
 <tr>
 <td class="org-right">26</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{results}</td>
-<td class="org-left">{77,35}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{44}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.152"}</td>
 </tr>
 
 <tr>
 <td class="org-right">27</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{results}</td>
-<td class="org-left">{78,36}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{45}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.135"}</td>
 </tr>
 
 <tr>
 <td class="org-right">28</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
-<td class="org-left">{risks}</td>
-<td class="org-left">{79,37}</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{46}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.213"}</td>
 </tr>
 
 <tr>
 <td class="org-right">29</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null}</td>
-<td class="org-left">{risks}</td>
-<td class="org-left">{80,38}</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{47}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.063"}</td>
 </tr>
 
 <tr>
 <td class="org-right">30</td>
-<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{risks}</td>
-<td class="org-left">{81,39}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{48}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.172"}</td>
 </tr>
 
 <tr>
 <td class="org-right">31</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{risks}</td>
-<td class="org-left">{82,40}</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{49}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.175"}</td>
 </tr>
 
 <tr>
 <td class="org-right">32</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{risks}</td>
-<td class="org-left">{83,41}</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{50}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.315"}</td>
 </tr>
 
 <tr>
 <td class="org-right">33</td>
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
 <td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{risks}</td>
-<td class="org-left">{84,42}</td>
-</tr>
-
-<tr>
-<td class="org-right">34</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
-<td class="org-left">{results,risks}</td>
-<td class="org-left">{85,43}</td>
-</tr>
-
-<tr>
-<td class="org-right">35</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null}</td>
-<td class="org-left">{results,risks}</td>
-<td class="org-left">{86,44}</td>
-</tr>
-
-<tr>
-<td class="org-right">36</td>
-<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{results,risks}</td>
-<td class="org-left">{87,45}</td>
-</tr>
-
-<tr>
-<td class="org-right">37</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{results,risks}</td>
-<td class="org-left">{88,46}</td>
-</tr>
-
-<tr>
-<td class="org-right">38</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{results,risks}</td>
-<td class="org-left">{89,47}</td>
-</tr>
-
-<tr>
-<td class="org-right">39</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{results,risks}</td>
-<td class="org-left">{90,48}</td>
-</tr>
-
-<tr>
-<td class="org-right">40</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
-<td class="org-left">{inspections,risks}</td>
-<td class="org-left">{91,49}</td>
-</tr>
-
-<tr>
-<td class="org-right">41</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null}</td>
-<td class="org-left">{inspections,risks}</td>
-<td class="org-left">{92,50}</td>
-</tr>
-
-<tr>
-<td class="org-right">42</td>
-<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{inspections,risks}</td>
-<td class="org-left">{93,51}</td>
-</tr>
-
-<tr>
-<td class="org-right">43</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{inspections,risks}</td>
-<td class="org-left">{94,52}</td>
-</tr>
-
-<tr>
-<td class="org-right">44</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{inspections,risks}</td>
-<td class="org-left">{95,53}</td>
-</tr>
-
-<tr>
-<td class="org-right">45</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{inspections,risks}</td>
-<td class="org-left">{96,54}</td>
-</tr>
-
-<tr>
-<td class="org-right">46</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": 1}</td>
-<td class="org-left">{inspections,results}</td>
-<td class="org-left">{97,55}</td>
-</tr>
-
-<tr>
-<td class="org-right">47</td>
-<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
-<td class="org-left">{"max<sub>depth</sub>": null}</td>
-<td class="org-left">{inspections,results}</td>
-<td class="org-left">{98,56}</td>
-</tr>
-
-<tr>
-<td class="org-right">48</td>
-<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
-<td class="org-left">{"criterion": "gini", "class<sub>weight</sub>": "balanced", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 1000, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
-<td class="org-left">{inspections,results}</td>
-<td class="org-left">{99,57}</td>
-</tr>
-
-<tr>
-<td class="org-right">49</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "prior"}</td>
-<td class="org-left">{inspections,results}</td>
-<td class="org-left">{100,58}</td>
-</tr>
-
-<tr>
-<td class="org-right">50</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "uniform"}</td>
-<td class="org-left">{inspections,results}</td>
-<td class="org-left">{101,59}</td>
-</tr>
-
-<tr>
-<td class="org-right">51</td>
-<td class="org-left">sklearn.dummy.DummyClassifier</td>
-<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
-<td class="org-left">{inspections,results}</td>
-<td class="org-left">{102,60}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{51}</td>
+<td class="org-left">{2015-12-01}</td>
+<td class="org-left">{" 0.063"}</td>
 </tr>
 </tbody>
 </table>
-
-
-<p>
-Let's check the performance of <i>model group</i> 12 (a Random Forest
-with 1,000 trees and all the features):
-</p>
-
-<div class="org-src-container">
-<pre class="src src-sql"><span style="color: #8ac6f2;">select</span>
-model_id, evaluation_start_time,
-metric || <span style="color: #8ac6f2;">parameter</span> <span style="color: #8ac6f2;">as</span> metric,
-<span style="color: #8ac6f2;">value</span>,
-num_labeled_examples,
-num_labeled_above_threshold,
-num_positive_labels
-<span style="color: #8ac6f2;">from</span> test_results.evaluations
-<span style="color: #8ac6f2;">where</span> model_id <span style="color: #8ac6f2;">in</span> <span style="color: #8c8c8c;">(</span>21, 63<span style="color: #8c8c8c;">)</span>
-<span style="color: #8ac6f2;">and</span> metric || <span style="color: #8ac6f2;">parameter</span> = <span style="color: #95e454;">'precision@25_abs'</span>
-<span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span> num_labeled_above_threshold <span style="color: #8ac6f2;">asc</span>,
-metric || <span style="color: #8ac6f2;">parameter</span>
-</pre>
-</div>
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-right" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-right">model<sub>id</sub></th>
-<th scope="col" class="org-left">evaluation<sub>start</sub><sub>time</sub></th>
-<th scope="col" class="org-left">metric</th>
-<th scope="col" class="org-right">value</th>
-<th scope="col" class="org-right">num<sub>labeled</sub><sub>examples</sub></th>
-<th scope="col" class="org-right">num<sub>labeled</sub><sub>above</sub><sub>threshold</sub></th>
-<th scope="col" class="org-right">num<sub>positive</sub><sub>labels</sub></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.84</td>
-<td class="org-right">18668</td>
-<td class="org-right">25</td>
-<td class="org-right">790</td>
-</tr>
-
-<tr>
-<td class="org-right">63</td>
-<td class="org-left">2016-12-13 00:00:00</td>
-<td class="org-left">precision@25<sub>abs</sub></td>
-<td class="org-right">0.88</td>
-<td class="org-right">19358</td>
-<td class="org-right">25</td>
-<td class="org-right">958</td>
-</tr>
-</tbody>
-</table>
-
-<p>
-Using the model <code>21</code> we can generate a list of places to be alerted:
-</p>
-
-<div class="org-src-container">
-<pre class="src src-sql"><span style="color: #8ac6f2;">select</span> *
-<span style="color: #8ac6f2;">from</span> test_results.predictions
-<span style="color: #8ac6f2;">where</span> model_id = 21
-<span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span> score <span style="color: #8ac6f2;">desc</span>
-<span style="color: #8ac6f2;">limit</span> 25
-</pre>
-</div>
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-left" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-right">model<sub>id</sub></th>
-<th scope="col" class="org-right">entity<sub>id</sub></th>
-<th scope="col" class="org-left">as<sub>of</sub><sub>date</sub></th>
-<th scope="col" class="org-right">score</th>
-<th scope="col" class="org-right">label<sub>value</sub></th>
-<th scope="col" class="org-left">rank<sub>abs</sub></th>
-<th scope="col" class="org-left">rank<sub>pct</sub></th>
-<th scope="col" class="org-left">matrix<sub>uuid</sub></th>
-<th scope="col" class="org-left">test<sub>label</sub><sub>timespan</sub></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">25854</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9484136677797923</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">3019</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9436469079812785</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">13792</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9419947954600382</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">17502</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9312907285784298</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">2466</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9243102785460537</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">10382</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9206737935216891</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">24297</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9200144700893553</td>
-<td class="org-right">0</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">143</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9199824040634403</td>
-<td class="org-right">0</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">29174</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9141830973245461</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">1816</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9116947701339125</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">15936</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.910420304141231</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">4019</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9101049552562018</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">8835</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.909611746159294</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">30294</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9053675764327609</td>
-<td class="org-right">0</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">27955</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9046749372346382</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">27956</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9046749372346382</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">13783</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.9015988243973061</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">8760</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8936300434147297</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">27071</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8889020831400419</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">27073</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8889020831400419</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">1381</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8856752816172949</td>
-<td class="org-right">0</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">23063</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8838436286127278</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">1355</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8828514873911587</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">19735</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8806239565602527</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-right">6959</td>
-<td class="org-left">2015-12-13 00:00:00</td>
-<td class="org-right">0.8736905232325605</td>
-<td class="org-right">1</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">[NULL]</td>
-<td class="org-left">2e85917732c60eb208f2d052a9e4fe60</td>
-<td class="org-left">1 mon</td>
-</tr>
-</tbody>
-</table>
-</div>
-</li>
-
-
-<li><a id="org9e5c2d8"></a>Feature Importances<br />
-<div class="outline-text-5" id="text-6-3-0-4">
-<p>
-Which <i>features</i> were important for the picked model?
-</p>
-
-<div class="org-src-container">
-<pre class="src src-sql"><span style="color: #8ac6f2;">select</span> * <span style="color: #8ac6f2;">from</span> test_results.feature_importances
-<span style="color: #8ac6f2;">where</span> model_id = 21
-<span style="color: #8ac6f2;">order</span> <span style="color: #8ac6f2;">by</span> feature_importance <span style="color: #8ac6f2;">desc</span>
-<span style="color: #8ac6f2;">limit</span> 25
-</pre>
-</div>
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-right" />
-
-<col  class="org-left" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-right">model<sub>id</sub></th>
-<th scope="col" class="org-left">feature</th>
-<th scope="col" class="org-right">feature<sub>importance</sub></th>
-<th scope="col" class="org-right">rank<sub>abs</sub></th>
-<th scope="col" class="org-right">rank<sub>pct</sub></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>facility</sub><sub>type</sub><sub>2y</sub><sub>risk</sub><sub>high</sub><sub>avg</sub></td>
-<td class="org-right">0.0174800538</td>
-<td class="org-right">1</td>
-<td class="org-right">0.003125</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>3month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub></td>
-<td class="org-right">0.0133257966</td>
-<td class="org-right">2</td>
-<td class="org-right">0.00625</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>facility</sub><sub>type</sub><sub>1y</sub><sub>risk</sub><sub>high</sub><sub>avg</sub></td>
-<td class="org-right">0.0131853305</td>
-<td class="org-right">3</td>
-<td class="org-right">0.009375</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>facility</sub><sub>type</sub><sub>2y</sub><sub>risk</sub><sub>high</sub><sub>sum</sub></td>
-<td class="org-right">0.0131239412</td>
-<td class="org-right">4</td>
-<td class="org-right">0.0125</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>pass</sub><sub>avg</sub></td>
-<td class="org-right">0.0129326733</td>
-<td class="org-right">5</td>
-<td class="org-right">0.015625</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>facility</sub><sub>type</sub><sub>6month</sub><sub>risk</sub><sub>high</sub><sub>avg</sub></td>
-<td class="org-right">0.0124089975</td>
-<td class="org-right">6</td>
-<td class="org-right">0.01875</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>facility</sub><sub>type</sub><sub>2y</sub><sub>result</sub><sub>pass</sub><sub>avg</sub></td>
-<td class="org-right">0.0119138182</td>
-<td class="org-right">7</td>
-<td class="org-right">0.021875</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>entity</sub><sub>id</sub><sub>2y</sub><sub>risk</sub><sub>high</sub><sub>sum</sub></td>
-<td class="org-right">0.011606308</td>
-<td class="org-right">8</td>
-<td class="org-right">0.025</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>pass</sub><sub>sum</sub></td>
-<td class="org-right">0.0115504677</td>
-<td class="org-right">9</td>
-<td class="org-right">0.028125</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>facility</sub><sub>type</sub><sub>1y</sub><sub>risk</sub><sub>high</sub><sub>sum</sub></td>
-<td class="org-right">0.0106386415</td>
-<td class="org-right">10</td>
-<td class="org-right">0.03125</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>zip</sub><sub>code</sub><sub>1y</sub><sub>result</sub><sub>pass</sub> w/ conditions<sub>avg</sub></td>
-<td class="org-right">0.009624423</td>
-<td class="org-right">11</td>
-<td class="org-right">0.034375</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>zip</sub><sub>code</sub><sub>1y</sub><sub>risk</sub><sub>medium</sub><sub>sum</sub></td>
-<td class="org-right">0.0094457436</td>
-<td class="org-right">12</td>
-<td class="org-right">0.0375</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>3month</sub><sub>result</sub><sub>pass</sub><sub>sum</sub></td>
-<td class="org-right">0.009225408</td>
-<td class="org-right">13</td>
-<td class="org-right">0.040625</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub></td>
-<td class="org-right">0.0091078199</td>
-<td class="org-right">14</td>
-<td class="org-right">0.04375</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>3month</sub><sub>result</sub><sub>pass</sub><sub>avg</sub></td>
-<td class="org-right">0.0088542878</td>
-<td class="org-right">15</td>
-<td class="org-right">0.046875</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">inspections<sub>zip</sub><sub>code</sub><sub>3month</sub><sub>type</sub><sub>canvass</sub><sub>avg</sub></td>
-<td class="org-right">0.0087851068</td>
-<td class="org-right">16</td>
-<td class="org-right">0.05</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>entity</sub><sub>id</sub><sub>2y</sub><sub>risk</sub><sub>low</sub><sub>sum</sub></td>
-<td class="org-right">0.0085351</td>
-<td class="org-right">17</td>
-<td class="org-right">0.053125</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>entity</sub><sub>id</sub><sub>2y</sub><sub>risk</sub><sub>low</sub><sub>avg</sub></td>
-<td class="org-right">0.0080073084</td>
-<td class="org-right">18</td>
-<td class="org-right">0.05625</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>zip</sub><sub>code</sub><sub>1y</sub><sub>result</sub><sub>fail</sub><sub>sum</sub></td>
-<td class="org-right">0.0079038494</td>
-<td class="org-right">19</td>
-<td class="org-right">0.059375</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>zip</sub><sub>code</sub><sub>2y</sub><sub>result</sub><sub>fail</sub><sub>avg</sub></td>
-<td class="org-right">0.0078180121</td>
-<td class="org-right">20</td>
-<td class="org-right">0.0625</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>zip</sub><sub>code</sub><sub>2y</sub><sub>result</sub><sub>pass</sub><sub>sum</sub></td>
-<td class="org-right">0.0077150654</td>
-<td class="org-right">21</td>
-<td class="org-right">0.065625</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">inspections<sub>zip</sub><sub>code</sub><sub>2y</sub><sub>type</sub><sub>license</sub><sub>sum</sub></td>
-<td class="org-right">0.0076692378</td>
-<td class="org-right">22</td>
-<td class="org-right">0.06875</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>facility</sub><sub>type</sub><sub>3month</sub><sub>risk</sub><sub>high</sub><sub>avg</sub></td>
-<td class="org-right">0.0076609972</td>
-<td class="org-right">23</td>
-<td class="org-right">0.071875</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">risks<sub>zip</sub><sub>code</sub><sub>1y</sub><sub>risk</sub><sub>medium</sub><sub>avg</sub></td>
-<td class="org-right">0.0075045563</td>
-<td class="org-right">24</td>
-<td class="org-right">0.075</td>
-</tr>
-
-<tr>
-<td class="org-right">21</td>
-<td class="org-left">results<sub>zip</sub><sub>code</sub><sub>2y</sub><sub>result</sub><sub>pass</sub> w/ conditions<sub>sum</sub></td>
-<td class="org-right">0.0074907219</td>
-<td class="org-right">25</td>
-<td class="org-right">0.078125</td>
-</tr>
-</tbody>
-</table>
-
-<p>
-The list of important features looks reasonable, which increases
-our confidence in the results.
-</p>
 </div>
 </li>
 </ol>
@@ -10276,8 +9271,8 @@ our confidence in the results.
 </div>
 
 
-<div id="outline-container-orgd551779" class="outline-2">
-<h2 id="orgd551779"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</h2>
+<div id="outline-container-orge10ea3d" class="outline-2">
+<h2 id="orge10ea3d"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</h2>
 <div class="outline-text-2" id="text-7">
 <p>
 Now you have <b>42</b> <i>model groups</i>. Which is best? Which should you choose to
@@ -10343,25 +9338,77 @@ We included a simple configuration file with some rules:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-yaml"><span style="color: #cae682;">-</span>
-<span style="color: #cae682;">  shared_parameters</span>:
+<pre class="src src-yaml">
+<span style="color: #99968b;"># </span><span style="color: #99968b;">CHOOSE MODEL GROUPS</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">Audition needs a bunch of model_group_ids to help you select the models.</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">The query is to choose what the model groups you want to include in the first round.</span>
+<span style="color: #cae682;">model_groups</span>:
+    <span style="color: #cae682;">query</span>: |
+        <span style="color: #95e454;">SELECT DISTINCT(model_group_id)</span>
+<span style="color: #95e454;">        FROM results.model_groups</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">CHOOSE TIMESTAMPS/TRAIN END TIMES</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">The timestamps when audition happens for each model group.</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">There's a hard rule in Audition that all of the chosen model groups for audition should</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">have the same train end times as the timestamps or the subset of the timestamps from this</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">query, otherwise those model groups with unmatched train end times will be pruned in the</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">first round.</span>
+<span style="color: #cae682;">time_stamps</span>:
+    <span style="color: #cae682;">query</span>: |
+        <span style="color: #95e454;">SELECT DISTINCT train_end_time</span>
+<span style="color: #95e454;">        FROM results.models</span>
+<span style="color: #95e454;">        WHERE model_group_id IN ({})</span>
+<span style="color: #95e454;">        AND EXTRACT(DAY FROM train_end_time) IN (1)</span>
+        AND train_end_time &gt;= <span style="color: #95e454;">'2012-01-01'</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">FILTER</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">Configuration for the Auditioner</span>
+<span style="color: #cae682;">filter</span>:
+    <span style="color: #cae682;">metric</span>: <span style="color: #95e454;">'precision@'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">metric of interest</span>
+    <span style="color: #cae682;">parameter</span>: <span style="color: #95e454;">'50_abs'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">parameter of interest</span>
+    <span style="color: #cae682;">max_from_best</span>: 1.0 <span style="color: #99968b;"># </span><span style="color: #99968b;">The maximum value that the given metric can be worse than the best model for a given train end time.</span>
+    <span style="color: #cae682;">threshold_value</span>: 0.0 <span style="color: #99968b;"># </span><span style="color: #99968b;">The worst absolute value that the given metric should be.</span>
+    <span style="color: #cae682;">distance_table</span>: <span style="color: #95e454;">'distance_table'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">name of the distance table</span>
+    <span style="color: #cae682;">models_table</span>: <span style="color: #95e454;">'models'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">name of the models table</span>
+
+<span style="color: #99968b;"># </span><span style="color: #99968b;">RULES</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">The selection rules for Audition to simulate the model selection process for each timestamps.</span>
+<span style="color: #99968b;"># </span><span style="color: #99968b;">More rules can be found in the README.</span>
+<span style="color: #cae682;">rules</span>:
     <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">      metric</span>: <span style="color: #95e454;">'precision@'</span>
-      <span style="color: #cae682;">parameter</span>: <span style="color: #95e454;">'50_abs'</span>
-  <span style="color: #cae682;">selection_rules</span>:
+<span style="color: #cae682;">        shared_parameters</span>:
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                metric</span>: <span style="color: #95e454;">'precision@'</span>
+                <span style="color: #cae682;">parameter</span>: <span style="color: #95e454;">'50_abs'</span>
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                metric</span>: <span style="color: #95e454;">'recall@'</span>
+                <span style="color: #cae682;">parameter</span>: <span style="color: #95e454;">'50_abs'</span>
+        <span style="color: #cae682;">selection_rules</span>:
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                name</span>: <span style="color: #95e454;">'best_current_value'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">Pick the model group with the best current metric value</span>
+                <span style="color: #cae682;">num</span>: 3
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                name</span>: <span style="color: #95e454;">'best_average_value'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">Pick the model with the highest average metric value</span>
+                <span style="color: #cae682;">num</span>: 3
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                name</span>: <span style="color: #95e454;">'lowest_metric_variance'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">Pick the model with the lowest metric variance</span>
+                <span style="color: #cae682;">num</span>: 3
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                name</span>: <span style="color: #95e454;">'most_frequent_best_dist'</span> <span style="color: #99968b;"># </span><span style="color: #99968b;">Pick the model that is most frequently within `dist_from_best_case`</span>
+                <span style="color: #cae682;">dist_from_best_case</span>: [0.05]
+                <span style="color: #cae682;">num</span>: 3
+
     <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">      name</span>: best_current_value
-      <span style="color: #cae682;">n</span>: 1
-    <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">      name</span>: best_average_value
-      <span style="color: #cae682;">n</span>: 1
-    <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">      name</span>: lowest_metric_variance
-      <span style="color: #cae682;">n</span>: 1
-    <span style="color: #cae682;">-</span>
-<span style="color: #cae682;">      name</span>: most_frequent_best_dist
-      <span style="color: #cae682;">dist_from_best_case</span>: [0.05]
-      <span style="color: #cae682;">n</span>: 1
+<span style="color: #cae682;">        shared_parameters</span>:
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                metric1</span>: <span style="color: #95e454;">'precision@'</span>
+                <span style="color: #cae682;">parameter1</span>: <span style="color: #95e454;">'50_abs'</span>
+        <span style="color: #cae682;">selection_rules</span>:
+            <span style="color: #cae682;">-</span>
+<span style="color: #cae682;">                name</span>: <span style="color: #95e454;">'best_average_two_metrics'</span> <span style="color: #99968b;">#  </span><span style="color: #99968b;">Pick the model with the highest average combined value to date of two metrics weighted together using metric1_weight</span>
+                <span style="color: #cae682;">metric2</span>: <span style="color: #95e454;">'recall@'</span>
+                <span style="color: #cae682;">parameter2</span>: <span style="color: #95e454;">'50_abs'</span>
+                <span style="color: #cae682;">metric1_weight</span>: 0.5
+                <span style="color: #cae682;">num</span>: 3
+
 </pre>
 </div>
 
@@ -10383,34 +9430,73 @@ We can run the simulation of the rules againts the experiment as:
 </div>
 
 
-<div id="outline-container-org9cde855" class="outline-2">
-<h2 id="org9cde855"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Postmodeling</h2>
+<div id="outline-container-org5ff9e78" class="outline-2">
+<h2 id="org5ff9e78"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Postmodeling</h2>
 <div class="outline-text-2" id="text-8">
 </div>
 </div>
 
-<div id="outline-container-org7887854" class="outline-2">
-<h2 id="org7887854"><span class="section-number-2">9</span> <span class="todo TODO">TODO</span> Scaling out: AWS Batch</h2>
+<div id="outline-container-org73aa361" class="outline-2">
+<h2 id="org73aa361"><span class="section-number-2">9</span> <span class="todo WORKING">WORKING</span> Scaling out: AWS Batch</h2>
 <div class="outline-text-2" id="text-9">
+<blockquote>
 <p>
-For bigger experiments we decided to use <code>AWS Batch</code>
+If your laptop choked in the previous sections or if you can't afford
+to look your laptop just lagging forever, you should read this section&#x2026;
+</p>
+</blockquote>
+
+<p>
+For bigger experiment, one option is use <code>[[https://aws.amazon.com/batch/][AWS Batch]]</code>. AWS Batch Batch
+dynamically provisions the optimal quantity and type of compute
+resources based on the specific resource requirements of the tasks
+submitted. AWS Batch will manage (i.e. plans, schedules, and executes)
+the resources (CPU, Memory) that we need to run the pipeline.
 </p>
 
+<p>
+AWS Batch dependes in other two technologies in order to work: Elastic
+Container Registry (Amazon ECR) as the Docker image registry (allowing
+AWS Batch to fetch the task images), and Elastic Compute Cloud (Amazon
+EC2) instances located in the cluster as the docker host (allowing AWS
+Batch to execute the task).
+</p>
+
+
+<div class="figure">
+<p><object type="image/svg+xml" data="./images/AWS_Batch_Architecture.svg" class="org-svg">
+Sorry, your browser does not support SVG.</object>
+</p>
+</div>
+
+<p>
+An AWS ECS task will be executed by an EC2 instance belonging to the
+ECS cluster (if there are resources available). The EC2 machine
+operates as a Docker host: it will run the task definition, download
+the appropriate image from the ECS registry, and execute the
+container.
+</p>
+</div>
+
+<div id="outline-container-org466a61c" class="outline-3">
+<h3 id="org466a61c"><span class="section-number-3">9.1</span> What do you need to setup?</h3>
+<div class="outline-text-3" id="text-9-1">
 <p>
 AWS Batch requires setup the following infrastructure:
 </p>
 
 <ul class="org-ul">
-<li>An AWS S3 bucket for storing the original data and the successive transformations of it made by the pipeline.</li>
-<li>A PostgreSQL database (provided by AWS RDS) for storing the data in a relational form.</li>
-<li>An Elastic Container Registry (AWS ECR) for storing the triage's Docker image used in the pipeline.</li>
-<li>AWS Batch Job Queue configured and ready to go.</li>
+<li>An <a href="https://aws.amazon.com/s3/?nc2=h_m1">AWS S3 bucket</a> for storing the original data and the successive transformations of it made by the pipeline.</li>
+<li>A PostgreSQL database (provided by <a href="https://aws.amazon.com/rds/">AWS RDS</a>) for storing the data in a relational form.</li>
+<li>An Elastic Container Registry (<a href="https://aws.amazon.com/ecs/">AWS ECR</a>) for storing the triage's Docker image used in the pipeline.</li>
+<li><a href="https://aws.amazon.com/batch/">AWS Batch Job Queue</a> configured and ready to go.</li>
 </ul>
 </div>
+</div>
 
-<div id="outline-container-org5ac8740" class="outline-4">
-<h4 id="org5ac8740"><span class="section-number-4">9.0.1</span> Assumptions</h4>
-<div class="outline-text-4" id="text-9-0-1">
+<div id="outline-container-org20a3879" class="outline-3">
+<h3 id="org20a3879"><span class="section-number-3">9.2</span> Assumptions</h3>
+<div class="outline-text-3" id="text-9-2">
 <ul class="org-ul">
 <li>You have IAM credentials with permissions to run AWS Batch, read
 AWS S3 and create AWS EC2 machines.</li>
@@ -10422,45 +9508,55 @@ the standard instructions.</li>
 <li>You have a AWS Batch job queue configured and have permissions
 for adding, running, canceling jobs.</li>
 </ul>
+</div>
+</div>
 
 
+<div id="outline-container-org7a10580" class="outline-3">
+<h3 id="org7a10580"><span class="section-number-3">9.3</span> Configuration</h3>
+<div class="outline-text-3" id="text-9-3">
 <p>
 We need 3 files for running in AWS Batch, copy the files and remove
 the <code>.example</code> extension and adapt them to your case:
 </p>
 </div>
-</div>
 
-<div id="outline-container-orgf045c5f" class="outline-4">
-<h4 id="orgf045c5f"><span class="section-number-4">9.0.2</span> Job definition</h4>
-<div class="outline-text-4" id="text-9-0-2">
+<div id="outline-container-org80ebb1a" class="outline-4">
+<h4 id="org80ebb1a"><span class="section-number-4">9.3.1</span> Job definition</h4>
+<div class="outline-text-4" id="text-9-3-1">
 <p>
 Change the <code>PROJECT_NAME</code> and <code>AWS_ACCOUNT</code> for their real values
 </p>
 
 <div class="org-src-container">
 <pre class="src src-json"> <span style="color: #8c8c8c;">{</span>
-     <span style="color: #8ac6f2;">"jobDefinitionName"</span>: <span style="color: #95e454;">"PROJECT_NAME-run-experiment"</span>,
+     <span style="color: #8ac6f2;">"jobDefinitionName"</span>: <span style="color: #95e454;">"dirtyduck-run-experiment"</span>,
      <span style="color: #8ac6f2;">"type"</span>: <span style="color: #95e454;">"container"</span>,
      <span style="color: #8ac6f2;">"containerProperties"</span>: <span style="color: #93a8c6;">{</span>
-         <span style="color: #8ac6f2;">"image"</span>: <span style="color: #95e454;">"AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dsapp/triage"</span>,
-         <span style="color: #8ac6f2;">"vcpus"</span>: <span style="color: #e5786d;">60</span>,
-         <span style="color: #8ac6f2;">"memory"</span>: <span style="color: #e5786d;">235520</span>,
+         <span style="color: #8ac6f2;">"image"</span>: <span style="color: #95e454;">"AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dirtyduck/triage"</span>,
+         <span style="color: #8ac6f2;">"vcpus"</span>: <span style="color: #e5786d;">10</span>,
+         <span style="color: #8ac6f2;">"memory"</span>: <span style="color: #e5786d;">60000</span>,
          <span style="color: #8ac6f2;">"jobRoleArn"</span>: <span style="color: #95e454;">"arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole"</span>,
          <span style="color: #8ac6f2;">"command"</span>: <span style="color: #b0b1a3;">[</span>
-             <span style="color: #95e454;">"--experiment-file"</span>, <span style="color: #95e454;">"Ref::experiment_file"</span>, <span style="color: #95e454;">"--output-path"</span>, <span style="color: #95e454;">"Ref::output_path"</span>, <span style="color: #95e454;">"Ref::replace"</span>
+             <span style="color: #95e454;">"--experiment-file"</span>,
+             <span style="color: #95e454;">"Ref::experiment_file"</span>,
+             <span style="color: #95e454;">"--output-path"</span>,
+             <span style="color: #95e454;">"Ref::output_path"</span>,
+             <span style="color: #95e454;">"Ref::replace"</span>
          <span style="color: #b0b1a3;">]</span>
      <span style="color: #93a8c6;">}</span>,
-     <span style="color: #8ac6f2;">"retryStrategy"</span>: <span style="color: #93a8c6;">{</span><span style="color: #8ac6f2;">"attempts"</span>: <span style="color: #e5786d;">3</span><span style="color: #93a8c6;">}</span>
+     <span style="color: #8ac6f2;">"retryStrategy"</span>: <span style="color: #93a8c6;">{</span>
+         <span style="color: #8ac6f2;">"attempts"</span>: <span style="color: #e5786d;">3</span>
+     <span style="color: #93a8c6;">}</span>
  <span style="color: #8c8c8c;">}</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org7bbe87f" class="outline-4">
-<h4 id="org7bbe87f"><span class="section-number-4">9.0.3</span> Environment overrides</h4>
-<div class="outline-text-4" id="text-9-0-3">
+<div id="outline-container-org97aff9e" class="outline-4">
+<h4 id="org97aff9e"><span class="section-number-4">9.3.2</span> Environment overrides</h4>
+<div class="outline-text-4" id="text-9-3-2">
 <p>
 Fill out the missing values
 </p>
@@ -10502,26 +9598,22 @@ Fill out the missing values
         <span style="color: #b0b1a3;">}</span>,
         <span style="color: #b0b1a3;">{</span>
             <span style="color: #8ac6f2;">"name"</span>:<span style="color: #95e454;">"NUMBER_OF_PROCESSES"</span>,
-            <span style="color: #8ac6f2;">"value"</span>:<span style="color: #95e454;">"10"</span>
+            <span style="color: #8ac6f2;">"value"</span>:<span style="color: #95e454;">"5"</span>
         <span style="color: #b0b1a3;">}</span>,
         <span style="color: #b0b1a3;">{</span>
             <span style="color: #8ac6f2;">"name"</span>:<span style="color: #95e454;">"NUMBER_OF_DB_PROCESSES"</span>,
-            <span style="color: #8ac6f2;">"value"</span>:<span style="color: #95e454;">"1"</span>
+            <span style="color: #8ac6f2;">"value"</span>:<span style="color: #95e454;">"5"</span>
         <span style="color: #b0b1a3;">}</span>
-    <span style="color: #93a8c6;">]</span>,
-    <span style="color: #8ac6f2;">"command"</span>: <span style="color: #93a8c6;">[</span>
-        <span style="color: #95e454;">"run_experiments"</span>
     <span style="color: #93a8c6;">]</span>
 <span style="color: #8c8c8c;">}</span>
-
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org3503707" class="outline-4">
-<h4 id="org3503707"><span class="section-number-4">9.0.4</span> <code>credentials-filter</code></h4>
-<div class="outline-text-4" id="text-9-0-4">
+<div id="outline-container-orgaf61d6e" class="outline-4">
+<h4 id="orgaf61d6e"><span class="section-number-4">9.3.3</span> <code>credentials-filter</code></h4>
+<div class="outline-text-4" id="text-9-3-3">
 <p>
 Leave this file as is (We will use it for storing the temporal token
 in <code>deploy.sh</code>)
@@ -10550,9 +9642,9 @@ in <code>deploy.sh</code>)
 </div>
 
 
-<div id="outline-container-orgf7aa4c5" class="outline-4">
-<h4 id="orgf7aa4c5"><span class="section-number-4">9.0.5</span> Running an experiment</h4>
-<div class="outline-text-4" id="text-9-0-5">
+<div id="outline-container-orgea0ec2f" class="outline-4">
+<h4 id="orgea0ec2f"><span class="section-number-4">9.3.4</span> Running an experiment</h4>
+<div class="outline-text-4" id="text-9-3-4">
 <p>
 We provided a simple bash file for creating the image,
 uploading/updating the job definition and running the experiment:
@@ -10597,9 +9689,10 @@ Where <code>your_profile</code> is the name of the profile in <code>~/.aws/crede
 </div>
 </div>
 </div>
+</div>
 
-<div id="outline-container-orga63ef57" class="outline-2">
-<h2 id="orga63ef57"><span class="section-number-2">10</span> What's next?</h2>
+<div id="outline-container-orgb97f210" class="outline-2">
+<h2 id="orgb97f210"><span class="section-number-2">10</span> What's next?</h2>
 <div class="outline-text-2" id="text-10">
 <ul class="org-ul">
 <li>Add the shape file
@@ -10614,8 +9707,8 @@ new <i>outcomes</i> or <i>features</i>?</li>
 </div>
 </div>
 
-<div id="outline-container-orgcb6618a" class="outline-2">
-<h2 id="orgcb6618a"><span class="section-number-2">11</span> Appendix: For the impatient</h2>
+<div id="outline-container-orgfee97f0" class="outline-2">
+<h2 id="orgfee97f0"><span class="section-number-2">11</span> Appendix: For the impatient</h2>
 <div class="outline-text-2" id="text-11">
 <p>
 If you want to skip all the cleansing and transformation and deep
@@ -10926,7 +10019,7 @@ of time on been built.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-02-05 Tue 17:27</p>
+<p class="date">Created: 2019-02-07 Thu 16:59</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
