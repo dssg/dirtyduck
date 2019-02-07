@@ -78,6 +78,9 @@ celerybeat-schedule
 # dotenv
 .env*
 
+# triage database config
+triage/database.yaml
+
 # virtualenv
 venv/
 ENV/
