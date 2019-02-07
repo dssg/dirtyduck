@@ -53,10 +53,10 @@ container.
 
 AWS Batch requires setup the following infrastructure:
 
-    - An AWS S3 bucket for storing the original data and the successive transformations of it made by the pipeline.
-    - A PostgreSQL database (provided by AWS RDS) for storing the data in a relational form.
-    - An Elastic Container Registry (AWS ECR) for storing the triage's Docker image used in the pipeline.
-    - AWS Batch Job Queue configured and ready to go.
+    - An [[https://aws.amazon.com/s3/?nc2=h_m1][AWS S3 bucket]] for storing the original data and the successive transformations of it made by the pipeline.
+    - A PostgreSQL database (provided by [[https://aws.amazon.com/rds/][AWS RDS]]) for storing the data in a relational form.
+    - An Elastic Container Registry ([[https://aws.amazon.com/ecs/][AWS ECR]]) for storing the triage's Docker image used in the pipeline.
+    - [[https://aws.amazon.com/batch/][AWS Batch Job Queue]] configured and ready to go.
 
 ** Assumptions
 
