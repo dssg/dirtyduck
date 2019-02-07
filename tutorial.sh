@@ -6,7 +6,7 @@ PROJECT="$(cat .project-name)"
 PROJECT_HOME="$( cd "$( dirname "$0" )" && pwd )"
 INFRASTRUCTURE_HOME="${PROJECT_HOME}/infrastructure"
 
-cd $INFRASTRUCTURE_HOME
+cd "$INFRASTRUCTURE_HOME"
 
 function help_menu () {
 cat << EOF
