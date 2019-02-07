@@ -164,4 +164,4 @@ site/
 **/triage-generated/*
 **/matrices/*
 **/trained_models/*
-
+triage/images/*

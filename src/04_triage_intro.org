@@ -556,7 +556,7 @@ will change a parameter at a time so you could see how it
 affects the resulting blocks.
 
 If you want to try the modifications (or your own) and generate the
-temporal blocks images run the following:
+temporal blocks images run the following (they'll be generated in [[../triage/images/]]):
 
 #+BEGIN_EXAMPLE sh
 # Remember to run this in bastion NOT in laptop's shell!
