@@ -22,9 +22,14 @@
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t
 
-* TODO Scaling out: AWS Batch
+* WORKING Scaling out: AWS Batch
 
-For bigger experiments we decided to use =AWS Batch=
+#+BEGIN_QUOTE
+If your laptop choked in the previous sections or if you can't afford
+to look your laptop just lagging forever, you should read this section...
+#+END_QUOTE
+
+For bigger experiment, one option is use =[[https://aws.amazon.com/batch/][AWS Batch]]=.
 
 AWS Batch requires setup the following infrastructure:
 
