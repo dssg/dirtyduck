@@ -1,0 +1,20 @@
+ {
+     "jobDefinitionName": "dirtyduck-run-experiment",
+     "type": "container",
+     "containerProperties": {
+         "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dirtyduck/triage",
+         "vcpus": 10,
+         "memory": 60000,
+         "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
+		 "command": [
+		     "--experiment-file",
+             "Ref::experiment_file",
+             "--output-path",
+             "Ref::output_path",
+             "Ref::replace"
+	     ]
+     },
+     "retryStrategy": {
+         "attempts": 3
+     }
+ }

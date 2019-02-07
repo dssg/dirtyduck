@@ -1,29 +1,48 @@
 config_version: 'v6'
 
-
-model_comment: 'inspections_baseline'
+model_comment: 'inspections: baseline'
 
 user_metadata:
-  label_definition: 'failed'
-  experiment_type: 'inspections prioritization'
-  description: |
-    Baseline calculation
-  purpose: 'baseline'
-  org: 'DSaPP'
-  team: 'Tutorial'
-  author: 'Your name here'
+    label_definition: 'failed'
+    experiment_type: 'inspections prioritization'
+    description: |
+      Baseline calculation
+    purpose: 'baseline'
+    org: 'DSaPP'
+    team: 'Tutorial'
+    author: 'Your name here'
+    etl_date: '2019-01-18'
+
+model_group_keys:
+  - 'class_path'
+  - 'parameters'
+  - 'feature_names'
+  - 'feature_groups'
+  - 'cohort_name'
+  - 'state'
+  - 'label_name'
+  - 'label_timespan'
+  - 'training_as_of_date_frequency'
+  - 'max_training_history'
+  - 'label_definition'
+  - 'experiment_type'
+  - 'org'
+  - 'team'
+  - 'author'
+  - 'purpose'
+  - 'etl_date'
 
 temporal_config:
     feature_start_time: '2010-01-04'
-    feature_end_time: '2018-03-01'
+    feature_end_time: '2019-01-01'
     label_start_time: '2015-02-01'
-    label_end_time: '2018-03-01'
+    label_end_time: '2019-01-01'
 
     model_update_frequency: '1y'
     training_label_timespans: ['1month']
     training_as_of_date_frequencies: '1month'
 
-    test_durations: '1month'
+    test_durations: '1y'
     test_label_timespans: ['1month']
     test_as_of_date_frequencies: '1month'
 
@@ -38,59 +57,56 @@ label_config:
     where '{as_of_date}'::timestamp <= date
     and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
     group by entity_id
-  #include_missing_labels_in_train_as: False
-  name: 'failed_inspection'
+  name: 'failed_inspections'
 
 cohort_config:
   query: |
     select entity_id
     from semantic.entities
     where
-    tsrange(start_time, end_time, '[]') @> '{as_of_date}'::date
+    daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
   name: 'active_facilities'
 
 feature_aggregations:
-    -
-        prefix: 'inspections'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+  -
+    prefix: 'inspections'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    aggregates_imputation:
+      count:
+        type: 'zero_noflag'
 
-        categoricals:
-            -
-                column: 'type'
-                choice_query: 'select distinct type from semantic.events where type is not null'
-                metrics:
-                    - 'sum'
+    aggregates:
+      -
+        quantity:
+          total: "*"
+        metrics:
+          - 'count'
 
-        intervals:
-            - '3month'
+    intervals: ['all']
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
+    groups:
+      - 'entity_id'
 
+feature_group_definition:
+   prefix:
+     - 'inspections'
+
+feature_group_strategies: ['all']
 
 grid_config:
     'sklearn.dummy.DummyClassifier':
         strategy: [prior,uniform, most_frequent]
 
-feature_group_definition:
-   prefix: ['inspections']
-
-feature_group_strategies: ['all']
-
 scoring:
-    sort_seed: 5
     testing_metric_groups:
         -
           metrics: [precision@, recall@]
           thresholds:
-            percentiles: [5.0, 10.0]
-            top_n: [5, 10, 25]
+            percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
+
 
     training_metric_groups:
       -
@@ -98,5 +114,5 @@ scoring:
       -
         metrics: [precision@, recall@]
         thresholds:
-          percentiles: [5.0, 10.0]
-          top_n: [5, 10, 25]
+          percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+          top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]

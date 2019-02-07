@@ -8,6 +8,7 @@ user_metadata:
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Adolfo De Unanue'
+  etl_date: '2019-01-18'
 
 temporal_config:
     feature_start_time: '2014-01-01'
@@ -26,18 +27,13 @@ temporal_config:
     test_as_of_date_frequencies: '1month'
 
 cohort_config:
-    # entities_table: 'testing_triage.active_facilities'
-    # dense_states:
-    #   table_name: 'states'
-    #   state_filters:
-    #     - 'active'
     query: |
       select entity_id
       from semantic.entities
       where
-      entity_id in (9588, 10861)
+      license_num in (1596210, 1874347, 1142451)
       and daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
-    name: 'active_facilities'
+    name: 'test_facilities'
 
 label_config:
   query: |
@@ -48,7 +44,6 @@ label_config:
     where '{as_of_date}'::timestamp <= date
     and date < '{as_of_date}'::timestamp + interval '{label_timespan}'
     group by entity_id
-  #include_missing_labels_in_train_as: False
   name: 'failed_inspections'
 
 grid_config:
@@ -56,96 +51,114 @@ grid_config:
         strategy: [most_frequent]
 
 feature_aggregations:
-    -
-        prefix: 'inspections'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+  -
+    prefix: 'inspections'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        aggregates_imputation:
-            count:
-              type: 'mean'
+    aggregates_imputation:
+      count:
+        type: 'zero_noflag'
 
-        aggregates:
-          - # number of events
-            quantity:
-              total: "*"
-            metrics:
-              - 'count'
+    aggregates:
+      -
+        quantity:
+          total: "*"
+        metrics:
+          - 'count'
 
-        intervals: ['1month', '3month', '6month', '1y', 'all']
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-
-        groups:
-          - 'entity_id'
-
-    -
-        prefix: 'risks'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
-
-        categoricals_imputation:
-            sum:
-                type: 'zero'
-            avg:
-                type: 'zero'
-
-        categoricals:
-            -
-                column: 'risk'
-                choices: ['low', 'medium', 'high']
-                metrics:
-                    - 'sum'
-                    - 'avg'
+    groups:
+      - 'entity_id'
 
 
-        intervals: ['1month', '3month', '6month', '1y', 'all']
+  -
+    prefix: 'risks'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
+    categoricals_imputation:
+      sum:
+        type: 'zero'
+      avg:
+        type: 'zero'
 
-        groups:
-            - 'entity_id'
-            - 'zip_code'
+    categoricals:
+      -
+        column: 'risk'
+        choices: ['low', 'medium', 'high']
+        metrics:
+          - 'sum'
+          - 'avg'
 
-    -
-        prefix: 'results'
-        from_obj: 'semantic.events'
-        knowledge_date_column: 'date'
+    intervals: ['1month', '3month', '6month', '1y', 'all']
 
-        categoricals_imputation:
-            all:
-                type: 'zero'
+    groups:
+      - 'entity_id'
+      - 'zip_code'
 
-        categoricals:
-            -
-                column: 'result'
-                choice_query: 'select distinct result from semantic.events'
-                metrics:
-                    - 'sum'
-                    - 'avg'
+  -
+    prefix: 'results'
+    from_obj: 'semantic.events'
+    knowledge_date_column: 'date'
 
-        intervals:
-            - '6month'
+    categoricals_imputation:
+      all:
+        type: 'zero'
 
-        groups:
-            - 'entity_id'
+    categoricals:
+      -
+        column: 'result'
+        choice_query: 'select distinct result from semantic.events'
+        metrics:
+          - 'sum'
+          - 'avg'
+
+    intervals:
+      - '6month'
+
+    groups:
+      - 'entity_id'
 
 feature_group_definition:
-   prefix: ['inspections', 'results', 'risks']
+  prefix:
+    - 'results'
+    - 'risks'
+    - 'inspections'
 
 feature_group_strategies: ['all']
 
+model_group_keys:
+  - 'class_path'
+  - 'parameters'
+  - 'feature_names'
+  - 'feature_groups'
+  - 'cohort_name'
+  - 'state'
+  - 'label_name'
+  - 'label_timespan'
+  - 'training_as_of_date_frequency'
+  - 'max_training_history'
+  - 'label_definition'
+  - 'experiment_type'
+  - 'org'
+  - 'team'
+  - 'author'
+  - 'etl_date'
+
 scoring:
-   sort_seed: 5
-   testing_metric_groups:
-       -
-          metrics: ['precision@', 'recall@']
-          thresholds:
-             percentiles: [1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
-             top_n: [1, 5, 10, 25, 50, 100, 150, 300, 500, 1000, 1500]
-   training_metric_groups:
-     -
-       metrics: [accuracy]
-     -
-       metrics: ['precision@', 'recall@']
-       thresholds:
-          percentiles: [1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
-          top_n: [1, 5, 10, 25, 50, 100, 150, 300, 500, 1000, 1500]
+  testing_metric_groups:
+    -
+      metrics: ['precision@', 'recall@']
+      thresholds:
+        percentiles: [1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
+        top_n: [1, 5, 10, 25, 50, 100, 150, 300, 500, 1000, 1500]
+  training_metric_groups:
+    -
+      metrics: ['accuracy']
+    -
+      metrics: ['precision@', 'recall@']
+      thresholds:
+        percentiles: [1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
+        top_n: [1, 5, 10, 25, 50, 100, 150, 300, 500, 1000, 1500]

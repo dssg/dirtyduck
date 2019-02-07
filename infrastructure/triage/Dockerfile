@@ -1,6 +1,6 @@
 FROM python:3.6
 
-LABEL triage.version="v2.2.0" \
+LABEL triage.version="v3.2.1" \
       triage.fs="local file" \
       triage.experiment="single threaded" \
       creator="Center for Data Science and Public Policy (DSaPP)" \
