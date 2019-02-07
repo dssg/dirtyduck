@@ -29,7 +29,27 @@ If your laptop choked in the previous sections or if you can't afford
 to look your laptop just lagging forever, you should read this section...
 #+END_QUOTE
 
-For bigger experiment, one option is use =[[https://aws.amazon.com/batch/][AWS Batch]]=.
+For bigger experiment, one option is use =[[https://aws.amazon.com/batch/][AWS Batch]]=. AWS Batch Batch
+dynamically provisions the optimal quantity and type of compute
+resources based on the specific resource requirements of the tasks
+submitted. AWS Batch will manage (i.e. plans, schedules, and executes)
+the resources (CPU, Memory) that we need to run the pipeline.
+
+AWS Batch dependes in other two technologies in order to work: Elastic
+Container Registry (Amazon ECR) as the Docker image registry (allowing
+AWS Batch to fetch the task images), and Elastic Compute Cloud (Amazon
+EC2) instances located in the cluster as the docker host (allowing AWS
+Batch to execute the task).
+
+[[./images/AWS_Batch_Architecture.svg]]
+
+An AWS ECS task will be executed by an EC2 instance belonging to the
+ECS cluster (if there are resources available). The EC2 machine
+operates as a Docker host: it will run the task definition, download
+the appropriate image from the ECS registry, and execute the
+container.
+
+** What do you need to setup?
 
 AWS Batch requires setup the following infrastructure:
 
@@ -38,7 +58,7 @@ AWS Batch requires setup the following infrastructure:
     - An Elastic Container Registry (AWS ECR) for storing the triage's Docker image used in the pipeline.
     - AWS Batch Job Queue configured and ready to go.
 
-*** Assumptions
+** Assumptions
 
     - You have IAM credentials with permissions to run AWS Batch, read
       AWS S3 and create AWS EC2 machines.
@@ -51,6 +71,8 @@ AWS Batch requires setup the following infrastructure:
       for adding, running, canceling jobs.
 
 
+** Configuration
+
 We need 3 files for running in AWS Batch, copy the files and remove
 the =.example= extension and adapt them to your case:
 
@@ -58,20 +80,26 @@ the =.example= extension and adapt them to your case:
 
 Change the =PROJECT_NAME= and =AWS_ACCOUNT= for their real values
 
- #+BEGIN_SRC json :tangle infrastructure/triage-job-definition.json.example
+ #+BEGIN_SRC json :tangle ../infrastructure/aws_batch/triage-job-definition.json.example
  {
-     "jobDefinitionName": "PROJECT_NAME-run-experiment",
+     "jobDefinitionName": "dirtyduck-run-experiment",
      "type": "container",
      "containerProperties": {
-         "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dsapp/triage",
-         "vcpus": 60,
-         "memory": 235520,
+         "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dirtyduck/triage",
+         "vcpus": 10,
+         "memory": 60000,
          "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
 		 "command": [
-		     "--experiment-file", "Ref::experiment_file", "--output-path", "Ref::output_path", "Ref::replace"
+		     "--experiment-file",
+             "Ref::experiment_file",
+             "--output-path",
+             "Ref::output_path",
+             "Ref::replace"
 	     ]
      },
-     "retryStrategy": {"attempts": 3}
+     "retryStrategy": {
+         "attempts": 3
+     }
  }
  #+END_SRC
 
@@ -79,7 +107,7 @@ Change the =PROJECT_NAME= and =AWS_ACCOUNT= for their real values
 
 Fill out the missing values
 
-#+BEGIN_SRC json :tangle infrastructure/triage-overrides.json.example
+#+BEGIN_SRC json :tangle ../infrastructure/aws_batch/triage-overrides.json.example
 {
     "environment": [
         {
@@ -116,18 +144,14 @@ Fill out the missing values
         },
         {
             "name":"NUMBER_OF_PROCESSES",
-            "value":"10"
+            "value":"5"
         },
         {
             "name":"NUMBER_OF_DB_PROCESSES",
-            "value":"1"
+            "value":"5"
         }
-    ],
-    "command": [
-        "run_experiments"
     ]
 }
-
 #+END_SRC
 
 *** =credentials-filter=
@@ -135,7 +159,7 @@ Fill out the missing values
 Leave this file as is (We will use it for storing the temporal token
 in =deploy.sh=)
 
-#+BEGIN_SRC json :tangle infrastructure/credentials.filter.example
+#+BEGIN_SRC json :tangle ../infrastructure/aws_batch/credentials.filter.example
 {
         "environment": [
                 {
