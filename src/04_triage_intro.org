@@ -81,7 +81,7 @@ that helps explain triage's main concepts.
 To run a =triage= experiment, you need the following:
 
 - A database with the data that you want to model.
-    - credentials for accessing this database are stored in a `database.yaml` file. For this tutorial, you can copy the example config file at [[../triage/experiment_config/example_database.yaml]] and rename it to `database.yaml`. Be sure to edit it with the database password you specified in `.env` previously as well.
+    - credentials for accessing this database are stored in a =database.yaml= file. For this tutorial, you can copy the example config file at [[../triage/experiment_config/example_database.yaml]] and rename it to =database.yaml=. Be sure to edit it with the database password you specified in =.env= previously as well.
 
 - =triage= installed in your environment. You can verify that =triage= is installed (and check
   its version) typying the following inside an =ipython= session in =bastion=:
