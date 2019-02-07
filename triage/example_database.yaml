@@ -1,5 +1,5 @@
 host: food_db
-pass: some_password
+pass: your_password
 user: food_user
 db: food
 port: 5432
