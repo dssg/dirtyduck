@@ -16,6 +16,7 @@
 #+PROPERTY: header-args:sql+ :cmdline -q
 #+PROPERTY: header-args:sh  :results verbatim org
 #+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:sh+ :eval no-export
 #+PROPERTY: header-args:ipython   :session food_inspections
 #+PROPERTY: header-args:ipython+ :results raw drawer
 #+OPTIONS: broken-links:mark
@@ -32,16 +33,18 @@
    management system or *DBMS*); a way to put your model to work,
    i.e. a way that allows the model to ingest new data and make
    predictions (an *API*); and a way to examine the performance
-   of trained models.
+   of trained models (monitor tools).
 
    This tutorial includes a script for managing the infrastructure[fn:2] in
    a transparent way.
 
-   The infrastructure has /four/ pieces:
+   The infrastructure of this tutorial has /four/ pieces:
    - a =postgresql= database called =food_db=,
-   - a container that executes =triage= experiments,
+   - a container that executes =triage= experiments (we will use this
+     when trying to scale up),
    - a container for interacting with the data called =bastion=.
-   This container includes a =postgresql= client
+
+   =bastion= includes a =postgresql= client
    (so you can interact with the database)[fn:3] and a full =python=
    environment (so you can code or modify the things for
    the tutorial).
@@ -50,7 +53,7 @@
 
    From your command line (terminal) run the following from the repo directory:
 
-   #+BEGIN_SRC shell  :dir .. :results output org
+   #+BEGIN_SRC shell  :dir .. :results output org :exports both
     ./tutorial.sh
    #+END_SRC
 
@@ -113,13 +116,14 @@
    Following the instructions on the screen, we can start the
    infrastructure with:
 
-   #+BEGIN_EXAMPLE sh
+   #+BEGIN_SRC sh :dir .. :exports both :results silent
     ./tutorial.sh start
-   #+END_EXAMPLE
+   #+END_SRC
+
 
    You can check that everything is running smoothly with =status=
 
-   #+BEGIN_SRC shell :dir .. :results output org
+   #+BEGIN_SRC shell :dir .. :results output org :exports both
     ./tutorial.sh status
     :
    #+END_SRC
@@ -133,9 +137,9 @@
 
    To access the =postgresql= client type:
 
-   #+BEGIN_EXAMPLE shell
+   #+BEGIN_SRC sh :eval never
   ./tutorial.sh bastion
-   #+END_EXAMPLE
+   #+END_SRC
 
    Your prompt should change to something like:
 
@@ -147,9 +151,9 @@
 
    Inside =bastion=, type the next command to connect to the database
 
-   #+BEGIN_EXAMPLE shell
-  psql ${FOOD_DB_URL}
-   #+END_EXAMPLE
+   #+BEGIN_SRC sh :eval never
+   psql ${FOOD_DB_URL}
+   #+END_SRC
 
    The prompt will change again to
 
@@ -162,8 +166,9 @@
    food=#
 #+END_EXAMPLE
 
-   The previous command is using =psql=, a powerful command line client for the Postgresql database.
-   If you want to use this client fully, check [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
+   The previous command is using =psql=, a powerful command line client
+   for the Postgresql database. If you want to use this client fully,
+   check [[https://www.postgresql.org/docs/10/static/app-psql.html][psql's documentation]].
 
    The database is running and it's named =food=. It should contain a
    single table named =inspections= in the =schema= =raw=.

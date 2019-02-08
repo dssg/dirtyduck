@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-02-08 Fri 11:38 -->
+<!-- 2019-02-08 Fri 11:58 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -262,108 +262,108 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org7dc62ba">1. Description of the problem</a>
+<li><a href="#orgfce46dd">1. Description of the problem</a>
 <ul>
-<li><a href="#orgf275fc1">1.1. Inspection Prioritization</a></li>
-<li><a href="#orgcaf32d2">1.2. Early Warning</a></li>
-<li><a href="#org02bb77c">1.3. What do they have in common?</a></li>
-<li><a href="#org5b07174">1.4. How do they differ?</a></li>
+<li><a href="#orgc879a43">1.1. Inspection Prioritization</a></li>
+<li><a href="#org0da3c7c">1.2. Early Warning</a></li>
+<li><a href="#orgc821536">1.3. What do they have in common?</a></li>
+<li><a href="#orgdb0973f">1.4. How do they differ?</a></li>
 </ul>
 </li>
-<li><a href="#org2218b69">2. Infrastructure</a></li>
-<li><a href="#org83a5600">3. Data preparation</a>
+<li><a href="#orgc11ac50">2. Infrastructure</a></li>
+<li><a href="#org36c779e">3. Data preparation</a>
 <ul>
-<li><a href="#org2fc929e">3.1. Load the data</a></li>
-<li><a href="#org3c8655f">3.2. Transforming (and cleaning) the data</a>
+<li><a href="#org0a9a6a7">3.1. Load the data</a></li>
+<li><a href="#org45c998c">3.2. Transforming (and cleaning) the data</a>
 <ul>
-<li><a href="#org1caf367">3.2.1. Rationale</a></li>
-<li><a href="#org82d77f9">3.2.2. Dataset documentation</a></li>
-<li><a href="#orge59a667">3.2.3. Reality check</a></li>
-<li><a href="#orgf6bd52b">3.2.4. Cleaning</a></li>
+<li><a href="#org27fe4e0">3.2.1. Rationale</a></li>
+<li><a href="#org38885ba">3.2.2. Dataset documentation</a></li>
+<li><a href="#orgfe40a17">3.2.3. Reality check</a></li>
+<li><a href="#org56bc6fc">3.2.4. Cleaning</a></li>
 </ul>
 </li>
-<li><a href="#org9271d91">3.3. Semantic tables</a>
+<li><a href="#org2f8a239">3.3. Semantic tables</a>
 <ul>
-<li><a href="#org4e4324b">3.3.1. Entities table</a></li>
-<li><a href="#orgf9c829e">3.3.2. Events table</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#orgbcc7a0d">4. Triage</a>
-<ul>
-<li><a href="#org941755d">4.1. Triage interface</a></li>
-<li><a href="#orgcf24f72">4.2. A simple <code>triage</code> experiment</a>
-<ul>
-<li><a href="#org65c6809">4.2.1. A brief recap of Machine Learning</a></li>
-<li><a href="#orgb06456c">4.2.2. Cohorts, labels, event dates and as of dates</a></li>
-</ul>
-</li>
-<li><a href="#org58e0bb8">4.3. Experiment configuration file</a></li>
-<li><a href="#org28dc5b9">4.4. Temporal crossvalidation</a></li>
-<li><a href="#org9897e2f">4.5. Feature engineering</a>
-<ul>
-<li><a href="#orgcfaba5e">4.5.1. Imputation</a></li>
-<li><a href="#org7fd350c">4.5.2. Feature groups strategies</a></li>
-<li><a href="#orgae2786e">4.5.3. Controlling the size of the tables</a></li>
-</ul>
-</li>
-<li><a href="#org555ce69">4.6. The Grid</a></li>
-<li><a href="#org0e4fe25">4.7. Machine learning governance</a>
-<ul>
-<li><a href="#org956409b">4.7.1. What are all the results tables about?</a></li>
-</ul>
-</li>
-<li><a href="#org61f343e">4.8. Audition</a></li>
-<li><a href="#orgd8777d5">4.9. Post-modeling</a></li>
-<li><a href="#orgeeb4ebf">4.10. Final cleaning</a></li>
-</ul>
-</li>
-<li><a href="#org43fb21d">5. Inpection prioritization</a>
-<ul>
-<li><a href="#orgd6586be">5.1. Problem description</a></li>
-<li><a href="#org525fe60">5.2. Creating the labels</a></li>
-<li><a href="#org769082c">5.3. Modeling Using Machine Learning</a>
-<ul>
-<li><a href="#org8aede27">5.3.1. Defining a baseline</a></li>
-<li><a href="#orgebdb962">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
-<li><a href="#org9fb60b0">5.3.3. A more advanced experiment</a></li>
+<li><a href="#orga55d59f">3.3.1. Entities table</a></li>
+<li><a href="#org1e12341">3.3.2. Events table</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orgef8a9de">6. An Early Intervention System</a>
+<li><a href="#orgb8b9011">4. Triage</a>
 <ul>
-<li><a href="#org03aeb0a">6.1. Problem description</a></li>
-<li><a href="#orgae98031">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org2acf8c5">6.3. Modeling Using Machine Learning</a></li>
+<li><a href="#org3a6fa67">4.1. Triage interface</a></li>
+<li><a href="#orgfa749fd">4.2. A simple <code>triage</code> experiment</a>
+<ul>
+<li><a href="#orgf36e9ac">4.2.1. A brief recap of Machine Learning</a></li>
+<li><a href="#org3e82d33">4.2.2. Cohorts, labels, event dates and as of dates</a></li>
 </ul>
 </li>
-<li><a href="#org91d9a68">7. <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</a></li>
-<li><a href="#orgb5cd842">8. <span class="todo TODO">TODO</span> Postmodeling</a></li>
-<li><a href="#orgacebcc9">9. <span class="todo WORKING">WORKING</span> Scaling out: AWS Batch</a>
+<li><a href="#org812bb39">4.3. Experiment configuration file</a></li>
+<li><a href="#orgf73e332">4.4. Temporal crossvalidation</a></li>
+<li><a href="#orgefda1e3">4.5. Feature engineering</a>
 <ul>
-<li><a href="#org0ee740c">9.1. What do you need to setup?</a></li>
-<li><a href="#org0393ec4">9.2. Assumptions</a></li>
-<li><a href="#org1b5ca19">9.3. Configuration</a>
+<li><a href="#org76e26af">4.5.1. Imputation</a></li>
+<li><a href="#org80d5a4b">4.5.2. Feature groups strategies</a></li>
+<li><a href="#org2ae3d35">4.5.3. Controlling the size of the tables</a></li>
+</ul>
+</li>
+<li><a href="#org4168d0b">4.6. The Grid</a></li>
+<li><a href="#org7999158">4.7. Machine learning governance</a>
 <ul>
-<li><a href="#org4df2f31">9.3.1. Job definition</a></li>
-<li><a href="#org33f8374">9.3.2. Environment overrides</a></li>
-<li><a href="#orgf045a1b">9.3.3. <code>credentials-filter</code></a></li>
-<li><a href="#org3c8e054">9.3.4. Running an experiment</a></li>
+<li><a href="#orgc7591fd">4.7.1. What are all the results tables about?</a></li>
+</ul>
+</li>
+<li><a href="#orgd1e0073">4.8. Audition</a></li>
+<li><a href="#org51a3f9a">4.9. Post-modeling</a></li>
+<li><a href="#orga988a26">4.10. Final cleaning</a></li>
+</ul>
+</li>
+<li><a href="#orgf1af385">5. Inpection prioritization</a>
+<ul>
+<li><a href="#org3d761c5">5.1. Problem description</a></li>
+<li><a href="#orgf41a447">5.2. Creating the labels</a></li>
+<li><a href="#org129f598">5.3. Modeling Using Machine Learning</a>
+<ul>
+<li><a href="#orgc8a0675">5.3.1. Defining a baseline</a></li>
+<li><a href="#orgb4556af">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
+<li><a href="#orgc8a4ee7">5.3.3. A more advanced experiment</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org283542f">10. What's next?</a></li>
-<li><a href="#orgce64c80">11. Appendix: For the impatient</a></li>
+<li><a href="#org518c064">6. An Early Intervention System</a>
+<ul>
+<li><a href="#orgcb51c06">6.1. Problem description</a></li>
+<li><a href="#orgbabbf25">6.2. What are the labels? What are the outcomes?</a></li>
+<li><a href="#org3ab6030">6.3. Modeling Using Machine Learning</a></li>
+</ul>
+</li>
+<li><a href="#org1f18376">7. <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</a></li>
+<li><a href="#org4bc9352">8. <span class="todo TODO">TODO</span> Postmodeling</a></li>
+<li><a href="#org768e5ae">9. <span class="todo WORKING">WORKING</span> Scaling out: AWS Batch</a>
+<ul>
+<li><a href="#org5163dc0">9.1. What do you need to setup?</a></li>
+<li><a href="#orga35d7a2">9.2. Assumptions</a></li>
+<li><a href="#org43ee7c6">9.3. Configuration</a>
+<ul>
+<li><a href="#orge808c06">9.3.1. Job definition</a></li>
+<li><a href="#orgdd49988">9.3.2. Environment overrides</a></li>
+<li><a href="#org89528ef">9.3.3. <code>credentials-filter</code></a></li>
+<li><a href="#orga47967f">9.3.4. Running an experiment</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#orgf406f7a">10. What's next?</a></li>
+<li><a href="#orga459cf2">11. Appendix: For the impatient</a></li>
 </ul>
 </div>
 </div>
 
 
-<div id="outline-container-org7dc62ba" class="outline-2">
-<h2 id="org7dc62ba"><span class="section-number-2">1</span> Description of the problem</h2>
+<div id="outline-container-orgfce46dd" class="outline-2">
+<h2 id="orgfce46dd"><span class="section-number-2">1</span> Description of the problem</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This tutorial aims to introduce the reader to <a href="https://github.com/dssg/triage">triage</a>, a machine learning modeling tool built by the <a href="https://dsapp.uchicago.edu">Center for Data Science and Public Policy</a>.
@@ -382,8 +382,8 @@ problem</i>)<sup><a id="fnr.3" class="footref" href="#fn.3">3</a></sup> and</li>
 </div>
 
 
-<div id="outline-container-orgf275fc1" class="outline-3">
-<h3 id="orgf275fc1"><span class="section-number-3">1.1</span> Inspection Prioritization</h3>
+<div id="outline-container-orgc879a43" class="outline-3">
+<h3 id="orgc879a43"><span class="section-number-3">1.1</span> Inspection Prioritization</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 In an ideal world, inspectors would frequently visit every food
@@ -417,8 +417,8 @@ following \(X\) period of time?
 </div>
 
 
-<div id="outline-container-orgcaf32d2" class="outline-3">
-<h3 id="orgcaf32d2"><span class="section-number-3">1.2</span> Early Warning</h3>
+<div id="outline-container-org0da3c7c" class="outline-3">
+<h3 id="org0da3c7c"><span class="section-number-3">1.2</span> Early Warning</h3>
 <div class="outline-text-3" id="text-1-2">
 <p>
 Using the same data set, facility owners or managers would pose the
@@ -440,8 +440,8 @@ event potentially will happen.
 </div>
 </div>
 
-<div id="outline-container-org02bb77c" class="outline-3">
-<h3 id="org02bb77c"><span class="section-number-3">1.3</span> What do they have in common?</h3>
+<div id="outline-container-orgc821536" class="outline-3">
+<h3 id="orgc821536"><span class="section-number-3">1.3</span> What do they have in common?</h3>
 <div class="outline-text-3" id="text-1-3">
 <p>
 For either problem, \(X\) could be a day, a week, month, a quarter, a year, 56 days,
@@ -464,8 +464,8 @@ or <i>major violation found</i>, while for early warning the outcome is
 </div>
 </div>
 
-<div id="outline-container-org5b07174" class="outline-3">
-<h3 id="org5b07174"><span class="section-number-3">1.4</span> How do they differ?</h3>
+<div id="outline-container-orgdb0973f" class="outline-3">
+<h3 id="orgdb0973f"><span class="section-number-3">1.4</span> How do they differ?</h3>
 <div class="outline-text-3" id="text-1-4">
 <p>
 Besides the obvious (i.e. the label), these ML's problem formulations
@@ -490,8 +490,9 @@ will be inspecting the same facilities over and over<sup><a id="fnr.6" class="fo
 </div>
 </div>
 
-<div id="outline-container-org2218b69" class="outline-2">
-<h2 id="org2218b69"><span class="section-number-2">2</span> Infrastructure</h2>
+
+<div id="outline-container-orgc11ac50" class="outline-2">
+<h2 id="orgc11ac50"><span class="section-number-2">2</span> Infrastructure</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 In every data science project you will need several tools to
@@ -500,7 +501,7 @@ Examples include a place to store the data (a database
 management system or <b>DBMS</b>); a way to put your model to work,
 i.e. a way that allows the model to ingest new data and make
 predictions (an <b>API</b>); and a way to examine the performance
-of trained models.
+of trained models (monitor tools).
 </p>
 
 <p>
@@ -509,15 +510,17 @@ a transparent way.
 </p>
 
 <p>
-The infrastructure has <i>four</i> pieces:
+The infrastructure of this tutorial has <i>four</i> pieces:
 </p>
 <ul class="org-ul">
 <li>a <code>postgresql</code> database called <code>food_db</code>,</li>
-<li>a container that executes <code>triage</code> experiments,</li>
+<li>a container that executes <code>triage</code> experiments (we will use this
+when trying to scale up),</li>
 <li>a container for interacting with the data called <code>bastion</code>.</li>
 </ul>
+
 <p>
-This container includes a <code>postgresql</code> client
+<code>bastion</code> includes a <code>postgresql</code> client
 (so you can interact with the database)<sup><a id="fnr.9" class="footref" href="#fn.9">9</a></sup> and a full <code>python</code>
 environment (so you can code or modify the things for
 the tutorial).
@@ -536,15 +539,72 @@ From your command line (terminal) run the following from the repo directory:
 </pre>
 </div>
 
+<div class="org-src-container">
+<pre class="src src-org">   Usage: ./tutorial.sh <span style="color: #8c8c8c;">{</span>start|stop|build|rebuild|run|logs|status|destroy|all|<span style="color: #8c8c8c;">}</span>
+
+   OPTIONS:
+      -h|help             Show this message
+      start
+      stop
+      rebuild
+      status
+      destroy
+      -t|triage
+      -a|all
+
+   INFRASTRUCTURE:
+      Build the infrastructure:
+           $ ./tutorial.sh start
+
+      Check the status of the containers:
+           $ ./tutorial.sh status
+
+      Stop the tutorial's infrastructure:
+           $ ./tutorial.sh stop
+
+      Destroy all the resources related to the tutorial:
+           $ ./tutorial.sh destroy
+
+      View the infrastructure logs:
+           $ ./tutorial.sh -l
+
+   EXPERIMENTS:
+      NOTE:
+         The following commands assume that "sampleexperimentconfig.yaml"
+         is located inside the triage/experimentconfig directory
+
+      Run one experiment:
+           $ ./tutorial.sh -t --configfile sampleexperimentconfig.yaml run
+
+      Run one experiment, do not replace existing matrices or models, and enable debug:
+           $ ./tutorial.sh -t --configfile sampleexperimentconfig.yaml --no-replace --debug run
+
+      Validate experiment configuration file:
+           $ ./tutorial.sh triage --configfile sampleexperimentconfig.yaml validate
+
+      Show the experiment's temporal cross-validation blocks:
+           $ ./tutorial.sh -t --configfile sampleexperimentconfig.yaml show-temporal-blocks
+
+      Plot model number 4 <span style="color: #8c8c8c;">(</span>for Decision Trees and Random Forests<span style="color: #8c8c8c;">)</span>:
+           $ ./tutorial.sh -t --configfile sampleexperimentconfig.yaml showmodelplot --model 4
+
+      Triage help:
+           $ ./tutorial.sh triage --help
+
+</pre>
+</div>
+
 
 <p>
 Following the instructions on the screen, we can start the
 infrastructure with:
 </p>
 
-<pre class="example">
-    ./tutorial.sh start
+<div class="org-src-container">
+<pre class="src src-sh">    ./tutorial.sh start
 </pre>
+</div>
+
 
 <p>
 You can check that everything is running smoothly with <code>status</code>
@@ -556,13 +616,22 @@ You can check that everything is running smoothly with <code>status</code>
 </pre>
 </div>
 
+<div class="org-src-container">
+<pre class="src src-org">         Name                    Command              State           Ports
+   ---------------------------------------------------------------------------------
+   fooddb            docker-entrypoint.sh postgres   Up      0.0.0.0:5434-&gt;5432/tcp
+   tutorialbastion   bash                            Up
+</pre>
+</div>
+
 <p>
 To access the <code>postgresql</code> client type:
 </p>
 
-<pre class="example">
-  ./tutorial.sh bastion
+<div class="org-src-container">
+<pre class="src src-sh">  ./tutorial.sh bastion
 </pre>
+</div>
 
 <p>
 Your prompt should change to something like:
@@ -580,9 +649,10 @@ Your prompt should change to something like:
 Inside <code>bastion</code>, type the next command to connect to the database
 </p>
 
-<pre class="example">
-  psql ${FOOD_DB_URL}
+<div class="org-src-container">
+<pre class="src src-sh">   psql $<span style="color: #8c8c8c;">{</span><span style="color: #cae682;">FOOD_DB_URL</span><span style="color: #8c8c8c;">}</span>
 </pre>
+</div>
 
 <p>
 The prompt will change again to
@@ -598,8 +668,9 @@ The prompt will change again to
 </pre>
 
 <p>
-The previous command is using <code>psql</code>, a powerful command line client for the Postgresql database.
-If you want to use this client fully, check <a href="https://www.postgresql.org/docs/10/static/app-psql.html">psql's documentation</a>.
+The previous command is using <code>psql</code>, a powerful command line client
+for the Postgresql database. If you want to use this client fully,
+check <a href="https://www.postgresql.org/docs/10/static/app-psql.html">psql's documentation</a>.
 </p>
 
 <p>
@@ -795,8 +866,8 @@ the database yet! We still need to do a lot of things <sup><a id="fnr.10" class=
 </div>
 </div>
 
-<div id="outline-container-org83a5600" class="outline-2">
-<h2 id="org83a5600"><span class="section-number-2">3</span> Data preparation</h2>
+<div id="outline-container-org36c779e" class="outline-2">
+<h2 id="org36c779e"><span class="section-number-2">3</span> Data preparation</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 We need to get the data and transform it into a shape that is suitable for the analysis.
@@ -807,8 +878,8 @@ We need to get the data and transform it into a shape that is suitable for the a
 </p>
 </div>
 
-<div id="outline-container-org2fc929e" class="outline-3">
-<h3 id="org2fc929e"><span class="section-number-3">3.1</span> Load the data</h3>
+<div id="outline-container-org0a9a6a7" class="outline-3">
+<h3 id="org0a9a6a7"><span class="section-number-3">3.1</span> Load the data</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 Before loading the data into the database, verify that the database table is empty:
@@ -891,12 +962,12 @@ Ok, now you have some data loaded! But we still need to <i>munge</i> it to use i
 </div>
 </div>
 
-<div id="outline-container-org3c8655f" class="outline-3">
-<h3 id="org3c8655f"><span class="section-number-3">3.2</span> Transforming (and cleaning) the data</h3>
+<div id="outline-container-org45c998c" class="outline-3">
+<h3 id="org45c998c"><span class="section-number-3">3.2</span> Transforming (and cleaning) the data</h3>
 <div class="outline-text-3" id="text-3-2">
 </div>
-<div id="outline-container-org1caf367" class="outline-4">
-<h4 id="org1caf367"><span class="section-number-4">3.2.1</span> Rationale</h4>
+<div id="outline-container-org27fe4e0" class="outline-4">
+<h4 id="org27fe4e0"><span class="section-number-4">3.2.1</span> Rationale</h4>
 <div class="outline-text-4" id="text-3-2-1">
 <p>
 To tackle a Machine Learning problem, you need to identify the
@@ -964,8 +1035,8 @@ other tables and store them in the schema <code>triage</code>.</li>
 
 
 
-<div id="outline-container-org82d77f9" class="outline-4">
-<h4 id="org82d77f9"><span class="section-number-4">3.2.2</span> Dataset documentation</h4>
+<div id="outline-container-org38885ba" class="outline-4">
+<h4 id="org38885ba"><span class="section-number-4">3.2.2</span> Dataset documentation</h4>
 <div class="outline-text-4" id="text-3-2-2">
 <p>
 The Chicago Food Inspection dataset has documentation
@@ -1082,8 +1153,8 @@ out of business).</li>
 </div>
 </div>
 
-<div id="outline-container-orge59a667" class="outline-4">
-<h4 id="orge59a667"><span class="section-number-4">3.2.3</span> Reality check</h4>
+<div id="outline-container-orgfe40a17" class="outline-4">
+<h4 id="orgfe40a17"><span class="section-number-4">3.2.3</span> Reality check</h4>
 <div class="outline-text-4" id="text-3-2-3">
 <p>
 It is important to verify that the documentation is correct. Let's start by
@@ -1324,8 +1395,8 @@ Ok, disheartening. But that's the reality of <i>real</i> data. We'll try to clea
 </div>
 </div>
 
-<div id="outline-container-orgf6bd52b" class="outline-4">
-<h4 id="orgf6bd52b"><span class="section-number-4">3.2.4</span> Cleaning</h4>
+<div id="outline-container-org56bc6fc" class="outline-4">
+<h4 id="org56bc6fc"><span class="section-number-4">3.2.4</span> Cleaning</h4>
 <div class="outline-text-4" id="text-3-2-4">
 <p>
 Let's look at the data to figure out how we need to transform it. We'll
@@ -1671,7 +1742,7 @@ the <code>violations</code> column to figure out how to clean it.
 <p>
 The first thing to note is that the column <code>violation</code> has a lot of information:
 it describes the code violation, what's required to address it (see
- <a href="#org82d77f9">3.2.2</a>), and the inspector's comments. The
+ <a href="#org38885ba">3.2.2</a>), and the inspector's comments. The
 comments are free text, which means that they can contain line breaks,
 mispellings, etc. In particular, note that pipes (<code>|</code>) seperate multiple violations.
 </p>
@@ -1922,12 +1993,12 @@ and <code>events</code> tables.
 </div>
 </div>
 
-<div id="outline-container-org9271d91" class="outline-3">
-<h3 id="org9271d91"><span class="section-number-3">3.3</span> Semantic tables</h3>
+<div id="outline-container-org2f8a239" class="outline-3">
+<h3 id="org2f8a239"><span class="section-number-3">3.3</span> Semantic tables</h3>
 <div class="outline-text-3" id="text-3-3">
 </div>
-<div id="outline-container-org4e4324b" class="outline-4">
-<h4 id="org4e4324b"><span class="section-number-4">3.3.1</span> Entities table</h4>
+<div id="outline-container-orga55d59f" class="outline-4">
+<h4 id="orga55d59f"><span class="section-number-4">3.3.1</span> Entities table</h4>
 <div class="outline-text-4" id="text-3-3-1">
 <p>
 The <code>entities</code> table should uniquely identify each facility and contain
@@ -2569,8 +2640,8 @@ We will add some indexes to this table:
 </div>
 </div>
 
-<div id="outline-container-orgf9c829e" class="outline-4">
-<h4 id="orgf9c829e"><span class="section-number-4">3.3.2</span> Events table</h4>
+<div id="outline-container-org1e12341" class="outline-4">
+<h4 id="org1e12341"><span class="section-number-4">3.3.2</span> Events table</h4>
 <div class="outline-text-4" id="text-3-3-2">
 <p>
 We are ready to create the events table. This table will describe
@@ -2748,8 +2819,8 @@ Now that we have our data in a good shape, we are ready to use <b>Triage</b>.
 </div>
 </div>
 
-<div id="outline-container-orgbcc7a0d" class="outline-2">
-<h2 id="orgbcc7a0d"><span class="section-number-2">4</span> Triage</h2>
+<div id="outline-container-orgb8b9011" class="outline-2">
+<h2 id="orgb8b9011"><span class="section-number-2">4</span> Triage</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 Predictive analytics projects require coordinating many
@@ -2821,8 +2892,8 @@ that helps explain triage's main concepts.
 </p>
 </div>
 
-<div id="outline-container-org941755d" class="outline-3">
-<h3 id="org941755d"><span class="section-number-3">4.1</span> Triage interface</h3>
+<div id="outline-container-org3a6fa67" class="outline-3">
+<h3 id="org3a6fa67"><span class="section-number-3">4.1</span> Triage interface</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 To run a <code>triage</code> experiment, you need the following:
@@ -2885,12 +2956,12 @@ you should execute the experiment again using the previous command.
 </div>
 </div>
 
-<div id="outline-container-orgcf24f72" class="outline-3">
-<h3 id="orgcf24f72"><span class="section-number-3">4.2</span> A simple <code>triage</code> experiment</h3>
+<div id="outline-container-orgfa749fd" class="outline-3">
+<h3 id="orgfa749fd"><span class="section-number-3">4.2</span> A simple <code>triage</code> experiment</h3>
 <div class="outline-text-3" id="text-4-2">
 </div>
-<div id="outline-container-org65c6809" class="outline-4">
-<h4 id="org65c6809"><span class="section-number-4">4.2.1</span> A brief recap of Machine Learning</h4>
+<div id="outline-container-orgf36e9ac" class="outline-4">
+<h4 id="orgf36e9ac"><span class="section-number-4">4.2.1</span> A brief recap of Machine Learning</h4>
 <div class="outline-text-4" id="text-4-2-1">
 <p>
 <b>Triage</b> helps you to run a <i>Machine learning</i> experiment. An experiment
@@ -2933,8 +3004,8 @@ Triage's experiment configuration file structures this information.
 </div>
 </div>
 
-<div id="outline-container-orgb06456c" class="outline-4">
-<h4 id="orgb06456c"><span class="section-number-4">4.2.2</span> Cohorts, labels, event dates and as of dates</h4>
+<div id="outline-container-org3e82d33" class="outline-4">
+<h4 id="org3e82d33"><span class="section-number-4">4.2.2</span> Cohorts, labels, event dates and as of dates</h4>
 <div class="outline-text-4" id="text-4-2-2">
 <p>
 We will use the <i>inspections prioritization</i> as a narrative to help
@@ -3345,8 +3416,8 @@ our experiment.
 </div>
 </div>
 
-<div id="outline-container-org58e0bb8" class="outline-3">
-<h3 id="org58e0bb8"><span class="section-number-3">4.3</span> Experiment configuration file</h3>
+<div id="outline-container-org812bb39" class="outline-3">
+<h3 id="org812bb39"><span class="section-number-3">4.3</span> Experiment configuration file</h3>
 <div class="outline-text-3" id="text-4-3">
 <p>
 The <i>experiment configuration file</i> is used to create the <code>experiment</code>
@@ -3360,7 +3431,7 @@ The configuration file is a <code>yaml</code> file with the following main secti
 </p>
 
 <dl class="org-dl">
-<dt><a href="#org28dc5b9"><code>temporal_config</code></a></dt><dd>Temporal specification of the data, used for
+<dt><a href="#orgf73e332"><code>temporal_config</code></a></dt><dd>Temporal specification of the data, used for
 creating the blocks for temporal crossvalidation.</dd>
 
 <dt><code>cohort_config</code></dt><dd>Using the state of the entities, define (using <code>sql</code>)
@@ -3372,14 +3443,14 @@ prediction stages. This will generate a table call
 <i>outcome</i>. A table named <code>labels_{experiment_hash}</code>
 will be created.</dd>
 
-<dt><a href="#org9897e2f"><code>feature_aggregation</code></a></dt><dd>Which spatio-temporal aggregations of the
+<dt><a href="#orgefda1e3"><code>feature_aggregation</code></a></dt><dd>Which spatio-temporal aggregations of the
 columns in the data set do you want to generate as features for
 the models?</dd>
 
 <dt><code>model_group_keys</code></dt><dd>How do you want to identify the <code>model_group</code> in
 the database (so you can run analysis on them)?</dd>
 
-<dt><a href="#org555ce69"><code>grid_config</code></a></dt><dd>Which combination of hyperparameters and algorithms
+<dt><a href="#org4168d0b"><code>grid_config</code></a></dt><dd>Which combination of hyperparameters and algorithms
 will be trained and evaluated in the data set?</dd>
 
 <dt><code>scoring</code></dt><dd>Which metrics will be calculated?</dd>
@@ -3393,8 +3464,8 @@ detail in the next sections.
 </div>
 </div>
 
-<div id="outline-container-org28dc5b9" class="outline-3">
-<h3 id="org28dc5b9"><span class="section-number-3">4.4</span> Temporal crossvalidation</h3>
+<div id="outline-container-orgf73e332" class="outline-3">
+<h3 id="orgf73e332"><span class="section-number-3">4.4</span> Temporal crossvalidation</h3>
 <div class="outline-text-3" id="text-4-4">
 <p>
 Cross validation is a common technique to select a model that generalizes
@@ -3468,7 +3539,7 @@ forward in time. <sup><a id="fnr.33" class="footref" href="#fn.33">33</a></sup>
 </p>
 
 
-<div id="orgf597ffe" class="figure">
+<div id="org690bd6a" class="figure">
 <p><img src="./images/rolling-origin.png" alt="rolling-origin.png" width="600" height="800" />
 </p>
 <p><span class="figure-number">Figure 2: </span>Cartoonish view of temporal splitting for Machine Learning, each point represents an <i>as of date</i>, the orange area are the past of that <i>as of date</i> and is used for feature generation. The blue area is the label span, it lies in the future of the <i>as of date</i>.</p>
@@ -3610,7 +3681,7 @@ triage showtimechops experiment_config/simple_test_skeleton.yaml
 </div>
 
 <ol class="org-ol">
-<li><a id="org33205c9"></a><code>{feature, label}_{end, start}_time</code><br />
+<li><a id="org338a9a5"></a><code>{feature, label}_{end, start}_time</code><br />
 <div class="outline-text-5" id="text-4-4-0-1">
 <p>
 The image below shows these <code>{feature, label}_start_time</code> are equal, as
@@ -3630,7 +3701,7 @@ to <code>2016</code> and <code>2017</code>.
 </p>
 
 
-<div id="org9aaa2fb" class="figure">
+<div id="orgb3e539a" class="figure">
 <p><img src="./images/timechop_1.png" alt="timechop_1.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 3: </span>feature and label start, end time equal</p>
@@ -3681,7 +3752,7 @@ data for labels) as is shown in the following image and in their
 </p>
 
 
-<div id="org47633ee" class="figure">
+<div id="orgd03870b" class="figure">
 <p><img src="./images/timechop_2.png" alt="timechop_2.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 4: </span>feature<sub>start</sub><sub>time</sub> different different that label<sub>start</sub><sub>time</sub>.</p>
@@ -3708,10 +3779,10 @@ temporal_config:
 </div>
 </li>
 
-<li><a id="orgb2d6147"></a><code>model_update_frequency</code><br />
+<li><a id="org0c259e1"></a><code>model_update_frequency</code><br />
 <div class="outline-text-5" id="text-4-4-0-2">
 <p>
-From our <b>baseline</b> <code>temporal_config</code> example (<a href="#org9aaa2fb">3</a>), we will
+From our <b>baseline</b> <code>temporal_config</code> example (<a href="#orgb3e539a">3</a>), we will
 change how often we want a new model, which generates
 more time blocks (if there are time-constrained data, obviously).
 </p>
@@ -3735,7 +3806,7 @@ temporal_config:
 </pre>
 
 
-<div id="orgd4cd9ce" class="figure">
+<div id="org1933637" class="figure">
 <p><img src="./images/timechop_3.png" alt="timechop_3.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 5: </span>A smaller model<sub>update</sub><sub>frequency</sub> (from 1y to 6month) (The number of blocks grew)</p>
@@ -3744,11 +3815,11 @@ temporal_config:
 </li>
 
 
-<li><a id="org44e9080"></a><code>max_training_histories</code><br />
+<li><a id="org8885086"></a><code>max_training_histories</code><br />
 <div class="outline-text-5" id="text-4-4-0-3">
 <p>
 With this parameter you could get a <i>growing window</i> for training
-(depicted in <a href="#org41c9948">6</a>) or as in all the other examples,
+(depicted in <a href="#orgfc03b32">6</a>) or as in all the other examples,
 <i>fixed training windows</i>.
 </p>
 
@@ -3772,7 +3843,7 @@ temporal_config:
 
 
 
-<div id="org41c9948" class="figure">
+<div id="orgfc03b32" class="figure">
 <p><img src="./images/timechop_4.png" alt="timechop_4.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 6: </span>The size of the block is bigger now</p>
@@ -3780,7 +3851,7 @@ temporal_config:
 </div>
 </li>
 
-<li><a id="org860ada1"></a><code>_as_of_date_frequencies</code> and <code>test_durations</code><br />
+<li><a id="org755dcef"></a><code>_as_of_date_frequencies</code> and <code>test_durations</code><br />
 <div class="outline-text-5" id="text-4-4-0-4">
 <pre class="example">
 temporal_config:
@@ -3802,7 +3873,7 @@ temporal_config:
 
 
 
-<div id="org69e6518" class="figure">
+<div id="org6cf8630" class="figure">
 <p><img src="./images/timechop_5.png" alt="timechop_5.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 7: </span>More rows per entity in the training block</p>
@@ -3832,7 +3903,7 @@ temporal_config:
 
 
 
-<div id="org1a6d8e9" class="figure">
+<div id="org814c932" class="figure">
 <p><img src="./images/timechop_6.png" alt="timechop_6.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 8: </span>We should get more rows per entity in the test matrix, but that didn't happen. Why?</p>
@@ -3864,7 +3935,7 @@ temporal_config:
 
 
 
-<div id="orged71246" class="figure">
+<div id="orgc9517d7" class="figure">
 <p><img src="./images/timechop_7.png" alt="timechop_7.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 9: </span>The test duration is bigger now, so we got 6 rows (since the "base" frequency is 1 month)</p>
@@ -3894,7 +3965,7 @@ temporal_config:
 
 
 
-<div id="org7b1103b" class="figure">
+<div id="orgcb10a2a" class="figure">
 <p><img src="./images/timechop_8.png" alt="timechop_8.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 10: </span>With more room in testing, now test<sub>as</sub><sub>of</sub><sub>date</sub><sub>frequencies</sub> has some effect.</p>
@@ -3902,7 +3973,7 @@ temporal_config:
 </div>
 </li>
 
-<li><a id="orgaec7a2f"></a><code>_label_timespans</code><br />
+<li><a id="org9472343"></a><code>_label_timespans</code><br />
 <div class="outline-text-5" id="text-4-4-0-5">
 <pre class="example">
 temporal_config:
@@ -3924,7 +3995,7 @@ temporal_config:
 
 
 
-<div id="org6fb1b04" class="figure">
+<div id="org7573615" class="figure">
 <p><img src="./images/timechop_9.png" alt="timechop_9.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 11: </span>The label time horizon in the test dataset now is smaller</p>
@@ -3951,7 +4022,7 @@ temporal_config:
 
 
 
-<div id="org7590b7b" class="figure">
+<div id="org03525d9" class="figure">
 <p><img src="./images/timechop_10.png" alt="timechop_10.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 12: </span>The label time horizon is smaller in the trainning dataset. One effect is that now we have more room for more rows per entity.</p>
@@ -3971,8 +4042,8 @@ discuss <i>features</i> in the following section.
 </ol>
 </div>
 
-<div id="outline-container-org9897e2f" class="outline-3">
-<h3 id="org9897e2f"><span class="section-number-3">4.5</span> Feature engineering</h3>
+<div id="outline-container-orgefda1e3" class="outline-3">
+<h3 id="orgefda1e3"><span class="section-number-3">4.5</span> Feature engineering</h3>
 <div class="outline-text-3" id="text-4-5">
 <p>
 We will show how to create features using the <i>experiments config
@@ -4748,8 +4819,8 @@ grand total of 80 columns.
 </p>
 </div>
 
-<div id="outline-container-orgcfaba5e" class="outline-4">
-<h4 id="orgcfaba5e"><span class="section-number-4">4.5.1</span> Imputation</h4>
+<div id="outline-container-org76e26af" class="outline-4">
+<h4 id="org76e26af"><span class="section-number-4">4.5.1</span> Imputation</h4>
 <div class="outline-text-4" id="text-4-5-1">
 <p>
 <code>Triage</code> currently supports the following imputation strategies:
@@ -4798,8 +4869,8 @@ and finally, if you are sure that is not possible to have <i>NULLS:</i>
 </div>
 </div>
 
-<div id="outline-container-org7fd350c" class="outline-4">
-<h4 id="org7fd350c"><span class="section-number-4">4.5.2</span> Feature groups strategies</h4>
+<div id="outline-container-org80d5a4b" class="outline-4">
+<h4 id="org80d5a4b"><span class="section-number-4">4.5.2</span> Feature groups strategies</h4>
 <div class="outline-text-4" id="text-4-5-2">
 <p>
 Another interesting thing that <code>triage</code> controls is how many feature
@@ -4882,8 +4953,8 @@ Finally choosing <code>all-combinations</code>:
 </div>
 </div>
 
-<div id="outline-container-orgae2786e" class="outline-4">
-<h4 id="orgae2786e"><span class="section-number-4">4.5.3</span> Controlling the size of the tables</h4>
+<div id="outline-container-org2ae3d35" class="outline-4">
+<h4 id="org2ae3d35"><span class="section-number-4">4.5.3</span> Controlling the size of the tables</h4>
 <div class="outline-text-4" id="text-4-5-3">
 <blockquote>
 <p>
@@ -4919,8 +4990,8 @@ column in the <i>features</i> table. Just add <code>coltype</code> to the
 </div>
 </div>
 
-<div id="outline-container-org555ce69" class="outline-3">
-<h3 id="org555ce69"><span class="section-number-3">4.6</span> The Grid</h3>
+<div id="outline-container-org4168d0b" class="outline-3">
+<h3 id="org4168d0b"><span class="section-number-3">4.6</span> The Grid</h3>
 <div class="outline-text-3" id="text-4-6">
 <p>
 Before applying Machine Learning to your dataset you don't know which
@@ -4956,7 +5027,7 @@ models, 1 model group.
 
 <p>
 Keep in mind that the grid is providing more than way to select a
-model. You can use the tables generated by the grid (see next section,  <a href="#org0e4fe25">Machine learning governance</a>)
+model. You can use the tables generated by the grid (see next section,  <a href="#org7999158">Machine learning governance</a>)
 and <i>analyze</i> and <i>understand</i> your data. In other words, analyzing the results
 (evaluations, predictions, hyperparameter space, etc.) is like
 applying <b>Data mining</b> concepts to your data using Machine learning. We
@@ -4965,8 +5036,8 @@ will return to this when we apply post modeling to our models.
 </div>
 </div>
 
-<div id="outline-container-org0e4fe25" class="outline-3">
-<h3 id="org0e4fe25"><span class="section-number-3">4.7</span> Machine learning governance</h3>
+<div id="outline-container-org7999158" class="outline-3">
+<h3 id="org7999158"><span class="section-number-3">4.7</span> Machine learning governance</h3>
 <div class="outline-text-3" id="text-4-7">
 <p>
 When <code>triage</code> executes the experiment, it creates a series of new schemas for
@@ -5187,8 +5258,8 @@ data sets you could consult <code>train_results</code>
 </table>
 </div>
 
-<div id="outline-container-org956409b" class="outline-4">
-<h4 id="org956409b"><span class="section-number-4">4.7.1</span> What are all the results tables about?</h4>
+<div id="outline-container-orgc7591fd" class="outline-4">
+<h4 id="orgc7591fd"><span class="section-number-4">4.7.1</span> What are all the results tables about?</h4>
 <div class="outline-text-4" id="text-4-7-1">
 <p>
 <code>model_groups</code> stores the algorithm (<code>model_type</code>), the
@@ -5209,7 +5280,7 @@ section in the config file.
 </div>
 
 <ol class="org-ol">
-<li><a id="org6512d86"></a><code>model_metadata.experiments</code><br />
+<li><a id="orgd1de2ff"></a><code>model_metadata.experiments</code><br />
 <div class="outline-text-5" id="text-4-7-1-1">
 <p>
 This table has the two columns: <code>experiment_hash</code> and <code>config</code>
@@ -5371,7 +5442,7 @@ to find all the models that resulted from that configuration.
 </div>
 </li>
 
-<li><a id="org55bdd35"></a><code>metadata_model.model_groups</code><br />
+<li><a id="org1282bf2"></a><code>metadata_model.model_groups</code><br />
 <div class="outline-text-5" id="text-4-7-1-2">
 <p>
 Do you remember how we defined in <code>grid_config</code> the different
@@ -5525,7 +5596,7 @@ classifier and the <code>hyperparameters</code> are the same as before.
 </div>
 </li>
 
-<li><a id="org287d6df"></a><code>model_metadata.models</code><br />
+<li><a id="org02b3aed"></a><code>model_metadata.models</code><br />
 <div class="outline-text-5" id="text-4-7-1-3">
 <p>
 This table stores the information about our actual <i>models</i>, i.e.,
@@ -5855,7 +5926,7 @@ sample.</dd>
 </li>
 
 
-<li><a id="org8aa2c96"></a><code>model_metadata.matrices</code><br />
+<li><a id="org620160d"></a><code>model_metadata.matrices</code><br />
 <div class="outline-text-5" id="text-4-7-1-4">
 <p>
 This schema contains information about the matrices used in the model's
@@ -6071,7 +6142,7 @@ information about the temporal setting of the features) and <code>num_observatio
 </li>
 
 
-<li><a id="orgb7eccd0"></a><code>{test, train}_results.evaluations</code><br />
+<li><a id="org9b522bb"></a><code>{test, train}_results.evaluations</code><br />
 <div class="outline-text-5" id="text-4-7-1-5">
 <p>
 These tables lets us analyze how well our models are doing. Based on the
@@ -6379,7 +6450,7 @@ time.  Note how we only included the <i>models</i> that belong to our
 </div>
 </li>
 
-<li><a id="orgb6773b5"></a><code>{test, train}_results.predictions</code><br />
+<li><a id="org5ac3578"></a><code>{test, train}_results.predictions</code><br />
 <div class="outline-text-5" id="text-4-7-1-6">
 <p>
 You can think of the previous table <code>{test, train}_results.{test,
@@ -6396,7 +6467,7 @@ Here is what its first row looks like:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sql" id="org4c5f5b5"><span style="color: #8ac6f2;">select</span>
+<pre class="src src-sql" id="orgf1a6519"><span style="color: #8ac6f2;">select</span>
     model_id,
     entity_id,
     as_of_date,
@@ -6482,7 +6553,7 @@ make this prediction under <code>TRIAGE_OUTPUT_PATH/matrices/{matrix_uuid}.csv</
 </div>
 </li>
 
-<li><a id="orgc7f9f22"></a><code>{test, train}_results.feature_importances</code><br />
+<li><a id="orgb66ef4e"></a><code>{test, train}_results.feature_importances</code><br />
 <div class="outline-text-5" id="text-4-7-1-7">
 <p>
 This tables store the feature importance of all the models.
@@ -6493,8 +6564,8 @@ This tables store the feature importance of all the models.
 </div>
 </div>
 
-<div id="outline-container-org61f343e" class="outline-3">
-<h3 id="org61f343e"><span class="section-number-3">4.8</span> Audition</h3>
+<div id="outline-container-orgd1e0073" class="outline-3">
+<h3 id="orgd1e0073"><span class="section-number-3">4.8</span> Audition</h3>
 <div class="outline-text-3" id="text-4-8">
 <p>
 <b>Audition</b> is a tool for helping you select a subset of trained
@@ -6523,8 +6594,8 @@ on what you consider important.
 </div>
 </div>
 
-<div id="outline-container-orgd8777d5" class="outline-3">
-<h3 id="orgd8777d5"><span class="section-number-3">4.9</span> Post-modeling</h3>
+<div id="outline-container-org51a3f9a" class="outline-3">
+<h3 id="org51a3f9a"><span class="section-number-3">4.9</span> Post-modeling</h3>
 <div class="outline-text-3" id="text-4-9">
 <p>
 As the name indicates, <b>postmodeling</b> occurs <b>after</b> you have modeled
@@ -6559,8 +6630,8 @@ If you want to see <b>Audition</b> and <b>Postmodeling</b> in action, please see
 </div>
 </div>
 
-<div id="outline-container-orgeeb4ebf" class="outline-3">
-<h3 id="orgeeb4ebf"><span class="section-number-3">4.10</span> Final cleaning</h3>
+<div id="outline-container-orga988a26" class="outline-3">
+<h3 id="orga988a26"><span class="section-number-3">4.10</span> Final cleaning</h3>
 <div class="outline-text-3" id="text-4-10">
 <p>
 In the next section we will start modeling, so it is a good idea to
@@ -6586,12 +6657,12 @@ rm -r /triage/output/trained_models/*
 </div>
 
 
-<div id="outline-container-org43fb21d" class="outline-2">
-<h2 id="org43fb21d"><span class="section-number-2">5</span> Inpection prioritization</h2>
+<div id="outline-container-orgf1af385" class="outline-2">
+<h2 id="orgf1af385"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-orgd6586be" class="outline-3">
-<h3 id="orgd6586be"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org3d761c5" class="outline-3">
+<h3 id="org3d761c5"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -6625,8 +6696,8 @@ Which X facilities are most likely to have a critical or serious
 </div>
 
 
-<div id="outline-container-org525fe60" class="outline-3">
-<h3 id="org525fe60"><span class="section-number-3">5.2</span> Creating the labels</h3>
+<div id="outline-container-orgf41a447" class="outline-3">
+<h3 id="orgf41a447"><span class="section-number-3">5.2</span> Creating the labels</h3>
 <div class="outline-text-3" id="text-5-2">
 <p>
 We will define two labels:
@@ -6792,13 +6863,13 @@ following code:
 </table>
 
 <p>
-Remember from the section <a href="#orgb06456c">Cohorts, labels, event dates and as of dates</a> that the <i>outcome</i> will be used by
+Remember from the section <a href="#org3e82d33">Cohorts, labels, event dates and as of dates</a> that the <i>outcome</i> will be used by
 <code>triage</code> to generate the labels. The following image tries to
 show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem definition.
 </p>
 
 
-<div id="org6d8b0a2" class="figure">
+<div id="org6894f0c" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 13: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -6808,8 +6879,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org769082c" class="outline-3">
-<h3 id="org769082c"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org129f598" class="outline-3">
+<h3 id="org129f598"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -6818,8 +6889,8 @@ configuration file.
 </p>
 </div>
 
-<div id="outline-container-org8aede27" class="outline-4">
-<h4 id="org8aede27"><span class="section-number-4">5.3.1</span> Defining a baseline</h4>
+<div id="outline-container-orgc8a0675" class="outline-4">
+<h4 id="orgc8a0675"><span class="section-number-4">5.3.1</span> Defining a baseline</h4>
 <div class="outline-text-4" id="text-5-3-1">
 <p>
 As a first step, lets do an experiment that defines our
@@ -7880,8 +7951,8 @@ labeled entities  respectively.
 </div>
 </div>
 
-<div id="outline-container-orgebdb962" class="outline-4">
-<h4 id="orgebdb962"><span class="section-number-4">5.3.2</span> Creating a simple experiment: ML as a Data Mining technique</h4>
+<div id="outline-container-orgb4556af" class="outline-4">
+<h4 id="orgb4556af"><span class="section-number-4">5.3.2</span> Creating a simple experiment: ML as a Data Mining technique</h4>
 <div class="outline-text-4" id="text-5-3-2">
 <p>
 For the first experiment we will try one of the simplest
@@ -8399,8 +8470,8 @@ Let's see the performance of the new models:
 </div>
 
 
-<div id="outline-container-org9fb60b0" class="outline-4">
-<h4 id="org9fb60b0"><span class="section-number-4">5.3.3</span> A more advanced experiment</h4>
+<div id="outline-container-orgc8a4ee7" class="outline-4">
+<h4 id="orgc8a4ee7"><span class="section-number-4">5.3.3</span> A more advanced experiment</h4>
 <div class="outline-text-4" id="text-5-3-3">
 <p>
 Ok, let's add a more complete experiment. First the usual generalities.
@@ -8535,12 +8606,12 @@ Well, now we have a lot of models. How can you pick the best one?
 </div>
 </div>
 
-<div id="outline-container-orgef8a9de" class="outline-2">
-<h2 id="orgef8a9de"><span class="section-number-2">6</span> An Early Intervention System</h2>
+<div id="outline-container-org518c064" class="outline-2">
+<h2 id="org518c064"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org03aeb0a" class="outline-3">
-<h3 id="org03aeb0a"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-orgcb51c06" class="outline-3">
+<h3 id="orgcb51c06"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -8576,8 +8647,8 @@ owner or manager) to prepare for the inspection.
 </div>
 
 
-<div id="outline-container-orgae98031" class="outline-3">
-<h3 id="orgae98031"><span class="section-number-3">6.2</span> What are the labels? What are the outcomes?</h3>
+<div id="outline-container-orgbabbf25" class="outline-3">
+<h3 id="orgbabbf25"><span class="section-number-3">6.2</span> What are the labels? What are the outcomes?</h3>
 <div class="outline-text-3" id="text-6-2">
 <p>
 The trick to note is that on any given day there are two possible outcomes:
@@ -8589,7 +8660,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org6bcc95b" class="figure">
+<div id="org0ac6073" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 17: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -8693,8 +8764,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org2acf8c5" class="outline-3">
-<h3 id="org2acf8c5"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org3ab6030" class="outline-3">
+<h3 id="org3ab6030"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -8702,7 +8773,7 @@ We need to specify the temporal configuration too
 </div>
 
 <ol class="org-ol">
-<li><a id="org9041e66"></a>Temporal configuration<br />
+<li><a id="orgf51088b"></a>Temporal configuration<br />
 <div class="outline-text-5" id="text-6-3-0-1">
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="color: #cae682;">temporal_config</span>:
@@ -8746,7 +8817,7 @@ triage showtimechops experiment_config/eis_01.yaml
 </div>
 </li>
 
-<li><a id="orgee5b67a"></a>Features<br />
+<li><a id="org814e2a1"></a>Features<br />
 <div class="outline-text-5" id="text-6-3-0-2">
 <p>
 Regarding the features, we will use the same ones that were used in <a href="inspections.html">inspections prioritization</a>:
@@ -8878,7 +8949,7 @@ except one.
 </div>
 </li>
 
-<li><a id="org130d62a"></a>Algorithm and hyperparameters<br />
+<li><a id="orge559e06"></a>Algorithm and hyperparameters<br />
 <div class="outline-text-5" id="text-6-3-0-3">
 <p>
 We will collapse the baseline (<code>DummyClassifier</code>) and the exploratory configuration together:
@@ -9301,8 +9372,8 @@ features_arrays <span style="color: #8ac6f2;">as</span> <span style="color: #8c8
 </div>
 
 
-<div id="outline-container-org91d9a68" class="outline-2">
-<h2 id="org91d9a68"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</h2>
+<div id="outline-container-org1f18376" class="outline-2">
+<h2 id="org1f18376"><span class="section-number-2">7</span> <span class="todo TODO">TODO</span> Audition: How can I pick the best one?</h2>
 <div class="outline-text-2" id="text-7">
 <p>
 Now you have <b>42</b> <i>model groups</i>. Which is best? Which should you choose to
@@ -9460,14 +9531,14 @@ We can run the simulation of the rules againts the experiment as:
 </div>
 
 
-<div id="outline-container-orgb5cd842" class="outline-2">
-<h2 id="orgb5cd842"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Postmodeling</h2>
+<div id="outline-container-org4bc9352" class="outline-2">
+<h2 id="org4bc9352"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Postmodeling</h2>
 <div class="outline-text-2" id="text-8">
 </div>
 </div>
 
-<div id="outline-container-orgacebcc9" class="outline-2">
-<h2 id="orgacebcc9"><span class="section-number-2">9</span> <span class="todo WORKING">WORKING</span> Scaling out: AWS Batch</h2>
+<div id="outline-container-org768e5ae" class="outline-2">
+<h2 id="org768e5ae"><span class="section-number-2">9</span> <span class="todo WORKING">WORKING</span> Scaling out: AWS Batch</h2>
 <div class="outline-text-2" id="text-9">
 <blockquote>
 <p>
@@ -9508,8 +9579,8 @@ container.
 </p>
 </div>
 
-<div id="outline-container-org0ee740c" class="outline-3">
-<h3 id="org0ee740c"><span class="section-number-3">9.1</span> What do you need to setup?</h3>
+<div id="outline-container-org5163dc0" class="outline-3">
+<h3 id="org5163dc0"><span class="section-number-3">9.1</span> What do you need to setup?</h3>
 <div class="outline-text-3" id="text-9-1">
 <p>
 AWS Batch requires setup the following infrastructure:
@@ -9524,8 +9595,8 @@ AWS Batch requires setup the following infrastructure:
 </div>
 </div>
 
-<div id="outline-container-org0393ec4" class="outline-3">
-<h3 id="org0393ec4"><span class="section-number-3">9.2</span> Assumptions</h3>
+<div id="outline-container-orga35d7a2" class="outline-3">
+<h3 id="orga35d7a2"><span class="section-number-3">9.2</span> Assumptions</h3>
 <div class="outline-text-3" id="text-9-2">
 <ul class="org-ul">
 <li>You have IAM credentials with permissions to run AWS Batch, read
@@ -9542,8 +9613,8 @@ for adding, running, canceling jobs.</li>
 </div>
 
 
-<div id="outline-container-org1b5ca19" class="outline-3">
-<h3 id="org1b5ca19"><span class="section-number-3">9.3</span> Configuration</h3>
+<div id="outline-container-org43ee7c6" class="outline-3">
+<h3 id="org43ee7c6"><span class="section-number-3">9.3</span> Configuration</h3>
 <div class="outline-text-3" id="text-9-3">
 <p>
 We need 3 files for running in AWS Batch, copy the files and remove
@@ -9551,8 +9622,8 @@ the <code>.example</code> extension and adapt them to your case:
 </p>
 </div>
 
-<div id="outline-container-org4df2f31" class="outline-4">
-<h4 id="org4df2f31"><span class="section-number-4">9.3.1</span> Job definition</h4>
+<div id="outline-container-orge808c06" class="outline-4">
+<h4 id="orge808c06"><span class="section-number-4">9.3.1</span> Job definition</h4>
 <div class="outline-text-4" id="text-9-3-1">
 <p>
 Change the <code>PROJECT_NAME</code> and <code>AWS_ACCOUNT</code> for their real values
@@ -9584,8 +9655,8 @@ Change the <code>PROJECT_NAME</code> and <code>AWS_ACCOUNT</code> for their real
 </div>
 </div>
 
-<div id="outline-container-org33f8374" class="outline-4">
-<h4 id="org33f8374"><span class="section-number-4">9.3.2</span> Environment overrides</h4>
+<div id="outline-container-orgdd49988" class="outline-4">
+<h4 id="orgdd49988"><span class="section-number-4">9.3.2</span> Environment overrides</h4>
 <div class="outline-text-4" id="text-9-3-2">
 <p>
 Fill out the missing values
@@ -9641,8 +9712,8 @@ Fill out the missing values
 </div>
 </div>
 
-<div id="outline-container-orgf045a1b" class="outline-4">
-<h4 id="orgf045a1b"><span class="section-number-4">9.3.3</span> <code>credentials-filter</code></h4>
+<div id="outline-container-org89528ef" class="outline-4">
+<h4 id="org89528ef"><span class="section-number-4">9.3.3</span> <code>credentials-filter</code></h4>
 <div class="outline-text-4" id="text-9-3-3">
 <p>
 Leave this file as is (We will use it for storing the temporal token
@@ -9672,8 +9743,8 @@ in <code>deploy.sh</code>)
 </div>
 
 
-<div id="outline-container-org3c8e054" class="outline-4">
-<h4 id="org3c8e054"><span class="section-number-4">9.3.4</span> Running an experiment</h4>
+<div id="outline-container-orga47967f" class="outline-4">
+<h4 id="orga47967f"><span class="section-number-4">9.3.4</span> Running an experiment</h4>
 <div class="outline-text-4" id="text-9-3-4">
 <p>
 We provided a simple bash file for creating the image,
@@ -9721,8 +9792,8 @@ Where <code>your_profile</code> is the name of the profile in <code>~/.aws/crede
 </div>
 </div>
 
-<div id="outline-container-org283542f" class="outline-2">
-<h2 id="org283542f"><span class="section-number-2">10</span> What's next?</h2>
+<div id="outline-container-orgf406f7a" class="outline-2">
+<h2 id="orgf406f7a"><span class="section-number-2">10</span> What's next?</h2>
 <div class="outline-text-2" id="text-10">
 <ul class="org-ul">
 <li>Add the shape file
@@ -9737,8 +9808,8 @@ new <i>outcomes</i> or <i>features</i>?</li>
 </div>
 </div>
 
-<div id="outline-container-orgce64c80" class="outline-2">
-<h2 id="orgce64c80"><span class="section-number-2">11</span> Appendix: For the impatient</h2>
+<div id="outline-container-orga459cf2" class="outline-2">
+<h2 id="orga459cf2"><span class="section-number-2">11</span> Appendix: For the impatient</h2>
 <div class="outline-text-2" id="text-11">
 <p>
 If you want to skip all the cleansing and transformation and deep
@@ -10059,7 +10130,7 @@ of time on been built.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-02-08 Fri 11:38</p>
+<p class="date">Created: 2019-02-08 Fri 11:58</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

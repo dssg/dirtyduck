@@ -105,6 +105,7 @@ problem. Finally, when you are designing the field validation of your
 model, you need to take in account this selection bias, if not, you
 will be inspecting the same facilities over and over[fn:6]
 
+
 * Footnotes
 
 [fn:6] This points is particularly acute: Imagine the scenario in
