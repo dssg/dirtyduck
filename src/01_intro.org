@@ -25,7 +25,8 @@
 
   This tutorial aims to introduce the reader to [[https://github.com/dssg/triage][triage]], a machine learning modeling tool built by the [[https://dsapp.uchicago.edu][Center for Data Science and Public Policy]].
   We will use the well-known [[https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5][Chicago Food Inspections dataset]].[fn:1]
-We will present the two problems that =triage= was built to model:
+
+  We will present the two problems that =triage= was built to model[fn:5]:
 
   1. *Resource prioritization* (internally known as the /inspections
      problem/)[fn:2] and
@@ -51,8 +52,7 @@ We will present the two problems that =triage= was built to model:
   If our inspection workforce is really limited, we should probably just target
   the most serious violations. Then we'd define the problem like this:
 
-  #+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem
-  that targets the most serious cases:
+  #+CAPTION: How to define Chicago Food Inspections as an inspection-prioritization problem that targets the most serious cases:
   #+begin_quote
     Which $n$ facilities will have a critical or serious violation in the
     following $X$ period of time?
@@ -84,9 +84,34 @@ event potentially will happen.
   The *entity* for both inspection prioritizations and early warnings
   in this tutorial is a food /facility/, and the *event* is an inspection.
   But the *outcome* differs: for inspections the outcome is /inspection failed/
-  or /major violation found/, while for early warning the outcome is /inspected/.
+  or /major violation found/, while for early warning the outcome is
+  /inspected/.
+
+** How do they differ?
+
+Besides the obvious (i.e. the label), these ML's problem formulations
+have very different internal structure:
+
+The /EIS/ problem *all* the entities of interest in a given period of
+time *have* a label. The /Inspections/ problem does not have that
+luxury: from all the existing entities of interest only a bunch are
+/inspected/ that means that only those inspected have a label
+(=True/False=) but all the remaining ones doesn't have one. This will be
+reflected, for example in the /training/ matrices: you only train in the
+facilities that were inspected (so you will have less rows in
+them). Another impact will be in the metrics: you need to be very
+careful about interpreting the metrics in an inspections
+problem. Finally, when you are designing the field validation of your
+model, you need to take in account this selection bias, if not, you
+will be inspecting the same facilities over and over[fn:6]
 
 * Footnotes
+
+[fn:6] This points is particularly acute: Imagine the scenario in
+which the /inspections/ problem is *crime prediction* in order to send
+cops (inspectors)to that "risky" area (facilities)...
+
+[fn:5] It is also possible to do "visit-level prediction" type of ML problem.
 
 [fn:4] Defined as "bakery, banquet
 hall, candy store, caterer, coffee shop, day care center (for ages less than 2), day care
