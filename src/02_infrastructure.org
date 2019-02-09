@@ -123,9 +123,8 @@
 
    You can check that everything is running smoothly with =status=
 
-   #+BEGIN_SRC shell :dir .. :results output org :exports both
+   #+BEGIN_SRC sh :dir .. :results output org :exports both
     ./tutorial.sh status
-    :
    #+END_SRC
 
    #+RESULTS:
@@ -138,13 +137,13 @@
    To access the =postgresql= client type:
 
    #+BEGIN_SRC sh :eval never
-  ./tutorial.sh bastion
+   ./tutorial.sh bastion
    #+END_SRC
 
    Your prompt should change to something like:
 
    #+BEGIN_EXAMPLE shell
-  root@485373fb3c64:/$
+    root@485373fb3c64:/$
    #+END_EXAMPLE
 
    *NOTE*: The number you see will be different (i.e. not =485373fb3c64=).

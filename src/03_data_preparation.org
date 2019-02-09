@@ -33,7 +33,10 @@ We need to get the data and transform it into a shape that is suitable for the a
 Before loading the data into the database, verify that the database table is empty:
 
 #+BEGIN_SRC sql
-select count(*) from raw.inspections;
+select
+    count(*)
+from
+    raw.inspections;
 #+END_SRC
 
 #+RESULTS:
@@ -57,23 +60,40 @@ and the City of Chicago's data API:
 Now, you should have some data[fn:1]:
 
 #+BEGIN_SRC sql
-select count(*) from raw.inspections
+select
+    to_char(count(*), '999,999') as "facilities inspected"
+from
+    raw.inspections;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-|  count |
-|--------|
-| 180842 |
+| facilities inspected |
+|----------------------|
+| 180,842              |
 :END:
 
 Let's peek inside the table[fn:2]
 
 #+BEGIN_SRC sql
-select inspection, dba_name, risk, results from raw.inspections limit 1;
+select
+    inspection,
+    dba_name,
+    risk,
+    results
+from
+    raw.inspections limit 1;
 #+END_SRC
 
-Ok, now you have some data loaded! But we still need to /munge/ it to use it in our machine learning task.
+#+RESULTS:
+:RESULTS:
+| inspection | dba_name             | risk          | results         |
+|------------+---------------------+---------------+-----------------|
+|    2252844 | Paciugo Of Broadway | Risk 1 (High) | Out of Business |
+:END:
+
+Ok, now you have some data loaded! But we still need to /munge/ it to
+use it in our machine learning task.
 
 ** Transforming (and cleaning) the data
 
@@ -103,6 +123,9 @@ Before starting the cleaning, make your life easier by following this rule:
 The reason is, if you make a mistake or want to try a different data
 transformation, you can always can go back to the =raw= data and start over.
 
+
+*** Data road
+
 The transformation "road" that we will take in this tutorial is as follows:
 
 1. Put a copy of the data in the =raw= schema. (We just did that.)
@@ -110,8 +133,6 @@ The transformation "road" that we will take in this tutorial is as follows:
    data in the =cleaned= schema.
 3. Organize the data in two /unnormalized/[fn:5] tables:
    =events= and =entities= in the =semantic= schema.
-4. Address some =triage= idiosyncrasies, and create
-   other tables and store them in the schema =triage=.
 5. Run =triage=. It will create several schemas (=model_metadata=,
    =test_results=, =train_results=).
 
