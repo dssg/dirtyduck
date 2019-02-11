@@ -40,10 +40,17 @@ use? This is not as easy as it sounds, due to several factors:
   their lists are more or less similar, maybe it doesn't really
   matter which you pick.
 
-=triage= provides this functionality in =audition= and in
+The answers to questions like these may not be obvious up front.
+
+Triage provides this functionality in =audition= and in
 =postmodel=. At the moment of this writing, these two modules require
 more interaction (i.e. they aren't integrated with the /configuration
 file/).
+
+Audition is a tool for picking the best trained classifiers from a
+predictive analytics experiment.  Audition introduces
+a structured, semi-automated way of filtering models based on what you
+consider important.
 
 =Audition= formalizes this idea through /selection rules/ that take in
 the data up to a given point in time, apply some rule to choose a
@@ -74,21 +81,13 @@ model group in the subsequent time window.
 
 We included a simple configuration file with some rules:
 
-#+BEGIN_SRC yaml :tangle ../triage/selection_rules/rules.yaml
-
+#+BEGIN_SRC yaml :tangle ../triage/audition_config.yaml
 # CHOOSE MODEL GROUPS
-# Audition needs a bunch of model_group_ids to help you select the models.
-# The query is to choose what the model groups you want to include in the first round.
 model_groups:
     query: |
         SELECT DISTINCT(model_group_id)
         FROM results.model_groups
 # CHOOSE TIMESTAMPS/TRAIN END TIMES
-# The timestamps when audition happens for each model group.
-# There's a hard rule in Audition that all of the chosen model groups for audition should
-# have the same train end times as the timestamps or the subset of the timestamps from this
-# query, otherwise those model groups with unmatched train end times will be pruned in the
-# first round.
 time_stamps:
     query: |
         SELECT DISTINCT train_end_time
@@ -97,7 +96,6 @@ time_stamps:
         AND EXTRACT(DAY FROM train_end_time) IN (1)
         AND train_end_time >= '2012-01-01'
 # FILTER
-# Configuration for the Auditioner
 filter:
     metric: 'precision@' # metric of interest
     parameter: '50_abs' # parameter of interest
@@ -107,8 +105,6 @@ filter:
     models_table: 'models' # name of the models table
 
 # RULES
-# The selection rules for Audition to simulate the model selection process for each timestamps.
-# More rules can be found in the README.
 rules:
     -
         shared_parameters:
@@ -145,7 +141,6 @@ rules:
                 parameter2: '50_abs'
                 metric1_weight: 0.5
                 num: 3
-
 #+END_SRC
 
 =Audition= will have each rule give you the best $n$ model-group IDs
@@ -154,43 +149,24 @@ recent time period (in all the rules shown $n$ = 1).
 
 We can run the simulation of the rules againts the experiment as:
 
-#+BEGIN_SRC sh
-./tutorial.sh triage --config_file eis_01.yaml audit_models --metric precision@50_abs --rules rules.yaml
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage
+triage audition
+:
 #+END_SRC
 
 #+RESULTS:
 #+BEGIN_SRC org
-Using the config file /triage/experiment_config/eis_01.yaml
-The output (matrices and models) of this experiment will be stored in triage/output
-Using data stored in postgresql://food_user:some_password@food_db/food
-The experiment will utilize any preexisting matrix or model: False
-Creating experiment object
-Experiment loaded
-Auditing experiment
-
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-          +                                                  +
-          +          Results of the simulation               +
-          +                                                  +
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-{'best_average_value_precision@_50_abs': [24],
- 'best_current_value_precision@_50_abs': [48, 24],
- 'lowest_metric_variance_precision@_50_abs': [24],
- 'most_frequent_best_dist_precision@_50_abs_0.05': [48]}
-
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-          +                                                  +
-          +          Average regret per rule                 +
-          +                                                  +
-          ++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-{'precision@50_abs': {'best_average_value_precision@_50_abs': 0.0,
-                      'best_current_value_precision@_50_abs': 0.0,
-                      'lowest_metric_variance_precision@_50_abs': 0.08,
-                      'most_frequent_best_dist_precision@_50_abs_0.05': 0.02}}
-
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+INFO:root:Validate!
+[33m[ProgrammingError][39m [31m(psycopg2.ProgrammingError) relation "results.model_groups" does not exist
+LINE 2: FROM results.model_groups
+             ^
+ [SQL: 'SELECT DISTINCT(model_group_id)\nFROM results.model_groups\n'] (Background on this error at: http://sqlalche.me/e/f405)[39m
+[0m
 #+END_SRC
+
+* TODO Crossvalidation
 
 
 * TODO Postmodeling

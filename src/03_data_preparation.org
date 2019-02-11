@@ -18,6 +18,7 @@
 #+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 #+PROPERTY: header-args:ipython   :session food_inspections
 #+PROPERTY: header-args:ipython+ :results raw drawer
+#+PROPERTY: header-args:ipython+ :eval no-export
 #+OPTIONS: broken-links:mark
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t
@@ -240,18 +241,26 @@ checking that the =risk= column *only* has three classifications:
 *NOTE* Execute this in =psql= inside the container =bastion=.
 
 #+BEGIN_SRC sql
-  select risk, count(*) from raw.inspections group by risk order by count(*) desc;
+  select
+      risk,
+      to_char(count(*), '999,999') as "number of inspections"
+  from
+      raw.inspections
+  group by
+      risk
+  order by
+      count(*) desc;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| risk            |  count |
-|-----------------+--------|
-| Risk 1 (High)   | 128345 |
-| Risk 2 (Medium) |  36083 |
-| Risk 3 (Low)    |  16317 |
-| ¤               |     69 |
-| All             |     28 |
+| risk            | number of inspections |
+|-----------------+-----------------------|
+| Risk 1 (High)   | 128,345               |
+| Risk 2 (Medium) | 36,083                |
+| Risk 3 (Low)    | 16,317                |
+| ¤               | 69                    |
+| All             | 28                    |
 :END:
 
 Ok, there are two extra =risk= types, =All= and =NULL=, for a grand total
@@ -260,14 +269,17 @@ of *5*.
 What about =types= of inspections?
 
 #+BEGIN_SRC sql
-  select count(distinct type) from raw.inspections;
+  select
+      count(distinct type) as "number of inspections"
+  from
+      raw.inspections;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| count |
-|-------|
-|   108 |
+| number of inspections |
+|-----------------------|
+|                   108 |
 :END:
 
 Wow, there are *108* types of inspections instead of the (expected) *5*!
@@ -275,23 +287,32 @@ Wow, there are *108* types of inspections instead of the (expected) *5*!
 What are those types? How bad is it?
 
 #+BEGIN_SRC sql
-select type, count(*) from raw.inspections group by type order by count(*) desc limit 10;
+select
+    type,
+    to_char(count(*), '999,999') as "number of inspections"
+from
+    raw.inspections
+group by
+    type
+order by
+    count(*) desc
+    limit 10;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| type                     | count |
-|--------------------------+-------|
-| Canvass                  | 95642 |
-| License                  | 23607 |
-| Canvass Re-Inspection    | 18775 |
-| Complaint                | 16780 |
-| License Re-Inspection    |  8347 |
-| Complaint Re-Inspection  |  6867 |
-| Short Form Complaint     |  6464 |
-| Suspected Food Poisoning |   805 |
-| Consultation             |   670 |
-| License-Task Force       |   605 |
+| type                     | number of inspections |
+|--------------------------+-----------------------|
+| Canvass                  | 95,642                |
+| License                  | 23,607                |
+| Canvass Re-Inspection    | 18,775                |
+| Complaint                | 16,780                |
+| License Re-Inspection    | 8,347                 |
+| Complaint Re-Inspection  | 6,867                 |
+| Short Form Complaint     | 6,464                 |
+| Suspected Food Poisoning | 805                   |
+| Consultation             | 670                   |
+| License-Task Force       | 605                   |
 :END:
 
 This column will require also cleaning.
@@ -299,20 +320,28 @@ This column will require also cleaning.
 Finally, let's look =results= (should be 3)
 
 #+BEGIN_SRC  sql
-  select results, count(*) from raw.inspections group by results order by count(*) desc;
+  select
+      results,
+      to_char(count(*), '999,999') as "number of inspections"
+  from
+      raw.inspections
+  group by
+      results
+  order by
+      count(*) desc;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| results              |  count |
-|----------------------+--------|
-| Pass                 | 102278 |
-| Fail                 |  34975 |
-| Pass w/ Conditions   |  20672 |
-| Out of Business      |  15838 |
-| No Entry             |   5527 |
-| Not Ready            |   1486 |
-| Business Not Located |     66 |
+| results              | number of inspections |
+|----------------------+-----------------------|
+| Pass                 | 102,278               |
+| Fail                 | 34,975                |
+| Pass w/ Conditions   | 20,672                |
+| Out of Business      | 15,838                |
+| No Entry             | 5,527                 |
+| Not Ready            | 1,486                 |
+| Business Not Located | 66                    |
 :END:
 
 Ok, disheartening. But that's the reality of /real/ data. We'll try to clean this mess.
@@ -352,18 +381,24 @@ those names, but it's good enough for this example project.
 
 Let's review the status of the spatial columns (=state, city, zip, latitude,
 longitude=). Beginning with =state=, all the facilities in the
-data should be located in *Ilinois*:
+data should be located in *Illinois*:
 
 #+begin_src sql
-select state, count(*) from raw.inspections group by state;
+select
+    state,
+    to_char(count(*), '999,999') as "number of inspections"
+from
+    raw.inspections
+group by
+    state;
 #+end_src
 
 #+RESULTS:
 :RESULTS:
-| state |  count |
-|-------+--------|
-| IL    | 180809 |
-| ¤     |     33 |
+| state | number of inspections |
+|-------+-----------------------|
+| IL    | 180,809               |
+| ¤     | 33                    |
 :END:
 
 Ok, almost correct, there are some =NULL= values. We will assume that
@@ -374,26 +409,30 @@ the next spatial column, we expect that all the values in the column
 #+BEGIN_SRC sql
 select
     lower(city) as city,
-    to_char(count(*), '999,999,999') as count
-from raw.inspections
-group by lower(city)
-order by count(*) desc limit 10;
+    to_char(count(*), '999,999') as "number of inspections"
+from
+    raw.inspections
+group by
+    lower(city)
+order by
+    count(*) desc
+    limit 10;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| city              |   count |
-|-------------------+---------|
-| chicago           | 180,438 |
-| ¤                 |     155 |
-| cchicago          |      44 |
-| schaumburg        |      23 |
-| maywood           |      16 |
-| elk grove village |      13 |
-| evanston          |      10 |
-| chestnut street   |       9 |
-| cicero            |       9 |
-| inactive          |       8 |
+| city              | number of inspections |
+|-------------------+-----------------------|
+| chicago           |               180,438 |
+| ¤                 |                   155 |
+| cchicago          |                    44 |
+| schaumburg        |                    23 |
+| maywood           |                    16 |
+| elk grove village |                    13 |
+| evanston          |                    10 |
+| chestnut street   |                     9 |
+| cicero            |                     9 |
+| inactive          |                     8 |
 :END:
 
 Oh boy. There are 150-ish rows with =NULL= values and forty-ish rows with the
@@ -405,14 +444,19 @@ we will assume that all the records are from Chicago).
 Zip code has a similar =NULL= problem:
 
 #+BEGIN_SRC sql
-select count(*) from raw.inspections where zip is null or btrim(zip) = '';
+select
+    count(*) as "number of inspections"
+from
+    raw.inspections
+where
+    zip is null or btrim(zip) = '';
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| count |
-|-------|
-|    75 |
+| number of inspections |
+|-----------------------|
+|                    75 |
 :END:
 
 We could attempt to replace these =NULL= values using the location point or
@@ -501,15 +545,15 @@ The number of inspections now is:
 
 #+BEGIN_SRC sql
 select
-    to_char(count(inspection), '999,999,999') as count
+    to_char(count(inspection), '999,999,999') as "number of inspections"
 from cleaned.inspections;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| count   |
-|---------|
-| 179,977 |
+| number of inspections |
+|-----------------------|
+| 179,977               |
 :END:
 
 Note that  quantity is smaller  is smaller than the one from
@@ -640,7 +684,7 @@ select
     else
     severity
     end as severity,
-    to_char(count(*), '999,999,999') as count
+    to_char(count(*), '999,999,999') as "number of inspections"
 from
     cleaned.violations
 group by
@@ -651,13 +695,13 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| severity | count   |
-|----------+---------|
-| ¤        | 25,919  |
-| critical | 44,385  |
-| minor    | 460,796 |
-| serious  | 52,865  |
-| TOTAL    | 583,965 |
+| severity | number of inspections |
+|----------+-----------------------|
+| ¤        | 25,919                |
+| critical | 44,385                |
+| minor    | 460,796               |
+| serious  | 52,865                |
+| TOTAL    | 583,965               |
 :END:
 
 As a last step, we should create from the cleaned tables the =entities=
@@ -679,9 +723,9 @@ We will begin with the following query: /What are 5 licenses with the most inspe
 #+BEGIN_SRC sql
 select
     license_num,
-    to_char(count(*), '999,999,999') as total_inspections,
+    to_char(count(*), '999,999,999') as "number of inspections",
     coalesce(count(*) filter (where result = 'fail'), 0)
-    as total_failures
+    as "number of failed inspections"
 from
     cleaned.inspections
 group by
@@ -693,13 +737,13 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| license_num | total_inspections | total_failures |
-|------------+------------------+---------------|
-|          0 |              453 |           114 |
-|    1354323 |              192 |             1 |
-|      14616 |              174 |            31 |
-|    1574001 |               82 |             4 |
-|    1974745 |               59 |             3 |
+| license_num | number of inspections | number of failed inspections |
+|------------+-----------------------+------------------------------|
+|          0 |                   453 |                          114 |
+|    1354323 |                   192 |                            1 |
+|      14616 |                   174 |                           31 |
+|    1574001 |                    82 |                            4 |
+|    1974745 |                    59 |                            3 |
 :END:
 
 
@@ -710,8 +754,8 @@ This looks weird. There are three license numbers, in particular license number 
 #+BEGIN_SRC sql
   select
       facility_type,
-      count(*) as total_inspections,
-      coalesce(count(*) filter (where result = 'fail'), 0) as total_failures
+      count(*) as "number of inspections",
+      coalesce(count(*) filter (where result = 'fail'), 0) as "number of failed inspections"
   from
       cleaned.inspections
   where
@@ -719,24 +763,24 @@ This looks weird. There are three license numbers, in particular license number 
   group by
       facility_type
   order by
-      total_inspections desc
+      "number of inspections" desc
   limit 10;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| facility_type    | total_inspections | total_failures |
-|-----------------+------------------+---------------|
-| restaurant      |              104 |            44 |
-| special event   |               73 |             9 |
-| unknown         |               44 |            10 |
-| shelter         |               31 |             6 |
-| navy pier kiosk |               30 |             4 |
-| church          |               30 |             3 |
-| grocery store   |               16 |             7 |
-| school          |               12 |             1 |
-| long term care  |               11 |             2 |
-| church kitchen  |               11 |             4 |
+| facility_type    | number of inspections | number of failed inspections |
+|-----------------+-----------------------+------------------------------|
+| restaurant      |                   104 |                           44 |
+| special event   |                    73 |                            9 |
+| unknown         |                    44 |                           10 |
+| shelter         |                    31 |                            6 |
+| navy pier kiosk |                    30 |                            4 |
+| church          |                    30 |                            3 |
+| grocery store   |                    16 |                            7 |
+| school          |                    12 |                            1 |
+| long term care  |                    11 |                            2 |
+| church kitchen  |                    11 |                            4 |
 :END:
 
 It seems that =license_number= =0= is a generic placeholder:
@@ -750,9 +794,9 @@ etc. But what about the =restaurants= that have =license_num= =
       license_num,
       facility,
       address,
-      count(*) as total_inspections,
+      count(*) as "number of inspections",
       coalesce(count(*) filter (where result = 'fail'), 0)
-      as total_failures
+      as "number of failed inspections"
   from
       cleaned.inspections
   where
@@ -762,24 +806,24 @@ etc. But what about the =restaurants= that have =license_num= =
   group by
       license_num, facility, address
   order by
-      total_inspections desc
+      "number of inspections" desc
   limit 10;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| license_num | facility                        | address               | total_inspections | total_failures |
-|------------+---------------------------------+-----------------------+------------------+---------------|
-|          0 | british airways                 | 11601 w touhy ave     |                5 |             1 |
-|          0 | rib lady 2                      | 4203 w cermak rd      |                4 |             3 |
-|          0 | taqueria la capital             | 3508 w 63rd st        |                3 |             1 |
-|          0 | nutricion familiar              | 3000 w 59th st        |                3 |             1 |
-|          0 | salvation army                  | 506 n des plaines st  |                3 |             1 |
-|          0 | herbalife                       | 6214 w diversey ave   |                3 |             2 |
-|          0 | la michoacana                   | 4346 s california ave |                3 |             1 |
-|          0 | las quecas                      | 2500 s christiana ave |                3 |             1 |
-|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                3 |             1 |
-|          0 | unlicensed                      | 7559 n ridge blvd     |                3 |             1 |
+| license_num | facility                        | address               | number of inspections | number of failed inspections |
+|------------+---------------------------------+-----------------------+-----------------------+------------------------------|
+|          0 | british airways                 | 11601 w touhy ave     |                     5 |                            1 |
+|          0 | rib lady 2                      | 4203 w cermak rd      |                     4 |                            3 |
+|          0 | taqueria la capital             | 3508 w 63rd st        |                     3 |                            1 |
+|          0 | nutricion familiar              | 3000 w 59th st        |                     3 |                            1 |
+|          0 | salvation army                  | 506 n des plaines st  |                     3 |                            1 |
+|          0 | herbalife                       | 6214 w diversey ave   |                     3 |                            2 |
+|          0 | la michoacana                   | 4346 s california ave |                     3 |                            1 |
+|          0 | las quecas                      | 2500 s christiana ave |                     3 |                            1 |
+|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                     3 |                            1 |
+|          0 | unlicensed                      | 7559 n ridge blvd     |                     3 |                            1 |
 :END:
 
 Nope. Unfortunately, =license_num= is not a unique identifier.
@@ -788,17 +832,17 @@ Perhaps =license_num= and =address= are a unique identifier.
 
 #+BEGIN_SRC sql
   select
-  count(distinct license_num) as total_licenses,
-  count(distinct facility) as total_facilities,
-  count(distinct address) as total_addresses
+  to_char(count(distinct license_num), '999,999') as "number of licenses",
+  to_char(count(distinct facility), '999,999') as "number of facilities",
+  to_char(count(distinct address), '999,999') as "number of addresses"
   from cleaned.inspections;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| total_licenses | total_facilities | total_addresses |
-|---------------+-----------------+----------------|
-|         35420 |           26060 |          17492 |
+| number of licenses | number of facilities | number of addresses |
+|--------------------+----------------------+---------------------|
+| 35,420             | 26,060               | 17,492              |
 :END:
 
 We were expecting (naively) that we should get one =license_num= per
@@ -812,7 +856,7 @@ We will try to use the combination of =license_num=, =facility=, =facility_aka=,
 
 #+BEGIN_SRC sql
 select
-    license_num, facility, facility_type, facility_aka, address , count(*)
+    license_num, facility, facility_type, facility_aka, address , count(*) as "number of inspections"
 from
     cleaned.inspections
 group by
@@ -824,21 +868,21 @@ limit 10;
 
 #+RESULTS:
 :RESULTS:
-| license_num | facility                     | facility_type  | facility_aka                  | address                   | count |
-|------------+------------------------------+---------------+------------------------------+---------------------------+-------|
-|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345     | 1224 s wabash ave         |    46 |
-|    1490035 | mcdonald's                   | restaurant    | mcdonald's                   | 6900 s lafayette ave      |    46 |
-|    1596210 | food 4 less midwest #552     | grocery store | food 4 less                  | 7030 s ashland ave        |    45 |
-|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market       | 333 e benton pl           |    43 |
-|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito         | 2829 n milwaukee ave      |    42 |
-|    1476553 | pete's produce               | grocery store | pete's produce               | 1543 e 87th st            |    41 |
-|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030       | 7530 s stony island ave   |    40 |
-|    1302136 | mcdonald's                   | restaurant    | mcdonald's                   | 70 e garfield blvd        |    40 |
-|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |    39 |
-|    2108657 | morrison's restaurant        | restaurant    | morrison's restaurant        | 8127 s ashland ave        |    38 |
+| license_num | facility                     | facility_type  | facility_aka                  | address                   | number of inspections |
+|------------+------------------------------+---------------+------------------------------+---------------------------+-----------------------|
+|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345     | 1224 s wabash ave         |                    46 |
+|    1490035 | mcdonald's                   | restaurant    | mcdonald's                   | 6900 s lafayette ave      |                    46 |
+|    1596210 | food 4 less midwest #552     | grocery store | food 4 less                  | 7030 s ashland ave        |                    45 |
+|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market       | 333 e benton pl           |                    43 |
+|      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito         | 2829 n milwaukee ave      |                    42 |
+|    1476553 | pete's produce               | grocery store | pete's produce               | 1543 e 87th st            |                    41 |
+|    1000572 | jewel food store #3030       | grocery store | jewel food store #3030       | 7530 s stony island ave   |                    40 |
+|    1302136 | mcdonald's                   | restaurant    | mcdonald's                   | 70 e garfield blvd        |                    40 |
+|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |                    39 |
+|    2108657 | morrison's restaurant        | restaurant    | morrison's restaurant        | 8127 s ashland ave        |                    38 |
 :END:
 
-Yay, it looks like these columns enable us to identify a facility!
+Yay, it looks like these columns enable us to identify a facility![fn:3]
 
 The =entities= table should store two other types of attributes. The
 first type describe the entity no matter the time. If the entity were
@@ -1060,7 +1104,195 @@ from semantic.events;
 
 Now that we have our data in a good shape, we are ready to use *Triage*.
 
+*** Some EDA ...
+
+#+BEGIN_SRC ipython :exports none
+%matplotlib inline
+import numpy as np
+import pandas as pd
+import matplotlib
+from matplotlib import pyplot as plt
+
+import json
+
+import sqlalchemy
+
+engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:5434/food')
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[2]:
+:END:
+
+
+#+BEGIN_SRC ipython :ipyfile ./images/inspections_over_time.png :results silent
+
+df = pd.read_sql("""
+select
+date_trunc('month', date) as month,
+count(*) as cnt
+from semantic.events
+where date > '2010-01-01'
+group by 1
+order by 1 asc
+""",
+engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count of inspections")
+plt.title("Number of inspections over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+[[./images/inspections_over_time.png]]
+
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_inspected_over_time.png :results silent :exports results
+df = pd.read_sql("""
+select
+date_trunc('month', date) as month,
+count(distinct entity_id) as cnt
+from semantic.events
+where date > '2010-01-01'
+group by 1 order by 1 asc
+""",
+engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count of facilities inspected")
+plt.title("Facilities inspected over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+[[./images/facilities_inspected_over_time.png]]
+
+Now let's see the behavior of the /outcomes/ of the inspection across
+time. First just if the inspection failed
+
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_inspections_failed_over_time.png :results silent
+df = pd.read_sql(
+    """
+    select
+    date_trunc('month', date) as month,
+    count(distinct entity_id) as cnt
+    from semantic.events
+    where
+    date > '2010-01-01'
+    and result = 'fail'
+    group by 1
+    order by 1 asc
+    """,
+    engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count")
+plt.title("Facilities with failed inspections over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+[[./images/facilities_with_inspections_failed_over_time.png]]
+
+#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_over_time.png :results silent
+df = pd.read_sql(
+    """
+    select
+    date_trunc('month', date) as month,
+    count(distinct entity_id) as cnt
+    from semantic.events
+    where
+    date > '2010-01-01'
+    and result = 'fail'
+    group by 1
+    order by 1 asc
+    """,
+    engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count")
+plt.title("Failed inspections over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+[[./images/failed_inspections_over_time.png]]
+
+Finally let's analyze the evolution of failed inspections with severe
+violations (violation code in 15-29)
+
+#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_severe_violations_over_time.png :results silent
+df = pd.read_sql(
+    """
+    select
+    date_trunc('month', date) as month,
+    count(*) as cnt
+    from semantic.events
+    where
+    date > '2010-01-01'
+    and result = 'fail'
+    and violations @> '[{"severity": "serious"}]'
+    group by 1
+    order by 1 asc
+    """,
+    engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count")
+plt.title("Failed inspections with severe violations over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+[[./images/failed_inspections_severe_violations_over_time.png]]
+
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_failed_inspections_severe_violations_over_time.png :results silent
+df = pd.read_sql(
+    """
+    select
+    date_trunc('month', date) as month,
+    count(*) as cnt
+    from semantic.events
+    where
+    date > '2010-01-01'
+    and result = 'fail'
+    and violations @> '[{"severity": "serious"}]'
+    group by 1
+    order by 1 asc
+    """,
+    engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count")
+plt.title("Facilities with failed inspections with severe violations over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+[[./images/facilities_with_failed_inspections_severe_violations_over_time.png]]
+
 * Footnotes
+
+[fn:3] Almost. At least good for this tutorial. Look carefully.
 
 [fn:18] Yeah, you wish
 

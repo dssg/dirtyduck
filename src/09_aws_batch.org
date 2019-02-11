@@ -41,7 +41,7 @@ AWS Batch to fetch the task images), and Elastic Compute Cloud (Amazon
 EC2) instances located in the cluster as the docker host (allowing AWS
 Batch to execute the task).
 
-[[./images/AWS_Batch_Architecture.svg]]
+[[./images/AWS_Batch_Architecture.png]]
 
 An AWS ECS task will be executed by an EC2 instance belonging to the
 ECS cluster (if there are resources available). The EC2 machine
