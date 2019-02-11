@@ -11,3 +11,4 @@ colorama
 ipython
 jupyter
 httpie
+psycopg2-binary

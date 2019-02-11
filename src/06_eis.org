@@ -18,6 +18,7 @@
 #+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
 #+PROPERTY: header-args:ipython   :session food_inspections
 #+PROPERTY: header-args:ipython+ :results raw drawer
+#+PROPERTY: header-args:yaml :eval no-export
 #+OPTIONS: broken-links:mark
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t

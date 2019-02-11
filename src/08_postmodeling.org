@@ -22,8 +22,7 @@
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t
 
-
-* TODO Audition: How can I pick the best one?
+* WORKING Audition: How can I pick the best one?
 
 Now you have *42* /model groups/. Which is best? Which should you choose to
 use? This is not as easy as it sounds, due to several factors:
@@ -81,7 +80,7 @@ model group in the subsequent time window.
 
 We included a simple configuration file with some rules:
 
-#+BEGIN_SRC yaml :tangle ../triage/audition_config.yaml
+#+BEGIN_EXAMPLE yaml :tangle ../triage/audition_config.yaml
 # CHOOSE MODEL GROUPS
 model_groups:
     query: |
@@ -141,7 +140,7 @@ rules:
                 parameter2: '50_abs'
                 metric1_weight: 0.5
                 num: 3
-#+END_SRC
+#+END_EXAMPLE
 
 =Audition= will have each rule give you the best $n$ model-group IDs
 based on the metric and parameter following that rule for the most
@@ -166,7 +165,7 @@ LINE 2: FROM results.model_groups
 [0m
 #+END_SRC
 
-* TODO Crossvalidation
 
+* TODO Crossvalidation
 
 * TODO Postmodeling

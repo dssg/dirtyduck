@@ -10,6 +10,8 @@
 #+STARTUP: align
 #+STARTUP: inlineimages
 #+STARTUP: latexpreview
+#+PROPERTY: header-args :cache yes
+#+PROPERTY: header-args :eval never-export
 #+PROPERTY: header-args:sql :engine postgresql
 #+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
 #+PROPERTY: header-args:sql+ :dbport 5434
@@ -22,8 +24,9 @@
 #+PROPERTY: header-args:sql+ :cmdline -q
 #+PROPERTY: header-args:sh  :results verbatim org
 #+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
-#+PROPERTY: header-args:ipython   :session food_inspections
+#+PROPERTY: header-args:ipython  :session food_inspections
 #+PROPERTY: header-args:ipython+ :results raw drawer
+#+PROPERTY: header-args:ipython+ :eval no-export
 #+OPTIONS: broken-links:mark
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t
