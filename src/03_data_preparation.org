@@ -1104,7 +1104,7 @@ from semantic.events;
 
 Now that we have our data in a good shape, we are ready to use *Triage*.
 
-*** Some EDA ...
+** Some EDA ...
 
 #+BEGIN_SRC ipython :exports none
 %matplotlib inline
@@ -1126,7 +1126,7 @@ engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:
 :END:
 
 
-#+BEGIN_SRC ipython :ipyfile ./images/inspections_over_time.png :results silent
+#+BEGIN_SRC ipython :ipyfile ./images/inspections_over_time.png :results silent :exports none
 
 df = pd.read_sql("""
 select
@@ -1151,7 +1151,7 @@ plt.xlim(0, n_months);
 
 [[./images/inspections_over_time.png]]
 
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_inspected_over_time.png :results silent :exports results
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_inspected_over_time.png :results silent :exports none
 df = pd.read_sql("""
 select
 date_trunc('month', date) as month,
@@ -1177,7 +1177,7 @@ plt.xlim(0, n_months);
 Now let's see the behavior of the /outcomes/ of the inspection across
 time. First just if the inspection failed
 
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_inspections_failed_over_time.png :results silent
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_inspections_failed_over_time.png :results silent :exports none
 df = pd.read_sql(
     """
     select
@@ -1204,7 +1204,7 @@ plt.xlim(0, n_months);
 
 [[./images/facilities_with_inspections_failed_over_time.png]]
 
-#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_over_time.png :results silent
+#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_over_time.png :results silent :exports none
 df = pd.read_sql(
     """
     select
@@ -1234,7 +1234,7 @@ plt.xlim(0, n_months);
 Finally let's analyze the evolution of failed inspections with severe
 violations (violation code in 15-29)
 
-#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_severe_violations_over_time.png :results silent
+#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_severe_violations_over_time.png :results silent :exports none
 df = pd.read_sql(
     """
     select
@@ -1262,7 +1262,7 @@ plt.xlim(0, n_months);
 
 [[./images/failed_inspections_severe_violations_over_time.png]]
 
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_failed_inspections_severe_violations_over_time.png :results silent
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_failed_inspections_severe_violations_over_time.png :results silent :exports none
 df = pd.read_sql(
     """
     select
