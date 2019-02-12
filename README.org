@@ -92,7 +92,13 @@ Programming]] using [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gn
 The steps to help are:
 
 - clone the repository
-- edit the source =org= files in the =src= folder
+- edit the source =org= files in the =org= folder
+- From your terminal run
+
+#+BEGIN_EXAMPLE shell
+emacs  --batch -l org/publish.el org/index.org --eval '(org-publish "dirtyduck" t)'
+#+END_EXAMPLE
+
 - create a *pull request*.
 
 
