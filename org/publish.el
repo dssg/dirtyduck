@@ -25,7 +25,7 @@
          :base-directory "~/projects/dsapp/dirtyduck/org/"
          :base-extension "org"
          :exclude "[[:digit:]][[:digit:]]_.*\.org"
-         :publishing-directory "~/projects/dsapp/dirtyduck/docs2/"
+         :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
          :recursive t
          :publishing-function org-html-publish-to-html
          :headline-levels 4             ; Just the default for this project.
@@ -36,7 +36,7 @@
         ("dirtyduck-static"
          :base-directory "~/projects/dsapp/dirtyduck/org/"
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|sql"
-         :publishing-directory "~/projects/dsapp/dirtyduck/docs2/"
+         :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
          :recursive t
          :publishing-function org-publish-attachment
          )
