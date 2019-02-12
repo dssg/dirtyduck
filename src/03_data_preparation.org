@@ -1104,7 +1104,7 @@ from semantic.events;
 
 Now that we have our data in a good shape, we are ready to use *Triage*.
 
-** Some EDA ...
+** Let's EDA ...
 
 #+BEGIN_SRC ipython :exports none
 %matplotlib inline
@@ -1125,6 +1125,7 @@ engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:
 # Out[2]:
 :END:
 
+*** Inspections over time
 
 #+BEGIN_SRC ipython :ipyfile ./images/inspections_over_time.png :results silent :exports none
 
@@ -1151,6 +1152,14 @@ plt.xlim(0, n_months);
 
 [[./images/inspections_over_time.png]]
 
+*** Number of facilities /inspected/ over time
+
+#+BEGIN_QUOTE
+We are doing an emphasis in /inspected/ since our data set doesn't
+contain *all* the facilities in Chicago. This will have an effect on the
+modeling stage.
+#+END_QUOTE
+
 #+BEGIN_SRC ipython :ipyfile ./images/facilities_inspected_over_time.png :results silent :exports none
 df = pd.read_sql("""
 select
@@ -1173,6 +1182,8 @@ plt.xlim(0, n_months);
 #+END_SRC
 
 [[./images/facilities_inspected_over_time.png]]
+
+*** Number of facilities with failed inspections over time
 
 Now let's see the behavior of the /outcomes/ of the inspection across
 time. First just if the inspection failed
@@ -1204,6 +1215,9 @@ plt.xlim(0, n_months);
 
 [[./images/facilities_with_inspections_failed_over_time.png]]
 
+*** Number of failed inspections over time
+
+
 #+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_over_time.png :results silent :exports none
 df = pd.read_sql(
     """
@@ -1230,6 +1244,8 @@ plt.xlim(0, n_months);
 #+END_SRC
 
 [[./images/failed_inspections_over_time.png]]
+
+*** Number of severe violations found in a failed inspection over time
 
 Finally let's analyze the evolution of failed inspections with severe
 violations (violation code in 15-29)
@@ -1261,6 +1277,8 @@ plt.xlim(0, n_months);
 #+END_SRC
 
 [[./images/failed_inspections_severe_violations_over_time.png]]
+
+*** Number of facilities with severe violations found in a failed inspection over time
 
 #+BEGIN_SRC ipython :ipyfile ./images/facilities_with_failed_inspections_severe_violations_over_time.png :results silent :exports none
 df = pd.read_sql(

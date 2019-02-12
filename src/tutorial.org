@@ -36,7 +36,6 @@
 #+INCLUDE: 01_intro.org :minlevel 1
 #+INCLUDE: 02_infrastructure.org :minlevel 1
 #+INCLUDE: 03_data_preparation.org :minlevel 1
-# +INCLUDE: data_exploration.org :minlevel 1
 #+INCLUDE: 04_triage_intro.org :minlevel 1
 #+INCLUDE: 05_inspections.org :minlevel 1
 #+INCLUDE: 06_eis.org :minlevel 1

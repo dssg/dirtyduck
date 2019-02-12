@@ -165,3 +165,7 @@ site/
 **/matrices/*
 **/trained_models/*
 triage/images/*
+
+**/profiling_stats/*
+
+**/ltximg/*
