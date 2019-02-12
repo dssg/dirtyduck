@@ -30,7 +30,6 @@
 #+OPTIONS: broken-links:mark
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t
-#+EXPORT_FILE_NAME: ../docs/index
 #+SETUPFILE: tutorial.setup
 
 #+INCLUDE: 01_intro.org :minlevel 1
