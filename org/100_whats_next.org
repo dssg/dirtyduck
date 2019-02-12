@@ -26,6 +26,13 @@
     and generate geospatial variables using =location=
   - Text analysis on the /violations/' =comments= column and generate
     new /outcomes/ or /features/?
-  - Run =pgdedup= and had a better =semantic.entities=?
+  - Run =some deduplication and had a better =semantic.entities=?
   - Routing based on the inspection list?
-  - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!)?
+  - Add more data sources (Census, Schools, bus stops, ACS data, Yelp!):
+    - [[https://data.cityofchicago.org/Community-Economic-Development/Business-Licenses/r5kz-chrr][Business Licenses]]
+    - Food Inspections
+    - [[https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2][Crime]]
+    - Garbage Cart Complaints
+    - [[https://data.cityofchicago.org/Service-Requests/311-Service-Requests-Sanitation-Code-Complaints/me59-5fac][Sanitation Complaints]]
+    - Weather
+    - Sanitarian Information
