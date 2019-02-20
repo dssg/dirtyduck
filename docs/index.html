@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-02-12 Tue 12:54 -->
+<!-- 2019-02-20 Wed 13:53 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#orgb67afc7">5.1. Problem description</a></li>
+<li><a href="#orge31d616">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#org855fc6a">5.3. Modeling Using Machine Learning</a>
+<li><a href="#org0b69f32">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#orge31d616">6.1. Problem description</a></li>
+<li><a href="#org5b1d64e">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org0b69f32">6.3. Modeling Using Machine Learning</a>
+<li><a href="#org0276a24">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -391,10 +391,11 @@ for the JavaScript code in this tag.
 <li><a href="#orgb47bea0">10.2. Assumptions</a></li>
 <li><a href="#org73b3a30">10.3. Configuration</a>
 <ul>
-<li><a href="#org7ff03d8">10.3.1. Job definition</a></li>
-<li><a href="#orgfc86fb4">10.3.2. Environment overrides</a></li>
-<li><a href="#org6299bb5">10.3.3. <code>credentials-filter</code></a></li>
-<li><a href="#orgf0c57cf">10.3.4. Running an experiment</a></li>
+<li><a href="#org50d643f">10.3.1. (Local) Environment variables</a></li>
+<li><a href="#org7ff03d8">10.3.2. Job definition</a></li>
+<li><a href="#orgd9f3a21">10.3.3. Environment variables overrides (for docker container inside the AWS EC2)</a></li>
+<li><a href="#org6299bb5">10.3.4. <code>credentials-filter</code></a></li>
+<li><a href="#orgf0c57cf">10.3.5. Running an experiment</a></li>
 </ul>
 </li>
 </ul>
@@ -1973,6 +1974,7 @@ We will create a new table called <code>cleaned.violations</code> to store
                     , <span style="font-style: italic;">'- Comments:'</span>)
                 , <span style="font-style: italic;">'\|'</span>)  <span style="font-weight: bold; font-style: italic;">-- Split the violations</span>
             , <span style="font-style: italic;">'(?&lt;=\d+)\.\s*|\s*-\s*Comments:'</span>)  <span style="font-weight: bold; font-style: italic;">-- Split each violation in three</span>
+         <span style="font-weight: bold; font-style: italic;">-- , '\.\s*|\s*-\s*Comments:')  -- Split each violation in three (Use this if your postgresql is kind off old</span>
         <span style="font-weight: bold;">as</span> tuple
     <span style="font-weight: bold;">from</span> raw.inspections
     <span style="font-weight: bold;">where</span> results <span style="font-weight: bold;">in</span> (<span style="font-style: italic;">'Fail'</span>, <span style="font-style: italic;">'Pass'</span>, <span style="font-style: italic;">'Pass w/ Conditions'</span>) <span style="font-weight: bold;">and</span> license_num <span style="font-weight: bold;">is</span> <span style="font-weight: bold;">not</span> <span style="font-weight: bold;">null</span>
@@ -6883,8 +6885,8 @@ rm -r /triage/output/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-orgb67afc7" class="outline-3">
-<h3 id="orgb67afc7"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-orge31d616" class="outline-3">
+<h3 id="orge31d616"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7091,7 +7093,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="orgac56662" class="figure">
+<div id="org334d778" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7101,8 +7103,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org855fc6a" class="outline-3">
-<h3 id="org855fc6a"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org0b69f32" class="outline-3">
+<h3 id="org0b69f32"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -8832,8 +8834,8 @@ Well, now we have a lot of models. How can you pick the best one?
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-orge31d616" class="outline-3">
-<h3 id="orge31d616"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org5b1d64e" class="outline-3">
+<h3 id="org5b1d64e"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -8882,7 +8884,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org334d778" class="figure">
+<div id="org5370d5a" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -8986,8 +8988,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org0b69f32" class="outline-3">
-<h3 id="org0b69f32"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org0276a24" class="outline-3">
+<h3 id="org0276a24"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -9748,6 +9750,18 @@ We can run the simulation of the rules againts the experiment as:
 :
 </pre>
 </div>
+
+<div class="org-src-container">
+<pre class="src src-org">/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <span style="text-decoration: underline;"><a href="http://initd.org/psycopg/docs/install.html#binary-install-from-pypi">&lt;http://initd.org/psycopg/docs/install.html#binary-install-from-pypi&gt;</a></span>.
+  """)
+INFO:root:Validate!
+&#27;[33m[ProgrammingError]&#27;[39m &#27;[31m(psycopg2.ProgrammingError) relation "results.model_groups" does not exist
+LINE 2: FROM results.model_groups
+             ^
+ [SQL: 'SELECT DISTINCT(model_group_id)\nFROM results.model_groups\n'] (Background on this error at: <span style="text-decoration: underline;"><a href="http://sqlalche.me/e/f405">http://sqlalche.me/e/f405</a></span>)&#27;[39m
+&#27;[0m
+</pre>
+</div>
 </div>
 </div>
 
@@ -9773,11 +9787,14 @@ to look your laptop just lagging forever, you should read this section&#x2026;
 </blockquote>
 
 <p>
-For bigger experiment, one option is use <code>[[https://aws.amazon.com/batch/][AWS Batch]]</code>. AWS Batch Batch
+For bigger experiment, one option is use <code>[[https://aws.amazon.com/batch/][AWS Batch]]</code>. AWS Batch
 dynamically provisions the optimal quantity and type of compute
 resources based on the specific resource requirements of the tasks
 submitted. AWS Batch will manage (i.e. plans, schedules, and executes)
-the resources (CPU, Memory) that we need to run the pipeline.
+the resources (CPU, Memory) that we need to run the pipeline. In other
+words, AWS Batch will provide you with a computer (an AWS EC2 machine)
+that satisfies your computing requirements, and then it will execute
+the software that you intend to run.
 </p>
 
 <p>
@@ -9824,16 +9841,35 @@ AWS Batch requires setup the following infrastructure:
 <h3 id="orgb47bea0"><span class="section-number-3">10.2</span> Assumptions</h3>
 <div class="outline-text-3" id="text-10-2">
 <ul class="org-ul">
+<li>You have <code>[[https://stedolan.github.io/jq/download/][jq]]</code> installed</li>
 <li>You have IAM credentials with permissions to run AWS Batch, read
 AWS S3 and create AWS EC2 machines.</li>
 <li>You installed <code>awscli</code> and configure your credentials following
 the standard instructions.</li>
-<li>You have access to a S3 bucket with the following form
-<code>s3://dssg-${PROJECT_NAME}</code></li>
-<li>You have a AWS ECR repository with the following form: <code>dsapp/${PROJECT_NAME}/triage</code></li>
+<li>You have access to a S3 bucket:</li>
+<li>You have a AWS ECR repository with the following form: <code>dsapp/triage-cli</code></li>
 <li>You have a AWS Batch job queue configured and have permissions
 for adding, running, canceling jobs.</li>
 </ul>
+
+
+<p>
+You can check if you have the <code>AWS S3</code> permissions like:
+</p>
+
+<pre class="example">
+[AWS_PROFILE=your_profile] aws ls [your-bucket]   # (dont't forget the last backslash)
+</pre>
+
+<p>
+And for the <code>AWS Batch</code> part:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh">[<span style="font-weight: bold; font-style: italic;">AWS_PROFILE</span>=your_profile] aws batch describe-job-queues
+[<span style="font-weight: bold; font-style: italic;">AWS_PROFILE</span>=your_profile] aws batch describe-job-definitions
+</pre>
+</div>
 </div>
 </div>
 
@@ -9842,47 +9878,89 @@ for adding, running, canceling jobs.</li>
 <h3 id="org73b3a30"><span class="section-number-3">10.3</span> Configuration</h3>
 <div class="outline-text-3" id="text-10-3">
 <p>
-We need 3 files for running in AWS Batch, copy the files and remove
-the <code>.example</code> extension and adapt them to your case:
+First we need to customize the file <code>.aws_env</code> (yes, another environment
+file).
+</p>
+
+<p>
+Copy the file <code>aws_env.example</code> to <code>.aws_env</code> and fill the blanks
+</p>
+
+<p>
+<b>NOTE</b>: Don't include the <code>s3://</code> protocol prefix in the <code>S3_BUCKET</code>
 </p>
 </div>
 
-<div id="outline-container-org7ff03d8" class="outline-4">
-<h4 id="org7ff03d8"><span class="section-number-4">10.3.1</span> Job definition</h4>
+<div id="outline-container-org50d643f" class="outline-4">
+<h4 id="org50d643f"><span class="section-number-4">10.3.1</span> (Local) Environment variables</h4>
 <div class="outline-text-4" id="text-10-3-1">
+<div class="org-src-container">
+<pre class="src src-text">#!/usr/bin/env bash
+
+PROJECT_NAME=dirtyduck
+TRIAGE_VERSION=3.3.0
+ENV=development
+AWS_REGISTRY={your-ecr-registry}
+AWS_JOB_QUEUE={your-job-queue}
+POSTGRES_DB={postgresql://user:password@db_server/dbname}
+S3_BUCKET={your-bucket}
+</pre>
+</div>
+
+<p>
+To check if everything is correct you can run:
+</p>
+
+<pre class="example">
+[AWS_PROFILE=your_profile]  ./deploy.sh -h
+</pre>
+
+<p>
+Next, we need 3 files for running in AWS Batch, copy the files and remove
+the <code>.example</code> extension and adapt them to your case:
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7ff03d8" class="outline-4">
+<h4 id="org7ff03d8"><span class="section-number-4">10.3.2</span> Job definition</h4>
+<div class="outline-text-4" id="text-10-3-2">
 <p>
 Change the <code>PROJECT_NAME</code> and <code>AWS_ACCOUNT</code> for their real values
 </p>
 
 <div class="org-src-container">
 <pre class="src src-json">{
-    <span style="font-weight: bold;">"jobDefinitionName"</span>: <span style="font-style: italic;">"dirtyduck-run-experiment"</span>,
-    <span style="font-weight: bold;">"type"</span>: <span style="font-style: italic;">"container"</span>,
-    <span style="font-weight: bold;">"containerProperties"</span>: {
-        <span style="font-weight: bold;">"image"</span>: <span style="font-style: italic;">"AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dirtyduck/triage"</span>,
-        <span style="font-weight: bold;">"vcpus"</span>: <span style="font-weight: bold; text-decoration: underline;">10</span>,
-        <span style="font-weight: bold;">"memory"</span>: <span style="font-weight: bold; text-decoration: underline;">60000</span>,
-        <span style="font-weight: bold;">"jobRoleArn"</span>: <span style="font-style: italic;">"arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole"</span>,
-                <span style="font-weight: bold;">"command"</span>: [
-                    <span style="font-style: italic;">"--experiment-file"</span>,
-            <span style="font-style: italic;">"Ref::experiment_file"</span>,
-            <span style="font-style: italic;">"--output-path"</span>,
-            <span style="font-style: italic;">"Ref::output_path"</span>,
-            <span style="font-style: italic;">"Ref::replace"</span>
-            ]
-    },
-    <span style="font-weight: bold;">"retryStrategy"</span>: {
-        <span style="font-weight: bold;">"attempts"</span>: <span style="font-weight: bold; text-decoration: underline;">3</span>
-    }
+  <span style="font-weight: bold;">"containerProperties"</span>: {
+    <span style="font-weight: bold;">"command"</span>: [
+      <span style="font-style: italic;">"--tb"</span>,
+      <span style="font-style: italic;">"Ref::experiment_file"</span>,
+      <span style="font-style: italic;">"--project-path"</span>,
+      <span style="font-style: italic;">"Ref::output_path"</span>,
+      <span style="font-style: italic;">"Ref::replace"</span>,
+      <span style="font-style: italic;">"Ref::save_predictions"</span>,
+      <span style="font-style: italic;">"Ref::profile"</span>,
+      <span style="font-style: italic;">"Ref::validate"</span>
+    ],
+    <span style="font-weight: bold;">"image"</span>: <span style="font-style: italic;">"AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/YOUR_TRIAGE_IMAGE"</span>,
+    <span style="font-weight: bold;">"jobRoleArn"</span>: <span style="font-style: italic;">"arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole"</span>,
+    <span style="font-weight: bold;">"memory"</span>: <span style="font-weight: bold; text-decoration: underline;">16000</span>,
+    <span style="font-weight: bold;">"vcpus"</span>: <span style="font-weight: bold; text-decoration: underline;">1</span>
+  },
+  <span style="font-weight: bold;">"jobDefinitionName"</span>: <span style="font-style: italic;">"triage-cli-experiment"</span>,
+  <span style="font-weight: bold;">"retryStrategy"</span>: {
+    <span style="font-weight: bold;">"attempts"</span>: <span style="font-weight: bold; text-decoration: underline;">1</span>
+  },
+  <span style="font-weight: bold;">"type"</span>: <span style="font-style: italic;">"container"</span>
 }
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgfc86fb4" class="outline-4">
-<h4 id="orgfc86fb4"><span class="section-number-4">10.3.2</span> Environment overrides</h4>
-<div class="outline-text-4" id="text-10-3-2">
+<div id="outline-container-orgd9f3a21" class="outline-4">
+<h4 id="orgd9f3a21"><span class="section-number-4">10.3.3</span> Environment variables overrides (for docker container inside the AWS EC2)</h4>
+<div class="outline-text-4" id="text-10-3-3">
 <p>
 Fill out the missing values
 </p>
@@ -9917,18 +9995,6 @@ Fill out the missing values
         {
             <span style="font-weight: bold;">"name"</span>:<span style="font-style: italic;">"POSTGRES_HOST"</span>,
             <span style="font-weight: bold;">"value"</span>:<span style="font-style: italic;">""</span>
-        },
-        {
-            <span style="font-weight: bold;">"name"</span>:<span style="font-style: italic;">"POSTGRES_ROLE"</span>,
-            <span style="font-weight: bold;">"value"</span>:<span style="font-style: italic;">""</span>
-        },
-        {
-            <span style="font-weight: bold;">"name"</span>:<span style="font-style: italic;">"NUMBER_OF_PROCESSES"</span>,
-            <span style="font-weight: bold;">"value"</span>:<span style="font-style: italic;">"5"</span>
-        },
-        {
-            <span style="font-weight: bold;">"name"</span>:<span style="font-style: italic;">"NUMBER_OF_DB_PROCESSES"</span>,
-            <span style="font-weight: bold;">"value"</span>:<span style="font-style: italic;">"5"</span>
         }
     ]
 }
@@ -9938,8 +10004,8 @@ Fill out the missing values
 </div>
 
 <div id="outline-container-org6299bb5" class="outline-4">
-<h4 id="org6299bb5"><span class="section-number-4">10.3.3</span> <code>credentials-filter</code></h4>
-<div class="outline-text-4" id="text-10-3-3">
+<h4 id="org6299bb5"><span class="section-number-4">10.3.4</span> <code>credentials-filter</code></h4>
+<div class="outline-text-4" id="text-10-3-4">
 <p>
 Leave this file as is (We will use it for storing the temporal token
 in <code>deploy.sh</code>)
@@ -9969,8 +10035,8 @@ in <code>deploy.sh</code>)
 
 
 <div id="outline-container-orgf0c57cf" class="outline-4">
-<h4 id="orgf0c57cf"><span class="section-number-4">10.3.4</span> Running an experiment</h4>
-<div class="outline-text-4" id="text-10-3-4">
+<h4 id="orgf0c57cf"><span class="section-number-4">10.3.5</span> Running an experiment</h4>
+<div class="outline-text-4" id="text-10-3-5">
 <p>
 We provided a simple bash file for creating the image,
 uploading/updating the job definition and running the experiment:
@@ -9986,7 +10052,6 @@ OPTIONS:
    -b|--update-images          Build the triage image and push it to the AWS ECR
    -u|--update-jobs            Update the triage job definition in AWS Batch
    -r|--run-experiment         Run experiments on chile-dt data
-   -a|--all                    Creates images, pushes them the registry, updates the jobs and runs the pipeline
    --sync-to-s3                Uploads the experiments and configuration files to s3://your_project
    --sync-from-s3              Gets the experiments and configuration files from s3://your_project
 EXAMPLES:
@@ -9995,10 +10060,7 @@ EXAMPLES:
    Update the job's definitions:
         $ ./deploy.sh -u
    Run triage experiments:
-        $ ./deploy.sh -r --experiment_file=s3://your_project/experiments/test.yaml,output_path=s3://your_project/triage,replace=--replace
-   Everything!:
-        $ ./deploy.sh -a --experiment_file=s3://your_project/experiments/test.yaml,output_path=s3://your_project/triage,replace=--replace
-
+        $ ./deploy.sh -r --experiment_file=s3://your_project/experiments/test.yaml,project_path=s3://your_project/triage,replace=--replace
 </pre>
 
 <p>
@@ -10006,7 +10068,7 @@ If you have multiple AWS profiles use <code>deploy.sh</code> as follows:
 </p>
 
 <pre class="example">
-AWS_PROFILE=your_profile ./deploy.sh -b
+[AWS_PROFILE=your_profile] ./deploy.sh -r [job-run-name] experiment_file=s3://{your_bucket}/experiments/simple_test_skeleton.yaml,output_path=s3://{your_bucket}/triage,replace=--no-replace,save_predictions=--no-save-predictions,profile=--profile,validate=--validate
 </pre>
 
 <p>
@@ -10368,7 +10430,7 @@ of time on been built.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-02-12 Tue 12:54</p>
+<p class="date">Created: 2019-02-20 Wed 13:53</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

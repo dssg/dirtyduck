@@ -99,7 +99,7 @@ function update_triage_cli_image () {
 		echo "| Updating ${task} image"
 		echo "|                                        |"
 		echo "+----------------------------------------+"
-#		docker build --no-cache --tag dsapp/${task} infrastructure/triage
+		docker build --no-cache --tag dsapp/${task} infrastructure/triage
         docker tag dsapp/${task} ${AWS_REGISTRY}/dsapp/${task}:${TRIAGE_VERSION}
 		docker tag dsapp/${task} ${AWS_REGISTRY}/dsapp/${task}:latest
 

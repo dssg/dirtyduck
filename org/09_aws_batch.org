@@ -115,7 +115,11 @@ POSTGRES_DB={postgresql://user:password@db_server/dbname}
 S3_BUCKET={your-bucket}
 #+END_SRC
 
+To check if everything is correct you can run:
 
+#+BEGIN_EXAMPLE sh
+[AWS_PROFILE=your_profile]  ./deploy.sh -h
+#+END_EXAMPLE
 
 Next, we need 3 files for running in AWS Batch, copy the files and remove
 the =.example= extension and adapt them to your case:
@@ -128,15 +132,14 @@ Change the =PROJECT_NAME= and =AWS_ACCOUNT= for their real values
 {
   "containerProperties": {
     "command": [
-        "Ref::experiment_file",
-        "--project-path",
-        "Ref::output_path",
-        "Ref::replace",
-        "Ref::save_predictions",
-        "Ref::features_ignore_cohort",
-        "Ref::profile",
-        "Ref::show_timechop",
-        "Ref::validate"
+      "--tb",
+      "Ref::experiment_file",
+      "--project-path",
+      "Ref::output_path",
+      "Ref::replace",
+      "Ref::save_predictions",
+      "Ref::profile",
+      "Ref::validate"
     ],
     "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/YOUR_TRIAGE_IMAGE",
     "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
@@ -244,7 +247,7 @@ uploading/updating the job definition and running the experiment:
 If you have multiple AWS profiles use =deploy.sh= as follows:
 
 #+BEGIN_EXAMPLE sh
-AWS_PROFILE=your_profile ./deploy.sh
+[AWS_PROFILE=your_profile] ./deploy.sh -r [job-run-name] experiment_file=s3://{your_bucket}/experiments/simple_test_skeleton.yaml,output_path=s3://{your_bucket}/triage,replace=--no-replace,save_predictions=--no-save-predictions,profile=--profile,validate=--validate
 #+END_EXAMPLE
 
 Where =your_profile= is the name of the profile in =~/.aws/credentials=

@@ -1,15 +1,14 @@
 {
   "containerProperties": {
     "command": [
-        "Ref::experiment_file",
-        "--project-path",
-        "Ref::output_path",
-        "Ref::replace",
-        "Ref::save_predictions",
-        "Ref::features_ignore_cohort",
-        "Ref::profile",
-        "Ref::show_timechop",
-        "Ref::validate"
+      "--tb",
+      "Ref::experiment_file",
+      "--project-path",
+      "Ref::output_path",
+      "Ref::replace",
+      "Ref::save_predictions",
+      "Ref::profile",
+      "Ref::validate"
     ],
     "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/YOUR_TRIAGE_IMAGE",
     "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
