@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-02-20 Wed 13:53 -->
+<!-- 2019-02-20 Wed 13:55 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#orge31d616">5.1. Problem description</a></li>
+<li><a href="#org5b1d64e">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#org0b69f32">5.3. Modeling Using Machine Learning</a>
+<li><a href="#org0276a24">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#org5b1d64e">6.1. Problem description</a></li>
+<li><a href="#org5d1f049">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org0276a24">6.3. Modeling Using Machine Learning</a>
+<li><a href="#org77d5221">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -385,7 +385,7 @@ for the JavaScript code in this tag.
 <li><a href="#orgb9d2293">7. WORKING Audition: How can I pick the best one?</a></li>
 <li><a href="#org8fdc63f">8. <span class="todo TODO">TODO</span> Crossvalidation</a></li>
 <li><a href="#org9ee025d">9. <span class="todo TODO">TODO</span> Postmodeling</a></li>
-<li><a href="#org2381599">10. WORKING Scaling out: AWS Batch</a>
+<li><a href="#org3b6f527">10. Scaling out: AWS Batch</a>
 <ul>
 <li><a href="#orgbf7c96d">10.1. What do you need to setup?</a></li>
 <li><a href="#orgb47bea0">10.2. Assumptions</a></li>
@@ -6885,8 +6885,8 @@ rm -r /triage/output/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-orge31d616" class="outline-3">
-<h3 id="orge31d616"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org5b1d64e" class="outline-3">
+<h3 id="org5b1d64e"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7093,7 +7093,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org334d778" class="figure">
+<div id="org5370d5a" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7103,8 +7103,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org0b69f32" class="outline-3">
-<h3 id="org0b69f32"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org0276a24" class="outline-3">
+<h3 id="org0276a24"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -8834,8 +8834,8 @@ Well, now we have a lot of models. How can you pick the best one?
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org5b1d64e" class="outline-3">
-<h3 id="org5b1d64e"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org5d1f049" class="outline-3">
+<h3 id="org5d1f049"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -8884,7 +8884,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org5370d5a" class="figure">
+<div id="org80afcdc" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -8988,8 +8988,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org0276a24" class="outline-3">
-<h3 id="org0276a24"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org77d5221" class="outline-3">
+<h3 id="org77d5221"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -9776,8 +9776,8 @@ LINE 2: FROM results.model_groups
 </div>
 </div>
 
-<div id="outline-container-org2381599" class="outline-2">
-<h2 id="org2381599"><span class="section-number-2">10</span> WORKING Scaling out: AWS Batch</h2>
+<div id="outline-container-org3b6f527" class="outline-2">
+<h2 id="org3b6f527"><span class="section-number-2">10</span> Scaling out: AWS Batch</h2>
 <div class="outline-text-2" id="text-10">
 <blockquote>
 <p>
@@ -10430,7 +10430,7 @@ of time on been built.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-02-20 Wed 13:53</p>
+<p class="date">Created: 2019-02-20 Wed 13:55</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

@@ -22,7 +22,7 @@
 #+OPTIONS: tasks:todo
 #+OPTIONS: LaTeX:t
 
-* WORKING Scaling out: AWS Batch
+* Scaling out: AWS Batch
 
 #+BEGIN_QUOTE
 If your laptop choked in the previous sections or if you can't afford
