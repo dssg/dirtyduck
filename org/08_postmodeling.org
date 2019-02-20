@@ -148,7 +148,7 @@ recent time period (in all the rules shown $n$ = 1).
 
 We can run the simulation of the rules againts the experiment as:
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports both :results output
 triage audition
 :
 #+END_SRC

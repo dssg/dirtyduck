@@ -1,20 +1,24 @@
- {
-     "jobDefinitionName": "dirtyduck-run-experiment",
-     "type": "container",
-     "containerProperties": {
-         "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dirtyduck/triage",
-         "vcpus": 10,
-         "memory": 60000,
-         "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
-		 "command": [
-		     "--experiment-file",
-             "Ref::experiment_file",
-             "--output-path",
-             "Ref::output_path",
-             "Ref::replace"
-	     ]
-     },
-     "retryStrategy": {
-         "attempts": 3
-     }
- }
+{
+  "containerProperties": {
+    "command": [
+        "Ref::experiment_file",
+        "--project-path",
+        "Ref::output_path",
+        "Ref::replace",
+        "Ref::save_predictions",
+        "Ref::features_ignore_cohort",
+        "Ref::profile",
+        "Ref::show_timechop",
+        "Ref::validate"
+    ],
+    "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/YOUR_TRIAGE_IMAGE",
+    "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
+    "memory": 16000,
+    "vcpus": 1
+  },
+  "jobDefinitionName": "triage-cli-experiment",
+  "retryStrategy": {
+    "attempts": 1
+  },
+  "type": "container"
+}

@@ -640,6 +640,7 @@ We will create a new table called =cleaned.violations= to store
                        , '- Comments:')
                    , '\|')  -- Split the violations
                , '(?<=\d+)\.\s*|\s*-\s*Comments:')  -- Split each violation in three
+            -- , '\.\s*|\s*-\s*Comments:')  -- Split each violation in three (Use this if your postgresql is kind off old
            as tuple
        from raw.inspections
        where results in ('Fail', 'Pass', 'Pass w/ Conditions') and license_num is not null

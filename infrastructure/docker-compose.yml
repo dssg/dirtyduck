@@ -6,7 +6,7 @@ services:
       context: ./food_db
     image: tutorial/db
     container_name: food_db
-    env_file: .env
+    env_file: ../.env
     volumes:
       - "../data:/tmp/raw-data"
     ports:
@@ -20,7 +20,7 @@ services:
     command: bash
     #user: ${UID}:${GID}
     tty: true
-    env_file: .env
+    env_file: ../.env
     environment:
       FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
     volumes:
@@ -32,9 +32,9 @@ services:
   triage:
     build:
       context: ./triage
-    image: tutorial/triage:v3.2.1
+    image: tutorial/triage:v3.3.0
     container_name: tutorial_triage
-    env_file: .env
+    env_file: ../.env
     environment:
       TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
       TRIAGE_OUTPUT_PATH: '/triage/output'

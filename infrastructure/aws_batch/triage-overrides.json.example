@@ -27,18 +27,6 @@
         {
             "name":"POSTGRES_HOST",
             "value":""
-        },
-        {
-            "name":"POSTGRES_ROLE",
-            "value":""
-        },
-        {
-            "name":"NUMBER_OF_PROCESSES",
-            "value":"5"
-        },
-        {
-            "name":"NUMBER_OF_DB_PROCESSES",
-            "value":"5"
         }
     ]
 }

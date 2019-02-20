@@ -29,11 +29,14 @@ If your laptop choked in the previous sections or if you can't afford
 to look your laptop just lagging forever, you should read this section...
 #+END_QUOTE
 
-For bigger experiment, one option is use =[[https://aws.amazon.com/batch/][AWS Batch]]=. AWS Batch Batch
+For bigger experiment, one option is use =[[https://aws.amazon.com/batch/][AWS Batch]]=. AWS Batch
 dynamically provisions the optimal quantity and type of compute
 resources based on the specific resource requirements of the tasks
 submitted. AWS Batch will manage (i.e. plans, schedules, and executes)
-the resources (CPU, Memory) that we need to run the pipeline.
+the resources (CPU, Memory) that we need to run the pipeline. In other
+words, AWS Batch will provide you with a computer (an AWS EC2 machine)
+that satisfies your computing requirements, and then it will execute
+the software that you intend to run.
 
 AWS Batch dependes in other two technologies in order to work: Elastic
 Container Registry (Amazon ECR) as the Docker image registry (allowing
@@ -64,20 +67,57 @@ AWS Batch requires setup the following infrastructure:
 
 ** Assumptions
 
+    - You have =[[https://stedolan.github.io/jq/download/][jq]]= installed
     - You have IAM credentials with permissions to run AWS Batch, read
       AWS S3 and create AWS EC2 machines.
     - You installed =awscli= and configure your credentials following
       the standard instructions.
-    - You have access to a S3 bucket with the following form
-      =s3://dssg-${PROJECT_NAME}=
-    - You have a AWS ECR repository with the following form: =dsapp/${PROJECT_NAME}/triage=
+    - You have access to a S3 bucket:
+    - You have a AWS ECR repository with the following form: =dsapp/triage-cli=
     - You have a AWS Batch job queue configured and have permissions
       for adding, running, canceling jobs.
 
 
+You can check if you have the =AWS S3= permissions like:
+
+#+BEGIN_EXAMPLE sh
+[AWS_PROFILE=your_profile] aws ls [your-bucket]   # (dont't forget the last backslash)
+#+END_EXAMPLE
+
+And for the =AWS Batch= part:
+
+#+BEGIN_SRC sh
+[AWS_PROFILE=your_profile] aws batch describe-job-queues
+[AWS_PROFILE=your_profile] aws batch describe-job-definitions
+#+END_SRC
+
+
 ** Configuration
 
-We need 3 files for running in AWS Batch, copy the files and remove
+First we need to customize the file =.aws_env= (yes, another environment
+file).
+
+Copy the file =aws_env.example= to =.aws_env= and fill the blanks
+
+*NOTE*: Don't include the =s3://= protocol prefix in the =S3_BUCKET=
+
+*** (Local) Environment variables
+
+#+BEGIN_SRC text :tangle ../aws_env.example
+#!/usr/bin/env bash
+
+PROJECT_NAME=dirtyduck
+TRIAGE_VERSION=3.3.0
+ENV=development
+AWS_REGISTRY={your-ecr-registry}
+AWS_JOB_QUEUE={your-job-queue}
+POSTGRES_DB={postgresql://user:password@db_server/dbname}
+S3_BUCKET={your-bucket}
+#+END_SRC
+
+
+
+Next, we need 3 files for running in AWS Batch, copy the files and remove
 the =.example= extension and adapt them to your case:
 
 *** Job definition
@@ -85,29 +125,33 @@ the =.example= extension and adapt them to your case:
 Change the =PROJECT_NAME= and =AWS_ACCOUNT= for their real values
 
  #+BEGIN_SRC json :tangle ../infrastructure/aws_batch/triage-job-definition.json.example
- {
-     "jobDefinitionName": "dirtyduck-run-experiment",
-     "type": "container",
-     "containerProperties": {
-         "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/dirtyduck/triage",
-         "vcpus": 10,
-         "memory": 60000,
-         "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
-		 "command": [
-		     "--experiment-file",
-             "Ref::experiment_file",
-             "--output-path",
-             "Ref::output_path",
-             "Ref::replace"
-	     ]
-     },
-     "retryStrategy": {
-         "attempts": 3
-     }
- }
+{
+  "containerProperties": {
+    "command": [
+        "Ref::experiment_file",
+        "--project-path",
+        "Ref::output_path",
+        "Ref::replace",
+        "Ref::save_predictions",
+        "Ref::features_ignore_cohort",
+        "Ref::profile",
+        "Ref::show_timechop",
+        "Ref::validate"
+    ],
+    "image": "AWS_ACCOUNT.dkr.ecr.us-west-2.amazonaws.com/YOUR_TRIAGE_IMAGE",
+    "jobRoleArn": "arn:aws:iam::AWS_ACCOUNT:role/dsappBatchJobRole",
+    "memory": 16000,
+    "vcpus": 1
+  },
+  "jobDefinitionName": "triage-cli-experiment",
+  "retryStrategy": {
+    "attempts": 1
+  },
+  "type": "container"
+}
  #+END_SRC
 
-*** Environment overrides
+*** Environment variables overrides (for docker container inside the AWS EC2)
 
 Fill out the missing values
 
@@ -141,18 +185,6 @@ Fill out the missing values
         {
             "name":"POSTGRES_HOST",
             "value":""
-        },
-        {
-            "name":"POSTGRES_ROLE",
-            "value":""
-        },
-        {
-            "name":"NUMBER_OF_PROCESSES",
-            "value":"5"
-        },
-        {
-            "name":"NUMBER_OF_DB_PROCESSES",
-            "value":"5"
         }
     ]
 }
@@ -198,7 +230,6 @@ uploading/updating the job definition and running the experiment:
        -b|--update-images          Build the triage image and push it to the AWS ECR
        -u|--update-jobs            Update the triage job definition in AWS Batch
        -r|--run-experiment         Run experiments on chile-dt data
-       -a|--all                    Creates images, pushes them the registry, updates the jobs and runs the pipeline
        --sync-to-s3                Uploads the experiments and configuration files to s3://your_project
        --sync-from-s3              Gets the experiments and configuration files from s3://your_project
     EXAMPLES:
@@ -207,16 +238,13 @@ uploading/updating the job definition and running the experiment:
        Update the job's definitions:
             $ ./deploy.sh -u
        Run triage experiments:
-            $ ./deploy.sh -r --experiment_file=s3://your_project/experiments/test.yaml,output_path=s3://your_project/triage,replace=--replace
-       Everything!:
-            $ ./deploy.sh -a --experiment_file=s3://your_project/experiments/test.yaml,output_path=s3://your_project/triage,replace=--replace
-
+            $ ./deploy.sh -r --experiment_file=s3://your_project/experiments/test.yaml,project_path=s3://your_project/triage,replace=--replace
     #+END_EXAMPLE
 
 If you have multiple AWS profiles use =deploy.sh= as follows:
 
 #+BEGIN_EXAMPLE sh
-AWS_PROFILE=your_profile ./deploy.sh -b
+AWS_PROFILE=your_profile ./deploy.sh
 #+END_EXAMPLE
 
 Where =your_profile= is the name of the profile in =~/.aws/credentials=

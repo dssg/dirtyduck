@@ -169,3 +169,6 @@ triage/images/*
 **/profiling_stats/*
 
 **/ltximg/*
+.aws_env
+infrastructure/**/*.json
+infrastructure/**/*.filter
