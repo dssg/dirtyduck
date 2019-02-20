@@ -251,3 +251,42 @@ If you have multiple AWS profiles use =deploy.sh= as follows:
 #+END_EXAMPLE
 
 Where =your_profile= is the name of the profile in =~/.aws/credentials=
+
+*** Suggested workflow
+
+The workflow now is:
+
+**** Just one time
+- Set a =docker image= and publish it to the AWS ECR (if needed, or you
+  can use the =triage= official one).
+
+#+BEGIN_QUOTE
+You could create different images if you want to run something more
+tailored to you (like not using the =cli= interface)
+#+END_QUOTE
+
+- Create a /job definition/ and publish it:
+
+#+BEGIN_EXAMPLE sh
+[AWS_PROFILE=your_profile] ./deploy.sh -u
+#+END_EXAMPLE
+
+#+BEGIN_QUOTE
+You could create different jobs if, for example, you want to have
+different resources (maybe small resources for testing or a lot of
+resources for a big experiment)
+#+END_QUOTE
+
+**** Iterative
+
+- Create experiment files and publish them to the =s3= bucket:
+
+#+BEGIN_EXAMPLE sh
+[AWS_PROFILE=your_profile] ./deploy.sh --synt-to-s3
+#+END_EXAMPLE
+
+- Run the experiments
+
+#+BEGIN_EXAMPLE sh
+[AWS_PROFILE=your_profile] ./deploy.sh -r [job-run-name] experiment_file=s3://{your_bucket}/experiments/simple_test_skeleton.yaml,output_path=s3://{your_bucket}/triage,replace=--no-replace,save_predictions=--no-save-predictions,profile=--profile,validate=--validate
+#+END_EXAMPLE
