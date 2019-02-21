@@ -843,7 +843,7 @@ Perhaps =license_num= and =address= are a unique identifier.
 :RESULTS:
 | number of licenses | number of facilities | number of addresses |
 |--------------------+----------------------+---------------------|
-| 35,546             | 26,145               | 17,515              |
+| 35,546             | 25,917               | 17,515              |
 :END:
 
 We were expecting (naively) that we should get one =license_num= per
@@ -871,16 +871,16 @@ limit 10;
 :RESULTS:
 | license_num | facility                     | facility_type  | facility_aka                  | address                   | number of inspections |
 |------------+------------------------------+---------------+------------------------------+---------------------------+-----------------------|
-|    1142451 | jewel food  store # 3345     | grocery store | jewel food  store # 3345     | 1224 s wabash ave         |                    46 |
-|    1490035 | mcdonald's                   | restaurant    | mcdonald's                   | 6900 s lafayette ave      |                    46 |
+|    1142451 | jewel foodstore # 3345       | grocery store | jewel foodstore # 3345       | 1224 s wabash ave         |                    46 |
+|    1490035 | mcdonalds                    | restaurant    | mcdonalds                    | 6900 s lafayette ave      |                    46 |
 |    1596210 | food 4 less midwest #552     | grocery store | food 4 less                  | 7030 s ashland ave        |                    45 |
-|    2083833 | mariano's fresh market #8503 | grocery store | mariano's fresh market       | 333 e benton pl           |                    43 |
+|    2083833 | marianos fresh market #8503  | grocery store | marianos fresh market        | 333 e benton pl           |                    45 |
 |      60184 | taqueria el ranchito         | restaurant    | taqueria el ranchito         | 2829 n milwaukee ave      |                    42 |
-|    1476553 | pete's produce               | grocery store | pete's produce               | 1543 e 87th st            |                    41 |
+|    1476553 | petes produce                | grocery store | petes produce                | 1543 e 87th st            |                    41 |
 |    1000572 | jewel food store #3030       | grocery store | jewel food store #3030       | 7530 s stony island ave   |                    40 |
-|    1302136 | mcdonald's                   | restaurant    | mcdonald's                   | 70 e garfield blvd        |                    40 |
-|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |                    39 |
-|    2108657 | morrison's restaurant        | restaurant    | morrison's restaurant        | 8127 s ashland ave        |                    38 |
+|    1302136 | mcdonalds                    | restaurant    | mcdonalds                    | 70 e garfield blvd        |                    40 |
+|       1094 | one stop food & liquor store | grocery store | one stop food & liquor store | 4301-4323 s lake park ave |                    40 |
+|    2108657 | morrisons restaurant         | restaurant    | morrisons restaurant         | 8127 s ashland ave        |                    38 |
 :END:
 
 Yay, it looks like these columns enable us to identify a facility![fn:3]
@@ -932,12 +932,12 @@ create table semantic.entities as (
             over (partition by license_num, facility, facility_aka, address) as end_time
         from cleaned.inspections
         order by
-            license_num, facility, facility_aka, facility_type, address,
+            license_num asc, facility asc, facility_aka asc, facility_type asc, address asc,
             date asc -- IMPORTANT!!
             )
 
     select
-        row_number() over (order by start_time asc ) as entity_id,
+        row_number() over (order by start_time asc, license_num asc, facility asc, facility_aka asc, facility_type asc, address asc ) as entity_id,
         license_num,
         facility,
         facility_aka,
@@ -970,7 +970,7 @@ from
 :RESULTS:
 | entities |
 |----------|
-| 36,780   |
+| 36,910   |
 :END:
 
 We will add some indexes to this table:
@@ -1085,7 +1085,7 @@ from
 :RESULTS:
 | event_id | entity_id | type    |       date | risk | result | facility_type | zip_code |
 |---------+----------+---------+------------+------+--------+--------------+---------|
-| 1343315 |    22056 | canvass | 2013-06-06 | low  | fail   | newsstand    |   60623 |
+| 1343315 |    22053 | canvass | 2013-06-06 | low  | fail   | newsstand    |   60623 |
 :END:
 
 We omitted =violations= and =location= for brevity. The total number of inspections is
@@ -1100,7 +1100,7 @@ from semantic.events;
 :RESULTS:
 | events  |
 |---------|
-| 155,374 |
+| 156,682 |
 :END:
 
 Now that we have our data in a good shape, we are ready to use *Triage*.
@@ -1114,6 +1114,9 @@ import pandas as pd
 import matplotlib
 from matplotlib import pyplot as plt
 
+import seaborn as sns
+sns.set_style("darkgrid")
+
 import json
 
 import sqlalchemy
@@ -1123,7 +1126,7 @@ engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:
 
 #+RESULTS:
 :RESULTS:
-# Out[2]:
+# Out[56]:
 :END:
 
 *** Inspections over time
@@ -1152,6 +1155,8 @@ plt.xlim(0, n_months);
 #+END_SRC
 
 [[./images/inspections_over_time.png]]
+
+
 
 *** Number of facilities /inspected/ over time
 
