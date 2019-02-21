@@ -156,7 +156,7 @@
    Inside =bastion=, type the next command to connect to the database
 
    #+BEGIN_SRC sh :eval never
-   psql ${FOOD_DB_URL}
+   psql ${DATABASE_URL}
    #+END_SRC
 
    The prompt will change again to

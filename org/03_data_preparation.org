@@ -71,7 +71,7 @@ from
 :RESULTS:
 | facilities inspected |
 |----------------------|
-| 180,842              |
+| 182,419              |
 :END:
 
 Let's peek inside the table[fn:2]
@@ -88,9 +88,9 @@ from
 
 #+RESULTS:
 :RESULTS:
-| inspection | dba_name             | risk          | results         |
-|------------+---------------------+---------------+-----------------|
-|    2252844 | Paciugo Of Broadway | Risk 1 (High) | Out of Business |
+| inspection | dba_name                | risk          | results            |
+|------------+------------------------+---------------+--------------------|
+|    2268241 | ANTOJITOS PUEBLITA INC | Risk 1 (High) | Pass w/ Conditions |
 :END:
 
 Ok, now you have some data loaded! But we still need to /munge/ it to
@@ -256,11 +256,11 @@ checking that the =risk= column *only* has three classifications:
 :RESULTS:
 | risk            | number of inspections |
 |-----------------+-----------------------|
-| Risk 1 (High)   | 128,345               |
-| Risk 2 (Medium) | 36,083                |
-| Risk 3 (Low)    | 16,317                |
-| ¤               | 69                    |
-| All             | 28                    |
+| Risk 1 (High)   | 129,667               |
+| Risk 2 (Medium) | 36,286                |
+| Risk 3 (Low)    | 16,370                |
+| ¤               | 71                    |
+| All             | 25                    |
 :END:
 
 Ok, there are two extra =risk= types, =All= and =NULL=, for a grand total
@@ -303,15 +303,15 @@ order by
 :RESULTS:
 | type                     | number of inspections |
 |--------------------------+-----------------------|
-| Canvass                  | 95,642                |
-| License                  | 23,607                |
-| Canvass Re-Inspection    | 18,775                |
-| Complaint                | 16,780                |
-| License Re-Inspection    | 8,347                 |
-| Complaint Re-Inspection  | 6,867                 |
-| Short Form Complaint     | 6,464                 |
-| Suspected Food Poisoning | 805                   |
-| Consultation             | 670                   |
+| Canvass                  | 96,561                |
+| License                  | 23,785                |
+| Canvass Re-Inspection    | 18,922                |
+| Complaint                | 16,953                |
+| License Re-Inspection    | 8,411                 |
+| Complaint Re-Inspection  | 6,911                 |
+| Short Form Complaint     | 6,491                 |
+| Suspected Food Poisoning | 817                   |
+| Consultation             | 671                   |
 | License-Task Force       | 605                   |
 :END:
 
@@ -335,12 +335,12 @@ Finally, let's look =results= (should be 3)
 :RESULTS:
 | results              | number of inspections |
 |----------------------+-----------------------|
-| Pass                 | 102,278               |
-| Fail                 | 34,975                |
-| Pass w/ Conditions   | 20,672                |
-| Out of Business      | 15,838                |
-| No Entry             | 5,527                 |
-| Not Ready            | 1,486                 |
+| Pass                 | 102,592               |
+| Fail                 | 35,252                |
+| Pass w/ Conditions   | 21,401                |
+| Out of Business      | 15,973                |
+| No Entry             | 5,619                 |
+| Not Ready            | 1,516                 |
 | Business Not Located | 66                    |
 :END:
 
@@ -397,8 +397,8 @@ group by
 :RESULTS:
 | state | number of inspections |
 |-------+-----------------------|
-| IL    | 180,809               |
-| ¤     | 33                    |
+| IL    | 182,385               |
+| ¤     | 34                    |
 :END:
 
 Ok, almost correct, there are some =NULL= values. We will assume that
@@ -423,8 +423,8 @@ order by
 :RESULTS:
 | city              | number of inspections |
 |-------------------+-----------------------|
-| chicago           |               180,438 |
-| ¤                 |                   155 |
+| chicago           |               182,011 |
+| ¤                 |                   157 |
 | cchicago          |                    44 |
 | schaumburg        |                    23 |
 | maywood           |                    16 |
@@ -504,8 +504,8 @@ create table cleaned.inspections as (
             inspection::integer,
             btrim(lower(results)) as result,
             license_num::integer,
-            btrim(lower(dba_name)) as facility,
-            btrim(lower(aka_name)) as facility_aka,
+            replace(regexp_replace(btrim(lower(dba_name)), '\s{2,}|,|\.',''), $$'$$,'') as facility,
+            replace(regexp_replace(btrim(lower(aka_name)), '\s{2,}|,|\.',''), $$'$$,'') as facility_aka,
             case when
             facility_type is null then 'unknown'
             else btrim(lower(facility_type))
@@ -532,7 +532,7 @@ create table cleaned.inspections as (
 You could execute this code from the command line using =psql=:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer
-psql ${FOOD_DB_URL} < /sql/create_cleaned_inspections_table.sql
+psql ${DATABASE_URL} < /sql/create_cleaned_inspections_table.sql
 #+END_SRC
 
 Or if you're in =psql=:
@@ -553,7 +553,7 @@ from cleaned.inspections;
 :RESULTS:
 | number of inspections |
 |-----------------------|
-| 179,977               |
+| 181,546               |
 :END:
 
 Note that  quantity is smaller  is smaller than the one from
@@ -619,8 +619,8 @@ We will create a new table called =cleaned.violations= to store
        license_num::integer,
        date::date,
        btrim(tuple[1]) as code,
-       btrim(tuple[2]) as description,
-       btrim(tuple[3]) as comment,
+       lower(btrim(tuple[2])) as description,
+       lower(btrim(tuple[3])) as comment,
        (case
            when btrim(tuple[1]) = '' then NULL
            when btrim(tuple[1])::int between 1 and 14 then 'critical' -- From the documentation
@@ -669,9 +669,9 @@ order by
 :RESULTS:
 | inspection |       date | code | description                                                                                                          |
 |------------+------------+------+----------------------------------------------------------------------------------------------------------------------|
-|    2145736 | 2018-03-01 |   32 | FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED                                     |
-|    2145736 | 2018-03-01 |   34 | FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED                |
-|    2145736 | 2018-03-01 |   35 | WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS |
+|    2145736 | 2018-03-01 |   32 | food and non-food contact surfaces properly designed, constructed and maintained                                     |
+|    2145736 | 2018-03-01 |   34 | floors: constructed per code, cleaned, good repair, coving installed, dust-less cleaning methods used                |
+|    2145736 | 2018-03-01 |   35 | walls, ceilings, attached equipment constructed per code: good repair, surfaces clean and dust-less cleaning methods |
 :END:
 
 
@@ -698,11 +698,11 @@ order by
 :RESULTS:
 | severity | number of inspections |
 |----------+-----------------------|
-| ¤        | 25,919                |
-| critical | 44,385                |
-| minor    | 460,796               |
-| serious  | 52,865                |
-| TOTAL    | 583,965               |
+| ¤        | 26,039                |
+| critical | 46,443                |
+| minor    | 465,535               |
+| serious  | 53,566                |
+| TOTAL    | 591,583               |
 :END:
 
 As a last step, we should create from the cleaned tables the =entities=
@@ -740,7 +740,7 @@ order by
 :RESULTS:
 | license_num | number of inspections | number of failed inspections |
 |------------+-----------------------+------------------------------|
-|          0 |                   453 |                          114 |
+|          0 |                   454 |                          114 |
 |    1354323 |                   192 |                            1 |
 |      14616 |                   174 |                           31 |
 |    1574001 |                    82 |                            4 |
@@ -779,7 +779,7 @@ This looks weird. There are three license numbers, in particular license number 
 | navy pier kiosk |                    30 |                            4 |
 | church          |                    30 |                            3 |
 | grocery store   |                    16 |                            7 |
-| school          |                    12 |                            1 |
+| school          |                    13 |                            1 |
 | long term care  |                    11 |                            2 |
 | church kitchen  |                    11 |                            4 |
 :END:
@@ -813,18 +813,18 @@ etc. But what about the =restaurants= that have =license_num= =
 
 #+RESULTS:
 :RESULTS:
-| license_num | facility                        | address               | number of inspections | number of failed inspections |
-|------------+---------------------------------+-----------------------+-----------------------+------------------------------|
-|          0 | british airways                 | 11601 w touhy ave     |                     5 |                            1 |
-|          0 | rib lady 2                      | 4203 w cermak rd      |                     4 |                            3 |
-|          0 | taqueria la capital             | 3508 w 63rd st        |                     3 |                            1 |
-|          0 | nutricion familiar              | 3000 w 59th st        |                     3 |                            1 |
-|          0 | salvation army                  | 506 n des plaines st  |                     3 |                            1 |
-|          0 | herbalife                       | 6214 w diversey ave   |                     3 |                            2 |
-|          0 | la michoacana                   | 4346 s california ave |                     3 |                            1 |
-|          0 | las quecas                      | 2500 s christiana ave |                     3 |                            1 |
-|          0 | mrs. t's southern fried chicken | 3343 n broadway       |                     3 |                            1 |
-|          0 | unlicensed                      | 7559 n ridge blvd     |                     3 |                            1 |
+| license_num | facility                      | address               | number of inspections | number of failed inspections |
+|------------+-------------------------------+-----------------------+-----------------------+------------------------------|
+|          0 | british airways               | 11601 w touhy ave     |                     5 |                            1 |
+|          0 | rib lady 2                    | 4203 w cermak rd      |                     4 |                            3 |
+|          0 | taqueria la capital           | 3508 w 63rd st        |                     3 |                            1 |
+|          0 | nutricion familiar            | 3000 w 59th st        |                     3 |                            1 |
+|          0 | salvation army                | 506 n des plaines st  |                     3 |                            1 |
+|          0 | herbalife                     | 6214 w diversey ave   |                     3 |                            2 |
+|          0 | la michoacana                 | 4346 s california ave |                     3 |                            1 |
+|          0 | las quecas                    | 2500 s christiana ave |                     3 |                            1 |
+|          0 | mrs ts southern fried chicken | 3343 n broadway       |                     3 |                            1 |
+|          0 | unlicensed                    | 7559 n ridge blvd     |                     3 |                            1 |
 :END:
 
 Nope. Unfortunately, =license_num= is not a unique identifier.
@@ -843,7 +843,7 @@ Perhaps =license_num= and =address= are a unique identifier.
 :RESULTS:
 | number of licenses | number of facilities | number of addresses |
 |--------------------+----------------------+---------------------|
-| 35,420             | 26,060               | 17,492              |
+| 35,546             | 26,145               | 17,515              |
 :END:
 
 We were expecting (naively) that we should get one =license_num= per

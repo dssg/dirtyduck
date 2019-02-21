@@ -22,7 +22,7 @@ services:
     tty: true
     env_file: ../.env
     environment:
-      FOOD_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
+      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
     volumes:
       - "../data:/data"
       - "../triage:/triage"
@@ -36,7 +36,7 @@ services:
     container_name: tutorial_triage
     env_file: ../.env
     environment:
-      TRIAGE_DB_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
+      DATABASE_URL: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@food_db/food'
       TRIAGE_OUTPUT_PATH: '/triage/output'
     volumes:
       - "../triage:/triage"
