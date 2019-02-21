@@ -1628,7 +1628,7 @@ from model_metadata.experiments;
 :RESULTS:
 | experiment_hash                   | user_metadata                                                                                                                                                 |
 |----------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| b706c1fa82deb45db5f02d38c1d21c2b | {"org": "DSaPP", "team": "Tutorial", "author": "Adolfo De Unanue", "etl_date": "2019-01-18", "experiment_type": "test", "label_definition": "failed_inspection"} |
+| 67a1d564d31811b9c20ca63672c25abd | {"org": "DSaPP", "team": "Tutorial", "author": "Adolfo De Unanue", "etl_date": "2019-02-21", "experiment_type": "test", "label_definition": "failed_inspection"} |
 :END:
 
 
@@ -1690,6 +1690,11 @@ from
 #+END_SRC
 
 #+RESULTS:
+:RESULTS:
+| model_group_id | model_type                     | hyperparameters              | feature_groups                                               | cohort           | label               | label_definition    | experiment_type | etl_date      |
+|--------------+-------------------------------+------------------------------+-------------------------------------------------------------+------------------+---------------------+--------------------+----------------+--------------|
+|            1 | sklearn.dummy.DummyClassifier | {"strategy": "most_frequent"} | ["prefix: results", "prefix: risks", "prefix: inspections"] | "test_facilities" | "failed_inspections" | "failed_inspection" | "test"         | "2019-02-21" |
+:END:
 
 You can see that a model group is defined by the classifier
 (=model_type=), its hyperparameters (=hyperparameters=), the features
@@ -1972,9 +1977,9 @@ order by score desc;
 :RESULTS:
 | model_id | entity_id | as_of_date            | score | label_value | matrix_uuid                       |
 |---------+----------+---------------------+-------+------------+----------------------------------|
-|       1 |      219 | 2016-01-01 00:00:00 |   1.0 |          1 | c29c7917371d4cea99fadf4ad37a5686 |
-|       1 |      362 | 2016-01-01 00:00:00 |   1.0 |          1 | c29c7917371d4cea99fadf4ad37a5686 |
-|       1 |      859 | 2016-01-01 00:00:00 |   1.0 |          0 | c29c7917371d4cea99fadf4ad37a5686 |
+|       1 |      229 | 2016-01-01 00:00:00 |   1.0 |          1 | cd0ae68d6ace43033b49ee0390c3583e |
+|       1 |      355 | 2016-01-01 00:00:00 |   1.0 |          1 | cd0ae68d6ace43033b49ee0390c3583e |
+|       1 |      840 | 2016-01-01 00:00:00 |   1.0 |          0 | cd0ae68d6ace43033b49ee0390c3583e |
 :END:
 
 
@@ -2041,11 +2046,18 @@ clean the ={test, train}_results= schemas and have a fresh start:
 select nuke_triage();
 #+END_SRC
 
+#+RESULTS:
+:RESULTS:
+| nuke_triage                                            |
+|-------------------------------------------------------|
+| triage was send to the oblivion. Long live to triage! |
+:END:
+
 =triage= also creates a lot of files (we will see why in the next section). Let's remove them too.
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
-rm -r /triage/output/matrices/*
-rm -r /triage/output/trained_models/*
+rm -r /triage/matrices/*
+rm -r /triage/trained_models/*
 #+END_SRC
 
 #+RESULTS:
