@@ -35,7 +35,7 @@ function sync_to_s3 () {
     echo "#                                            #"
 	echo "##############################################"
 
-	aws s3 sync triage/experiment_config/ s3://${S3_BUCKET}/experiments
+	aws s3 sync triage/experiments/ s3://${S3_BUCKET}/experiments
 }
 
 function sync_from_s3 () {
@@ -46,7 +46,7 @@ function sync_from_s3 () {
     echo "#                                            #"
 	echo "##############################################"
 
-	aws s3 sync s3://${S3_BUCKET}experiments/ triage/experiment_config/
+	aws s3 sync s3://${S3_BUCKET}/experiments/ triage/experiments/
 }
 
 function update_jobs () {

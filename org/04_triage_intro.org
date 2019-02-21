@@ -81,21 +81,20 @@ that helps explain triage's main concepts.
 To run a =triage= experiment, you need the following:
 
 - A database with the data that you want to model.
-    - credentials for accessing this database are stored in a =database.yaml= file. For this tutorial, you can copy the example config file at [[../triage/experiment_config/example_database.yaml]] and rename it to =database.yaml=. Be sure to edit it with the database password you specified in =.env= previously as well.
+    - In this tutorial, the credentials are part of the =DATABASE_URL=
+      environment variable
 
-- =triage= installed in your environment. You can verify that =triage= is installed (and check
-  its version) typying the following inside an =ipython= session in =bastion=:
+- =triage= installed in your environment. You can verify that =triage= is indeed
+  installed if you type in =bastion=:
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer :prologue exec 2>&1 :epilogue
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results org drawer :prologue exec 2>&1 :epilogue :
 triage -h
-:
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 usage: triage [-h] [--tb] [-d DBFILE] [-s SETUP]
-              {configversion,showtimechops,featuretest,experiment,audition,db}
-              ...
+              {configversion,featuretest,experiment,audition,db} ...
 
 manage Triage database and experiments
 
@@ -109,12 +108,10 @@ optional arguments:
                         the Experiment (default: /experiment.py)
 
 triage commands:
-  {configversion,showtimechops,featuretest,experiment,audition,db}
+  {configversion,featuretest,experiment,audition,db}
                         available commands
     configversion       Check the experiment config version compatible with
                         this installation of Triage
-    showtimechops       Visualize time chops (temporal cross-validation
-                        blocks')
     featuretest         Test a feature aggregation by running it for one date
     experiment          Run a full modeling experiment
     audition            Audition models from a completed experiment to pick a
@@ -131,7 +128,7 @@ sections of this tutorial, remember?). So, like a real project, you just
 need to worry about the /experiment configuration file/.
 
 In the following section of the tutorial we will use a small experiment
-configuration file located at [[../triage/experiment_config/simple_test_skeleton.yaml]].
+configuration file located at [[../triage/experiments/simple_test_skeleton.yaml]].
 
 We will show you how to setup the experiment while explaining the
 inner workings of =triage=. We will modify the
@@ -143,7 +140,7 @@ You can run that experiment with:
 
 #+BEGIN_EXAMPLE sh
 # Remember to run this in bastion NOT in your laptop!
-triage experiment experiment_config/simple_test_skeleton.yaml --project-path /triage/output
+triage experiment experiments/simple_test_skeleton.yaml
 #+END_EXAMPLE
 
 Every time you modify the configuration file and see the effects,
@@ -560,7 +557,7 @@ temporal blocks images run the following (they'll be generated in [[../triage/im
 
 #+BEGIN_EXAMPLE sh
 # Remember to run this in bastion NOT in laptop's shell!
-triage showtimechops experiment_config/simple_test_skeleton.yaml
+triage showtimechops experiments/simple_test_skeleton.yaml
 #+END_EXAMPLE
 
 **** ={feature, label}_{end, start}_time=

@@ -141,7 +141,7 @@ We need to write the experiment config file for that. Let's break it
 down and explain the sections.
 
 The config file for this first experiment is located in
-[[./triage/experiment_config/inspections_baseline.yaml][triage/experiment_config/inspections_baseline.yaml]].
+[[./triage/experiments/inspections_baseline.yaml][triage/experiments/inspections_baseline.yaml]].
 
 The first lines of the experiment config file specify the
 config-file version (=v6= at the moment of writing this tutorial),
@@ -159,7 +159,7 @@ incorrectly used), and if you add the =label_definition= key to
 the =model_group_keys=, models made on different label definitions will
 belong to different model groups.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 config_version: 'v6'
 
 model_comment: 'inspections: baseline'
@@ -237,7 +237,7 @@ round in exactly one month (=test_durations = test_label_timespan =
 We will assume that the data is more or less stable[fn:1], at least for one
 year, so =model_update_frequency= = =1 year.=
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
     feature_end_time: '2019-01-01'
@@ -261,7 +261,7 @@ introduced in [[file:triage_intro.org][Introduction to triage]].
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiment_config/inspections_baseline.yaml
+triage showtimechops experiments/inspections_baseline.yaml
 #+END_SRC
 
 #+CAPTION: Temporal blocks for inspections_dt experiment
@@ -274,7 +274,7 @@ We need to specify our labels. For this first
 experiment we will use the label =failed=, using the same query from the
 =simple_skeleton_experiment.yaml=
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 label_config:
   query: |
     select
@@ -290,7 +290,7 @@ label_config:
 We just want to include *active* facilities in our matrices, so we tell
 =triage= to take that in account:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 cohort_config:
   query: |
     select entity_id
@@ -308,7 +308,7 @@ one feature (number of inspections). =DummyClassifier= don't use any
 feature to do the "prediction", so we won't expend compute cycles
 doing the feature/matrix creation:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 feature_aggregations:
   -
     prefix: 'inspections'
@@ -352,7 +352,7 @@ algorithms that you want to train and a list of
 hyperparameters. You can use any algorithm that you want; the only
 requirement is that it respects the =sklearn= API.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 grid_config:
     'sklearn.dummy.DummyClassifier':
         strategy: [prior,uniform, most_frequent]
@@ -361,7 +361,7 @@ grid_config:
 Finally, we should define wich metrics we care about for evaluating our
 model. Here we will concentrate only in =precision= and =recall=.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_baseline.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 scoring:
     testing_metric_groups:
         -
@@ -401,7 +401,7 @@ discover that something went wrong.
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_baseline.yaml  --validate-only
+triage experiment experiments/inspections_baseline.yaml  --validate-only
 #+END_SRC
 
 If everything was ok, you should see an =Experiment validation ran to completion with no errors=.
@@ -410,7 +410,7 @@ You can execute the experiment as[fn:3]
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_baseline.yaml --profile
+triage experiment experiments/inspections_baseline.yaml --profile
 #+END_SRC
 
 
@@ -640,14 +640,14 @@ waiting for a long time) and it helps you
 to understand the structure of your data.
 
 The config file for this first experiment is located in
-[[./triage/experiment_config/inspections_dt.yaml]]
+[[./triage/experiments/inspections_dt.yaml]]
 
 Note that we don't modify the =temporal_config= section neither the
 =feature_aggregations=, =cohort_config= or =label_config=. Triage is smart
 enough to use the previous tables and matrices instead of generating
 them from scratch.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_dt.yaml
 config_version: 'v6'
 
 model_comment: 'inspections: DT'
@@ -665,7 +665,7 @@ user_metadata:
 
 #+END_SRC
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml :exports none
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_dt.yaml :exports none
 model_group_keys:
   - 'class_path'
   - 'parameters'
@@ -746,7 +746,7 @@ In all of them we will do the aggregation in the last month, 3 months,
 that all this refers to events in the past, i.e. /How many times the facility was marked with high risk in the previous 3 Months?/,
 /What is the proportion of failed inspections in the previous year?/
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_dt.yaml
 feature_aggregations:
   -
     prefix: 'inspections'
@@ -843,7 +843,7 @@ feature_aggregations:
 And as stated, we will train some Decision Trees
 
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_dt.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
         max_depth: [2,10,~]
@@ -863,7 +863,7 @@ subsets except one, do that for all the combinations), or =leave-one-in=
 (just try subset at the time).
 
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_dt.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_dt.yaml
 feature_group_definition:
    prefix:
      - 'inspections'
@@ -876,7 +876,7 @@ feature_group_strategies: ['all']
 
 Finally we will leave the =scoring= section as before.
 
-#+BEGIN_SRC yaml :exports none :tangle ../triage/experiment_config/inspections_dt.yaml
+#+BEGIN_SRC yaml :exports none :tangle ../triage/experiments/inspections_dt.yaml
 scoring:
     testing_metric_groups:
         -
@@ -907,7 +907,7 @@ configuration is correct:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_dt.yaml  --validate-only
+triage experiment experiments/inspections_dt.yaml  --validate-only
 #+END_SRC
 
 and check the temporal cross validation:
@@ -916,7 +916,7 @@ and check the temporal cross validation:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiment_config/inspections_dt.yaml
+triage showtimechops experiments/inspections_dt.yaml
 #+END_SRC
 
 #+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
@@ -931,7 +931,7 @@ You can execute the experiment like this:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_dt.yaml --no-save-predictions --profile
+triage experiment experiments/inspections_dt.yaml --no-save-predictions --profile
 #+END_SRC
 
 
@@ -1027,7 +1027,7 @@ order by
 
 Ok, let's add a more complete experiment. First the usual generalities.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_label_failed_01.yaml
 config_version: 'v6'
 
 model_comment: 'inspections: advanced'
@@ -1047,7 +1047,7 @@ user_metadata:
 We won't change anything related to features, cohort and label
 definition neither to temporal configuration.
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml :exports none
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_label_failed_01.yaml :exports none
 model_group_keys:
   - 'class_path'
   - 'parameters'
@@ -1201,7 +1201,7 @@ As before, we can check the temporal structure of our crossvalidation:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiment_config/inspections_label_failed_01.yaml
+triage showtimechops experiments/inspections_label_failed_01.yaml
 #+END_SRC
 
 #+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
@@ -1219,7 +1219,7 @@ with =all= the feature groups, then leaving one feature group out at a time,
 leaving one feature group in at a time (i.e. a model with =inspections= only,
 another with =results= only, and a third with =risks= only).
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_label_failed_01.yaml
 feature_group_definition:
    prefix:
      - 'inspections'
@@ -1232,7 +1232,7 @@ feature_group_strategies: ['all', 'leave-one-in', 'leave-one-out']
 
 Finally, we will try some =RandomForestClassifier=:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/inspections_label_failed_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_label_failed_01.yaml
 grid_config:
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
@@ -1264,14 +1264,14 @@ Before running, let's verify the configuration file
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_label_failed_01.yaml  --validate-only
+triage experiment experiments/inspections_label_failed_01.yaml  --validate-only
 #+END_SRC
 
 You can execute the experiment with
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-predictions --profile
+triage experiment experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
 #+END_SRC
 
 This will take a looooong time to run.

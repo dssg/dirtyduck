@@ -73,7 +73,7 @@ First the usual stuff. Note that we are changing =model_comment= and
 =label_definition= (remember that this is used for generating the
 /hash/ that differentiates models and model groups).
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 config_version: 'v6'
 
 model_comment: 'eis: 01'
@@ -113,7 +113,7 @@ model_group_keys:
 For the labels the query is pretty simple, if the facility showed in
 the data, it will get a /positive/ outcome, if not they will get a /negative/ outcome
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 label_config:
   query: |
     select
@@ -137,7 +137,7 @@ the /outcome/.
 As stated we will use the same configuration block for /cohorts/ that we
 used in inspections:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 cohort_config:
   query: |
     select entity_id
@@ -153,7 +153,7 @@ cohort_config:
 We need to specify the temporal configuration too
 
 **** Temporal configuration
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 temporal_config:
     feature_start_time: '2010-01-04'
     feature_end_time: '2019-01-01'
@@ -178,7 +178,7 @@ As before, you can generate the image of the temporal blocks:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiment_config/eis_01.yaml
+triage showtimechops experiments/eis_01.yaml
 #+END_SRC
 
 
@@ -192,7 +192,7 @@ triage showtimechops experiment_config/eis_01.yaml
 
 Regarding the features, we will use the same ones that were used in [[file:inspections.org][inspections prioritization]]:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 feature_aggregations:
   -
     prefix: 'inspections'
@@ -294,7 +294,7 @@ grid_config:
 
 We declare that we want to use all possible feature-group combinations for training:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 feature_group_definition:
    prefix:
      - 'inspections'
@@ -314,7 +314,7 @@ except one.
 
 We will collapse the baseline (=DummyClassifier=) and the exploratory configuration together:
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
         max_depth: [2,null]
@@ -334,7 +334,7 @@ hyperparameters (2 =DecisionTreeClassifier=, 1
 =all=, 4 =leave-one-out=). The total number of /models/
 is triple that (we have 3 time blocks, so *60*).
 
-#+BEGIN_SRC yaml :tangle ../triage/experiment_config/eis_01.yaml
+#+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 scoring:
     testing_metric_groups:
         -
@@ -361,7 +361,7 @@ As a last step, we validate that the configuration file is correct:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/eis_01.yaml  --validate-only
+triage experiment experiments/eis_01.yaml  --validate-only
 #+END_SRC
 
 
@@ -369,7 +369,7 @@ And then just run it:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiment_config/eis_01.yaml --profile
+triage experiment experiments/eis_01.yaml --profile
 #+END_SRC
 
 This will take a *lot* amount of time (on my computer took 3h 42m),

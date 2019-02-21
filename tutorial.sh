@@ -40,8 +40,8 @@ INFRASTRUCTURE:
 
 EXPERIMENTS:
    NOTE:
-      The following commands assume that "sample_experiment_config.yaml"
-      is located inside the triage/experiment_config directory
+      The following commands assume that "sample_experiments.yaml"
+      is located inside the triage/experiments directory
 
    Run one experiment:
         $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
