@@ -87,7 +87,7 @@ user_metadata:
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
-  etl_date: '2019-01-18'
+  etl_date: '2019-02-21'
 
 model_group_keys:
   - 'class_path'

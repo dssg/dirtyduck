@@ -173,7 +173,7 @@ user_metadata:
     org: 'DSaPP'
     team: 'Tutorial'
     author: 'Your name here'
-    etl_date: '2019-01-18'
+    etl_date: '2019-02-21'
 
 model_group_keys:
   - 'class_path'
@@ -661,7 +661,7 @@ user_metadata:
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
-  etl_date: '2019-01-18'
+  etl_date: '2019-02-21'
 
 #+END_SRC
 
@@ -1041,7 +1041,7 @@ user_metadata:
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Your name here'
-  etl_date: '2019-01-18'
+  etl_date: '2019-02-21'
 #+END_SRC
 
 We won't change anything related to features, cohort and label

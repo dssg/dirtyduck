@@ -8,7 +8,7 @@ user_metadata:
   org: 'DSaPP'
   team: 'Tutorial'
   author: 'Adolfo De Unanue'
-  etl_date: '2019-01-18'
+  etl_date: '2019-02-21'
 
 temporal_config:
     feature_start_time: '2014-01-01'

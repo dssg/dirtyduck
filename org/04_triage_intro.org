@@ -140,7 +140,7 @@ You can run that experiment with:
 
 #+BEGIN_EXAMPLE sh
 # Remember to run this in bastion NOT in your laptop!
-triage experiment experiments/simple_test_skeleton.yaml
+triage experiment --matrix-format hdf experiments/simple_test_skeleton.yaml
 #+END_EXAMPLE
 
 Every time you modify the configuration file and see the effects,
@@ -214,11 +214,11 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| entity_id | license_num | facility_aka              | facility_type  | activity_period          |
-|----------+------------+--------------------------+---------------+-------------------------|
-|      219 |    1596210 | food 4 less              | grocery store | [2010-01-08,)           |
-|      362 |    1874347 | mcdonald's               | restaurant    | [2010-01-12,2017-11-09) |
-|      859 |    1142451 | jewel food  store # 3345 | grocery store | [2010-01-26,)           |
+| entity_id | license_num | facility_aka            | facility_type  | activity_period          |
+|----------+------------+------------------------+---------------+-------------------------|
+|      229 |    1596210 | food 4 less            | grocery store | [2010-01-08,)           |
+|      355 |    1874347 | mcdonalds              | restaurant    | [2010-01-12,2017-11-09) |
+|      840 |    1142451 | jewel foodstore # 3345 | grocery store | [2010-01-26,)           |
 :END:
 
 
@@ -263,7 +263,7 @@ from
 where
     '[2014-01-01, 2015-01-01]'::daterange @> date
     and
-    entity_id in (219,362,859)
+    entity_id in (229,355,840)
 order by
     date asc;
 #+END_SRC
@@ -272,19 +272,19 @@ order by
 :RESULTS:
 |       date | entity_id | outcome |
 |------------+----------+---------|
-| 2014-01-14 |      859 | f       |
-| 2014-02-04 |      219 | f       |
-| 2014-02-24 |      859 | t       |
-| 2014-03-05 |      859 | f       |
-| 2014-04-10 |      362 | t       |
-| 2014-04-15 |      219 | f       |
-| 2014-04-18 |      362 | f       |
-| 2014-05-06 |      859 | f       |
-| 2014-08-28 |      362 | f       |
-| 2014-09-19 |      219 | f       |
-| 2014-09-30 |      362 | t       |
-| 2014-10-10 |      362 | f       |
-| 2014-10-31 |      859 | f       |
+| 2014-01-14 |      840 | f       |
+| 2014-02-04 |      229 | f       |
+| 2014-02-24 |      840 | t       |
+| 2014-03-05 |      840 | f       |
+| 2014-04-10 |      355 | t       |
+| 2014-04-15 |      229 | f       |
+| 2014-04-18 |      355 | f       |
+| 2014-05-06 |      840 | f       |
+| 2014-08-28 |      355 | f       |
+| 2014-09-19 |      229 | f       |
+| 2014-09-30 |      355 | t       |
+| 2014-10-10 |      355 | f       |
+| 2014-10-31 |      840 | f       |
 :END:
 
 We can observe that the facilities had several inspections, but in
@@ -307,7 +307,7 @@ from
 where
     '2014-01-01'::timestamp <= date
     and date < '2014-01-01'::timestamp + interval '1 year'
-    and entity_id in (219,362,859)
+    and entity_id in (229,355,840)
 group by
     entity_id;
 #+END_SRC
@@ -316,9 +316,9 @@ group by
 :RESULTS:
 |   as_of_date | entity_id | label |
 |------------+----------+-------|
-| 2014-01-01 |      219 |     0 |
-| 2014-01-01 |      362 |     1 |
-| 2014-01-01 |      859 |     1 |
+| 2014-01-01 |      229 |     0 |
+| 2014-01-01 |      355 |     1 |
+| 2014-01-01 |      840 |     1 |
 :END:
 
 Note that ee transform the /label/ to integer, since the machine learning
@@ -349,16 +349,16 @@ end as state
 from
     semantic.entities
 where
-    entity_id in (219,362,859);
+    entity_id in (229,355,840);
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
 |   as_of_date | entity_id | activity_period          | state    |
 |------------+----------+-------------------------+----------|
-| 2018-01-01 |      219 | [2010-01-08,)           | active   |
-| 2018-01-01 |      362 | [2010-01-12,2017-11-09) | inactive |
-| 2018-01-01 |      859 | [2010-01-26,)           | active   |
+| 2018-01-01 |      229 | [2010-01-08,)           | active   |
+| 2018-01-01 |      355 | [2010-01-12,2017-11-09) | inactive |
+| 2018-01-01 |      840 | [2010-01-26,)           | active   |
 :END:
 
 =Triage= will use a simple modification of the queries that we just
@@ -557,7 +557,7 @@ temporal blocks images run the following (they'll be generated in [[../triage/im
 
 #+BEGIN_EXAMPLE sh
 # Remember to run this in bastion NOT in laptop's shell!
-triage showtimechops experiments/simple_test_skeleton.yaml
+triage experiment experiments/simple_test_skeleton.yaml --show-timechop
 #+END_EXAMPLE
 
 **** ={feature, label}_{end, start}_time=
@@ -931,7 +931,7 @@ from
     semantic.events
 where
     date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
-    and entity_id in (219,362,859)
+    and entity_id in (229,355,840)
 order by
     date asc;
 #+END_SRC
@@ -940,18 +940,18 @@ order by
 :RESULTS:
 | event_id |       date | entity_id | risk   |
 |---------+------------+----------+--------|
-| 1561324 | 2015-07-17 |      859 | high   |
-| 1561517 | 2015-07-24 |      859 | high   |
-| 1562122 | 2015-08-12 |      859 | high   |
-| 1547403 | 2015-08-20 |      219 | high   |
-| 1547420 | 2015-08-28 |      219 | high   |
-| 1547448 | 2015-09-14 |      362 | medium |
-| 1547462 | 2015-09-21 |      362 | medium |
-| 1547504 | 2015-10-09 |      362 | medium |
-| 1547515 | 2015-10-16 |      362 | medium |
-| 1583249 | 2015-10-21 |      859 | high   |
-| 1583577 | 2015-10-28 |      859 | high   |
-| 1583932 | 2015-11-04 |      859 | high   |
+| 1561324 | 2015-07-17 |      840 | high   |
+| 1561517 | 2015-07-24 |      840 | high   |
+| 1562122 | 2015-08-12 |      840 | high   |
+| 1547403 | 2015-08-20 |      229 | high   |
+| 1547420 | 2015-08-28 |      229 | high   |
+| 1547448 | 2015-09-14 |      355 | medium |
+| 1547462 | 2015-09-21 |      355 | medium |
+| 1547504 | 2015-10-09 |      355 | medium |
+| 1547515 | 2015-10-16 |      355 | medium |
+| 1583249 | 2015-10-21 |      840 | high   |
+| 1583577 | 2015-10-28 |      840 | high   |
+| 1583932 | 2015-11-04 |      840 | high   |
 :END:
 
 We can transform those data to two features: =number_of_inspections=
@@ -967,7 +967,7 @@ from
     semantic.events
 where
     date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
-    and entity_id in (219,362,859)
+    and entity_id in (229,355,840)
 group by
     grouping sets(entity_id);
 #+END_SRC
@@ -976,9 +976,9 @@ group by
 :RESULTS:
 | entity_id |   as_of_date | inspections | flagged_as_high_risk |
 |----------+------------+-------------+-------------------|
-|      219 | 2016-01-01 |           2 |                 2 |
-|      362 | 2016-01-01 |           4 |                 0 |
-|      859 | 2016-01-01 |           6 |                 6 |
+|      229 | 2016-01-01 |           2 |                 2 |
+|      355 | 2016-01-01 |           4 |                 0 |
+|      840 | 2016-01-01 |           6 |                 6 |
 :END:
 
 This query is making an /aggregation/. Note that the previous =SQL=
@@ -1006,7 +1006,7 @@ from
     semantic.events
 where
     date <@ daterange(('2016-01-01'::date - interval '6 months')::date, '2016-01-01')
-    and entity_id in (219,362,859)
+    and entity_id in (229,355,840)
 group by
     grouping sets(entity_id)
 #+END_SRC
@@ -1015,9 +1015,9 @@ group by
 :RESULTS:
 | entity_id |   as_of_date | inspections | flagged_as_high_risk | passed_inspections | proportion_of_passed_inspections | failed_inspections | proportion_of_failed_inspections |
 |----------+------------+-------------+-------------------+-------------------+-------------------------------+-------------------+-------------------------------|
-|      219 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
-|      362 | 2016-01-01 |           4 |                 0 |                 1 |                          0.25 |                 2 |                          0.50 |
-|      859 | 2016-01-01 |           6 |                 6 |                 4 |                          0.67 |                 2 |                          0.33 |
+|      229 | 2016-01-01 |           2 |                 2 |                 1 |                          0.50 |                 1 |                          0.50 |
+|      355 | 2016-01-01 |           4 |                 0 |                 1 |                          0.25 |                 2 |                          0.50 |
+|      840 | 2016-01-01 |           6 |                 6 |                 4 |                          0.67 |                 2 |                          0.33 |
 :END:
 
 But what if we want to also add features for "medium" and "low" risk?
@@ -1628,7 +1628,7 @@ from model_metadata.experiments;
 :RESULTS:
 | experiment_hash                   | user_metadata                                                                                                                                                 |
 |----------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 873101c742bc899c9e074003447992b4 | {"org": "DSaPP", "team": "Tutorial", "author": "Adolfo De Unanue", "etl_date": "2019-01-18", "experiment_type": "test", "label_definition": "failed_inspection"} |
+| b706c1fa82deb45db5f02d38c1d21c2b | {"org": "DSaPP", "team": "Tutorial", "author": "Adolfo De Unanue", "etl_date": "2019-01-18", "experiment_type": "test", "label_definition": "failed_inspection"} |
 :END:
 
 
@@ -1690,11 +1690,6 @@ from
 #+END_SRC
 
 #+RESULTS:
-:RESULTS:
-| model_group_id | model_type                     | hyperparameters              | feature_groups                                               | cohort           | label               | label_definition    | experiment_type | etl_date      |
-|--------------+-------------------------------+------------------------------+-------------------------------------------------------------+------------------+---------------------+--------------------+----------------+--------------|
-|            1 | sklearn.dummy.DummyClassifier | {"strategy": "most_frequent"} | ["prefix: results", "prefix: risks", "prefix: inspections"] | "test_facilities" | "failed_inspections" | "failed_inspection" | "test"         | "2019-01-18" |
-:END:
 
 You can see that a model group is defined by the classifier
 (=model_type=), its hyperparameters (=hyperparameters=), the features
