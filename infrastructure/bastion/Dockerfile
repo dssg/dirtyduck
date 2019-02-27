@@ -8,7 +8,6 @@ RUN  sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main
      postgresql-contrib-9.6 \
      libpq-dev postgresql-9.6-pgrouting
 
-
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt

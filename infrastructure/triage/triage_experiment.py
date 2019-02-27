@@ -26,9 +26,9 @@ logging.basicConfig(
 
 @click.group()
 @click.option('--config_file', type=click.Path(),
-              help="""Triage's experiment congiguration file name 
-                      NOTE: It's assumed that the file is located inside 
-                      triage/experiment_config)""",
+              help="""Triage's experiment congiguration file name
+                      NOTE: It's assumed that the file is located inside
+                      triage/experiments)""",
               required=True)
 @click.option('--triage_db', envvar='TRIAGE_DB_URL', type=click.STRING,
                 help="""DB URL, in the form of 'postgresql://user:password@host_db:host_port/db',
@@ -38,16 +38,16 @@ logging.basicConfig(
               help="Triage will (or won't) replace all the matrices and models",
               default=True)  ## Default True so it matches the default behaviour of Triage
 @click.option('--debug', is_flag=True,
-              help="Activate to get a lot of information in your screen")  
+              help="Activate to get a lot of information in your screen")
 @click.pass_context
 def triage(ctx, config_file, triage_db, replace, debug):
 
-    config_file = os.path.join(os.sep, "triage", "experiment_config", config_file)
+    config_file = os.path.join(os.sep, "triage", "experiments", config_file)
 
     click.echo(f"Using the config file {config_file}")
-    
+
     with open(config_file) as f:
-        experiment_config = yaml.load(f)
+        experiments = yaml.load(f)
 
     click.echo(f"The output (matrices and models) of this experiment will be stored in triage/output")
     click.echo(f"Using data stored in {triage_db}")
@@ -55,7 +55,7 @@ def triage(ctx, config_file, triage_db, replace, debug):
     click.echo(f"Creating experiment object")
 
     experiment = SingleThreadedExperiment(
-        config=experiment_config,
+        config=experiments,
         db_engine=create_engine(triage_db),
         project_path='/triage/output',
         cleanup=True,
@@ -67,7 +67,7 @@ def triage(ctx, config_file, triage_db, replace, debug):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
         click.echo("Debug enabled (Expect A LOT of output at the screen!!!)")
-    
+
     click.echo("Experiment loaded")
 
 @triage.command()
@@ -78,7 +78,7 @@ def validate(experiment):
 
     click.echo("""
            The experiment configuration doesn't contain any obvious errors.
-           Any error that occurs from now on, possibly will be related to hit the maximum 
+           Any error that occurs from now on, possibly will be related to hit the maximum
            number of columns allowed or collision in
            the column names, both due to PostgreSQL limitations.
     """)
@@ -115,7 +115,7 @@ def show_temporal_blocks(experiment):
 
 @triage.command()
 @click.pass_obj
-@click.option('--model', 
+@click.option('--model',
               help="Model to plot",
               required=True)
 def show_model_plot(experiment, model):
@@ -129,7 +129,7 @@ def show_model_plot(experiment, model):
 
 @triage.command()
 @click.pass_obj
-@click.option('--metric', 
+@click.option('--metric',
               help="Model to plot",
               required=True)
 @click.option('--rules',
@@ -143,6 +143,5 @@ def audit_models(experiment, metric, rules):
         rules = yaml.load(f)
 
     metric, k = metric.split('@')
-    
+
     audit_experiment(experiment_hash, f"{metric}@", k, rules)
-    

@@ -621,23 +621,23 @@ INFRASTRUCTURE:
 
 EXPERIMENTS:
    NOTE:
-      The following commands assume that "sample_experiment_config.yaml"
-      is located inside the triage/experiment_config directory
+      The following commands assume that "sample_experiments.yaml"
+      is located inside the triage/experiments directory
 
    Run one experiment:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
+        $ ./tutorial.sh -t --config_file sample_experiments.yaml run
 
    Run one experiment, do not replace existing matrices or models, and enable debug:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
+        $ ./tutorial.sh -t --config_file sample_experiments.yaml --no-replace --debug run
 
    Validate experiment configuration file:
-        $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
+        $ ./tutorial.sh triage --config_file sample_experiments.yaml validate
 
    Show the experiment's temporal cross-validation blocks:
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show-temporal-blocks
+        $ ./tutorial.sh -t --config_file sample_experiments.yaml show-temporal-blocks
 
    Plot model number 4 (for Decision Trees and Random Forests):
-        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
+        $ ./tutorial.sh -t --config_file sample_experiments.yaml show_model_plot --model 4
 
    Triage help:
         $ ./tutorial.sh triage --help
@@ -699,7 +699,7 @@ Inside <code>bastion</code>, type the next command to connect to the database
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sh">psql ${<span style="font-weight: bold; font-style: italic;">FOOD_DB_URL</span>}
+<pre class="src src-sh">psql ${<span style="font-weight: bold; font-style: italic;">DATABASE_URL</span>}
 </pre>
 </div>
 
@@ -1819,7 +1819,7 @@ You could execute this code from the command line using <code>psql</code>:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sh">psql ${<span style="font-weight: bold; font-style: italic;">FOOD_DB_URL</span>} &lt; /sql/create_cleaned_inspections_table.sql
+<pre class="src src-sh">psql ${<span style="font-weight: bold; font-style: italic;">DATABASE_URL</span>} &lt; /sql/create_cleaned_inspections_table.sql
 </pre>
 </div>
 
@@ -3124,7 +3124,7 @@ To run a <code>triage</code> experiment, you need the following:
 <ul class="org-ul">
 <li>A database with the data that you want to model.
 <ul class="org-ul">
-<li>credentials for accessing this database are stored in a <code>database.yaml</code> file. For this tutorial, you can copy the example config file at <a href="../triage/experiment_config/example_database.yaml">../triage/experiment_config/example_database.yaml</a> and rename it to <code>database.yaml</code>. Be sure to edit it with the database password you specified in <code>.env</code> previously as well.</li>
+<li>credentials for accessing this database are stored in a <code>database.yaml</code> file. For this tutorial, you can copy the example config file at <a href="../triage/experiments/example_database.yaml">../triage/experiments/example_database.yaml</a> and rename it to <code>database.yaml</code>. Be sure to edit it with the database password you specified in <code>.env</code> previously as well.</li>
 </ul></li>
 
 <li><code>triage</code> installed in your environment. You can verify that <code>triage</code> is installed (and check
@@ -3151,7 +3151,7 @@ need to worry about the <i>experiment configuration file</i>.
 
 <p>
 In the following section of the tutorial we will use a small experiment
-configuration file located at <a href="../triage/experiment_config/simple_test_skeleton.yaml">../triage/experiment_config/simple_test_skeleton.yaml</a>.
+configuration file located at <a href="../triage/experiments/simple_test_skeleton.yaml">../triage/experiments/simple_test_skeleton.yaml</a>.
 </p>
 
 <p>
@@ -3168,7 +3168,7 @@ You can run that experiment with:
 
 <pre class="example">
 # Remember to run this in bastion NOT in your laptop!
-triage experiment experiment_config/simple_test_skeleton.yaml --project-path /triage/output
+triage experiment experiments/simple_test_skeleton.yaml --project-path /triage/output
 </pre>
 
 <p>
@@ -3898,7 +3898,7 @@ temporal blocks images run the following (they'll be generated in <a href="../tr
 
 <pre class="example">
 # Remember to run this in bastion NOT in laptop's shell!
-triage showtimechops experiment_config/simple_test_skeleton.yaml
+triage showtimechops experiments/simple_test_skeleton.yaml
 </pre>
 </div>
 
@@ -7139,7 +7139,7 @@ down and explain the sections.
 
 <p>
 The config file for this first experiment is located in
-<a href="./triage/experiment_config/inspections_baseline.yaml">triage/experiment<sub>config</sub>/inspections<sub>baseline.yaml</sub></a>.
+<a href="./triage/experiments/inspections_baseline.yaml">triage/experiment<sub>config</sub>/inspections<sub>baseline.yaml</sub></a>.
 </p>
 
 <p>
@@ -7298,7 +7298,7 @@ introduced in <a href="triage_intro.html">Introduction to triage</a>.
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiment_config/inspections_baseline.yaml
+triage showtimechops experiments/inspections_baseline.yaml
 </pre>
 </div>
 
@@ -7463,7 +7463,7 @@ discover that something went wrong.
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_baseline.yaml  --validate-only
+triage experiment experiments/inspections_baseline.yaml  --validate-only
 </pre>
 </div>
 
@@ -7477,7 +7477,7 @@ You can execute the experiment as<sup><a id="fnr.44" class="footref" href="#fn.4
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_baseline.yaml --profile
+triage experiment experiments/inspections_baseline.yaml --profile
 </pre>
 </div>
 
@@ -8195,7 +8195,7 @@ to understand the structure of your data.
 
 <p>
 The config file for this first experiment is located in
-<a href="./triage/experiment_config/inspections_dt.yaml">./triage/experiment_config/inspections_dt.yaml</a>
+<a href="./triage/experiments/inspections_dt.yaml">./triage/experiments/inspections_dt.yaml</a>
 </p>
 
 <p>
@@ -8412,7 +8412,7 @@ configuration is correct:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_dt.yaml  --validate-only
+triage experiment experiments/inspections_dt.yaml  --validate-only
 </pre>
 </div>
 
@@ -8424,7 +8424,7 @@ and check the temporal cross validation:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiment_config/inspections_dt.yaml
+triage showtimechops experiments/inspections_dt.yaml
 </pre>
 </div>
 
@@ -8443,7 +8443,7 @@ You can execute the experiment like this:
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_dt.yaml --no-save-predictions --profile
+triage experiment experiments/inspections_dt.yaml --no-save-predictions --profile
 </pre>
 </div>
 
@@ -8737,7 +8737,7 @@ As before, we can check the temporal structure of our crossvalidation:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiment_config/inspections_label_failed_01.yaml
+triage showtimechops experiments/inspections_label_failed_01.yaml
 </pre>
 </div>
 
@@ -8810,7 +8810,7 @@ Before running, let's verify the configuration file
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_label_failed_01.yaml  --validate-only
+triage experiment experiments/inspections_label_failed_01.yaml  --validate-only
 </pre>
 </div>
 
@@ -8820,7 +8820,7 @@ You can execute the experiment with
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/inspections_label_failed_01.yaml --no-save-predictions --profile
+triage experiment experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
 </pre>
 </div>
 
@@ -9033,7 +9033,7 @@ As before, you can generate the image of the temporal blocks:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiment_config/eis_01.yaml
+triage showtimechops experiments/eis_01.yaml
 </pre>
 </div>
 
@@ -9240,7 +9240,7 @@ As a last step, we validate that the configuration file is correct:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/eis_01.yaml  --validate-only
+triage experiment experiments/eis_01.yaml  --validate-only
 </pre>
 </div>
 
@@ -9251,7 +9251,7 @@ And then just run it:
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiment_config/eis_01.yaml --profile
+triage experiment experiments/eis_01.yaml --profile
 </pre>
 </div>
 
@@ -10185,13 +10185,13 @@ execute the following <i>inside bastion</i>:
 <div class="org-src-container">
 <pre class="src src-sh">curl <span style="font-style: italic;">"https://data.cityofchicago.org/api/views/4ijn-s7e5/rows.csv?accessType=DOWNLOAD"</span> &gt; data/inspections.csv
 
-psql ${<span style="font-weight: bold; font-style: italic;">FOOD_DB_URL</span>} -c <span style="font-style: italic;">"\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"</span>
+psql ${<span style="font-weight: bold; font-style: italic;">DATABASE_URL</span>} -c <span style="font-style: italic;">"\copy raw.inspections FROM '/data/inspections.csv' WITH HEADER CSV"</span>
 
-psql ${<span style="font-weight: bold; font-style: italic;">FOOD_DB_URL</span>} &lt; /sql/create_cleaned_inspections_table.sql
+psql ${<span style="font-weight: bold; font-style: italic;">DATABASE_URL</span>} &lt; /sql/create_cleaned_inspections_table.sql
 
-psql ${<span style="font-weight: bold; font-style: italic;">FOOD_DB_URL</span>} &lt; /sql/create_violations_table.sql
+psql ${<span style="font-weight: bold; font-style: italic;">DATABASE_URL</span>} &lt; /sql/create_violations_table.sql
 
-psql ${<span style="font-weight: bold; font-style: italic;">FOOD_DB_URL</span>} &lt; /sql/create_semantic_tables.sql
+psql ${<span style="font-weight: bold; font-style: italic;">DATABASE_URL</span>} &lt; /sql/create_semantic_tables.sql
 </pre>
 </div>
 
