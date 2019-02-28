@@ -80,24 +80,24 @@ model group in the subsequent time window.
 
 We included a simple configuration file with some rules:
 
-#+BEGIN_EXAMPLE yaml :tangle ../triage/audition_config.yaml
+#+BEGIN_SRC yaml :tangle ../triage/audition_config.yaml
 # CHOOSE MODEL GROUPS
 model_groups:
     query: |
         SELECT DISTINCT(model_group_id)
-        FROM results.model_groups
+        FROM model_metadata.model_groups
 # CHOOSE TIMESTAMPS/TRAIN END TIMES
 time_stamps:
     query: |
         SELECT DISTINCT train_end_time
-        FROM results.models
+        FROM model_metadata.models
         WHERE model_group_id IN ({})
         AND EXTRACT(DAY FROM train_end_time) IN (1)
         AND train_end_time >= '2012-01-01'
 # FILTER
 filter:
     metric: 'precision@' # metric of interest
-    parameter: '50_abs' # parameter of interest
+    parameter: '10_pct' # parameter of interest
     max_from_best: 1.0 # The maximum value that the given metric can be worse than the best model for a given train end time.
     threshold_value: 0.0 # The worst absolute value that the given metric should be.
     distance_table: 'distance_table' # name of the distance table
@@ -109,38 +109,24 @@ rules:
         shared_parameters:
             -
                 metric: 'precision@'
-                parameter: '50_abs'
-            -
-                metric: 'recall@'
-                parameter: '50_abs'
+                parameter: '10_pct'
+
         selection_rules:
             -
                 name: 'best_current_value' # Pick the model group with the best current metric value
-                num: 3
+                n: 3
             -
                 name: 'best_average_value' # Pick the model with the highest average metric value
-                num: 3
+                n: 3
             -
                 name: 'lowest_metric_variance' # Pick the model with the lowest metric variance
-                num: 3
+                n: 3
             -
                 name: 'most_frequent_best_dist' # Pick the model that is most frequently within `dist_from_best_case`
                 dist_from_best_case: [0.05]
-                num: 3
+                n: 3
 
-    -
-        shared_parameters:
-            -
-                metric1: 'precision@'
-                parameter1: '50_abs'
-        selection_rules:
-            -
-                name: 'best_average_two_metrics' #  Pick the model with the highest average combined value to date of two metrics weighted together using metric1_weight
-                metric2: 'recall@'
-                parameter2: '50_abs'
-                metric1_weight: 0.5
-                num: 3
-#+END_EXAMPLE
+#+END_SRC
 
 =Audition= will have each rule give you the best $n$ model-group IDs
 based on the metric and parameter following that rule for the most
@@ -149,7 +135,7 @@ recent time period (in all the rules shown $n$ = 1).
 We can run the simulation of the rules againts the experiment as:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports both :results output
-triage audition
+triage --tb audition --directory images
 :
 #+END_SRC
 
@@ -158,14 +144,63 @@ triage audition
 /usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
   """)
 INFO:root:Validate!
-[33m[ProgrammingError][39m [31m(psycopg2.ProgrammingError) relation "results.model_groups" does not exist
-LINE 2: FROM results.model_groups
-             ^
- [SQL: 'SELECT DISTINCT(model_group_id)\nFROM results.model_groups\n'] (Background on this error at: http://sqlalche.me/e/f405)[39m
+INFO:root:Checking if all model groups have the same train end times
+INFO:root:Found 45 total model groups
+INFO:root:Dropped 36 model groups which don't match the train end times
+INFO:root:Found 9 total model groups past the checker
+INFO:root:Polulating data to distance table
+INFO:root:Showing best distance plots for all metrics
+INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 9 total model groups past threshold
+INFO:root:Building best distance plot for {'metric': 'precision@', 'parameter': '10_pct'} and [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
+INFO:root:Showing model group performance plots for all metrics
+INFO:root:Plotting model group performance for {'metric': 'precision@', 'parameter': '10_pct', 'max_from_best': 1.0, 'threshold_value': 0.0}, [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
+INFO:root:Expanding selection rule groups into full grid
+INFO:root:Expanding rule group {'shared_parameters': [{'metric': 'precision@', 'parameter': '10_pct'}], 'selection_rules': [{'name': 'best_current_value', 'n': 3}, {'name': 'best_average_value', 'n': 3}, {'name': 'lowest_metric_variance', 'n': 3}, {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}]}
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'best_current_value', 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'best_average_value', 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'lowest_metric_variance', 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Found 4 total selection rules. Full list: ['best_current_value_precision@_10_pct', 'best_average_value_precision@_10_pct', 'lowest_metric_variance_precision@_10_pct', 'most_frequent_best_dist_precision@_10_pct_0.05']
+INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 9 total model groups past threshold
+INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
+INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
+INFO:root:Calculating selection rule picks for all rules
+INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 9 total model groups past threshold
+INFO:root:Calculating selection rule picks for best_current_value_precision@_10_pct
+INFO:root:For rule best_current_value_precision@_10_pct, model group [7, 6, 5] was picked
+INFO:root:Calculating selection rule picks for best_average_value_precision@_10_pct
+INFO:root:For rule best_average_value_precision@_10_pct, model group [6, 7, 4] was picked
+INFO:root:Calculating selection rule picks for lowest_metric_variance_precision@_10_pct
+INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [1, 2, 3] was picked
+INFO:root:Calculating selection rule picks for most_frequent_best_dist_precision@_10_pct_0.05
+INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [6, 4, 5] was picked
+INFO:root:Audition ran! Results are stored in images.
 [0m
 #+END_SRC
 
+* TODO Postmodeling
+
 
 * TODO Crossvalidation
-
-* TODO Postmodeling
