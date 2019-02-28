@@ -99,13 +99,13 @@ order by
 :RESULTS:
 | event_id | entity_id |       date | result | violations_severity       | failed | failed_major_violation |
 |---------+----------+------------+--------+--------------------------+--------+----------------------|
-| 1770568 |    30852 | 2016-05-11 | pass   | {minor}                  | f      | f                    |
-| 1763967 |    30852 | 2016-05-03 | fail   | {critical,minor,serious} | t      | t                    |
-| 1434534 |    21339 | 2014-04-03 | pass   | {NULL}                   | f      | f                    |
-| 1343315 |    22056 | 2013-06-06 | fail   | {minor,serious}          | t      | t                    |
-| 1235707 |    21339 | 2013-03-27 | pass   | {NULL}                   | f      | f                    |
-|  537439 |    13471 | 2011-06-10 | fail   | {NULL}                   | t      | f                    |
-|  569377 |     5592 | 2011-06-01 | pass   | {NULL}                   | f      | f                    |
+| 1770568 |    30841 | 2016-05-11 | pass   | {minor}                  | f      | f                    |
+| 1763967 |    30841 | 2016-05-03 | fail   | {critical,minor,serious} | t      | t                    |
+| 1434534 |    21337 | 2014-04-03 | pass   | {NULL}                   | f      | f                    |
+| 1343315 |    22053 | 2013-06-06 | fail   | {minor,serious}          | t      | t                    |
+| 1235707 |    21337 | 2013-03-27 | pass   | {NULL}                   | f      | f                    |
+|  537439 |    13458 | 2011-06-10 | fail   | {NULL}                   | t      | f                    |
+|  569377 |     5570 | 2011-06-01 | pass   | {NULL}                   | f      | f                    |
 :END:
 
 Remember from the section [[Cohorts, labels, event dates and as of dates][Cohorts, labels, event dates and as of dates]] that the /outcome/ will be used by
@@ -213,7 +213,7 @@ select min(date), max(date) from semantic.events
 :RESULTS:
 |        min |        max |
 |------------+------------|
-| 2010-01-04 | 2019-01-18 |
+| 2010-01-04 | 2019-02-20 |
 :END:
 
 The next parameters are related to the training intervals:
@@ -261,14 +261,14 @@ introduced in [[file:triage_intro.org][Introduction to triage]].
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiments/inspections_baseline.yaml
+triage experiment experiments/inspections_baseline.yaml --show-timechop
 #+END_SRC
 
 #+CAPTION: Temporal blocks for inspections_dt experiment
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/inspections_baseline.png]]
+[[file:../triage/images/inspections_baseline.png]]
 
 We need to specify our labels. For this first
 experiment we will use the label =failed=, using the same query from the
@@ -370,7 +370,6 @@ scoring:
             percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
             top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
 
-
     training_metric_groups:
       -
         metrics: [accuracy]
@@ -410,15 +409,14 @@ You can execute the experiment as[fn:3]
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiments/inspections_baseline.yaml --profile
+triage experiment --matrix-format hdf experiments/inspections_baseline.yaml --profile
 #+END_SRC
-
 
 This will print a lot of output, and if everything is correct it will
 create *6* matrices (3 for
 training, 3 for testing) in =triage/matrices= and every matrix will be
 represented by two files, one with the metadata of the matrix (a
-=yaml= file) and one with the actual matrix (the =csv= file).
+=yaml= file) and one with the actual matrix (the =h5= file).
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results raw drawer
 
@@ -429,7 +427,7 @@ ls matrices | awk -F . '{print $NF}' | sort | uniq -c
 
 #+RESULTS:
 :RESULTS:
-      6 csv
+      6 h5
       6 yaml
 :END:
 
@@ -501,7 +499,8 @@ You can check with which matrix the models are trained:
 select
     model_group_id,
     model_id, train_end_time,
-    model_hash, train_matrix_uuid,
+    substring(model_hash,1,5) as model_hash,
+    substring(train_matrix_uuid,1,5) as train_matrix_uuid,
     ma.num_observations as observations,
     ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
 from
@@ -516,17 +515,17 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | train_end_time        | model_hash                        | train_matrix_uuid                  | observations | feature_lookback_duration | feature_start_time    |
-|--------------+---------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
-|            1 |       1 | 2015-12-01 00:00:00 | d3cea395750042c6ce8b4b16629b7f27 | 82a55ba9d2013abb7722c20b17500b57 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
-|            1 |       4 | 2016-12-01 00:00:00 | 6ec07f83562b515c46b1ef7d6c76e5f4 | a6a067fbbf34115a48201a626f17e67a |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
-|            1 |       7 | 2017-12-01 00:00:00 | 6356a11ad724fa48ef2751d13f11801c | e8663158b8c6b131505f12fafd196e8d |        38673 | @ 5 years               | 2010-01-04 00:00:00 |
-|            2 |       2 | 2015-12-01 00:00:00 | 74fee6432b12350f25c62bdf4c499a82 | 82a55ba9d2013abb7722c20b17500b57 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
-|            2 |       5 | 2016-12-01 00:00:00 | a011aa2bad1cecaa3ba3a7e579efa80a | a6a067fbbf34115a48201a626f17e67a |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
-|            2 |       8 | 2017-12-01 00:00:00 | 36d38ecf8f2b3b433eb7c4dc5a048577 | e8663158b8c6b131505f12fafd196e8d |        38673 | @ 5 years               | 2010-01-04 00:00:00 |
-|            3 |       3 | 2015-12-01 00:00:00 | 062f34c179e27cc779f050f7678f87a3 | 82a55ba9d2013abb7722c20b17500b57 |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
-|            3 |       6 | 2016-12-01 00:00:00 | abd9adc61fce6b64ad4a52461e894f51 | a6a067fbbf34115a48201a626f17e67a |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
-|            3 |       9 | 2017-12-01 00:00:00 | cb89c4cc25bf9ca6746ab899d9805c74 | e8663158b8c6b131505f12fafd196e8d |        38673 | @ 5 years               | 2010-01-04 00:00:00 |
+| model_group_id | model_id | train_end_time        | model_hash | train_matrix_uuid | observations | feature_lookback_duration | feature_start_time    |
+|--------------+---------+---------------------+-----------+-----------------+--------------+-------------------------+---------------------|
+|            1 |       1 | 2015-12-01 00:00:00 | ff2f3     | a4455           |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       4 | 2016-12-01 00:00:00 | faf2f     | bf455           |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       7 | 2017-12-01 00:00:00 | faf19     | b0237           |        38677 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       2 | 2015-12-01 00:00:00 | 1435f     | a4455           |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       5 | 2016-12-01 00:00:00 | 3ad95     | bf455           |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       8 | 2017-12-01 00:00:00 | cc595     | b0237           |        38677 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       3 | 2015-12-01 00:00:00 | cdf77     | a4455           |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       6 | 2016-12-01 00:00:00 | 83ed9     | bf455           |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       9 | 2017-12-01 00:00:00 | 67a54     | b0237           |        38677 | @ 5 years               | 2010-01-04 00:00:00 |
 :END:
 
 As expected, we have three models per model group. Each model was trained
@@ -542,33 +541,33 @@ run the following query
 select distinct
     model_id,
     model_group_id, train_end_time,
-    model_hash,
-    pr.matrix_uuid as test_matrix_uuid,
+    substring(model_hash,1,5) as model_hash,
+    substring(ev.matrix_uuid,1,5) as test_matrix_uuid,
     ma.num_observations as observations,
     ma.lookback_duration as feature_lookback_duration,  ma.feature_start_time
 from
     model_metadata.models as mo
     join
-    test_results.predictions as pr using (model_id)
+    test_results.evaluations as ev using (model_id)
     join
-    model_metadata.matrices as ma on pr.matrix_uuid = ma.matrix_uuid
+    model_metadata.matrices as ma on ev.matrix_uuid = ma.matrix_uuid
 order by
     model_group_id, train_end_time asc;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_id | model_group_id | train_end_time        | model_hash                        | test_matrix_uuid                   | observations | feature_lookback_duration | feature_start_time    |
-|---------+--------------+---------------------+----------------------------------+----------------------------------+--------------+-------------------------+---------------------|
-|       1 |            1 | 2015-12-01 00:00:00 | d3cea395750042c6ce8b4b16629b7f27 | ce3fb740876bfe04aa05e0a6ec9dbd69 |       228584 | @ 1 year                | 2010-01-04 00:00:00 |
-|       4 |            1 | 2016-12-01 00:00:00 | 6ec07f83562b515c46b1ef7d6c76e5f4 | 9e6d30009128903d2cb30ddfa4de6daf |       236914 | @ 1 year                | 2010-01-04 00:00:00 |
-|       7 |            1 | 2017-12-01 00:00:00 | 6356a11ad724fa48ef2751d13f11801c | 54137d5f48f70e52e4dae0a681c7476c |       246585 | @ 1 year                | 2010-01-04 00:00:00 |
-|       2 |            2 | 2015-12-01 00:00:00 | 74fee6432b12350f25c62bdf4c499a82 | ce3fb740876bfe04aa05e0a6ec9dbd69 |       228584 | @ 1 year                | 2010-01-04 00:00:00 |
-|       5 |            2 | 2016-12-01 00:00:00 | a011aa2bad1cecaa3ba3a7e579efa80a | 9e6d30009128903d2cb30ddfa4de6daf |       236914 | @ 1 year                | 2010-01-04 00:00:00 |
-|       8 |            2 | 2017-12-01 00:00:00 | 36d38ecf8f2b3b433eb7c4dc5a048577 | 54137d5f48f70e52e4dae0a681c7476c |       246585 | @ 1 year                | 2010-01-04 00:00:00 |
-|       3 |            3 | 2015-12-01 00:00:00 | 062f34c179e27cc779f050f7678f87a3 | ce3fb740876bfe04aa05e0a6ec9dbd69 |       228584 | @ 1 year                | 2010-01-04 00:00:00 |
-|       6 |            3 | 2016-12-01 00:00:00 | abd9adc61fce6b64ad4a52461e894f51 | 9e6d30009128903d2cb30ddfa4de6daf |       236914 | @ 1 year                | 2010-01-04 00:00:00 |
-|       9 |            3 | 2017-12-01 00:00:00 | cb89c4cc25bf9ca6746ab899d9805c74 | 54137d5f48f70e52e4dae0a681c7476c |       246585 | @ 1 year                | 2010-01-04 00:00:00 |
+| model_id | model_group_id | train_end_time        | model_hash | test_matrix_uuid | observations | feature_lookback_duration | feature_start_time    |
+|---------+--------------+---------------------+-----------+----------------+--------------+-------------------------+---------------------|
+|       1 |            1 | 2015-12-01 00:00:00 | ff2f3     | 865e3          |       228580 | @ 1 year                | 2010-01-04 00:00:00 |
+|       4 |            1 | 2016-12-01 00:00:00 | faf2f     | 3f3e1          |       236950 | @ 1 year                | 2010-01-04 00:00:00 |
+|       7 |            1 | 2017-12-01 00:00:00 | faf19     | 4203c          |       246622 | @ 1 year                | 2010-01-04 00:00:00 |
+|       2 |            2 | 2015-12-01 00:00:00 | 1435f     | 865e3          |       228580 | @ 1 year                | 2010-01-04 00:00:00 |
+|       5 |            2 | 2016-12-01 00:00:00 | 3ad95     | 3f3e1          |       236950 | @ 1 year                | 2010-01-04 00:00:00 |
+|       8 |            2 | 2017-12-01 00:00:00 | cc595     | 4203c          |       246622 | @ 1 year                | 2010-01-04 00:00:00 |
+|       3 |            3 | 2015-12-01 00:00:00 | cdf77     | 865e3          |       228580 | @ 1 year                | 2010-01-04 00:00:00 |
+|       6 |            3 | 2016-12-01 00:00:00 | 83ed9     | 3f3e1          |       236950 | @ 1 year                | 2010-01-04 00:00:00 |
+|       9 |            3 | 2017-12-01 00:00:00 | 67a54     | 4203c          |       246622 | @ 1 year                | 2010-01-04 00:00:00 |
 :END:
 
 All the models were stored in
@@ -597,11 +596,9 @@ select distinct
 from
     model_metadata.models as mo
     join
-    test_results.predictions as pr using (model_id)
+    test_results.evaluations as ev using (model_id)
     join
-    model_metadata.matrices as ma on pr.matrix_uuid = ma.matrix_uuid
-    join
-    test_results.evaluations as ev using(model_id)
+    model_metadata.matrices as ma on ev.matrix_uuid = ma.matrix_uuid
 where
     ev.metric || ev.parameter = 'precision@100_pct'
 order by
@@ -612,15 +609,15 @@ order by
 :RESULTS:
 | model_group_id | model_id | feature_start_time | train_end_time | evaluation_start_time | evaluation_end_time | observations | labeled_examples | labeled_above_threshold | total_positive_labels | baserate | precision@100% |
 |--------------+---------+------------------+--------------+---------------------+-------------------+--------------+-----------------+-----------------------+---------------------+----------+----------------|
-|            1 |       1 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,584      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
-|            2 |       2 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,584      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
-|            3 |       3 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,584      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
-|            1 |       4 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,914      | 13,637          | 13,637                | 3,203               |    0.014 |          0.235 |
-|            2 |       5 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,914      | 13,637          | 13,637                | 3,203               |    0.014 |          0.235 |
-|            3 |       6 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,914      | 13,637          | 13,637                | 3,203               |    0.014 |          0.235 |
-|            1 |       7 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,585      | 10,490          | 10,490                | 2,449               |    0.010 |          0.233 |
-|            2 |       8 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,585      | 10,490          | 10,490                | 2,449               |    0.010 |          0.233 |
-|            3 |       9 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,585      | 10,490          | 10,490                | 2,449               |    0.010 |          0.233 |
+|            1 |       1 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,580      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
+|            2 |       2 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,580      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
+|            3 |       3 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,580      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
+|            1 |       4 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,950      | 13,641          | 13,641                | 3,204               |    0.014 |          0.235 |
+|            2 |       5 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,950      | 13,641          | 13,641                | 3,204               |    0.014 |          0.235 |
+|            3 |       6 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,950      | 13,641          | 13,641                | 3,204               |    0.014 |          0.235 |
+|            1 |       7 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,622      | 10,641          | 10,641                | 2,479               |    0.010 |          0.233 |
+|            2 |       8 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,622      | 10,641          | 10,641                | 2,479               |    0.010 |          0.233 |
+|            3 |       9 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,622      | 10,641          | 10,641                | 2,479               |    0.010 |          0.233 |
 :END:
 
 The columns =num_labeled_examples, num_labeled_above_threshold,
@@ -916,14 +913,14 @@ and check the temporal cross validation:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiments/inspections_dt.yaml
+triage experiment experiments/inspections_dt.yaml --show-timechop
 #+END_SRC
 
 #+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/inspections_dt.png]]
+[[../triage/images/inspections_dt.png]]
 
 
 You can execute the experiment like this:
@@ -931,7 +928,7 @@ You can execute the experiment like this:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiments/inspections_dt.yaml --no-save-predictions --profile
+triage experiment --matrix-format hdf experiments/inspections_dt.yaml  --profile
 #+END_SRC
 
 
@@ -990,38 +987,116 @@ order by
 |            9 | {15,21,27} | {"2015-12-01 00:00:00","2016-12-01 00:00:00","2017-12-01 00:00:00"} |
 :END:
 
-Let's see the performance of the new models:
+Let's see the performance over time of the models so far:
 
 #+BEGIN_SRC  sql :async
-select distinct on (train_end_time)
+select
     model_group_id,
-    model_id,
-    train_end_time::date,
-    ev.evaluation_start_time::date,
-    ev.evaluation_end_time::date,
-    to_char(ev.num_labeled_examples, '999,999') as labeled_examples,
-    to_char(ev.num_labeled_above_threshold, '999,999') as labeled_above_threshold,
-    to_char(ev.num_positive_labels, '999,999') as total_positive_labels,
-    to_char(ev.value, '0.999') as "precision@10%"
+    array_agg(model_id order by ev.evaluation_start_time asc) as models,
+    -- array_agg(train_end_time::date order by ev.evaluation_start_time asc),
+    array_agg(ev.evaluation_start_time::date order by ev.evaluation_start_time asc) as evaluation_start_time,
+    array_agg(ev.evaluation_end_time::date order by ev.evaluation_start_time asc) as evaluation_end_time,
+    array_agg(to_char(ev.num_labeled_examples, '999,999') order by ev.evaluation_start_time asc) as labeled_examples,
+    array_agg(to_char(ev.num_labeled_above_threshold, '999,999') order by ev.evaluation_start_time asc) as labeled_above_threshold,
+    array_agg(to_char(ev.num_positive_labels, '999,999') order by ev.evaluation_start_time asc) as total_positive_labels,
+    array_agg(to_char(ev.value, '0.999') order by ev.evaluation_start_time asc) as "precision@10%"
 from
     model_metadata.models as mo
     join
     test_results.evaluations as ev using(model_id)
 where
     ev.metric || ev.parameter = 'precision@10_pct'
-order by
-    train_end_time asc, ev.value desc;
+group by
+    model_group_id
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | train_end_time | evaluation_start_time | evaluation_end_time | labeled_examples | labeled_above_threshold | total_positive_labels | precision@10% |
-|--------------+---------+--------------+---------------------+-------------------+-----------------+-----------------------+---------------------+---------------|
-|            5 |      11 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 14,273          | 2,014                 | 3,460               |         0.336 |
-|            7 |      19 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 13,637          | 1,675                 | 3,203               |         0.331 |
-|            6 |      24 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 10,490          | 1,254                 | 2,449               |         0.344 |
+| model_group_id | models     | evaluation_start_time                | evaluation_end_time                  | labeled_examples                    | labeled_above_threshold              | total_positive_labels                | precision@10%                |
+|--------------+------------+------------------------------------+------------------------------------+------------------------------------+------------------------------------+------------------------------------+------------------------------|
+|            1 | {1,4,7}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,933","   2,765","   2,146"} | {"   3,460","   3,204","   2,479"} | {" 0.225"," 0.252"," 0.232"} |
+|            2 | {2,5,8}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,933","   2,765","   2,146"} | {"   3,460","   3,204","   2,479"} | {" 0.225"," 0.252"," 0.232"} |
+|            3 | {3,6,9}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,933","   2,765","   2,146"} | {"   3,460","   3,204","   2,479"} | {" 0.225"," 0.252"," 0.232"} |
+|            4 | {10,16,22} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   3,921","   2,620","   2,106"} | {"   3,460","   3,204","   2,479"} | {" 0.333"," 0.298"," 0.291"} |
+|            5 | {11,17,23} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   3,921","   2,620","   2,106"} | {"   3,460","   3,204","   2,479"} | {" 0.333"," 0.298"," 0.291"} |
+|            6 | {12,18,24} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,992","   3,161","   2,391"} | {"   3,460","   3,204","   2,479"} | {" 0.298"," 0.301"," 0.331"} |
+|            7 | {13,19,25} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   3,017","   3,143","   2,393"} | {"   3,460","   3,204","   2,479"} | {" 0.296"," 0.303"," 0.332"} |
+|            8 | {14,20,26} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,708","   2,545","   2,096"} | {"   3,460","   3,204","   2,479"} | {" 0.275"," 0.277"," 0.245"} |
+|            9 | {15,21,27} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,805","   2,578","   2,140"} | {"   3,460","   3,204","   2,479"} | {" 0.288"," 0.283"," 0.265"} |
 :END:
 
+
+Which model in production (/model selection/) is something that we will
+review later, with =Audition=, but for now, let's choose the model group
+=5= and see the =predictions= table:
+
+#+BEGIN_SRC sql
+select
+    model_id,
+    entity_id,
+    as_of_date,
+    score,
+    label_value as label
+from
+    test_results.predictions
+where
+    model_id = 24
+order by score desc
+limit 20
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_id | entity_id | as_of_date            | score | label |
+|---------+----------+---------------------+-------+-------|
+|      24 |       47 | 2018-06-01 00:00:00 |   1.0 | ¤     |
+|      24 |       41 | 2018-11-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-05-01 00:00:00 |   1.0 | ¤     |
+|      24 |       39 | 2018-07-01 00:00:00 |   1.0 | ¤     |
+|      24 |       39 | 2018-10-01 00:00:00 |   1.0 | ¤     |
+|      24 |       41 | 2018-05-01 00:00:00 |   1.0 | ¤     |
+|      24 |       43 | 2018-06-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-04-01 00:00:00 |   1.0 | ¤     |
+|      24 |       14 | 2018-02-01 00:00:00 |   1.0 | ¤     |
+|      24 |       14 | 2018-01-01 00:00:00 |   1.0 | ¤     |
+|      24 |       14 | 2018-05-01 00:00:00 |   1.0 | ¤     |
+|      24 |       39 | 2018-09-01 00:00:00 |   1.0 | ¤     |
+|      24 |       14 | 2018-04-01 00:00:00 |   1.0 | ¤     |
+|      24 |       18 | 2017-12-01 00:00:00 |   1.0 | ¤     |
+|      24 |       14 | 2018-06-01 00:00:00 |   1.0 | ¤     |
+|      24 |       14 | 2018-03-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-01-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-02-01 00:00:00 |   1.0 | 0     |
+|      24 |       14 | 2017-12-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-07-01 00:00:00 |   1.0 | ¤     |
+:END:
+
+Note that at the top of the list (sorted by =score=), the /labels/
+are =NULL=. This means that the facilities that you are classifying as
+high risk, actually weren't inspected in that /as of date/. So, you
+actually don't know if this is a correct prediction or not.
+
+This is a *characteristic* of all the resource optimization problems:
+You do not have all the information about the elements in your system[fn:5].
+
+So, how the precision/recall is calculated? The number that is show in
+the =evaluations= table is calculated using only the rows that have a
+non-null label. You could argue that this is fine, if you assume that
+the distribution of the label in the non-observed facilities is the
+same that the ones that were inspected that month[fn:4]. We will come
+back to this problem in the Early Warning problem.
+
+There is a second problem: /How do you break ties in the score?/
+If you run the previous query you will see why. The order within all
+the equal scores will be /random/. This again will affect the
+calculation of your metrics. One potential solution to this is
+calculate the metric in the /best case scenario/ (all the true labels are at
+the top), and then in the /worst case scenario/ (all the true labels are
+at the bottom) and then calculate the metric several times with the
+labels shuffled, so you get the /mean/ metric, plus some confidence
+intervals. This second problem is *not* specific of an inspection
+problem, is more related to simple models like a shallow Decision Tree
+or a Dummy Classifier.
 
 *** A more advanced experiment
 
@@ -1201,14 +1276,14 @@ As before, we can check the temporal structure of our crossvalidation:
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiments/inspections_label_failed_01.yaml
+triage experiment experiments/inspections_label_failed_01.yaml --show-timechop
 #+END_SRC
 
 #+CAPTION: Temporal blocks for inspections experiment. The label is a failed inspection in the next month.
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/inspections_label_failed_01.png]]
+[[../triage/images/inspections_label_failed_01.png]]
 
 
 We want to use all the features groups
@@ -1279,6 +1354,16 @@ This will take a looooong time to run.
 Well, now we have a lot of models. How can you pick the best one?
 
 * Footnotes
+
+[fn:5] From a more mathematical point of view: Your data actually
+reflects the empirical probability: $P(violation|inspected)$, i.e. the
+probability of find a violation given that the facility is
+inspected. But the probability that you want is $P(violation)$ (yes, I
+know that there are no such things as unconditional probabilities,
+please bare with me),i.e. the probability that the facility is in violation.
+
+[fn:4] You should see that this assumption is very dangerous in other
+settings, for example, crime prediction.
 
 [fn:3] The flags =-no-save-predictions= and =profile= are not necessary
 but useful. The first one configure triage to not store the
