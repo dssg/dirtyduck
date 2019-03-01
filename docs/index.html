@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-01 Fri 16:54 -->
+<!-- 2019-03-01 Fri 17:53 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#org9418773">5.1. Problem description</a></li>
+<li><a href="#orgcfe1b58">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#orga629bce">5.3. Modeling Using Machine Learning</a>
+<li><a href="#org5a535b9">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#orgcfe1b58">6.1. Problem description</a></li>
+<li><a href="#org13a607f">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org5a535b9">6.3. Modeling Using Machine Learning</a>
+<li><a href="#org9a72a77">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -384,11 +384,8 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#orgb9d2293">7. WORKING Audition: How can I pick the best one?</a>
 <ul>
-<li><a href="#org9d8cba8">7.1. Distance from best</a></li>
-<li><a href="#org5ecdee3">7.2. Model group performance over time</a></li>
-<li><a href="#orgd8e1e56">7.3. Metric "next time"</a></li>
-<li><a href="#org2280ce2">7.4. "Regret"</a></li>
-<li><a href="#org9f46faf">7.5. "Regret" over time</a></li>
+<li><a href="#org8bc796f">7.1. Filtering model groups</a></li>
+<li><a href="#org7cad5e1">7.2. Selecting the best rule or strategy for choosing model groups</a></li>
 </ul>
 </li>
 <li><a href="#orge268685">8. WORKING Crossvalidation</a></li>
@@ -6958,8 +6955,8 @@ rm -r /triage/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org9418773" class="outline-3">
-<h3 id="org9418773"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-orgcfe1b58" class="outline-3">
+<h3 id="orgcfe1b58"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7166,7 +7163,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org5659057" class="figure">
+<div id="org5512f9b" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7176,8 +7173,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orga629bce" class="outline-3">
-<h3 id="orga629bce"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org5a535b9" class="outline-3">
+<h3 id="org5a535b9"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -9209,8 +9206,8 @@ Well, now we have a lot of models. How can you pick the best one?
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-orgcfe1b58" class="outline-3">
-<h3 id="orgcfe1b58"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org13a607f" class="outline-3">
+<h3 id="org13a607f"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9259,7 +9256,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org5512f9b" class="figure">
+<div id="orgc7c3201" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -9363,8 +9360,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org5a535b9" class="outline-3">
-<h3 id="org5a535b9"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org9a72a77" class="outline-3">
+<h3 id="org9a72a77"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -10061,7 +10058,7 @@ We included a simple configuration file with some rules:
         <span style="font-style: italic;">FROM model_metadata.models</span>
         <span style="font-style: italic;">WHERE model_group_id IN ({})</span>
         <span style="font-style: italic;">AND EXTRACT(DAY FROM train_end_time) IN (1)</span>
-        AND train_end_time &gt;= <span style="font-style: italic;">'2012-01-01'</span>
+        AND train_end_time &gt;= <span style="font-style: italic;">'2015-01-01'</span>
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">FILTER</span>
 <span style="font-weight: bold; font-style: italic;">filter</span>:
     <span style="font-weight: bold; font-style: italic;">metric</span>: <span style="font-style: italic;">'precision@'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">metric of interest</span>
@@ -10113,137 +10110,90 @@ We can run the simulation of the rules againts the experiment as:
 </pre>
 </div>
 
-<div class="org-src-container">
-<pre class="src src-org">/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <span style="text-decoration: underline;"><a href="http://initd.org/psycopg/docs/install.html#binary-install-from-pypi">&lt;http://initd.org/psycopg/docs/install.html#binary-install-from-pypi&gt;</a></span>.
-  """)
-INFO:root:Validate!
-INFO:root:Checking if all model groups have the same train end times
-INFO:root:Found 45 total model groups
-INFO:root:Dropped 36 model groups which don't match the train end times
-INFO:root:Found 9 total model groups past the checker
-INFO:root:Polulating data to distance table
-INFO:root:Showing best distance plots for all metrics
-INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 9 total model groups past threshold
-INFO:root:Building best distance plot for {'metric': 'precision@', 'parameter': '10_pct'} and [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
-INFO:root:Showing model group performance plots for all metrics
-INFO:root:Plotting model group performance for {'metric': 'precision@', 'parameter': '10_pct', 'max_from_best': 1.0, 'threshold_value': 0.0}, [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
-INFO:root:Expanding selection rule groups into full grid
-INFO:root:Expanding rule group {'shared_parameters': [{'metric': 'precision@', 'parameter': '10_pct'}], 'selection_rules': [{'name': 'best_current_value', 'n': 3}, {'name': 'best_average_value', 'n': 3}, {'name': 'lowest_metric_variance', 'n': 3}, {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}]}
-INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'best_current_value', 'n': 3}
-INFO:root:Found 1 new rules
-INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'best_average_value', 'n': 3}
-INFO:root:Found 1 new rules
-INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'lowest_metric_variance', 'n': 3}
-INFO:root:Found 1 new rules
-INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}
-INFO:root:Found 1 new rules
-INFO:root:Found 4 total selection rules. Full list: ['best_current_value_precision@_10_pct', 'best_average_value_precision@_10_pct', 'lowest_metric_variance_precision@_10_pct', 'most_frequent_best_dist_precision@_10_pct_0.05']
-INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 9 total model groups past threshold
-INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
-INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
-INFO:root:Calculating selection rule picks for all rules
-INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 9 total model groups past threshold
-INFO:root:Calculating selection rule picks for best_current_value_precision@_10_pct
-INFO:root:For rule best_current_value_precision@_10_pct, model group [7, 6, 5] was picked
-INFO:root:Calculating selection rule picks for best_average_value_precision@_10_pct
-INFO:root:For rule best_average_value_precision@_10_pct, model group [6, 7, 4] was picked
-INFO:root:Calculating selection rule picks for lowest_metric_variance_precision@_10_pct
-INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [1, 2, 3] was picked
-INFO:root:Calculating selection rule picks for most_frequent_best_dist_precision@_10_pct_0.05
-INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [6, 4, 5] was picked
-INFO:root:Audition ran! Results are stored in images.
-&#27;[0m
-</pre>
-</div>
+<p>
+<code>Audition</code> will create several plots that will help you to sort out
+which is the <i>best<sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup></i> model group to use (like in a production setting or
+just to generate your list).
+</p>
 
 <p>
-<code>audtion</code> will create the folloing  plots:
+Most of the time, <code>audition</code> should be used iteratively, the result of
+each iteration will be a reduced set of models groups and a best rule
+for selecting model groups.
 </p>
 </div>
 
-<div id="outline-container-org9d8cba8" class="outline-3">
-<h3 id="org9d8cba8"><span class="section-number-3">7.1</span> Distance from best</h3>
+<div id="outline-container-org8bc796f" class="outline-3">
+<h3 id="org8bc796f"><span class="section-number-3">7.1</span> Filtering model groups</h3>
 <div class="outline-text-3" id="text-7-1">
-
-<div class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
-</p>
-</div>
-
 <p>
-The way of read this image is:
+<code>Audition</code> will generate two plots that are meant to be used together:
+<i>model performance over time</i> and <i>distance from best</i>.
 </p>
+
+
+<div id="org05de068" class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 24: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
+</div>
+
+
+
+<div id="orge5caf1e" class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 25: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
+</div>
 </div>
 </div>
 
-<div id="outline-container-org5ecdee3" class="outline-3">
-<h3 id="org5ecdee3"><span class="section-number-3">7.2</span> Model group performance over time</h3>
+<div id="outline-container-org7cad5e1" class="outline-3">
+<h3 id="org7cad5e1"><span class="section-number-3">7.2</span> Selecting the best rule or strategy for choosing model groups</h3>
 <div class="outline-text-3" id="text-7-2">
-
-<div class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
+<p>
+In this phase of the audition, you will see what will happen in the
+next time if you choose your model group with an specific strategy or
+rule.
 </p>
-</div>
-</div>
-</div>
 
-<div id="outline-container-orgd8e1e56" class="outline-3">
-<h3 id="orgd8e1e56"><span class="section-number-3">7.3</span> Metric "next time"</h3>
-<div class="outline-text-3" id="text-7-3">
-
-<div class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
+<p>
+You then, can calculate the <i>regret</i>. <i>Regret</i> is defined as the
+difference between the performance of the best model evaluated on the
+"next time" and the performance of the model selected by a particular rule.
 </p>
-</div>
-</div>
-</div>
 
-<div id="outline-container-org2280ce2" class="outline-3">
-<h3 id="org2280ce2"><span class="section-number-3">7.4</span> "Regret"</h3>
-<div class="outline-text-3" id="text-7-4">
 
-<div class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
+<div id="orge790018" class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
 </p>
-</div>
-</div>
+<p><span class="figure-number">Figure 26: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
 </div>
 
 
-<div id="outline-container-org9f46faf" class="outline-3">
-<h3 id="org9f46faf"><span class="section-number-3">7.5</span> "Regret" over time</h3>
-<div class="outline-text-3" id="text-7-5">
 
-<div class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
+<div id="org3e9eca9" class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
 </p>
+<p><span class="figure-number">Figure 27: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
+</div>
+
+
+
+
+<div id="org50f3602" class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 28: </span>Expected regret for the strategies. The less the better.</p>
 </div>
 
 
 <p>
-The final result of audition will be stored in a <code>json</code> file:
+All this information will be stored in the file <code>results_model_group_ids.json</code>:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">7</span>, <span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">5</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">7</span>, <span style="font-weight: bold; text-decoration: underline;">4</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">1</span>, <span style="font-weight: bold; text-decoration: underline;">2</span>, <span style="font-weight: bold; text-decoration: underline;">3</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">4</span>, <span style="font-weight: bold; text-decoration: underline;">5</span>]}
+<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">13</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>, <span style="font-weight: bold; text-decoration: underline;">10</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">12</span>, <span style="font-weight: bold; text-decoration: underline;">13</span>, <span style="font-weight: bold; text-decoration: underline;">10</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">21</span>, <span style="font-weight: bold; text-decoration: underline;">20</span>, <span style="font-weight: bold; text-decoration: underline;">19</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">10</span>, <span style="font-weight: bold; text-decoration: underline;">11</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>]}
 </pre>
 </div>
 </div>
@@ -10256,11 +10206,11 @@ The final result of audition will be stored in a <code>json</code> file:
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;">output</span>:
   <span style="font-weight: bold; font-style: italic;">schema</span>: <span style="font-style: italic;">'test_results'</span>
-  <span style="font-weight: bold; font-style: italic;">table</span>: <span style="font-style: italic;">'crosstabs_test'</span>
+  <span style="font-weight: bold; font-style: italic;">table</span>: <span style="font-style: italic;">'eis_crosstabs_test'</span>
 
 <span style="font-weight: bold; font-style: italic;">thresholds</span>:
     <span style="font-weight: bold; font-style: italic;">rank_abs</span>: [50]
-    <span style="font-weight: bold; font-style: italic;">rank_pct</span>: []
+    <span style="font-weight: bold; font-style: italic;">rank_pct</span>: [5]
 
 <span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">(optional): a list of entity_ids to subset on the crosstabs analysis</span>
 <span style="font-weight: bold; font-style: italic;">entity_id_list</span>: []
@@ -10319,7 +10269,7 @@ Compored to the previous sections, <i>postmodeling</i> is not an automated proce
 <pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Postmodeling Configuration File</span>
 
   <span style="font-weight: bold; font-style: italic;">project_path</span>: <span style="font-style: italic;">'/triage'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Project path defined in triage with matrices and models</span>
-  <span style="font-weight: bold; font-style: italic;">audition_output_path</span>: <span style="font-style: italic;">'/triage/images'</span>
+  <span style="font-weight: bold; font-style: italic;">audition_output_path</span>: <span style="font-style: italic;">'/triage/audition'</span>
 
   <span style="font-weight: bold; font-style: italic;">thresholds</span>: <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Thresholds for2 defining positive predictions</span>
         <span style="font-weight: bold; font-style: italic;">rank_abs</span>: [50, 100, 250]
@@ -10365,8 +10315,6 @@ Compored to the previous sections, <i>postmodeling</i> is not an automated proce
 
 <div id="outline-container-orgd807ce1" class="outline-3">
 <h3 id="orgd807ce1"><span class="section-number-3">9.4</span> Overlap</h3>
-<div class="outline-text-3" id="text-9-4">
-</div>
 </div>
 </div>
 
@@ -11096,12 +11044,17 @@ You should see that this assumption is very dangerous in other
 settings, for example, crime prediction.
 </p></div></div>
 
+<div class="footdef"><sup><a id="fn.47" class="footnum" href="#fnr.47">47</a></sup> <div class="footpara"><p class="footpara">
+<i>Best</i> in the sense of the rules that we defined in the <code>audition</code>
+config file.
+</p></div></div>
+
 
 </div>
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-01 Fri 16:54</p>
+<p class="date">Created: 2019-03-01 Fri 17:53</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

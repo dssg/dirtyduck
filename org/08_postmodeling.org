@@ -93,7 +93,7 @@ time_stamps:
         FROM model_metadata.models
         WHERE model_group_id IN ({})
         AND EXTRACT(DAY FROM train_end_time) IN (1)
-        AND train_end_time >= '2012-01-01'
+        AND train_end_time >= '2015-01-01'
 # FILTER
 filter:
     metric: 'precision@' # metric of interest
@@ -134,7 +134,7 @@ recent time period (in all the rules shown $n$ = 1).
 
 We can run the simulation of the rules againts the experiment as:
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports both :results output
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports code :results output
 triage --tb audition --directory audition/
 :
 #+END_SRC
@@ -146,17 +146,17 @@ triage --tb audition --directory audition/
 INFO:root:Validate!
 INFO:root:Checking if all model groups have the same train end times
 INFO:root:Found 45 total model groups
-INFO:root:Dropped 36 model groups which don't match the train end times
-INFO:root:Found 9 total model groups past the checker
+INFO:root:Dropped 19 model groups which don't match the train end times
+INFO:root:Found 26 total model groups past the checker
 INFO:root:Polulating data to distance table
 INFO:root:Showing best distance plots for all metrics
-INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 9 total model groups past threshold
+INFO:root:Found 26 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 26 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 26 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 26 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 25 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 25 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 25 total model groups past threshold
 INFO:root:Building best distance plot for {'metric': 'precision@', 'parameter': '10_pct'} and [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
 INFO:root:Showing model group performance plots for all metrics
 INFO:root:Plotting model group performance for {'metric': 'precision@', 'parameter': '10_pct', 'max_from_best': 1.0, 'threshold_value': 0.0}, [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
@@ -171,79 +171,97 @@ INFO:root:Found 1 new rules
 INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}
 INFO:root:Found 1 new rules
 INFO:root:Found 4 total selection rules. Full list: ['best_current_value_precision@_10_pct', 'best_average_value_precision@_10_pct', 'lowest_metric_variance_precision@_10_pct', 'most_frequent_best_dist_precision@_10_pct_0.05']
-INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 9 total model groups past threshold
+INFO:root:Found 26 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 26 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 26 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 26 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 25 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 25 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 25 total model groups past threshold
 INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
 INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
 INFO:root:Calculating selection rule picks for all rules
-INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 9 total model groups past threshold
+INFO:root:Found 26 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 26 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 26 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 26 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 25 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 25 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 25 total model groups past threshold
 INFO:root:Calculating selection rule picks for best_current_value_precision@_10_pct
-INFO:root:For rule best_current_value_precision@_10_pct, model group [7, 6, 5] was picked
+INFO:root:For rule best_current_value_precision@_10_pct, model group [13, 12, 10] was picked
 INFO:root:Calculating selection rule picks for best_average_value_precision@_10_pct
-INFO:root:For rule best_average_value_precision@_10_pct, model group [6, 7, 4] was picked
+INFO:root:For rule best_average_value_precision@_10_pct, model group [12, 13, 10] was picked
 INFO:root:Calculating selection rule picks for lowest_metric_variance_precision@_10_pct
-INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [1, 2, 3] was picked
+INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [21, 20, 19] was picked
 INFO:root:Calculating selection rule picks for most_frequent_best_dist_precision@_10_pct_0.05
-INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [6, 4, 5] was picked
-INFO:root:Audition ran! Results are stored in images.
+INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [10, 11, 12] was picked
+INFO:root:Audition ran! Results are stored in audition/.
 [0m
 #+END_SRC
 
-=audtion= will create the folloing  plots:
+=Audition= will create several plots that will help you to sort out
+which is the /best[fn:1]/ model group to use (like in a production setting or
+just to generate your list).
 
-** Distance from best
+Most of the time, =audition= should be used iteratively, the result of
+each iteration will be a reduced set of models groups and a best rule
+for selecting model groups.
 
-[[file:~/projects/dsapp/dirtyduck/triage/images/distance_from_best_precision@10_pct.png]]
+** Filtering model groups
 
-The way of read this image is:
+=Audition= will generate two plots that are meant to be used together:
+/model performance over time/ and /distance from best/.
 
-** Model group performance over time
-
-
-[[file:~/projects/dsapp/dirtyduck/triage/images/metric_over_time_precision@10_pct.png]]
-
-** Metric "next time"
-
-
-[[file:~/projects/dsapp/dirtyduck/triage/images/precision@10_pct_next_time.png]]
-
-** "Regret"
+#+CAPTION: Model group performance over time. In this case the metric show is =precision@10%=. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.
+#+LABEL: fig:performance-over-time
+[[file:~/projects/dsapp/dirtyduck/triage/audition/metric_over_time_precision@10_pct.png]]
 
 
-[[file:~/projects/dsapp/dirtyduck/triage/images/regret_distance_from_best_rules_precision@10_pct.png]]
+#+CAPTION: Proportion of /models/ in a /model group/ that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.
+#+LABEL: fig:distance-from-best
+[[file:~/projects/dsapp/dirtyduck/triage/audition/distance_from_best_precision@10_pct.png]]
+
+** Selecting the best rule or strategy for choosing model groups
+
+In this phase of the audition, you will see what will happen in the
+next time if you choose your model group with an specific strategy or
+rule.
+
+You then, can calculate the /regret/. /Regret/ is defined as the
+difference between the performance of the best model evaluated on the
+"next time" and the performance of the model selected by a particular rule.
+
+#+CAPTION: Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?
+#+LABEL: fig:performance-next-time
+[[file:~/projects/dsapp/dirtyduck/triage/audition/precision@10_pct_next_time.png]]
 
 
-** "Regret" over time
+#+CAPTION: Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (/regret/) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]
+#+LABEL: fig:regret-from-best-given-a-rule
+[[file:~/projects/dsapp/dirtyduck/triage/audition/regret_distance_from_best_rules_precision@10_pct.png]]
 
 
-[[file:~/projects/dsapp/dirtyduck/triage/images/regret_over_time_precision@10_pct.png]]
+
+#+CAPTION: Expected regret for the strategies. The less the better.
+#+LABEL: fig:regret-over-time
+[[file:~/projects/dsapp/dirtyduck/triage/audition/regret_over_time_precision@10_pct.png]]
 
 
-The final result of audition will be stored in a =json= file:
+All this information will be stored in the file =results_model_group_ids.json=:
 
-#+INCLUDE: ../triage/images/results_model_group_ids.json src json
+#+INCLUDE: ../triage/audition/results_model_group_ids.json src json
 
 * WORKING Crossvalidation
 
 #+BEGIN_SRC yaml :tangle ../triage/eis_crosstabs_config.yaml
 output:
   schema: 'test_results'
-  table: 'crosstabs_test'
+  table: 'eis_crosstabs_test'
 
 thresholds:
     rank_abs: [50]
-    rank_pct: []
+    rank_pct: [5]
 
 #(optional): a list of entity_ids to subset on the crosstabs analysis
 entity_id_list: []
@@ -294,7 +312,7 @@ Compored to the previous sections, /postmodeling/ is not an automated process (y
 # Postmodeling Configuration File
 
   project_path: '/triage' # Project path defined in triage with matrices and models
-  audition_output_path: '/triage/images'
+  audition_output_path: '/triage/audition'
 
   thresholds: # Thresholds for2 defining positive predictions
         rank_abs: [50, 100, 250]
@@ -331,3 +349,8 @@ Compored to the previous sections, /postmodeling/ is not an automated process (y
 ** Higher ratio across labels from =crosstabs=
 
 ** Overlap
+
+* Footnotes
+
+[fn:1] /Best/ in the sense of the rules that we defined in the =audition=
+config file.
