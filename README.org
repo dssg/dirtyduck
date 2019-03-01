@@ -45,33 +45,13 @@ First, clone this repository on your laptop
  git clone https://github.com/dssg/dirtyduck.git
 #+END_EXAMPLE
 
-Second, copy the file
-=infrastructure/env_example= to
-=infrastructure/.env=, open the file, and change the
-string =your_password= to something more meaningful to you.
-
-   #+BEGIN_EXAMPLE sh :tangle infrastructure/env_example
-    POSTGRES_DB=food
-    POSTGRES_HOST=0.0.0.0
-    POSTGRES_USER=food_user
-    POSTGRES_DB=food
-    POSTGRES_PORT=5434
-    POSTGRES_PASSWORD=your_password  #<-- change this if you like
-
-    UID=1000
-    GID=1000
-   #+END_EXAMPLE
-
-Third, run
+Second, run
 
 #+BEGIN_EXAMPLE
 ./tutorial.sh start
 #+END_Example
 
 This will take several minutes the first time you do it.
-
-Finally, open your browser and type [[https://dssg.github.io/dirtyduck/]] into the location bar. That
-will open the tutorial. Follow from there[fn:3].
 
 * How you can help
 
@@ -95,9 +75,11 @@ The steps to help are:
 - edit the source =org= files in the =org= folder
 - From your terminal run
 
-#+BEGIN_EXAMPLE shell
+#+BEGIN_SRC shell
 emacs  --batch -l org/publish.el org/index.org --eval '(org-publish "dirtyduck" t)'
-#+END_EXAMPLE
+#+END_SRC
+
+#+RESULTS:
 
 - create a *pull request*.
 

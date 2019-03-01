@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-02-20 Wed 14:23 -->
+<!-- 2019-03-01 Fri 16:54 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#org181e53e">5.1. Problem description</a></li>
+<li><a href="#org9418773">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#orgf884da6">5.3. Modeling Using Machine Learning</a>
+<li><a href="#orga629bce">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#org9418773">6.1. Problem description</a></li>
+<li><a href="#orgcfe1b58">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#orga629bce">6.3. Modeling Using Machine Learning</a>
+<li><a href="#org5a535b9">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -382,9 +382,24 @@ for the JavaScript code in this tag.
 </li>
 </ul>
 </li>
-<li><a href="#orgb9d2293">7. WORKING Audition: How can I pick the best one?</a></li>
-<li><a href="#org8fdc63f">8. <span class="todo TODO">TODO</span> Crossvalidation</a></li>
-<li><a href="#org9ee025d">9. <span class="todo TODO">TODO</span> Postmodeling</a></li>
+<li><a href="#orgb9d2293">7. WORKING Audition: How can I pick the best one?</a>
+<ul>
+<li><a href="#org9d8cba8">7.1. Distance from best</a></li>
+<li><a href="#org5ecdee3">7.2. Model group performance over time</a></li>
+<li><a href="#orgd8e1e56">7.3. Metric "next time"</a></li>
+<li><a href="#org2280ce2">7.4. "Regret"</a></li>
+<li><a href="#org9f46faf">7.5. "Regret" over time</a></li>
+</ul>
+</li>
+<li><a href="#orge268685">8. WORKING Crossvalidation</a></li>
+<li><a href="#org75a5186">9. WORKING Postmodeling</a>
+<ul>
+<li><a href="#org124753d">9.1. Over time</a></li>
+<li><a href="#orgf02b64f">9.2. Feature group importance</a></li>
+<li><a href="#orgebcb7ce">9.3. Higher ratio across labels from <code>crosstabs</code></a></li>
+<li><a href="#orgd807ce1">9.4. Overlap</a></li>
+</ul>
+</li>
 <li><a href="#org3b6f527">10. Scaling out: AWS Batch</a>
 <ul>
 <li><a href="#orgbf7c96d">10.1. What do you need to setup?</a></li>
@@ -621,23 +636,23 @@ INFRASTRUCTURE:
 
 EXPERIMENTS:
    NOTE:
-      The following commands assume that "sample_experiments.yaml"
+      The following commands assume that "sample_experiment_config.yaml"
       is located inside the triage/experiments directory
 
    Run one experiment:
-        $ ./tutorial.sh -t --config_file sample_experiments.yaml run
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml run
 
    Run one experiment, do not replace existing matrices or models, and enable debug:
-        $ ./tutorial.sh -t --config_file sample_experiments.yaml --no-replace --debug run
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml --no-replace --debug run
 
    Validate experiment configuration file:
-        $ ./tutorial.sh triage --config_file sample_experiments.yaml validate
+        $ ./tutorial.sh triage --config_file sample_experiment_config.yaml validate
 
    Show the experiment's temporal cross-validation blocks:
-        $ ./tutorial.sh -t --config_file sample_experiments.yaml show-temporal-blocks
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show-temporal-blocks
 
    Plot model number 4 (for Decision Trees and Random Forests):
-        $ ./tutorial.sh -t --config_file sample_experiments.yaml show_model_plot --model 4
+        $ ./tutorial.sh -t --config_file sample_experiment_config.yaml show_model_plot --model 4
 
    Triage help:
         $ ./tutorial.sh triage --help
@@ -997,7 +1012,7 @@ Now, you should have some data<sup><a id="fnr.11" class="footref" href="#fn.11">
 </thead>
 <tbody>
 <tr>
-<td class="org-left">180,842</td>
+<td class="org-left">182,419</td>
 </tr>
 </tbody>
 </table>
@@ -1039,10 +1054,10 @@ Let's peek inside the table<sup><a id="fnr.12" class="footref" href="#fn.12">12<
 </thead>
 <tbody>
 <tr>
-<td class="org-right">2252844</td>
-<td class="org-left">Paciugo Of Broadway</td>
+<td class="org-right">2268241</td>
+<td class="org-left">ANTOJITOS PUEBLITA INC</td>
 <td class="org-left">Risk 1 (High)</td>
-<td class="org-left">Out of Business</td>
+<td class="org-left">Pass w/ Conditions</td>
 </tr>
 </tbody>
 </table>
@@ -1284,27 +1299,27 @@ checking that the <code>risk</code> column <b>only</b> has three classifications
 <tbody>
 <tr>
 <td class="org-left">Risk 1 (High)</td>
-<td class="org-left">128,345</td>
+<td class="org-left">129,667</td>
 </tr>
 
 <tr>
 <td class="org-left">Risk 2 (Medium)</td>
-<td class="org-left">36,083</td>
+<td class="org-left">36,286</td>
 </tr>
 
 <tr>
 <td class="org-left">Risk 3 (Low)</td>
-<td class="org-left">16,317</td>
+<td class="org-left">16,370</td>
 </tr>
 
 <tr>
 <td class="org-left">¤</td>
-<td class="org-left">69</td>
+<td class="org-left">71</td>
 </tr>
 
 <tr>
 <td class="org-left">All</td>
-<td class="org-left">28</td>
+<td class="org-left">25</td>
 </tr>
 </tbody>
 </table>
@@ -1383,47 +1398,47 @@ What are those types? How bad is it?
 <tbody>
 <tr>
 <td class="org-left">Canvass</td>
-<td class="org-left">95,642</td>
+<td class="org-left">96,561</td>
 </tr>
 
 <tr>
 <td class="org-left">License</td>
-<td class="org-left">23,607</td>
+<td class="org-left">23,785</td>
 </tr>
 
 <tr>
 <td class="org-left">Canvass Re-Inspection</td>
-<td class="org-left">18,775</td>
+<td class="org-left">18,922</td>
 </tr>
 
 <tr>
 <td class="org-left">Complaint</td>
-<td class="org-left">16,780</td>
+<td class="org-left">16,953</td>
 </tr>
 
 <tr>
 <td class="org-left">License Re-Inspection</td>
-<td class="org-left">8,347</td>
+<td class="org-left">8,411</td>
 </tr>
 
 <tr>
 <td class="org-left">Complaint Re-Inspection</td>
-<td class="org-left">6,867</td>
+<td class="org-left">6,911</td>
 </tr>
 
 <tr>
 <td class="org-left">Short Form Complaint</td>
-<td class="org-left">6,464</td>
+<td class="org-left">6,491</td>
 </tr>
 
 <tr>
 <td class="org-left">Suspected Food Poisoning</td>
-<td class="org-left">805</td>
+<td class="org-left">817</td>
 </tr>
 
 <tr>
 <td class="org-left">Consultation</td>
-<td class="org-left">670</td>
+<td class="org-left">671</td>
 </tr>
 
 <tr>
@@ -1471,32 +1486,32 @@ Finally, let's look <code>results</code> (should be 3)
 <tbody>
 <tr>
 <td class="org-left">Pass</td>
-<td class="org-left">102,278</td>
+<td class="org-left">102,592</td>
 </tr>
 
 <tr>
 <td class="org-left">Fail</td>
-<td class="org-left">34,975</td>
+<td class="org-left">35,252</td>
 </tr>
 
 <tr>
 <td class="org-left">Pass w/ Conditions</td>
-<td class="org-left">20,672</td>
+<td class="org-left">21,401</td>
 </tr>
 
 <tr>
 <td class="org-left">Out of Business</td>
-<td class="org-left">15,838</td>
+<td class="org-left">15,973</td>
 </tr>
 
 <tr>
 <td class="org-left">No Entry</td>
-<td class="org-left">5,527</td>
+<td class="org-left">5,619</td>
 </tr>
 
 <tr>
 <td class="org-left">Not Ready</td>
-<td class="org-left">1,486</td>
+<td class="org-left">1,516</td>
 </tr>
 
 <tr>
@@ -1592,12 +1607,12 @@ data should be located in <b>Illinois</b>:
 <tbody>
 <tr>
 <td class="org-left">IL</td>
-<td class="org-left">180,809</td>
+<td class="org-left">182,385</td>
 </tr>
 
 <tr>
 <td class="org-left">¤</td>
-<td class="org-left">33</td>
+<td class="org-left">34</td>
 </tr>
 </tbody>
 </table>
@@ -1640,12 +1655,12 @@ the next spatial column, we expect that all the values in the column
 <tbody>
 <tr>
 <td class="org-left">chicago</td>
-<td class="org-right">180,438</td>
+<td class="org-right">182,011</td>
 </tr>
 
 <tr>
 <td class="org-left">¤</td>
-<td class="org-right">155</td>
+<td class="org-right">157</td>
 </tr>
 
 <tr>
@@ -1790,8 +1805,8 @@ Then, we will create our mini <b>ETL</b> with our cleaning decisions:
             inspection::<span style="font-weight: bold; text-decoration: underline;">integer</span>,
             btrim(<span style="font-weight: bold;">lower</span>(results)) <span style="font-weight: bold;">as</span> <span style="font-weight: bold;">result</span>,
             license_num::<span style="font-weight: bold; text-decoration: underline;">integer</span>,
-            btrim(<span style="font-weight: bold;">lower</span>(dba_name)) <span style="font-weight: bold;">as</span> facility,
-            btrim(<span style="font-weight: bold;">lower</span>(aka_name)) <span style="font-weight: bold;">as</span> facility_aka,
+            replace(regexp_replace(btrim(<span style="font-weight: bold;">lower</span>(dba_name)), <span style="font-style: italic;">'\s{2,}|,|\.'</span>,<span style="font-style: italic;">''</span>), $$<span style="font-style: italic;">'$$,'') as facility,</span>
+<span style="font-style: italic;">            replace(regexp_replace(btrim(lower(aka_name)), '</span>\s{2,}|,|\.<span style="font-style: italic;">',''), $$'</span>$$,<span style="font-style: italic;">''</span>) <span style="font-weight: bold;">as</span> facility_aka,
             <span style="font-weight: bold;">case</span> <span style="font-weight: bold;">when</span>
             facility_type <span style="font-weight: bold;">is</span> <span style="font-weight: bold;">null</span> <span style="font-weight: bold;">then</span> <span style="font-style: italic;">'unknown'</span>
             <span style="font-weight: bold;">else</span> btrim(<span style="font-weight: bold;">lower</span>(facility_type))
@@ -1855,7 +1870,7 @@ The number of inspections now is:
 </thead>
 <tbody>
 <tr>
-<td class="org-left">179,977</td>
+<td class="org-left">181,546</td>
 </tr>
 </tbody>
 </table>
@@ -1959,8 +1974,8 @@ We will create a new table called <code>cleaned.violations</code> to store
     license_num::<span style="font-weight: bold; text-decoration: underline;">integer</span>,
     <span style="font-weight: bold; text-decoration: underline;">date</span>::<span style="font-weight: bold; text-decoration: underline;">date</span>,
     btrim(tuple[1]) <span style="font-weight: bold;">as</span> code,
-    btrim(tuple[2]) <span style="font-weight: bold;">as</span> description,
-    btrim(tuple[3]) <span style="font-weight: bold;">as</span> comment,
+    <span style="font-weight: bold;">lower</span>(btrim(tuple[2])) <span style="font-weight: bold;">as</span> description,
+    <span style="font-weight: bold;">lower</span>(btrim(tuple[3])) <span style="font-weight: bold;">as</span> comment,
     (<span style="font-weight: bold;">case</span>
         <span style="font-weight: bold;">when</span> btrim(tuple[1]) = <span style="font-style: italic;">''</span> <span style="font-weight: bold;">then</span> <span style="font-weight: bold;">NULL</span>
         <span style="font-weight: bold;">when</span> btrim(tuple[1])::<span style="font-weight: bold; text-decoration: underline;">int</span> <span style="font-weight: bold;">between</span> 1 <span style="font-weight: bold;">and</span> 14 <span style="font-weight: bold;">then</span> <span style="font-style: italic;">'critical'</span> <span style="font-weight: bold; font-style: italic;">-- From the documentation</span>
@@ -2034,21 +2049,21 @@ We can verify the result of the previous script
 <td class="org-right">2145736</td>
 <td class="org-right">2018-03-01</td>
 <td class="org-right">32</td>
-<td class="org-left">FOOD AND NON-FOOD CONTACT SURFACES PROPERLY DESIGNED, CONSTRUCTED AND MAINTAINED</td>
+<td class="org-left">food and non-food contact surfaces properly designed, constructed and maintained</td>
 </tr>
 
 <tr>
 <td class="org-right">2145736</td>
 <td class="org-right">2018-03-01</td>
 <td class="org-right">34</td>
-<td class="org-left">FLOORS: CONSTRUCTED PER CODE, CLEANED, GOOD REPAIR, COVING INSTALLED, DUST-LESS CLEANING METHODS USED</td>
+<td class="org-left">floors: constructed per code, cleaned, good repair, coving installed, dust-less cleaning methods used</td>
 </tr>
 
 <tr>
 <td class="org-right">2145736</td>
 <td class="org-right">2018-03-01</td>
 <td class="org-right">35</td>
-<td class="org-left">WALLS, CEILINGS, ATTACHED EQUIPMENT CONSTRUCTED PER CODE: GOOD REPAIR, SURFACES CLEAN AND DUST-LESS CLEANING METHODS</td>
+<td class="org-left">walls, ceilings, attached equipment constructed per code: good repair, surfaces clean and dust-less cleaning methods</td>
 </tr>
 </tbody>
 </table>
@@ -2093,27 +2108,27 @@ If everything worked correctly you should be able to run the following code<sup>
 <tbody>
 <tr>
 <td class="org-left">¤</td>
-<td class="org-left">25,919</td>
+<td class="org-left">26,039</td>
 </tr>
 
 <tr>
 <td class="org-left">critical</td>
-<td class="org-left">44,385</td>
+<td class="org-left">46,443</td>
 </tr>
 
 <tr>
 <td class="org-left">minor</td>
-<td class="org-left">460,796</td>
+<td class="org-left">465,535</td>
 </tr>
 
 <tr>
 <td class="org-left">serious</td>
-<td class="org-left">52,865</td>
+<td class="org-left">53,566</td>
 </tr>
 
 <tr>
 <td class="org-left">TOTAL</td>
-<td class="org-left">583,965</td>
+<td class="org-left">591,583</td>
 </tr>
 </tbody>
 </table>
@@ -2184,7 +2199,7 @@ We will begin with the following query: <i>What are 5 licenses with the most ins
 <tbody>
 <tr>
 <td class="org-right">0</td>
-<td class="org-right">453</td>
+<td class="org-right">454</td>
 <td class="org-right">114</td>
 </tr>
 
@@ -2300,7 +2315,7 @@ This looks weird. There are three license numbers, in particular license number 
 
 <tr>
 <td class="org-left">school</td>
-<td class="org-right">12</td>
+<td class="org-right">13</td>
 <td class="org-right">1</td>
 </tr>
 
@@ -2438,7 +2453,7 @@ etc. But what about the <code>restaurants</code> that have <code>license_num</co
 
 <tr>
 <td class="org-right">0</td>
-<td class="org-left">mrs. t's southern fried chicken</td>
+<td class="org-left">mrs ts southern fried chicken</td>
 <td class="org-left">3343 n broadway</td>
 <td class="org-right">3</td>
 <td class="org-right">1</td>
@@ -2490,9 +2505,9 @@ to_char(<span style="font-weight: bold;">count</span>(<span style="font-weight: 
 </thead>
 <tbody>
 <tr>
-<td class="org-left">35,420</td>
-<td class="org-left">26,060</td>
-<td class="org-left">17,492</td>
+<td class="org-left">35,546</td>
+<td class="org-left">25,917</td>
+<td class="org-left">17,515</td>
 </tr>
 </tbody>
 </table>
@@ -2552,18 +2567,18 @@ We will try to use the combination of <code>license_num</code>, <code>facility</
 <tbody>
 <tr>
 <td class="org-right">1142451</td>
-<td class="org-left">jewel food  store # 3345</td>
+<td class="org-left">jewel foodstore # 3345</td>
 <td class="org-left">grocery store</td>
-<td class="org-left">jewel food  store # 3345</td>
+<td class="org-left">jewel foodstore # 3345</td>
 <td class="org-left">1224 s wabash ave</td>
 <td class="org-right">46</td>
 </tr>
 
 <tr>
 <td class="org-right">1490035</td>
-<td class="org-left">mcdonald's</td>
+<td class="org-left">mcdonalds</td>
 <td class="org-left">restaurant</td>
-<td class="org-left">mcdonald's</td>
+<td class="org-left">mcdonalds</td>
 <td class="org-left">6900 s lafayette ave</td>
 <td class="org-right">46</td>
 </tr>
@@ -2579,11 +2594,11 @@ We will try to use the combination of <code>license_num</code>, <code>facility</
 
 <tr>
 <td class="org-right">2083833</td>
-<td class="org-left">mariano's fresh market #8503</td>
+<td class="org-left">marianos fresh market #8503</td>
 <td class="org-left">grocery store</td>
-<td class="org-left">mariano's fresh market</td>
+<td class="org-left">marianos fresh market</td>
 <td class="org-left">333 e benton pl</td>
-<td class="org-right">43</td>
+<td class="org-right">45</td>
 </tr>
 
 <tr>
@@ -2597,9 +2612,9 @@ We will try to use the combination of <code>license_num</code>, <code>facility</
 
 <tr>
 <td class="org-right">1476553</td>
-<td class="org-left">pete's produce</td>
+<td class="org-left">petes produce</td>
 <td class="org-left">grocery store</td>
-<td class="org-left">pete's produce</td>
+<td class="org-left">petes produce</td>
 <td class="org-left">1543 e 87th st</td>
 <td class="org-right">41</td>
 </tr>
@@ -2615,9 +2630,9 @@ We will try to use the combination of <code>license_num</code>, <code>facility</
 
 <tr>
 <td class="org-right">1302136</td>
-<td class="org-left">mcdonald's</td>
+<td class="org-left">mcdonalds</td>
 <td class="org-left">restaurant</td>
-<td class="org-left">mcdonald's</td>
+<td class="org-left">mcdonalds</td>
 <td class="org-left">70 e garfield blvd</td>
 <td class="org-right">40</td>
 </tr>
@@ -2628,14 +2643,14 @@ We will try to use the combination of <code>license_num</code>, <code>facility</
 <td class="org-left">grocery store</td>
 <td class="org-left">one stop food &amp; liquor store</td>
 <td class="org-left">4301-4323 s lake park ave</td>
-<td class="org-right">39</td>
+<td class="org-right">40</td>
 </tr>
 
 <tr>
 <td class="org-right">2108657</td>
-<td class="org-left">morrison's restaurant</td>
+<td class="org-left">morrisons restaurant</td>
 <td class="org-left">restaurant</td>
-<td class="org-left">morrison's restaurant</td>
+<td class="org-left">morrisons restaurant</td>
 <td class="org-left">8127 s ashland ave</td>
 <td class="org-right">38</td>
 </tr>
@@ -2699,12 +2714,12 @@ or <code>business not located</code> as <code>end_time</code>.
             over (partition <span style="font-weight: bold;">by</span> license_num, facility, facility_aka, address) <span style="font-weight: bold;">as</span> end_time
         <span style="font-weight: bold;">from</span> cleaned.inspections
         <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
-            license_num, facility, facility_aka, facility_type, address,
+            license_num <span style="font-weight: bold;">asc</span>, facility <span style="font-weight: bold;">asc</span>, facility_aka <span style="font-weight: bold;">asc</span>, facility_type <span style="font-weight: bold;">asc</span>, address <span style="font-weight: bold;">asc</span>,
             <span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">asc</span> <span style="font-weight: bold; font-style: italic;">-- IMPORTANT!!</span>
             )
 
     <span style="font-weight: bold;">select</span>
-        row_number() over (<span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> start_time <span style="font-weight: bold;">asc</span> ) <span style="font-weight: bold;">as</span> entity_id,
+        row_number() over (<span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> start_time <span style="font-weight: bold;">asc</span>, license_num <span style="font-weight: bold;">asc</span>, facility <span style="font-weight: bold;">asc</span>, facility_aka <span style="font-weight: bold;">asc</span>, facility_type <span style="font-weight: bold;">asc</span>, address <span style="font-weight: bold;">asc</span> ) <span style="font-weight: bold;">as</span> entity_id,
         license_num,
         facility,
         facility_aka,
@@ -2748,7 +2763,7 @@ you are interested in this powerful technique see this <a href="http://www.postg
 </thead>
 <tbody>
 <tr>
-<td class="org-left">36,780</td>
+<td class="org-left">36,910</td>
 </tr>
 </tbody>
 </table>
@@ -2904,7 +2919,7 @@ Success! We have one row per event.<sup><a id="fnr.28" class="footref" href="#fn
 <tbody>
 <tr>
 <td class="org-right">1343315</td>
-<td class="org-right">22056</td>
+<td class="org-right">22053</td>
 <td class="org-left">canvass</td>
 <td class="org-right">2013-06-06</td>
 <td class="org-left">low</td>
@@ -2939,7 +2954,7 @@ We omitted <code>violations</code> and <code>location</code> for brevity. The to
 </thead>
 <tbody>
 <tr>
-<td class="org-left">155,374</td>
+<td class="org-left">156,682</td>
 </tr>
 </tbody>
 </table>
@@ -2965,6 +2980,8 @@ Now that we have our data in a good shape, we are ready to use <b>Triage</b>.
 </div>
 </div>
 </div>
+
+
 
 <div id="outline-container-org54a111f" class="outline-4">
 <h4 id="org54a111f"><span class="section-number-4">3.4.2</span> Number of facilities <i>inspected</i> over time</h4>
@@ -3124,16 +3141,16 @@ To run a <code>triage</code> experiment, you need the following:
 <ul class="org-ul">
 <li>A database with the data that you want to model.
 <ul class="org-ul">
-<li>credentials for accessing this database are stored in a <code>database.yaml</code> file. For this tutorial, you can copy the example config file at <a href="../triage/experiments/example_database.yaml">../triage/experiments/example_database.yaml</a> and rename it to <code>database.yaml</code>. Be sure to edit it with the database password you specified in <code>.env</code> previously as well.</li>
+<li>In this tutorial, the credentials are part of the <code>DATABASE_URL</code>
+environment variable</li>
 </ul></li>
 
-<li><code>triage</code> installed in your environment. You can verify that <code>triage</code> is installed (and check
-its version) typying the following inside an <code>ipython</code> session in <code>bastion</code>:</li>
+<li><code>triage</code> installed in your environment. You can verify that <code>triage</code> is indeed
+installed if you type in <code>bastion</code>:</li>
 </ul>
 
 <div class="org-src-container">
 <pre class="src src-sh">triage -h
-:
 </pre>
 </div>
 
@@ -3168,7 +3185,7 @@ You can run that experiment with:
 
 <pre class="example">
 # Remember to run this in bastion NOT in your laptop!
-triage experiment experiments/simple_test_skeleton.yaml --project-path /triage/output
+triage experiment --matrix-format hdf experiments/simple_test_skeleton.yaml
 </pre>
 
 <p>
@@ -3296,7 +3313,7 @@ facilities):
 </thead>
 <tbody>
 <tr>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-right">1596210</td>
 <td class="org-left">food 4 less</td>
 <td class="org-left">grocery store</td>
@@ -3304,17 +3321,17 @@ facilities):
 </tr>
 
 <tr>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-right">1874347</td>
-<td class="org-left">mcdonald's</td>
+<td class="org-left">mcdonalds</td>
 <td class="org-left">restaurant</td>
 <td class="org-left">[2010-01-12,2017-11-09)</td>
 </tr>
 
 <tr>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-right">1142451</td>
-<td class="org-left">jewel food  store # 3345</td>
+<td class="org-left">jewel foodstore # 3345</td>
 <td class="org-left">grocery store</td>
 <td class="org-left">[2010-01-26,)</td>
 </tr>
@@ -3373,7 +3390,7 @@ in the year of 2014.
 <span style="font-weight: bold;">where</span>
     <span style="font-style: italic;">'[2014-01-01, 2015-01-01]'</span>::daterange @&gt; <span style="font-weight: bold; text-decoration: underline;">date</span>
     <span style="font-weight: bold;">and</span>
-    entity_id <span style="font-weight: bold;">in</span> (219,362,859)
+    entity_id <span style="font-weight: bold;">in</span> (229,355,840)
 <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
     <span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">asc</span>;
 </pre>
@@ -3399,79 +3416,79 @@ in the year of 2014.
 <tbody>
 <tr>
 <td class="org-right">2014-01-14</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-02-04</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-02-24</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">t</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-03-05</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-04-10</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">t</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-04-15</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-04-18</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-05-06</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-08-28</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-09-19</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-09-30</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">t</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-10-10</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">f</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-10-31</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">f</td>
 </tr>
 </tbody>
@@ -3503,7 +3520,7 @@ We can express that in a query and getting the <i>labels</i> for that
 <span style="font-weight: bold;">where</span>
     <span style="font-style: italic;">'2014-01-01'</span>::<span style="font-weight: bold; text-decoration: underline;">timestamp</span> &lt;= <span style="font-weight: bold; text-decoration: underline;">date</span>
     <span style="font-weight: bold;">and</span> <span style="font-weight: bold; text-decoration: underline;">date</span> &lt; <span style="font-style: italic;">'2014-01-01'</span>::<span style="font-weight: bold; text-decoration: underline;">timestamp</span> + <span style="font-weight: bold; text-decoration: underline;">interval</span> <span style="font-style: italic;">'1 year'</span>
-    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (219,362,859)
+    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (229,355,840)
 <span style="font-weight: bold;">group</span> <span style="font-weight: bold;">by</span>
     entity_id;
 </pre>
@@ -3529,19 +3546,19 @@ We can express that in a query and getting the <i>labels</i> for that
 <tbody>
 <tr>
 <td class="org-right">2014-01-01</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-right">0</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-01-01</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-right">1</td>
 </tr>
 
 <tr>
 <td class="org-right">2014-01-01</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-right">1</td>
 </tr>
 </tbody>
@@ -3581,7 +3598,7 @@ activity_period @&gt; <span style="font-style: italic;">'2018-01-01'</span>::<sp
 <span style="font-weight: bold;">from</span>
     semantic.entities
 <span style="font-weight: bold;">where</span>
-    entity_id <span style="font-weight: bold;">in</span> (219,362,859);
+    entity_id <span style="font-weight: bold;">in</span> (229,355,840);
 </pre>
 </div>
 
@@ -3608,21 +3625,21 @@ activity_period @&gt; <span style="font-style: italic;">'2018-01-01'</span>::<sp
 <tbody>
 <tr>
 <td class="org-right">2018-01-01</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">[2010-01-08,)</td>
 <td class="org-left">active</td>
 </tr>
 
 <tr>
 <td class="org-right">2018-01-01</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">[2010-01-12,2017-11-09)</td>
 <td class="org-left">inactive</td>
 </tr>
 
 <tr>
 <td class="org-right">2018-01-01</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">[2010-01-26,)</td>
 <td class="org-left">active</td>
 </tr>
@@ -3898,7 +3915,7 @@ temporal blocks images run the following (they'll be generated in <a href="../tr
 
 <pre class="example">
 # Remember to run this in bastion NOT in laptop's shell!
-triage showtimechops experiments/simple_test_skeleton.yaml
+triage experiment experiments/simple_test_skeleton.yaml --show-timechop
 </pre>
 </div>
 
@@ -4326,7 +4343,7 @@ In our data, that date range (between 2016-01-01 and 2015-07-01) looks like:
     semantic.events
 <span style="font-weight: bold;">where</span>
     <span style="font-weight: bold; text-decoration: underline;">date</span> &lt;@ daterange((<span style="font-style: italic;">'2016-01-01'</span>::<span style="font-weight: bold; text-decoration: underline;">date</span> - <span style="font-weight: bold; text-decoration: underline;">interval</span> <span style="font-style: italic;">'6 months'</span>)::<span style="font-weight: bold; text-decoration: underline;">date</span>, <span style="font-style: italic;">'2016-01-01'</span>)
-    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (219,362,859)
+    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (229,355,840)
 <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
     <span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">asc</span>;
 </pre>
@@ -4356,84 +4373,84 @@ In our data, that date range (between 2016-01-01 and 2015-07-01) looks like:
 <tr>
 <td class="org-right">1561324</td>
 <td class="org-right">2015-07-17</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1561517</td>
 <td class="org-right">2015-07-24</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1562122</td>
 <td class="org-right">2015-08-12</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1547403</td>
 <td class="org-right">2015-08-20</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1547420</td>
 <td class="org-right">2015-08-28</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1547448</td>
 <td class="org-right">2015-09-14</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">medium</td>
 </tr>
 
 <tr>
 <td class="org-right">1547462</td>
 <td class="org-right">2015-09-21</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">medium</td>
 </tr>
 
 <tr>
 <td class="org-right">1547504</td>
 <td class="org-right">2015-10-09</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">medium</td>
 </tr>
 
 <tr>
 <td class="org-right">1547515</td>
 <td class="org-right">2015-10-16</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">medium</td>
 </tr>
 
 <tr>
 <td class="org-right">1583249</td>
 <td class="org-right">2015-10-21</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1583577</td>
 <td class="org-right">2015-10-28</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">high</td>
 </tr>
 
 <tr>
 <td class="org-right">1583932</td>
 <td class="org-right">2015-11-04</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">high</td>
 </tr>
 </tbody>
@@ -4454,7 +4471,7 @@ and <code>flagged_as_high_risk</code>:
     semantic.events
 <span style="font-weight: bold;">where</span>
     <span style="font-weight: bold; text-decoration: underline;">date</span> &lt;@ daterange((<span style="font-style: italic;">'2016-01-01'</span>::<span style="font-weight: bold; text-decoration: underline;">date</span> - <span style="font-weight: bold; text-decoration: underline;">interval</span> <span style="font-style: italic;">'6 months'</span>)::<span style="font-weight: bold; text-decoration: underline;">date</span>, <span style="font-style: italic;">'2016-01-01'</span>)
-    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (219,362,859)
+    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (229,355,840)
 <span style="font-weight: bold;">group</span> <span style="font-weight: bold;">by</span>
     <span style="font-weight: bold;">grouping</span> <span style="font-weight: bold;">sets</span>(entity_id);
 </pre>
@@ -4482,21 +4499,21 @@ and <code>flagged_as_high_risk</code>:
 </thead>
 <tbody>
 <tr>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-right">2016-01-01</td>
 <td class="org-right">2</td>
 <td class="org-right">2</td>
 </tr>
 
 <tr>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-right">2016-01-01</td>
 <td class="org-right">4</td>
 <td class="org-right">0</td>
 </tr>
 
 <tr>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-right">2016-01-01</td>
 <td class="org-right">6</td>
 <td class="org-right">6</td>
@@ -4535,7 +4552,7 @@ passed inspections?
     semantic.events
 <span style="font-weight: bold;">where</span>
     <span style="font-weight: bold; text-decoration: underline;">date</span> &lt;@ daterange((<span style="font-style: italic;">'2016-01-01'</span>::<span style="font-weight: bold; text-decoration: underline;">date</span> - <span style="font-weight: bold; text-decoration: underline;">interval</span> <span style="font-style: italic;">'6 months'</span>)::<span style="font-weight: bold; text-decoration: underline;">date</span>, <span style="font-style: italic;">'2016-01-01'</span>)
-    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (219,362,859)
+    <span style="font-weight: bold;">and</span> entity_id <span style="font-weight: bold;">in</span> (229,355,840)
 <span style="font-weight: bold;">group</span> <span style="font-weight: bold;">by</span>
     <span style="font-weight: bold;">grouping</span> <span style="font-weight: bold;">sets</span>(entity_id)
 </pre>
@@ -4575,7 +4592,7 @@ passed inspections?
 </thead>
 <tbody>
 <tr>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-right">2016-01-01</td>
 <td class="org-right">2</td>
 <td class="org-right">2</td>
@@ -4586,7 +4603,7 @@ passed inspections?
 </tr>
 
 <tr>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-right">2016-01-01</td>
 <td class="org-right">4</td>
 <td class="org-right">0</td>
@@ -4597,7 +4614,7 @@ passed inspections?
 </tr>
 
 <tr>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-right">2016-01-01</td>
 <td class="org-right">6</td>
 <td class="org-right">6</td>
@@ -5651,8 +5668,8 @@ config -&gt;  <span style="font-style: italic;">'user_metadata'</span> <span sty
 </thead>
 <tbody>
 <tr>
-<td class="org-left">873101c742bc899c9e074003447992b4</td>
-<td class="org-left">{"org": "DSaPP", "team": "Tutorial", "author": "Adolfo De Unanue", "etl<sub>date</sub>": "2019-01-18", "experiment<sub>type</sub>": "test", "label<sub>definition</sub>": "failed<sub>inspection</sub>"}</td>
+<td class="org-left">67a1d564d31811b9c20ca63672c25abd</td>
+<td class="org-left">{"org": "DSaPP", "team": "Tutorial", "author": "Adolfo De Unanue", "etl<sub>date</sub>": "2019-02-21", "experiment<sub>type</sub>": "test", "label<sub>definition</sub>": "failed<sub>inspection</sub>"}</td>
 </tr>
 </tbody>
 </table>
@@ -5776,7 +5793,7 @@ Therefore, if we run the following
 <td class="org-left">"failed<sub>inspections</sub>"</td>
 <td class="org-left">"failed<sub>inspection</sub>"</td>
 <td class="org-left">"test"</td>
-<td class="org-left">"2019-01-18"</td>
+<td class="org-left">"2019-02-21"</td>
 </tr>
 </tbody>
 </table>
@@ -6334,6 +6351,22 @@ information about the temporal setting of the features) and <code>num_observatio
 </tr>
 
 <tr>
+<td class="org-left">TABLE "test<sub>results.evaluations</sub>" CONSTRAINT "evaluations<sub>matrix</sub><sub>uuid</sub><sub>fkey</sub>" FOREIGN KEY (matrix<sub>uuid</sub>) REFERENCES model<sub>metadata.matrices</sub>(matrix<sub>uuid</sub>)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">TABLE "train<sub>results.evaluations</sub>" CONSTRAINT "evaluations<sub>matrix</sub><sub>uuid</sub><sub>fkey</sub>" FOREIGN KEY (matrix<sub>uuid</sub>) REFERENCES model<sub>metadata.matrices</sub>(matrix<sub>uuid</sub>)</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
 <td class="org-left">TABLE "model<sub>metadata.models</sub>" CONSTRAINT "matrix<sub>uuid</sub><sub>for</sub><sub>models</sub>" FOREIGN KEY (train<sub>matrix</sub><sub>uuid</sub>) REFERENCES model<sub>metadata.matrices</sub>(matrix<sub>uuid</sub>)</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
@@ -6505,6 +6538,14 @@ and storing them in this table, e.g., our model's precision in top 10%.
 </tr>
 
 <tr>
+<td class="org-left">matrix<sub>uuid</sub></td>
+<td class="org-left">text</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
 <td class="org-left">Indexes:</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
@@ -6522,6 +6563,14 @@ and storing them in this table, e.g., our model's precision in top 10%.
 
 <tr>
 <td class="org-left">Foreign-key constraints:</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+<td class="org-left">&#xa0;</td>
+</tr>
+
+<tr>
+<td class="org-left">"evaluations<sub>matrix</sub><sub>uuid</sub><sub>fkey</sub>" FOREIGN KEY (matrix<sub>uuid</sub>) REFERENCES model<sub>metadata.matrices</sub>(matrix<sub>uuid</sub>)</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
 <td class="org-left">&#xa0;</td>
@@ -6661,7 +6710,7 @@ showing a different performance metric.
 <blockquote>
 <p>
 Remember that at 100%, the <code>recall</code> should be 1, and the <code>precision</code> is
-equal to the baserate. If these two things don't match, there are
+equal to the <i>baserate</i>. If these two things don't match, there are
 problems in your data, pipeline, etl. You must get this correct!
 </p>
 </blockquote>
@@ -6741,29 +6790,29 @@ Here is what its first row looks like:
 <tbody>
 <tr>
 <td class="org-right">1</td>
-<td class="org-right">219</td>
+<td class="org-right">229</td>
 <td class="org-left">2016-01-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-right">1</td>
-<td class="org-left">c29c7917371d4cea99fadf4ad37a5686</td>
+<td class="org-left">cd0ae68d6ace43033b49ee0390c3583e</td>
 </tr>
 
 <tr>
 <td class="org-right">1</td>
-<td class="org-right">362</td>
+<td class="org-right">355</td>
 <td class="org-left">2016-01-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-right">1</td>
-<td class="org-left">c29c7917371d4cea99fadf4ad37a5686</td>
+<td class="org-left">cd0ae68d6ace43033b49ee0390c3583e</td>
 </tr>
 
 <tr>
 <td class="org-right">1</td>
-<td class="org-right">859</td>
+<td class="org-right">840</td>
 <td class="org-left">2016-01-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-right">0</td>
-<td class="org-left">c29c7917371d4cea99fadf4ad37a5686</td>
+<td class="org-left">cd0ae68d6ace43033b49ee0390c3583e</td>
 </tr>
 </tbody>
 </table>
@@ -6873,13 +6922,31 @@ clean the <code>{test, train}_results</code> schemas and have a fresh start:
 </pre>
 </div>
 
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">nuke<sub>triage</sub></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">triage was send to the oblivion. Long live to triage!</td>
+</tr>
+</tbody>
+</table>
+
 <p>
 <code>triage</code> also creates a lot of files (we will see why in the next section). Let's remove them too.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sh">rm -r /triage/output/matrices/*
-rm -r /triage/output/trained_models/*
+<pre class="src src-sh">rm -r /triage/matrices/*
+rm -r /triage/trained_models/*
 </pre>
 </div>
 </div>
@@ -6891,8 +6958,8 @@ rm -r /triage/output/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org181e53e" class="outline-3">
-<h3 id="org181e53e"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org9418773" class="outline-3">
+<h3 id="org9418773"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7022,7 +7089,7 @@ following code:
 <tbody>
 <tr>
 <td class="org-right">1770568</td>
-<td class="org-right">30852</td>
+<td class="org-right">30841</td>
 <td class="org-right">2016-05-11</td>
 <td class="org-left">pass</td>
 <td class="org-left">{minor}</td>
@@ -7032,7 +7099,7 @@ following code:
 
 <tr>
 <td class="org-right">1763967</td>
-<td class="org-right">30852</td>
+<td class="org-right">30841</td>
 <td class="org-right">2016-05-03</td>
 <td class="org-left">fail</td>
 <td class="org-left">{critical,minor,serious}</td>
@@ -7042,7 +7109,7 @@ following code:
 
 <tr>
 <td class="org-right">1434534</td>
-<td class="org-right">21339</td>
+<td class="org-right">21337</td>
 <td class="org-right">2014-04-03</td>
 <td class="org-left">pass</td>
 <td class="org-left">{NULL}</td>
@@ -7052,7 +7119,7 @@ following code:
 
 <tr>
 <td class="org-right">1343315</td>
-<td class="org-right">22056</td>
+<td class="org-right">22053</td>
 <td class="org-right">2013-06-06</td>
 <td class="org-left">fail</td>
 <td class="org-left">{minor,serious}</td>
@@ -7062,7 +7129,7 @@ following code:
 
 <tr>
 <td class="org-right">1235707</td>
-<td class="org-right">21339</td>
+<td class="org-right">21337</td>
 <td class="org-right">2013-03-27</td>
 <td class="org-left">pass</td>
 <td class="org-left">{NULL}</td>
@@ -7072,7 +7139,7 @@ following code:
 
 <tr>
 <td class="org-right">537439</td>
-<td class="org-right">13471</td>
+<td class="org-right">13458</td>
 <td class="org-right">2011-06-10</td>
 <td class="org-left">fail</td>
 <td class="org-left">{NULL}</td>
@@ -7082,7 +7149,7 @@ following code:
 
 <tr>
 <td class="org-right">569377</td>
-<td class="org-right">5592</td>
+<td class="org-right">5570</td>
 <td class="org-right">2011-06-01</td>
 <td class="org-left">pass</td>
 <td class="org-left">{NULL}</td>
@@ -7099,7 +7166,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="orgcfa16ab" class="figure">
+<div id="org5659057" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7109,8 +7176,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orgf884da6" class="outline-3">
-<h3 id="orgf884da6"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orga629bce" class="outline-3">
+<h3 id="orga629bce"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -7139,7 +7206,7 @@ down and explain the sections.
 
 <p>
 The config file for this first experiment is located in
-<a href="./triage/experiments/inspections_baseline.yaml">triage/experiment<sub>config</sub>/inspections<sub>baseline.yaml</sub></a>.
+<a href="./triage/experiments/inspections_baseline.yaml">triage/experiments/inspections<sub>baseline.yaml</sub></a>.
 </p>
 
 <p>
@@ -7174,7 +7241,7 @@ belong to different model groups.
     <span style="font-weight: bold; font-style: italic;">org</span>: <span style="font-style: italic;">'DSaPP'</span>
     <span style="font-weight: bold; font-style: italic;">team</span>: <span style="font-style: italic;">'Tutorial'</span>
     <span style="font-weight: bold; font-style: italic;">author</span>: <span style="font-style: italic;">'Your name here'</span>
-    <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-01-18'</span>
+    <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-02-21'</span>
 
 <span style="font-weight: bold; font-style: italic;">model_group_keys</span>:
   - <span style="font-style: italic;">'class_path'</span>
@@ -7233,7 +7300,7 @@ span for both.
 <tbody>
 <tr>
 <td class="org-right">2010-01-04</td>
-<td class="org-right">2019-01-18</td>
+<td class="org-right">2019-02-20</td>
 </tr>
 </tbody>
 </table>
@@ -7298,13 +7365,13 @@ introduced in <a href="triage_intro.html">Introduction to triage</a>.
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiments/inspections_baseline.yaml
+triage experiment experiments/inspections_baseline.yaml --show-timechop
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="./images/inspections_baseline.png" alt="inspections_baseline.png" width="800" height="800" />
+<p><img src="../triage/images/inspections_baseline.png" alt="inspections_baseline.png" width="800" height="800" />
 </p>
 <p><span class="figure-number">Figure 19: </span>Temporal blocks for inspections<sub>dt</sub> experiment</p>
 </div>
@@ -7425,7 +7492,6 @@ model. Here we will concentrate only in <code>precision</code> and <code>recall<
         <span style="font-weight: bold; font-style: italic;">    percentiles</span>: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
         <span style="font-weight: bold; font-style: italic;">    top_n</span>: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
 
-
     <span style="font-weight: bold; font-style: italic;">training_metric_groups</span>:
       <span style="font-weight: bold; font-style: italic;">-</span>
         <span style="font-weight: bold; font-style: italic;">metrics</span>: [accuracy]
@@ -7477,17 +7543,16 @@ You can execute the experiment as<sup><a id="fnr.44" class="footref" href="#fn.4
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiments/inspections_baseline.yaml --profile
+triage experiment --matrix-format hdf experiments/inspections_baseline.yaml --profile
 </pre>
 </div>
-
 
 <p>
 This will print a lot of output, and if everything is correct it will
 create <b>6</b> matrices (3 for
 training, 3 for testing) in <code>triage/matrices</code> and every matrix will be
 represented by two files, one with the metadata of the matrix (a
-<code>yaml</code> file) and one with the actual matrix (the <code>csv</code> file).
+<code>yaml</code> file) and one with the actual matrix (the <code>h5</code> file).
 </p>
 
 <div class="org-src-container">
@@ -7632,7 +7697,8 @@ You can check with which matrix the models are trained:
 <pre class="src src-sql"><span style="font-weight: bold;">select</span>
     model_group_id,
     model_id, train_end_time,
-    model_hash, train_matrix_uuid,
+    <span style="font-weight: bold;">substring</span>(model_hash,1,5) <span style="font-weight: bold;">as</span> model_hash,
+    <span style="font-weight: bold;">substring</span>(train_matrix_uuid,1,5) <span style="font-weight: bold;">as</span> train_matrix_uuid,
     ma.num_observations <span style="font-weight: bold;">as</span> observations,
     ma.lookback_duration <span style="font-weight: bold;">as</span> feature_lookback_duration,  ma.feature_start_time
 <span style="font-weight: bold;">from</span>
@@ -7683,8 +7749,8 @@ You can check with which matrix the models are trained:
 <td class="org-right">1</td>
 <td class="org-right">1</td>
 <td class="org-left">2015-12-01 00:00:00</td>
-<td class="org-left">d3cea395750042c6ce8b4b16629b7f27</td>
-<td class="org-left">82a55ba9d2013abb7722c20b17500b57</td>
+<td class="org-left">ff2f3</td>
+<td class="org-left">a4455</td>
 <td class="org-right">10763</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
@@ -7694,8 +7760,8 @@ You can check with which matrix the models are trained:
 <td class="org-right">1</td>
 <td class="org-right">4</td>
 <td class="org-left">2016-12-01 00:00:00</td>
-<td class="org-left">6ec07f83562b515c46b1ef7d6c76e5f4</td>
-<td class="org-left">a6a067fbbf34115a48201a626f17e67a</td>
+<td class="org-left">faf2f</td>
+<td class="org-left">bf455</td>
 <td class="org-right">25036</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
@@ -7705,9 +7771,9 @@ You can check with which matrix the models are trained:
 <td class="org-right">1</td>
 <td class="org-right">7</td>
 <td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-left">6356a11ad724fa48ef2751d13f11801c</td>
-<td class="org-left">e8663158b8c6b131505f12fafd196e8d</td>
-<td class="org-right">38673</td>
+<td class="org-left">faf19</td>
+<td class="org-left">b0237</td>
+<td class="org-right">38677</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7716,8 +7782,8 @@ You can check with which matrix the models are trained:
 <td class="org-right">2</td>
 <td class="org-right">2</td>
 <td class="org-left">2015-12-01 00:00:00</td>
-<td class="org-left">74fee6432b12350f25c62bdf4c499a82</td>
-<td class="org-left">82a55ba9d2013abb7722c20b17500b57</td>
+<td class="org-left">1435f</td>
+<td class="org-left">a4455</td>
 <td class="org-right">10763</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
@@ -7727,8 +7793,8 @@ You can check with which matrix the models are trained:
 <td class="org-right">2</td>
 <td class="org-right">5</td>
 <td class="org-left">2016-12-01 00:00:00</td>
-<td class="org-left">a011aa2bad1cecaa3ba3a7e579efa80a</td>
-<td class="org-left">a6a067fbbf34115a48201a626f17e67a</td>
+<td class="org-left">3ad95</td>
+<td class="org-left">bf455</td>
 <td class="org-right">25036</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
@@ -7738,9 +7804,9 @@ You can check with which matrix the models are trained:
 <td class="org-right">2</td>
 <td class="org-right">8</td>
 <td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-left">36d38ecf8f2b3b433eb7c4dc5a048577</td>
-<td class="org-left">e8663158b8c6b131505f12fafd196e8d</td>
-<td class="org-right">38673</td>
+<td class="org-left">cc595</td>
+<td class="org-left">b0237</td>
+<td class="org-right">38677</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7749,8 +7815,8 @@ You can check with which matrix the models are trained:
 <td class="org-right">3</td>
 <td class="org-right">3</td>
 <td class="org-left">2015-12-01 00:00:00</td>
-<td class="org-left">062f34c179e27cc779f050f7678f87a3</td>
-<td class="org-left">82a55ba9d2013abb7722c20b17500b57</td>
+<td class="org-left">cdf77</td>
+<td class="org-left">a4455</td>
 <td class="org-right">10763</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
@@ -7760,8 +7826,8 @@ You can check with which matrix the models are trained:
 <td class="org-right">3</td>
 <td class="org-right">6</td>
 <td class="org-left">2016-12-01 00:00:00</td>
-<td class="org-left">abd9adc61fce6b64ad4a52461e894f51</td>
-<td class="org-left">a6a067fbbf34115a48201a626f17e67a</td>
+<td class="org-left">83ed9</td>
+<td class="org-left">bf455</td>
 <td class="org-right">25036</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
@@ -7771,9 +7837,9 @@ You can check with which matrix the models are trained:
 <td class="org-right">3</td>
 <td class="org-right">9</td>
 <td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-left">cb89c4cc25bf9ca6746ab899d9805c74</td>
-<td class="org-left">e8663158b8c6b131505f12fafd196e8d</td>
-<td class="org-right">38673</td>
+<td class="org-left">67a54</td>
+<td class="org-left">b0237</td>
+<td class="org-right">38677</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7797,16 +7863,16 @@ run the following query
 <pre class="src src-sql"><span style="font-weight: bold;">select</span> <span style="font-weight: bold;">distinct</span>
     model_id,
     model_group_id, train_end_time,
-    model_hash,
-    pr.matrix_uuid <span style="font-weight: bold;">as</span> test_matrix_uuid,
+    <span style="font-weight: bold;">substring</span>(model_hash,1,5) <span style="font-weight: bold;">as</span> model_hash,
+    <span style="font-weight: bold;">substring</span>(ev.matrix_uuid,1,5) <span style="font-weight: bold;">as</span> test_matrix_uuid,
     ma.num_observations <span style="font-weight: bold;">as</span> observations,
     ma.lookback_duration <span style="font-weight: bold;">as</span> feature_lookback_duration,  ma.feature_start_time
 <span style="font-weight: bold;">from</span>
     model_metadata.models <span style="font-weight: bold;">as</span> mo
     <span style="font-weight: bold;">join</span>
-    test_results.predictions <span style="font-weight: bold;">as</span> pr <span style="font-weight: bold;">using</span> (model_id)
+    test_results.evaluations <span style="font-weight: bold;">as</span> ev <span style="font-weight: bold;">using</span> (model_id)
     <span style="font-weight: bold;">join</span>
-    model_metadata.matrices <span style="font-weight: bold;">as</span> ma <span style="font-weight: bold;">on</span> pr.matrix_uuid = ma.matrix_uuid
+    model_metadata.matrices <span style="font-weight: bold;">as</span> ma <span style="font-weight: bold;">on</span> ev.matrix_uuid = ma.matrix_uuid
 <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
     model_group_id, train_end_time <span style="font-weight: bold;">asc</span>;
 </pre>
@@ -7849,9 +7915,9 @@ run the following query
 <td class="org-right">1</td>
 <td class="org-right">1</td>
 <td class="org-left">2015-12-01 00:00:00</td>
-<td class="org-left">d3cea395750042c6ce8b4b16629b7f27</td>
-<td class="org-left">ce3fb740876bfe04aa05e0a6ec9dbd69</td>
-<td class="org-right">228584</td>
+<td class="org-left">ff2f3</td>
+<td class="org-left">865e3</td>
+<td class="org-right">228580</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7860,9 +7926,9 @@ run the following query
 <td class="org-right">4</td>
 <td class="org-right">1</td>
 <td class="org-left">2016-12-01 00:00:00</td>
-<td class="org-left">6ec07f83562b515c46b1ef7d6c76e5f4</td>
-<td class="org-left">9e6d30009128903d2cb30ddfa4de6daf</td>
-<td class="org-right">236914</td>
+<td class="org-left">faf2f</td>
+<td class="org-left">3f3e1</td>
+<td class="org-right">236950</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7871,9 +7937,9 @@ run the following query
 <td class="org-right">7</td>
 <td class="org-right">1</td>
 <td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-left">6356a11ad724fa48ef2751d13f11801c</td>
-<td class="org-left">54137d5f48f70e52e4dae0a681c7476c</td>
-<td class="org-right">246585</td>
+<td class="org-left">faf19</td>
+<td class="org-left">4203c</td>
+<td class="org-right">246622</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7882,9 +7948,9 @@ run the following query
 <td class="org-right">2</td>
 <td class="org-right">2</td>
 <td class="org-left">2015-12-01 00:00:00</td>
-<td class="org-left">74fee6432b12350f25c62bdf4c499a82</td>
-<td class="org-left">ce3fb740876bfe04aa05e0a6ec9dbd69</td>
-<td class="org-right">228584</td>
+<td class="org-left">1435f</td>
+<td class="org-left">865e3</td>
+<td class="org-right">228580</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7893,9 +7959,9 @@ run the following query
 <td class="org-right">5</td>
 <td class="org-right">2</td>
 <td class="org-left">2016-12-01 00:00:00</td>
-<td class="org-left">a011aa2bad1cecaa3ba3a7e579efa80a</td>
-<td class="org-left">9e6d30009128903d2cb30ddfa4de6daf</td>
-<td class="org-right">236914</td>
+<td class="org-left">3ad95</td>
+<td class="org-left">3f3e1</td>
+<td class="org-right">236950</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7904,9 +7970,9 @@ run the following query
 <td class="org-right">8</td>
 <td class="org-right">2</td>
 <td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-left">36d38ecf8f2b3b433eb7c4dc5a048577</td>
-<td class="org-left">54137d5f48f70e52e4dae0a681c7476c</td>
-<td class="org-right">246585</td>
+<td class="org-left">cc595</td>
+<td class="org-left">4203c</td>
+<td class="org-right">246622</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7915,9 +7981,9 @@ run the following query
 <td class="org-right">3</td>
 <td class="org-right">3</td>
 <td class="org-left">2015-12-01 00:00:00</td>
-<td class="org-left">062f34c179e27cc779f050f7678f87a3</td>
-<td class="org-left">ce3fb740876bfe04aa05e0a6ec9dbd69</td>
-<td class="org-right">228584</td>
+<td class="org-left">cdf77</td>
+<td class="org-left">865e3</td>
+<td class="org-right">228580</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7926,9 +7992,9 @@ run the following query
 <td class="org-right">6</td>
 <td class="org-right">3</td>
 <td class="org-left">2016-12-01 00:00:00</td>
-<td class="org-left">abd9adc61fce6b64ad4a52461e894f51</td>
-<td class="org-left">9e6d30009128903d2cb30ddfa4de6daf</td>
-<td class="org-right">236914</td>
+<td class="org-left">83ed9</td>
+<td class="org-left">3f3e1</td>
+<td class="org-right">236950</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7937,9 +8003,9 @@ run the following query
 <td class="org-right">9</td>
 <td class="org-right">3</td>
 <td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-left">cb89c4cc25bf9ca6746ab899d9805c74</td>
-<td class="org-left">54137d5f48f70e52e4dae0a681c7476c</td>
-<td class="org-right">246585</td>
+<td class="org-left">67a54</td>
+<td class="org-left">4203c</td>
+<td class="org-right">246622</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7976,11 +8042,9 @@ What's the performance of this model groups?
 <span style="font-weight: bold;">from</span>
     model_metadata.models <span style="font-weight: bold;">as</span> mo
     <span style="font-weight: bold;">join</span>
-    test_results.predictions <span style="font-weight: bold;">as</span> pr <span style="font-weight: bold;">using</span> (model_id)
+    test_results.evaluations <span style="font-weight: bold;">as</span> ev <span style="font-weight: bold;">using</span> (model_id)
     <span style="font-weight: bold;">join</span>
-    model_metadata.matrices <span style="font-weight: bold;">as</span> ma <span style="font-weight: bold;">on</span> pr.matrix_uuid = ma.matrix_uuid
-    <span style="font-weight: bold;">join</span>
-    test_results.evaluations <span style="font-weight: bold;">as</span> ev <span style="font-weight: bold;">using</span>(model_id)
+    model_metadata.matrices <span style="font-weight: bold;">as</span> ma <span style="font-weight: bold;">on</span> ev.matrix_uuid = ma.matrix_uuid
 <span style="font-weight: bold;">where</span>
     ev.metric || ev.<span style="font-weight: bold;">parameter</span> = <span style="font-style: italic;">'precision@100_pct'</span>
 <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
@@ -8040,7 +8104,7 @@ What's the performance of this model groups?
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2016-11-01</td>
-<td class="org-left">228,584</td>
+<td class="org-left">228,580</td>
 <td class="org-left">14,273</td>
 <td class="org-left">14,273</td>
 <td class="org-left">3,460</td>
@@ -8055,7 +8119,7 @@ What's the performance of this model groups?
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2016-11-01</td>
-<td class="org-left">228,584</td>
+<td class="org-left">228,580</td>
 <td class="org-left">14,273</td>
 <td class="org-left">14,273</td>
 <td class="org-left">3,460</td>
@@ -8070,7 +8134,7 @@ What's the performance of this model groups?
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2016-11-01</td>
-<td class="org-left">228,584</td>
+<td class="org-left">228,580</td>
 <td class="org-left">14,273</td>
 <td class="org-left">14,273</td>
 <td class="org-left">3,460</td>
@@ -8085,10 +8149,10 @@ What's the performance of this model groups?
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2017-11-01</td>
-<td class="org-left">236,914</td>
-<td class="org-left">13,637</td>
-<td class="org-left">13,637</td>
-<td class="org-left">3,203</td>
+<td class="org-left">236,950</td>
+<td class="org-left">13,641</td>
+<td class="org-left">13,641</td>
+<td class="org-left">3,204</td>
 <td class="org-right">0.014</td>
 <td class="org-right">0.235</td>
 </tr>
@@ -8100,10 +8164,10 @@ What's the performance of this model groups?
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2017-11-01</td>
-<td class="org-left">236,914</td>
-<td class="org-left">13,637</td>
-<td class="org-left">13,637</td>
-<td class="org-left">3,203</td>
+<td class="org-left">236,950</td>
+<td class="org-left">13,641</td>
+<td class="org-left">13,641</td>
+<td class="org-left">3,204</td>
 <td class="org-right">0.014</td>
 <td class="org-right">0.235</td>
 </tr>
@@ -8115,10 +8179,10 @@ What's the performance of this model groups?
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2017-11-01</td>
-<td class="org-left">236,914</td>
-<td class="org-left">13,637</td>
-<td class="org-left">13,637</td>
-<td class="org-left">3,203</td>
+<td class="org-left">236,950</td>
+<td class="org-left">13,641</td>
+<td class="org-left">13,641</td>
+<td class="org-left">3,204</td>
 <td class="org-right">0.014</td>
 <td class="org-right">0.235</td>
 </tr>
@@ -8130,10 +8194,10 @@ What's the performance of this model groups?
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2018-11-01</td>
-<td class="org-left">246,585</td>
-<td class="org-left">10,490</td>
-<td class="org-left">10,490</td>
-<td class="org-left">2,449</td>
+<td class="org-left">246,622</td>
+<td class="org-left">10,641</td>
+<td class="org-left">10,641</td>
+<td class="org-left">2,479</td>
 <td class="org-right">0.010</td>
 <td class="org-right">0.233</td>
 </tr>
@@ -8145,10 +8209,10 @@ What's the performance of this model groups?
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2018-11-01</td>
-<td class="org-left">246,585</td>
-<td class="org-left">10,490</td>
-<td class="org-left">10,490</td>
-<td class="org-left">2,449</td>
+<td class="org-left">246,622</td>
+<td class="org-left">10,641</td>
+<td class="org-left">10,641</td>
+<td class="org-left">2,479</td>
 <td class="org-right">0.010</td>
 <td class="org-right">0.233</td>
 </tr>
@@ -8160,10 +8224,10 @@ What's the performance of this model groups?
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2018-11-01</td>
-<td class="org-left">246,585</td>
-<td class="org-left">10,490</td>
-<td class="org-left">10,490</td>
-<td class="org-left">2,449</td>
+<td class="org-left">246,622</td>
+<td class="org-left">10,641</td>
+<td class="org-left">10,641</td>
+<td class="org-left">2,479</td>
 <td class="org-right">0.010</td>
 <td class="org-right">0.233</td>
 </tr>
@@ -8219,7 +8283,7 @@ them from scratch.
   <span style="font-weight: bold; font-style: italic;">org</span>: <span style="font-style: italic;">'DSaPP'</span>
   <span style="font-weight: bold; font-style: italic;">team</span>: <span style="font-style: italic;">'Tutorial'</span>
   <span style="font-weight: bold; font-style: italic;">author</span>: <span style="font-style: italic;">'Your name here'</span>
-  <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-01-18'</span>
+  <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-02-21'</span>
 
 </pre>
 </div>
@@ -8424,13 +8488,13 @@ and check the temporal cross validation:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiments/inspections_dt.yaml
+triage experiment experiments/inspections_dt.yaml --show-timechop
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="./images/inspections_dt.png" alt="inspections_dt.png" width="800" height="800" />
+<p><img src="../triage/images/inspections_dt.png" alt="inspections_dt.png" width="800" height="800" />
 </p>
 <p><span class="figure-number">Figure 20: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
 </div>
@@ -8443,7 +8507,7 @@ You can execute the experiment like this:
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiments/inspections_dt.yaml --no-save-predictions --profile
+triage experiment --matrix-format hdf experiments/inspections_dt.yaml  --profile
 </pre>
 </div>
 
@@ -8598,28 +8662,185 @@ and <b>15</b> models
 </table>
 
 <p>
-Let's see the performance of the new models:
+Let's see the performance over time of the models so far:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sql"><span style="font-weight: bold;">select</span> <span style="font-weight: bold;">distinct</span> <span style="font-weight: bold;">on</span> (train_end_time)
+<pre class="src src-sql"><span style="font-weight: bold;">select</span>
     model_group_id,
-    model_id,
-    train_end_time::<span style="font-weight: bold; text-decoration: underline;">date</span>,
-    ev.evaluation_start_time::<span style="font-weight: bold; text-decoration: underline;">date</span>,
-    ev.evaluation_end_time::<span style="font-weight: bold; text-decoration: underline;">date</span>,
-    to_char(ev.num_labeled_examples, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">as</span> labeled_examples,
-    to_char(ev.num_labeled_above_threshold, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">as</span> labeled_above_threshold,
-    to_char(ev.num_positive_labels, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">as</span> total_positive_labels,
-    to_char(ev.<span style="font-weight: bold;">value</span>, <span style="font-style: italic;">'0.999'</span>) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold; text-decoration: underline;">precision</span>@10%"
+    array_agg(model_id <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> models,
+    <span style="font-weight: bold; font-style: italic;">-- array_agg(train_end_time::date order by ev.evaluation_start_time asc),</span>
+    array_agg(ev.evaluation_start_time::<span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> evaluation_start_time,
+    array_agg(ev.evaluation_end_time::<span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> evaluation_end_time,
+    array_agg(to_char(ev.num_labeled_examples, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> labeled_examples,
+    array_agg(to_char(ev.num_labeled_above_threshold, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> labeled_above_threshold,
+    array_agg(to_char(ev.num_positive_labels, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> total_positive_labels,
+    array_agg(to_char(ev.<span style="font-weight: bold;">value</span>, <span style="font-style: italic;">'0.999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold; text-decoration: underline;">precision</span>@10%"
 <span style="font-weight: bold;">from</span>
     model_metadata.models <span style="font-weight: bold;">as</span> mo
     <span style="font-weight: bold;">join</span>
     test_results.evaluations <span style="font-weight: bold;">as</span> ev <span style="font-weight: bold;">using</span>(model_id)
 <span style="font-weight: bold;">where</span>
     ev.metric || ev.<span style="font-weight: bold;">parameter</span> = <span style="font-style: italic;">'precision@10_pct'</span>
-<span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
-    train_end_time <span style="font-weight: bold;">asc</span>, ev.<span style="font-weight: bold;">value</span> <span style="font-weight: bold;">desc</span>;
+<span style="font-weight: bold;">group</span> <span style="font-weight: bold;">by</span>
+    model_group_id
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">model<sub>group</sub><sub>id</sub></th>
+<th scope="col" class="org-left">models</th>
+<th scope="col" class="org-left">evaluation<sub>start</sub><sub>time</sub></th>
+<th scope="col" class="org-left">evaluation<sub>end</sub><sub>time</sub></th>
+<th scope="col" class="org-left">labeled<sub>examples</sub></th>
+<th scope="col" class="org-left">labeled<sub>above</sub><sub>threshold</sub></th>
+<th scope="col" class="org-left">total<sub>positive</sub><sub>labels</sub></th>
+<th scope="col" class="org-left">precision@10%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">1</td>
+<td class="org-left">{1,4,7}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   2,933","   2,765","   2,146"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.225"," 0.252"," 0.232"}</td>
+</tr>
+
+<tr>
+<td class="org-right">2</td>
+<td class="org-left">{2,5,8}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   2,933","   2,765","   2,146"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.225"," 0.252"," 0.232"}</td>
+</tr>
+
+<tr>
+<td class="org-right">3</td>
+<td class="org-left">{3,6,9}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   2,933","   2,765","   2,146"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.225"," 0.252"," 0.232"}</td>
+</tr>
+
+<tr>
+<td class="org-right">4</td>
+<td class="org-left">{10,16,22}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   3,921","   2,620","   2,106"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.333"," 0.298"," 0.291"}</td>
+</tr>
+
+<tr>
+<td class="org-right">5</td>
+<td class="org-left">{11,17,23}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   3,921","   2,620","   2,106"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.333"," 0.298"," 0.291"}</td>
+</tr>
+
+<tr>
+<td class="org-right">6</td>
+<td class="org-left">{12,18,24}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   2,992","   3,161","   2,391"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.298"," 0.301"," 0.331"}</td>
+</tr>
+
+<tr>
+<td class="org-right">7</td>
+<td class="org-left">{13,19,25}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   3,017","   3,143","   2,393"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.296"," 0.303"," 0.332"}</td>
+</tr>
+
+<tr>
+<td class="org-right">8</td>
+<td class="org-left">{14,20,26}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   2,708","   2,545","   2,096"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.275"," 0.277"," 0.245"}</td>
+</tr>
+
+<tr>
+<td class="org-right">9</td>
+<td class="org-left">{15,21,27}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
+<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
+<td class="org-left">{"   2,805","   2,578","   2,140"}</td>
+<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
+<td class="org-left">{" 0.288"," 0.283"," 0.265"}</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>
+Which model in production (<i>model selection</i>) is something that we will
+review later, with <code>Audition</code>, but for now, let's choose the model group
+<code>5</code> and see the <code>predictions</code> table:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql"><span style="font-weight: bold;">select</span>
+    model_id,
+    entity_id,
+    as_of_date,
+    score,
+    label_value <span style="font-weight: bold;">as</span> label
+<span style="font-weight: bold;">from</span>
+    test_results.predictions
+<span style="font-weight: bold;">where</span>
+    model_id = 24
+<span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> score <span style="font-weight: bold;">desc</span>
+<span style="font-weight: bold;">limit</span> 20
 </pre>
 </div>
 
@@ -8631,74 +8852,220 @@ Let's see the performance of the new models:
 
 <col  class="org-right" />
 
-<col  class="org-right" />
-
-<col  class="org-right" />
+<col  class="org-left" />
 
 <col  class="org-right" />
 
 <col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-left" />
-
-<col  class="org-right" />
 </colgroup>
 <thead>
 <tr>
-<th scope="col" class="org-right">model<sub>group</sub><sub>id</sub></th>
 <th scope="col" class="org-right">model<sub>id</sub></th>
-<th scope="col" class="org-right">train<sub>end</sub><sub>time</sub></th>
-<th scope="col" class="org-right">evaluation<sub>start</sub><sub>time</sub></th>
-<th scope="col" class="org-right">evaluation<sub>end</sub><sub>time</sub></th>
-<th scope="col" class="org-left">labeled<sub>examples</sub></th>
-<th scope="col" class="org-left">labeled<sub>above</sub><sub>threshold</sub></th>
-<th scope="col" class="org-left">total<sub>positive</sub><sub>labels</sub></th>
-<th scope="col" class="org-right">precision@10%</th>
+<th scope="col" class="org-right">entity<sub>id</sub></th>
+<th scope="col" class="org-left">as<sub>of</sub><sub>date</sub></th>
+<th scope="col" class="org-right">score</th>
+<th scope="col" class="org-left">label</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="org-right">5</td>
-<td class="org-right">11</td>
-<td class="org-right">2015-12-01</td>
-<td class="org-right">2015-12-01</td>
-<td class="org-right">2016-11-01</td>
-<td class="org-left">14,273</td>
-<td class="org-left">2,014</td>
-<td class="org-left">3,460</td>
-<td class="org-right">0.336</td>
-</tr>
-
-<tr>
-<td class="org-right">7</td>
-<td class="org-right">19</td>
-<td class="org-right">2016-12-01</td>
-<td class="org-right">2016-12-01</td>
-<td class="org-right">2017-11-01</td>
-<td class="org-left">13,637</td>
-<td class="org-left">1,675</td>
-<td class="org-left">3,203</td>
-<td class="org-right">0.331</td>
-</tr>
-
-<tr>
-<td class="org-right">6</td>
 <td class="org-right">24</td>
-<td class="org-right">2017-12-01</td>
-<td class="org-right">2017-12-01</td>
-<td class="org-right">2018-11-01</td>
-<td class="org-left">10,490</td>
-<td class="org-left">1,254</td>
-<td class="org-left">2,449</td>
-<td class="org-right">0.344</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-06-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">41</td>
+<td class="org-left">2018-11-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-05-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">39</td>
+<td class="org-left">2018-07-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">39</td>
+<td class="org-left">2018-10-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">41</td>
+<td class="org-left">2018-05-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">43</td>
+<td class="org-left">2018-06-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-04-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2018-02-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2018-01-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2018-05-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">39</td>
+<td class="org-left">2018-09-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2018-04-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">18</td>
+<td class="org-left">2017-12-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2018-06-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2018-03-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-01-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-02-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">0</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">14</td>
+<td class="org-left">2017-12-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-07-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 
+<p>
+Note that at the top of the list (sorted by <code>score</code>), the <i>labels</i>
+are <code>NULL</code>. This means that the facilities that you are classifying as
+high risk, actually weren't inspected in that <i>as of date</i>. So, you
+actually don't know if this is a correct prediction or not.
+</p>
+
+<p>
+This is a <b>characteristic</b> of all the resource optimization problems:
+You do not have all the information about the elements in your system<sup><a id="fnr.45" class="footref" href="#fn.45">45</a></sup>.
+</p>
+
+<p>
+So, how the precision/recall is calculated? The number that is show in
+the <code>evaluations</code> table is calculated using only the rows that have a
+non-null label. You could argue that this is fine, if you assume that
+the distribution of the label in the non-observed facilities is the
+same that the ones that were inspected that month<sup><a id="fnr.46" class="footref" href="#fn.46">46</a></sup>. We will come
+back to this problem in the Early Warning problem.
+</p>
+
+<p>
+There is a second problem: <i>How do you break ties in the score?</i>
+If you run the previous query you will see why. The order within all
+the equal scores will be <i>random</i>. This again will affect the
+calculation of your metrics. One potential solution to this is
+calculate the metric in the <i>best case scenario</i> (all the true labels are at
+the top), and then in the <i>worst case scenario</i> (all the true labels are
+at the bottom) and then calculate the metric several times with the
+labels shuffled, so you get the <i>mean</i> metric, plus some confidence
+intervals. This second problem is <b>not</b> specific of an inspection
+problem, is more related to simple models like a shallow Decision Tree
+or a Dummy Classifier.
+</p>
+</div>
+</div>
 
 <div id="outline-container-org7d87079" class="outline-4">
 <h4 id="org7d87079"><span class="section-number-4">5.3.3</span> A more advanced experiment</h4>
@@ -8721,7 +9088,7 @@ Ok, let's add a more complete experiment. First the usual generalities.
   <span style="font-weight: bold; font-style: italic;">org</span>: <span style="font-style: italic;">'DSaPP'</span>
   <span style="font-weight: bold; font-style: italic;">team</span>: <span style="font-style: italic;">'Tutorial'</span>
   <span style="font-weight: bold; font-style: italic;">author</span>: <span style="font-style: italic;">'Your name here'</span>
-  <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-01-18'</span>
+  <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-02-21'</span>
 </pre>
 </div>
 
@@ -8737,13 +9104,13 @@ As before, we can check the temporal structure of our crossvalidation:
 <div class="org-src-container">
 <pre class="src src-sh">
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiments/inspections_label_failed_01.yaml
+triage experiment experiments/inspections_label_failed_01.yaml --show-timechop
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="./images/inspections_label_failed_01.png" alt="inspections_label_failed_01.png" width="800" height="800" />
+<p><img src="../triage/images/inspections_label_failed_01.png" alt="inspections_label_failed_01.png" width="800" height="800" />
 </p>
 <p><span class="figure-number">Figure 21: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
 </div>
@@ -8820,12 +9187,14 @@ You can execute the experiment with
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
+triage experiment --matrix-format hdf experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
 </pre>
 </div>
 
 <p>
-This will take a looooong time to run.
+This will take a looooong time to run. The reason for that is easy to understand: We are computing
+a <i>lot</i> of models: 3 time splits, 4 model groups and 9 features sets (one for <code>all</code>, four for <code>leave_one_in</code> and
+four for <code>leave_one_out</code>), so \(3 \times 4 \times 9 = 108\) extra models.
 </p>
 
 <p>
@@ -8840,8 +9209,8 @@ Well, now we have a lot of models. How can you pick the best one?
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org9418773" class="outline-3">
-<h3 id="org9418773"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-orgcfe1b58" class="outline-3">
+<h3 id="orgcfe1b58"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -8890,7 +9259,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org5659057" class="figure">
+<div id="org5512f9b" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -8922,7 +9291,7 @@ First the usual stuff. Note that we are changing <code>model_comment</code> and
   <span style="font-weight: bold; font-style: italic;">org</span>: <span style="font-style: italic;">'DSaPP'</span>
   <span style="font-weight: bold; font-style: italic;">team</span>: <span style="font-style: italic;">'Tutorial'</span>
   <span style="font-weight: bold; font-style: italic;">author</span>: <span style="font-style: italic;">'Your name here'</span>
-  <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-01-18'</span>
+  <span style="font-weight: bold; font-style: italic;">etl_date</span>: <span style="font-style: italic;">'2019-02-21'</span>
 
 <span style="font-weight: bold; font-style: italic;">model_group_keys</span>:
   - <span style="font-style: italic;">'class_path'</span>
@@ -8994,8 +9363,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-orga629bce" class="outline-3">
-<h3 id="orga629bce"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org5a535b9" class="outline-3">
+<h3 id="org5a535b9"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -9679,67 +10048,54 @@ across all  model groups</li>
 We included a simple configuration file with some rules:
 </p>
 
-<pre class="example">
-# CHOOSE MODEL GROUPS
-model_groups:
-    query: |
-        SELECT DISTINCT(model_group_id)
-        FROM results.model_groups
-# CHOOSE TIMESTAMPS/TRAIN END TIMES
-time_stamps:
-    query: |
-        SELECT DISTINCT train_end_time
-        FROM results.models
-        WHERE model_group_id IN ({})
-        AND EXTRACT(DAY FROM train_end_time) IN (1)
-        AND train_end_time &gt;= '2012-01-01'
-# FILTER
-filter:
-    metric: 'precision@' # metric of interest
-    parameter: '50_abs' # parameter of interest
-    max_from_best: 1.0 # The maximum value that the given metric can be worse than the best model for a given train end time.
-    threshold_value: 0.0 # The worst absolute value that the given metric should be.
-    distance_table: 'distance_table' # name of the distance table
-    models_table: 'models' # name of the models table
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">CHOOSE MODEL GROUPS</span>
+<span style="font-weight: bold; font-style: italic;">model_groups</span>:
+    <span style="font-weight: bold; font-style: italic;">query</span>: |
+        <span style="font-style: italic;">SELECT DISTINCT(model_group_id)</span>
+        <span style="font-style: italic;">FROM model_metadata.model_groups</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">CHOOSE TIMESTAMPS/TRAIN END TIMES</span>
+<span style="font-weight: bold; font-style: italic;">time_stamps</span>:
+    <span style="font-weight: bold; font-style: italic;">query</span>: |
+        <span style="font-style: italic;">SELECT DISTINCT train_end_time</span>
+        <span style="font-style: italic;">FROM model_metadata.models</span>
+        <span style="font-style: italic;">WHERE model_group_id IN ({})</span>
+        <span style="font-style: italic;">AND EXTRACT(DAY FROM train_end_time) IN (1)</span>
+        AND train_end_time &gt;= <span style="font-style: italic;">'2012-01-01'</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">FILTER</span>
+<span style="font-weight: bold; font-style: italic;">filter</span>:
+    <span style="font-weight: bold; font-style: italic;">metric</span>: <span style="font-style: italic;">'precision@'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">metric of interest</span>
+    <span style="font-weight: bold; font-style: italic;">parameter</span>: <span style="font-style: italic;">'10_pct'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">parameter of interest</span>
+    <span style="font-weight: bold; font-style: italic;">max_from_best</span>: 1.0 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">The maximum value that the given metric can be worse than the best model for a given train end time.</span>
+    <span style="font-weight: bold; font-style: italic;">threshold_value</span>: 0.0 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">The worst absolute value that the given metric should be.</span>
+    <span style="font-weight: bold; font-style: italic;">distance_table</span>: <span style="font-style: italic;">'distance_table'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">name of the distance table</span>
+    <span style="font-weight: bold; font-style: italic;">models_table</span>: <span style="font-style: italic;">'models'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">name of the models table</span>
 
-# RULES
-rules:
-    -
-        shared_parameters:
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">RULES</span>
+<span style="font-weight: bold; font-style: italic;">rules</span>:
+    <span style="font-weight: bold; font-style: italic;">-</span>
+        <span style="font-weight: bold; font-style: italic;">shared_parameters</span>:
             -
-                metric: 'precision@'
-                parameter: '50_abs'
-            -
-                metric: 'recall@'
-                parameter: '50_abs'
-        selection_rules:
-            -
-                name: 'best_current_value' # Pick the model group with the best current metric value
-                num: 3
-            -
-                name: 'best_average_value' # Pick the model with the highest average metric value
-                num: 3
-            -
-                name: 'lowest_metric_variance' # Pick the model with the lowest metric variance
-                num: 3
-            -
-                name: 'most_frequent_best_dist' # Pick the model that is most frequently within `dist_from_best_case`
-                dist_from_best_case: [0.05]
-                num: 3
+                <span style="font-weight: bold; font-style: italic;">metric</span>: <span style="font-style: italic;">'precision@'</span>
+                <span style="font-weight: bold; font-style: italic;">parameter</span>: <span style="font-style: italic;">'10_pct'</span>
 
-    -
-        shared_parameters:
+        <span style="font-weight: bold; font-style: italic;">selection_rules</span>:
             -
-                metric1: 'precision@'
-                parameter1: '50_abs'
-        selection_rules:
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'best_current_value'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model group with the best current metric value</span>
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
             -
-                name: 'best_average_two_metrics' #  Pick the model with the highest average combined value to date of two metrics weighted together using metric1_weight
-                metric2: 'recall@'
-                parameter2: '50_abs'
-                metric1_weight: 0.5
-                num: 3
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'best_average_value'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model with the highest average metric value</span>
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+            -
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'lowest_metric_variance'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model with the lowest metric variance</span>
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+            -
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'most_frequent_best_dist'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model that is most frequently within `dist_from_best_case`</span>
+                <span style="font-weight: bold; font-style: italic;">dist_from_best_case</span>: [0.05]
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+
 </pre>
+</div>
 
 <p>
 <code>Audition</code> will have each rule give you the best \(n\) model-group IDs
@@ -9752,7 +10108,7 @@ We can run the simulation of the rules againts the experiment as:
 </p>
 
 <div class="org-src-container">
-<pre class="src src-sh">triage audition
+<pre class="src src-sh">triage --tb audition --directory audition/
 :
 </pre>
 </div>
@@ -9761,24 +10117,256 @@ We can run the simulation of the rules againts the experiment as:
 <pre class="src src-org">/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <span style="text-decoration: underline;"><a href="http://initd.org/psycopg/docs/install.html#binary-install-from-pypi">&lt;http://initd.org/psycopg/docs/install.html#binary-install-from-pypi&gt;</a></span>.
   """)
 INFO:root:Validate!
-&#27;[33m[ProgrammingError]&#27;[39m &#27;[31m(psycopg2.ProgrammingError) relation "results.model_groups" does not exist
-LINE 2: FROM results.model_groups
-             ^
- [SQL: 'SELECT DISTINCT(model_group_id)\nFROM results.model_groups\n'] (Background on this error at: <span style="text-decoration: underline;"><a href="http://sqlalche.me/e/f405">http://sqlalche.me/e/f405</a></span>)&#27;[39m
+INFO:root:Checking if all model groups have the same train end times
+INFO:root:Found 45 total model groups
+INFO:root:Dropped 36 model groups which don't match the train end times
+INFO:root:Found 9 total model groups past the checker
+INFO:root:Polulating data to distance table
+INFO:root:Showing best distance plots for all metrics
+INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 9 total model groups past threshold
+INFO:root:Building best distance plot for {'metric': 'precision@', 'parameter': '10_pct'} and [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
+INFO:root:Showing model group performance plots for all metrics
+INFO:root:Plotting model group performance for {'metric': 'precision@', 'parameter': '10_pct', 'max_from_best': 1.0, 'threshold_value': 0.0}, [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
+INFO:root:Expanding selection rule groups into full grid
+INFO:root:Expanding rule group {'shared_parameters': [{'metric': 'precision@', 'parameter': '10_pct'}], 'selection_rules': [{'name': 'best_current_value', 'n': 3}, {'name': 'best_average_value', 'n': 3}, {'name': 'lowest_metric_variance', 'n': 3}, {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}]}
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'best_current_value', 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'best_average_value', 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'lowest_metric_variance', 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}
+INFO:root:Found 1 new rules
+INFO:root:Found 4 total selection rules. Full list: ['best_current_value_precision@_10_pct', 'best_average_value_precision@_10_pct', 'lowest_metric_variance_precision@_10_pct', 'most_frequent_best_dist_precision@_10_pct_0.05']
+INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 9 total model groups past threshold
+INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
+INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
+INFO:root:Calculating selection rule picks for all rules
+INFO:root:Found 9 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 9 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 9 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 9 total model groups past threshold
+INFO:root:Calculating selection rule picks for best_current_value_precision@_10_pct
+INFO:root:For rule best_current_value_precision@_10_pct, model group [7, 6, 5] was picked
+INFO:root:Calculating selection rule picks for best_average_value_precision@_10_pct
+INFO:root:For rule best_average_value_precision@_10_pct, model group [6, 7, 4] was picked
+INFO:root:Calculating selection rule picks for lowest_metric_variance_precision@_10_pct
+INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [1, 2, 3] was picked
+INFO:root:Calculating selection rule picks for most_frequent_best_dist_precision@_10_pct_0.05
+INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [6, 4, 5] was picked
+INFO:root:Audition ran! Results are stored in images.
 &#27;[0m
+</pre>
+</div>
+
+<p>
+<code>audtion</code> will create the folloing  plots:
+</p>
+</div>
+
+<div id="outline-container-org9d8cba8" class="outline-3">
+<h3 id="org9d8cba8"><span class="section-number-3">7.1</span> Distance from best</h3>
+<div class="outline-text-3" id="text-7-1">
+
+<div class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
+</p>
+</div>
+
+<p>
+The way of read this image is:
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5ecdee3" class="outline-3">
+<h3 id="org5ecdee3"><span class="section-number-3">7.2</span> Model group performance over time</h3>
+<div class="outline-text-3" id="text-7-2">
+
+<div class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd8e1e56" class="outline-3">
+<h3 id="orgd8e1e56"><span class="section-number-3">7.3</span> Metric "next time"</h3>
+<div class="outline-text-3" id="text-7-3">
+
+<div class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org2280ce2" class="outline-3">
+<h3 id="org2280ce2"><span class="section-number-3">7.4</span> "Regret"</h3>
+<div class="outline-text-3" id="text-7-4">
+
+<div class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
+</p>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-org9f46faf" class="outline-3">
+<h3 id="org9f46faf"><span class="section-number-3">7.5</span> "Regret" over time</h3>
+<div class="outline-text-3" id="text-7-5">
+
+<div class="figure">
+<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/images/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
+</p>
+</div>
+
+
+<p>
+The final result of audition will be stored in a <code>json</code> file:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">7</span>, <span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">5</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">7</span>, <span style="font-weight: bold; text-decoration: underline;">4</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">1</span>, <span style="font-weight: bold; text-decoration: underline;">2</span>, <span style="font-weight: bold; text-decoration: underline;">3</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">4</span>, <span style="font-weight: bold; text-decoration: underline;">5</span>]}
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge268685" class="outline-2">
+<h2 id="orge268685"><span class="section-number-2">8</span> WORKING Crossvalidation</h2>
+<div class="outline-text-2" id="text-8">
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;">output</span>:
+  <span style="font-weight: bold; font-style: italic;">schema</span>: <span style="font-style: italic;">'test_results'</span>
+  <span style="font-weight: bold; font-style: italic;">table</span>: <span style="font-style: italic;">'crosstabs_test'</span>
+
+<span style="font-weight: bold; font-style: italic;">thresholds</span>:
+    <span style="font-weight: bold; font-style: italic;">rank_abs</span>: [50]
+    <span style="font-weight: bold; font-style: italic;">rank_pct</span>: []
+
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">(optional): a list of entity_ids to subset on the crosstabs analysis</span>
+<span style="font-weight: bold; font-style: italic;">entity_id_list</span>: []
+
+<span style="font-weight: bold; font-style: italic;">models_list_query</span>: <span style="font-style: italic;">"select unnest(ARRAY[44, 86]) :: int as model_id"</span>
+
+<span style="font-weight: bold; font-style: italic;">as_of_dates_query</span>: <span style="font-style: italic;">"select unnest(ARRAY['2016-01-13','2017-01-13']) :: date as as_of_date"</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">don't change this query unless strictly necessary. It is just validating pairs of (model_id,as_of_date)</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">it is just a join with distinct (model_id, as_of_date) in a predictions table</span>
+<span style="font-weight: bold; font-style: italic;">models_dates_join_query</span>: <span style="font-style: italic;">"</span>
+<span style="font-style: italic;">select model_id,</span>
+<span style="font-style: italic;">      as_of_date</span>
+<span style="font-style: italic;">      from models_list_query m</span>
+<span style="font-style: italic;">      cross join as_of_dates_query a join (select distinct model_id, as_of_date from test_results.predictions) p</span>
+<span style="font-style: italic;">      using (model_id, as_of_date)"</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">features_query must join models_dates_join_query with 1 or more features table using as_of_date</span>
+<span style="font-weight: bold; font-style: italic;">features_query</span>: <span style="font-style: italic;">"</span>
+<span style="font-style: italic;">select m.model_id, f1.*</span>
+<span style="font-style: italic;"> from features.inspections_aggregation_imputed f1 join</span>
+<span style="font-style: italic;"> models_dates_join_query m using (as_of_date)"</span>
+
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">the predictions query must return model_id, as_of_date, entity_id, score, label_value, rank_abs and rank_pct</span>
+<span style="font-weight: bold; font-style: italic;">#</span><span style="font-weight: bold; font-style: italic;">it must join models_dates_join_query using both model_id and as_of_date</span>
+<span style="font-weight: bold; font-style: italic;">predictions_query</span>: <span style="font-style: italic;">"</span>
+<span style="font-style: italic;">select model_id,</span>
+<span style="font-style: italic;">      as_of_date,</span>
+<span style="font-style: italic;">      entity_id,</span>
+<span style="font-style: italic;">      score,</span>
+<span style="font-style: italic;">      label_value,</span>
+<span style="font-style: italic;">      coalesce(rank_abs, row_number() over (partition by (model_id, as_of_date) order by score desc)) as rank_abs,</span>
+<span style="font-style: italic;">      coalesce(rank_pct*100, ntile(100) over (partition by (model_id, as_of_date) order by score desc)) as rank_pct</span>
+<span style="font-style: italic;">  from test_results.predictions</span>
+<span style="font-style: italic;">  JOIN models_dates_join_query USING(model_id, as_of_date)</span>
+<span style="font-style: italic;">  where model_id IN (select model_id from models_list_query)</span>
+<span style="font-style: italic;">  AND as_of_date in (select as_of_date from as_of_dates_query)"</span>
 </pre>
 </div>
 </div>
 </div>
 
 
-<div id="outline-container-org8fdc63f" class="outline-2">
-<h2 id="org8fdc63f"><span class="section-number-2">8</span> <span class="todo TODO">TODO</span> Crossvalidation</h2>
+<div id="outline-container-org75a5186" class="outline-2">
+<h2 id="org75a5186"><span class="section-number-2">9</span> WORKING Postmodeling</h2>
+<div class="outline-text-2" id="text-9">
+<p>
+<i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)(
+</p>
+
+<p>
+Compored to the previous sections, <i>postmodeling</i> is not an automated process (yet).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Postmodeling Configuration File</span>
+
+  <span style="font-weight: bold; font-style: italic;">project_path</span>: <span style="font-style: italic;">'/triage'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Project path defined in triage with matrices and models</span>
+  <span style="font-weight: bold; font-style: italic;">audition_output_path</span>: <span style="font-style: italic;">'/triage/images'</span>
+
+  <span style="font-weight: bold; font-style: italic;">thresholds</span>: <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Thresholds for2 defining positive predictions</span>
+        <span style="font-weight: bold; font-style: italic;">rank_abs</span>: [50, 100, 250]
+        <span style="font-weight: bold; font-style: italic;">rank_pct</span>: [5, 10, 25]
+
+  <span style="font-weight: bold; font-style: italic;">baseline_query</span>: | <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">SQL query for defining a baseline for comparison in plots. It needs a metric and parameter</span>
+      SELECT g.model_group_id,
+             m.model_id,
+             EXTRACT(<span style="font-style: italic;">'YEAR'</span> FROM m.evaluation_end_time) AS as_of_date_year,
+             m.metric,
+             m.parameter,
+             m.value,
+             m.num_labeled_examples,
+             m.num_labeled_above_threshold,
+             m.num_positive_labels
+       FROM test_results.evaluations m
+       LEFT JOIN model_metadata.models g
+       USING(model_id)
+       WHERE g.model_group_id = 1
+             AND metric = <span style="font-style: italic;">'precision@'</span>
+             AND parameter = <span style="font-style: italic;">'10_pct'</span>
+
+  <span style="font-weight: bold; font-style: italic;">max_depth_error_tree</span>: 5 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">For error trees, how depth the decision trees should go?</span>
+  <span style="font-weight: bold; font-style: italic;">n_features_plots</span>: 10 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Number of features for importances</span>
+  <span style="font-weight: bold; font-style: italic;">figsize</span>: [12, 12] <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Default size for plots</span>
+  <span style="font-weight: bold; font-style: italic;">fontsize</span>: 20 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Default fontsize for plots</span>
+</pre>
+</div>
 </div>
 
-<div id="outline-container-org9ee025d" class="outline-2">
-<h2 id="org9ee025d"><span class="section-number-2">9</span> <span class="todo TODO">TODO</span> Postmodeling</h2>
-<div class="outline-text-2" id="text-9">
+
+<div id="outline-container-org124753d" class="outline-3">
+<h3 id="org124753d"><span class="section-number-3">9.1</span> Over time</h3>
+</div>
+
+<div id="outline-container-orgf02b64f" class="outline-3">
+<h3 id="orgf02b64f"><span class="section-number-3">9.2</span> Feature group importance</h3>
+</div>
+
+<div id="outline-container-orgebcb7ce" class="outline-3">
+<h3 id="orgebcb7ce"><span class="section-number-3">9.3</span> Higher ratio across labels from <code>crosstabs</code></h3>
+</div>
+
+<div id="outline-container-orgd807ce1" class="outline-3">
+<h3 id="orgd807ce1"><span class="section-number-3">9.4</span> Overlap</h3>
+<div class="outline-text-3" id="text-9-4">
+</div>
 </div>
 </div>
 
@@ -9815,7 +10403,7 @@ Batch to execute the task).
 <div class="figure">
 <p><img src="images/AWS_Batch_Architecture.png" alt="AWS_Batch_Architecture.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 24: </span>Diagram showing the AWS Batch main components and their relationships.</p>
+<p><span class="figure-number">Figure 29: </span>Diagram showing the AWS Batch main components and their relationships.</p>
 </div>
 
 <p>
@@ -10494,12 +11082,26 @@ in a file, so you can check which models or matrices are taking a lot
 of time on been built.
 </p></div></div>
 
+<div class="footdef"><sup><a id="fn.45" class="footnum" href="#fnr.45">45</a></sup> <div class="footpara"><p class="footpara">
+From a more mathematical point of view: Your data actually
+reflects the empirical probability: \(P(violation|inspected)\), i.e. the
+probability of find a violation given that the facility is
+inspected. But the probability that you want is \(P(violation)\) (yes, I
+know that there are no such things as unconditional probabilities,
+please bare with me),i.e. the probability that the facility is in violation.
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.46" class="footnum" href="#fnr.46">46</a></sup> <div class="footpara"><p class="footpara">
+You should see that this assumption is very dangerous in other
+settings, for example, crime prediction.
+</p></div></div>
+
 
 </div>
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-02-20 Wed 14:23</p>
+<p class="date">Created: 2019-03-01 Fri 16:54</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
