@@ -1346,10 +1346,12 @@ You can execute the experiment with
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
+triage experiment --matrix-format hdf experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
 #+END_SRC
 
-This will take a looooong time to run.
+This will take a looooong time to run. The reason for that is easy to understand: We are computing
+a /lot/ of models: 3 time splits, 4 model groups and 9 features sets (one for =all=, four for =leave_one_in= and
+four for =leave_one_out=), so $3 \times 4 \times 9 = 108$ extra models.
 
 Well, now we have a lot of models. How can you pick the best one?
 
