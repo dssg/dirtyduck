@@ -1,1 +1,1 @@
-{"best_current_value_precision@_10_pct": [13, 12, 10], "best_average_value_precision@_10_pct": [12, 13, 10], "lowest_metric_variance_precision@_10_pct": [21, 20, 19], "most_frequent_best_dist_precision@_10_pct_0.05": [10, 11, 12]}
+{"best_current_value_precision@_10_pct": [13, 12, 31], "best_average_value_precision@_10_pct": [31, 12, 13], "lowest_metric_variance_precision@_10_pct": [21, 20, 30], "most_frequent_best_dist_precision@_10_pct_0.05": [10, 11, 12]}

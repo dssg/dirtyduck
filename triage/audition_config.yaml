@@ -10,7 +10,7 @@ time_stamps:
         FROM model_metadata.models
         WHERE model_group_id IN ({})
         AND EXTRACT(DAY FROM train_end_time) IN (1)
-        AND train_end_time >= '2012-01-01'
+        AND train_end_time >= '2015-01-01'
 # FILTER
 filter:
     metric: 'precision@' # metric of interest
