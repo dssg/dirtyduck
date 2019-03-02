@@ -256,7 +256,7 @@ Where =your_profile= is the name of the profile in =~/.aws/credentials=
 
 The workflow now is:
 
-**** Just one time
+**** At the beginning of the project
 - Set a =docker image= and publish it to the AWS ECR (if needed, or you
   can use the =triage= official one).
 
@@ -277,7 +277,7 @@ different resources (maybe small resources for testing or a lot of
 resources for a big experiment)
 #+END_QUOTE
 
-**** Iterative
+**** Every time that you have an idea about how to improve the results
 
 - Create experiment files and publish them to the =s3= bucket:
 
