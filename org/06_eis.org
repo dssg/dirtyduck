@@ -176,9 +176,8 @@ As before, you can generate the image of the temporal blocks:
 
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
-
 # Remember to run this in bastion  NOT in your laptop shell!
-triage showtimechops experiments/eis_01.yaml
+triage experiment experiments/eis_01.yaml --show-timechop
 #+END_SRC
 
 
@@ -284,11 +283,6 @@ feature_aggregations:
       - 'entity_id'
       - 'zip_code'
 
-grid_config:
-    'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [2,10,~]
-        min_samples_split: [2,5]
-
 
 #+END_SRC
 
@@ -302,7 +296,7 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-out']
+feature_group_strategies: ['all', 'leave-one-out', 'leave-one-in']
 #+END_SRC
 
 i.e. =all= will train models with all the features groups,
@@ -321,18 +315,18 @@ grid_config:
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
-        n_estimators: [250]
+        n_estimators: [500]
         min_samples_leaf: [1]
         min_samples_split: [50]
     'sklearn.dummy.DummyClassifier':
         strategy: [most_frequent]
 #+END_SRC
 
-=triage= will create *20* /model groups/: *4* algorithms and
+=triage= will create *36* /model groups/: *4* algorithms and
 hyperparameters (2 =DecisionTreeClassifier=, 1
-=RandomForestClassifier=, 1 =DummyClassifier=) \times *5* features groups (1
-=all=, 4 =leave-one-out=). The total number of /models/
-is triple that (we have 3 time blocks, so *60*).
+=RandomForestClassifier=, 1 =DummyClassifier=) \times *9* features sets (1
+=all=, 4 =leave-one-out=, =4 leave-one-in=). The total number of /models/
+is three times that (we have 3 time blocks, so *108* models).
 
 #+BEGIN_SRC yaml :tangle ../triage/experiments/eis_01.yaml
 scoring:
@@ -369,7 +363,7 @@ And then just run it:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 # Remember to run this in bastion  NOT in your laptop shell!
-triage experiment experiments/eis_01.yaml --profile
+triage experiment --matrix-format hdf experiments/eis_01.yaml --no-save-predictions --profile
 #+END_SRC
 
 This will take a *lot* amount of time (on my computer took 3h 42m),
@@ -414,7 +408,7 @@ select
     feature_groups,
     array_agg(model_id) as models,
     array_agg(train_end_time::date order by train_end_time asc) as times,
-    array_agg(to_char(value, '0.999') order by train_end_time asc) as "precision@5%"
+    array_agg(to_char(value, '0.999') order by train_end_time asc) as "precision@10%"
 from
     model_metadata.models
     join
@@ -424,7 +418,7 @@ from
 where
     model_comment ~ 'eis'
     and
-    metric || parameter = 'precision@5.0_pct'
+    metric || parameter = 'precision@10_pct'
 group by
     model_group_id,
     model_type,
@@ -436,6 +430,6 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type | hyperparameters | feature_groups | models | times | precision@5% |
-|--------------+-----------+-----------------+---------------+--------+-------+--------------|
+| model_group_id | model_type | hyperparameters | feature_groups | models | times | precision@10% |
+|--------------+-----------+-----------------+---------------+--------+-------+---------------|
 :END:

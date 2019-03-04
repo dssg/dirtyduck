@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-03 Sun 21:56 -->
+<!-- 2019-03-03 Sun 22:21 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#org13396b2">5.1. Problem description</a></li>
+<li><a href="#org1deffa3">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#orga7d19bb">5.3. Modeling Using Machine Learning</a>
+<li><a href="#org5ddf5ae">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#org1deffa3">6.1. Problem description</a></li>
+<li><a href="#org1526c48">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org5ddf5ae">6.3. Modeling Using Machine Learning</a>
+<li><a href="#orgd402e17">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -6955,8 +6955,8 @@ rm -r /triage/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org13396b2" class="outline-3">
-<h3 id="org13396b2"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org1deffa3" class="outline-3">
+<h3 id="org1deffa3"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7163,7 +7163,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org22d4b10" class="figure">
+<div id="orge8ca71b" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7173,8 +7173,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orga7d19bb" class="outline-3">
-<h3 id="orga7d19bb"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org5ddf5ae" class="outline-3">
+<h3 id="org5ddf5ae"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -9743,8 +9743,8 @@ solve this dilemma with the support of <code>audition</code>.
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org1deffa3" class="outline-3">
-<h3 id="org1deffa3"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org1526c48" class="outline-3">
+<h3 id="org1526c48"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9793,7 +9793,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orge8ca71b" class="figure">
+<div id="orgc0d4c6b" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -9897,8 +9897,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org5ddf5ae" class="outline-3">
-<h3 id="org5ddf5ae"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgd402e17" class="outline-3">
+<h3 id="orgd402e17"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -9934,9 +9934,8 @@ As before, you can generate the image of the temporal blocks:
 
 
 <div class="org-src-container">
-<pre class="src src-sh">
-<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage showtimechops experiments/eis_01.yaml
+<pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
+triage experiment experiments/eis_01.yaml --show-timechop
 </pre>
 </div>
 
@@ -10049,11 +10048,6 @@ Regarding the features, we will use the same ones that were used in <a href="ins
       - <span style="font-style: italic;">'entity_id'</span>
       - <span style="font-style: italic;">'zip_code'</span>
 
-<span style="font-weight: bold; font-style: italic;">grid_config</span>:
-    <span style="font-style: italic;">'sklearn.tree.DecisionTreeClassifier'</span>:
-        <span style="font-weight: bold; font-style: italic;">max_depth</span>: [2,10,~]
-        <span style="font-weight: bold; font-style: italic;">min_samples_split</span>: [2,5]
-
 
 </pre>
 </div>
@@ -10070,7 +10064,7 @@ We declare that we want to use all possible feature-group combinations for train
      - <span style="font-style: italic;">'risks'</span>
      - <span style="font-style: italic;">'inspection_types'</span>
 
-<span style="font-weight: bold; font-style: italic;">feature_group_strategies</span>: [<span style="font-style: italic;">'all'</span>, <span style="font-style: italic;">'leave-one-out'</span>]
+<span style="font-weight: bold; font-style: italic;">feature_group_strategies</span>: [<span style="font-style: italic;">'all'</span>, <span style="font-style: italic;">'leave-one-out'</span>, <span style="font-style: italic;">'leave-one-in'</span>]
 </pre>
 </div>
 
@@ -10097,7 +10091,7 @@ We will collapse the baseline (<code>DummyClassifier</code>) and the exploratory
     <span style="font-style: italic;">'sklearn.ensemble.RandomForestClassifier'</span>:
         <span style="font-weight: bold; font-style: italic;">max_features</span>: [<span style="font-style: italic;">'sqrt'</span>]
         <span style="font-weight: bold; font-style: italic;">criterion</span>: [<span style="font-style: italic;">'gini'</span>]
-        <span style="font-weight: bold; font-style: italic;">n_estimators</span>: [250]
+        <span style="font-weight: bold; font-style: italic;">n_estimators</span>: [500]
         <span style="font-weight: bold; font-style: italic;">min_samples_leaf</span>: [1]
         <span style="font-weight: bold; font-style: italic;">min_samples_split</span>: [50]
     <span style="font-style: italic;">'sklearn.dummy.DummyClassifier'</span>:
@@ -10106,11 +10100,11 @@ We will collapse the baseline (<code>DummyClassifier</code>) and the exploratory
 </div>
 
 <p>
-<code>triage</code> will create <b>20</b> <i>model groups</i>: <b>4</b> algorithms and
+<code>triage</code> will create <b>36</b> <i>model groups</i>: <b>4</b> algorithms and
 hyperparameters (2 <code>DecisionTreeClassifier</code>, 1
-<code>RandomForestClassifier</code>, 1 <code>DummyClassifier</code>) &times; <b>5</b> features groups (1
-<code>all</code>, 4 <code>leave-one-out</code>). The total number of <i>models</i>
-is triple that (we have 3 time blocks, so <b>60</b>).
+<code>RandomForestClassifier</code>, 1 <code>DummyClassifier</code>) &times; <b>9</b> features sets (1
+<code>all</code>, 4 <code>leave-one-out</code>, <code>4 leave-one-in</code>). The total number of <i>models</i>
+is three times that (we have 3 time blocks, so <b>108</b> models).
 </p>
 
 <div class="org-src-container">
@@ -10154,7 +10148,7 @@ And then just run it:
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment experiments/eis_01.yaml --profile
+triage experiment --matrix-format hdf experiments/eis_01.yaml --no-save-predictions --profile
 </pre>
 </div>
 
@@ -10208,7 +10202,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
     feature_groups,
     array_agg(model_id) <span style="font-weight: bold;">as</span> models,
     array_agg(train_end_time::<span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> train_end_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> times,
-    array_agg(to_char(<span style="font-weight: bold;">value</span>, <span style="font-style: italic;">'0.999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> train_end_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold; text-decoration: underline;">precision</span>@5%"
+    array_agg(to_char(<span style="font-weight: bold;">value</span>, <span style="font-style: italic;">'0.999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> train_end_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold; text-decoration: underline;">precision</span>@10%"
 <span style="font-weight: bold;">from</span>
     model_metadata.models
     <span style="font-weight: bold;">join</span>
@@ -10218,7 +10212,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <span style="font-weight: bold;">where</span>
     model_comment ~ <span style="font-style: italic;">'eis'</span>
     <span style="font-weight: bold;">and</span>
-    metric || <span style="font-weight: bold;">parameter</span> = <span style="font-style: italic;">'precision@5.0_pct'</span>
+    metric || <span style="font-weight: bold;">parameter</span> = <span style="font-style: italic;">'precision@10_pct'</span>
 <span style="font-weight: bold;">group</span> <span style="font-weight: bold;">by</span>
     model_group_id,
     model_type,
@@ -10255,7 +10249,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">feature<sub>groups</sub></td>
 <td class="org-left">models</td>
 <td class="org-left">times</td>
-<td class="org-left">precision@5%</td>
+<td class="org-left">precision@10%</td>
 </tr>
 </tbody>
 </table>
@@ -11352,7 +11346,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-03 Sun 21:56</p>
+<p class="date">Created: 2019-03-03 Sun 22:21</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
