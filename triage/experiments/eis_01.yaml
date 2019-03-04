@@ -159,11 +159,6 @@ feature_aggregations:
       - 'entity_id'
       - 'zip_code'
 
-grid_config:
-    'sklearn.tree.DecisionTreeClassifier':
-        max_depth: [2,10,~]
-        min_samples_split: [2,5]
-
 feature_group_definition:
    prefix:
      - 'inspections'
@@ -171,7 +166,7 @@ feature_group_definition:
      - 'risks'
      - 'inspection_types'
 
-feature_group_strategies: ['all', 'leave-one-out']
+feature_group_strategies: ['all', 'leave-one-out', 'leave-one-in']
 
 grid_config:
     'sklearn.tree.DecisionTreeClassifier':
@@ -179,7 +174,7 @@ grid_config:
     'sklearn.ensemble.RandomForestClassifier':
         max_features: ['sqrt']
         criterion: ['gini']
-        n_estimators: [250]
+        n_estimators: [500]
         min_samples_leaf: [1]
         min_samples_split: [50]
     'sklearn.dummy.DummyClassifier':
