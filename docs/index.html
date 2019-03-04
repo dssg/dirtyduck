@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-01 Fri 18:21 -->
+<!-- 2019-03-03 Sun 21:56 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#org88e79f3">5.1. Problem description</a></li>
+<li><a href="#org13396b2">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#orgd76ce41">5.3. Modeling Using Machine Learning</a>
+<li><a href="#orga7d19bb">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#org13396b2">6.1. Problem description</a></li>
+<li><a href="#org1deffa3">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#orga7d19bb">6.3. Modeling Using Machine Learning</a>
+<li><a href="#org5ddf5ae">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -6955,8 +6955,8 @@ rm -r /triage/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org88e79f3" class="outline-3">
-<h3 id="org88e79f3"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org13396b2" class="outline-3">
+<h3 id="org13396b2"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7163,7 +7163,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="orgebf2ca5" class="figure">
+<div id="org22d4b10" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7173,8 +7173,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orgd76ce41" class="outline-3">
-<h3 id="orgd76ce41"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orga7d19bb" class="outline-3">
+<h3 id="orga7d19bb"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -9341,7 +9341,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": 10, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{13,19,25}</td>
+<td class="org-left">{19,13,25}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.295"," 0.327"," 0.346"}</td>
 </tr>
@@ -9371,7 +9371,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{28,64,100}</td>
+<td class="org-left">{28,100,64}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.375"," 0.347"," 0.366"}</td>
 </tr>
@@ -9381,7 +9381,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{101,29,65}</td>
+<td class="org-left">{101,65,29}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.367"," 0.351"," 0.360"}</td>
 </tr>
@@ -9391,7 +9391,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{102,30,66}</td>
+<td class="org-left">{102,66,30}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.378"," 0.349"," 0.380"}</td>
 </tr>
@@ -9421,7 +9421,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{69,105,33}</td>
+<td class="org-left">{105,69,33}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.266"," 0.268"," 0.294"}</td>
 </tr>
@@ -9431,7 +9431,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{70,106,34}</td>
+<td class="org-left">{106,70,34}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.266"," 0.269"," 0.292"}</td>
 </tr>
@@ -9441,7 +9441,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{71,35,107}</td>
+<td class="org-left">{71,107,35}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.266"," 0.269"," 0.295"}</td>
 </tr>
@@ -9451,7 +9451,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{results}</td>
-<td class="org-left">{72,108,36}</td>
+<td class="org-left">{108,72,36}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.329"," 0.313"," 0.316"}</td>
 </tr>
@@ -9471,7 +9471,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{results}</td>
-<td class="org-left">{38,110,74}</td>
+<td class="org-left">{38,74,110}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.336"," 0.332"," 0.337"}</td>
 </tr>
@@ -9481,7 +9481,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{results}</td>
-<td class="org-left">{75,111,39}</td>
+<td class="org-left">{39,111,75}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.335"," 0.332"," 0.336"}</td>
 </tr>
@@ -9491,7 +9491,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{112,40,76}</td>
+<td class="org-left">{40,112,76}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.325"," 0.304"," 0.306"}</td>
 </tr>
@@ -9501,7 +9501,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{113,41,77}</td>
+<td class="org-left">{113,77,41}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.337"," 0.306"," 0.281"}</td>
 </tr>
@@ -9511,7 +9511,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{114,78,42}</td>
+<td class="org-left">{78,42,114}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.335"," 0.306"," 0.309"}</td>
 </tr>
@@ -9521,7 +9521,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{79,115,43}</td>
+<td class="org-left">{43,79,115}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.338"," 0.299"," 0.305"}</td>
 </tr>
@@ -9541,7 +9541,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{45,117,81}</td>
+<td class="org-left">{81,117,45}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.318"," 0.325"," 0.338"}</td>
 </tr>
@@ -9551,7 +9551,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{46,82,118}</td>
+<td class="org-left">{118,82,46}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.318"," 0.318"," 0.342"}</td>
 </tr>
@@ -9561,7 +9561,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{83,119,47}</td>
+<td class="org-left">{119,47,83}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.320"," 0.306"," 0.354"}</td>
 </tr>
@@ -9571,7 +9571,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{84,120,48}</td>
+<td class="org-left">{48,120,84}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{" 0.365"," 0.357"," 0.365"}</td>
 </tr>
@@ -9581,9 +9581,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{85,49}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.379"," 0.352"}</td>
+<td class="org-left">{85,49,121}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.379"," 0.352"," 0.378"}</td>
 </tr>
 
 <tr>
@@ -9591,9 +9591,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{50,86}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.378"," 0.360"}</td>
+<td class="org-left">{86,122,50}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.378"," 0.360"," 0.364"}</td>
 </tr>
 
 <tr>
@@ -9601,9 +9601,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{87,51}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.393"," 0.347"}</td>
+<td class="org-left">{87,51,123}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.393"," 0.347"," 0.384"}</td>
 </tr>
 
 <tr>
@@ -9611,9 +9611,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,risks}</td>
-<td class="org-left">{52,88}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.344"," 0.321"}</td>
+<td class="org-left">{52,88,124}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.344"," 0.321"," 0.304"}</td>
 </tr>
 
 <tr>
@@ -9621,9 +9621,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,risks}</td>
-<td class="org-left">{89,53}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.362"," 0.317"}</td>
+<td class="org-left">{53,89,125}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.362"," 0.317"," 0.304"}</td>
 </tr>
 
 <tr>
@@ -9631,9 +9631,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,risks}</td>
-<td class="org-left">{90,54}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.330"," 0.313"}</td>
+<td class="org-left">{126,90,54}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.330"," 0.313"," 0.313"}</td>
 </tr>
 
 <tr>
@@ -9641,9 +9641,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,risks}</td>
-<td class="org-left">{55,91}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.337"," 0.320"}</td>
+<td class="org-left">{55,91,127}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.337"," 0.320"," 0.308"}</td>
 </tr>
 
 <tr>
@@ -9651,9 +9651,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{56,92}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.365"," 0.345"}</td>
+<td class="org-left">{92,56,128}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.365"," 0.345"," 0.385"}</td>
 </tr>
 
 <tr>
@@ -9661,9 +9661,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{57,93}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.371"," 0.360"}</td>
+<td class="org-left">{57,93,129}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.371"," 0.360"," 0.385"}</td>
 </tr>
 
 <tr>
@@ -9671,9 +9671,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{58,94}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.368"," 0.357"}</td>
+<td class="org-left">{94,130,58}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.368"," 0.357"," 0.381"}</td>
 </tr>
 
 <tr>
@@ -9681,9 +9681,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{95,59}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.376"," 0.360"}</td>
+<td class="org-left">{131,59,95}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.376"," 0.360"," 0.391"}</td>
 </tr>
 
 <tr>
@@ -9691,9 +9691,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{60,96}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.358"," 0.354"}</td>
+<td class="org-left">{60,132,96}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.358"," 0.354"," 0.358"}</td>
 </tr>
 
 <tr>
@@ -9701,9 +9701,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{97,61}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.374"," 0.342"}</td>
+<td class="org-left">{133,61,97}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.374"," 0.342"," 0.376"}</td>
 </tr>
 
 <tr>
@@ -9711,9 +9711,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{98,62}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.367"," 0.333"}</td>
+<td class="org-left">{98,134,62}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.367"," 0.333"," 0.367"}</td>
 </tr>
 
 <tr>
@@ -9721,9 +9721,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{99,63}</td>
-<td class="org-left">{2015-12-01,2016-12-01}</td>
-<td class="org-left">{" 0.378"," 0.350"}</td>
+<td class="org-left">{135,99,63}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.378"," 0.350"," 0.381"}</td>
 </tr>
 </tbody>
 </table>
@@ -9743,8 +9743,8 @@ solve this dilemma with the support of <code>audition</code>.
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org13396b2" class="outline-3">
-<h3 id="org13396b2"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org1deffa3" class="outline-3">
+<h3 id="org1deffa3"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9793,7 +9793,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org22d4b10" class="figure">
+<div id="orge8ca71b" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -9897,8 +9897,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-orga7d19bb" class="outline-3">
-<h3 id="orga7d19bb"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org5ddf5ae" class="outline-3">
+<h3 id="org5ddf5ae"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -11352,7 +11352,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-01 Fri 18:21</p>
+<p class="date">Created: 2019-03-03 Sun 21:56</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
