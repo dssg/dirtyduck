@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-03 Sun 22:21 -->
+<!-- 2019-03-04 Mon 19:52 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org8dc6a2d">5. Inpection prioritization</a>
 <ul>
-<li><a href="#org1deffa3">5.1. Problem description</a></li>
+<li><a href="#org1526c48">5.1. Problem description</a></li>
 <li><a href="#orgbbc559d">5.2. Creating the labels</a></li>
-<li><a href="#org5ddf5ae">5.3. Modeling Using Machine Learning</a>
+<li><a href="#orgd402e17">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#org5263974">5.3.1. Defining a baseline</a></li>
 <li><a href="#org61d2442">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org78039ae">6. An Early Intervention System</a>
 <ul>
-<li><a href="#org1526c48">6.1. Problem description</a></li>
+<li><a href="#org01cd43e">6.1. Problem description</a></li>
 <li><a href="#orgb3a867a">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#orgd402e17">6.3. Modeling Using Machine Learning</a>
+<li><a href="#org0837a97">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -6955,8 +6955,8 @@ rm -r /triage/trained_models/*
 <h2 id="org8dc6a2d"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org1deffa3" class="outline-3">
-<h3 id="org1deffa3"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org1526c48" class="outline-3">
+<h3 id="org1526c48"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7163,7 +7163,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="orge8ca71b" class="figure">
+<div id="orgc0d4c6b" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7173,8 +7173,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org5ddf5ae" class="outline-3">
-<h3 id="org5ddf5ae"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgd402e17" class="outline-3">
+<h3 id="orgd402e17"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -9743,8 +9743,8 @@ solve this dilemma with the support of <code>audition</code>.
 <h2 id="org78039ae"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org1526c48" class="outline-3">
-<h3 id="org1526c48"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org01cd43e" class="outline-3">
+<h3 id="org01cd43e"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9793,7 +9793,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orgc0d4c6b" class="figure">
+<div id="org8b1d5d0" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -9897,8 +9897,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-orgd402e17" class="outline-3">
-<h3 id="orgd402e17"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org0837a97" class="outline-3">
+<h3 id="org0837a97"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -10227,7 +10227,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 
 
 <colgroup>
-<col  class="org-left" />
+<col  class="org-right" />
 
 <col  class="org-left" />
 
@@ -10241,15 +10241,376 @@ features_arrays <span style="font-weight: bold;">as</span> (
 
 <col  class="org-left" />
 </colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">model<sub>group</sub><sub>id</sub></th>
+<th scope="col" class="org-left">model<sub>type</sub></th>
+<th scope="col" class="org-left">hyperparameters</th>
+<th scope="col" class="org-left">feature<sub>groups</sub></th>
+<th scope="col" class="org-left">models</th>
+<th scope="col" class="org-left">times</th>
+<th scope="col" class="org-left">precision@10%</th>
+</tr>
+</thead>
 <tbody>
 <tr>
-<td class="org-left">model<sub>group</sub><sub>id</sub></td>
-<td class="org-left">model<sub>type</sub></td>
-<td class="org-left">hyperparameters</td>
-<td class="org-left">feature<sub>groups</sub></td>
-<td class="org-left">models</td>
-<td class="org-left">times</td>
-<td class="org-left">precision@10%</td>
+<td class="org-right">46</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{208,172,136}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.131"," 0.125"," 0.104"}</td>
+</tr>
+
+<tr>
+<td class="org-right">47</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{209,173,137}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.153"," 0.153"," 0.113"}</td>
+</tr>
+
+<tr>
+<td class="org-right">48</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{174,138,210}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.244"," 0.239"," 0.168"}</td>
+</tr>
+
+<tr>
+<td class="org-right">49</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection,inspections,results,risks}</td>
+<td class="org-left">{175,139,211}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">50</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{212,140,176}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.138"," 0.137"," 0.104"}</td>
+</tr>
+
+<tr>
+<td class="org-right">51</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{177,141,213}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.148"," 0.153"," 0.113"}</td>
+</tr>
+
+<tr>
+<td class="org-right">52</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{178,142,214}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.245"," 0.240"," 0.169"}</td>
+</tr>
+
+<tr>
+<td class="org-right">53</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection,results,risks}</td>
+<td class="org-left">{143,179,215}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">54</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection,inspections,risks}</td>
+<td class="org-left">{216,180,144}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.145"," 0.124"," 0.107"}</td>
+</tr>
+
+<tr>
+<td class="org-right">55</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection,inspections,risks}</td>
+<td class="org-left">{217,145,181}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.121"," 0.124"," 0.087"}</td>
+</tr>
+
+<tr>
+<td class="org-right">56</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection,inspections,risks}</td>
+<td class="org-left">{146,218,182}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.205"," 0.198"," 0.136"}</td>
+</tr>
+
+<tr>
+<td class="org-right">57</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection,inspections,risks}</td>
+<td class="org-left">{219,147,183}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">58</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection,inspections,results}</td>
+<td class="org-left">{148,184,220}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.131"," 0.125"," 0.098"}</td>
+</tr>
+
+<tr>
+<td class="org-right">59</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection,inspections,results}</td>
+<td class="org-left">{185,221,149}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.147"," 0.140"," 0.111"}</td>
+</tr>
+
+<tr>
+<td class="org-right">60</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection,inspections,results}</td>
+<td class="org-left">{222,186,150}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.227"," 0.220"," 0.154"}</td>
+</tr>
+
+<tr>
+<td class="org-right">61</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection,inspections,results}</td>
+<td class="org-left">{187,223,151}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">62</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspections,results,risks}</td>
+<td class="org-left">{152,188,224}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.131"," 0.125"," 0.104"}</td>
+</tr>
+
+<tr>
+<td class="org-right">63</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspections,results,risks}</td>
+<td class="org-left">{189,153,225}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.152"," 0.152"," 0.105"}</td>
+</tr>
+
+<tr>
+<td class="org-right">64</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspections,results,risks}</td>
+<td class="org-left">{190,154,226}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.242"," 0.238"," 0.163"}</td>
+</tr>
+
+<tr>
+<td class="org-right">65</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspections,results,risks}</td>
+<td class="org-left">{191,227,155}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">66</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspections}</td>
+<td class="org-left">{192,156,228}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.101"," 0.102"," 0.075"}</td>
+</tr>
+
+<tr>
+<td class="org-right">67</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspections}</td>
+<td class="org-left">{193,229,157}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.109"," 0.108"," 0.087"}</td>
+</tr>
+
+<tr>
+<td class="org-right">68</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspections}</td>
+<td class="org-left">{230,194,158}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.109"," 0.108"," 0.087"}</td>
+</tr>
+
+<tr>
+<td class="org-right">69</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspections}</td>
+<td class="org-left">{231,159,195}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">70</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{160,196,232}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.130"," 0.126"," 0.096"}</td>
+</tr>
+
+<tr>
+<td class="org-right">71</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{233,197,161}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.192"," 0.189"," 0.134"}</td>
+</tr>
+
+<tr>
+<td class="org-right">72</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{162,198,234}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.213"," 0.205"," 0.144"}</td>
+</tr>
+
+<tr>
+<td class="org-right">73</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{results}</td>
+<td class="org-left">{199,163,235}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">74</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{164,200,236}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.165"," 0.152"," 0.107"}</td>
+</tr>
+
+<tr>
+<td class="org-right">75</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{201,237,165}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.125"," 0.116"," 0.083"}</td>
+</tr>
+
+<tr>
+<td class="org-right">76</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{238,202,166}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.199"," 0.193"," 0.130"}</td>
+</tr>
+
+<tr>
+<td class="org-right">77</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{risks}</td>
+<td class="org-left">{239,203,167}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
+</tr>
+
+<tr>
+<td class="org-right">78</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": 2}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{204,240,168}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.149"," 0.129"," 0.088"}</td>
+</tr>
+
+<tr>
+<td class="org-right">79</td>
+<td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
+<td class="org-left">{"max<sub>depth</sub>": null}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{241,169,205}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.121"," 0.120"," 0.087"}</td>
+</tr>
+
+<tr>
+<td class="org-right">80</td>
+<td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
+<td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 500, "min<sub>samples</sub><sub>leaf</sub>": 1, "min<sub>samples</sub><sub>split</sub>": 50}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{242,206,170}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.184"," 0.178"," 0.128"}</td>
+</tr>
+
+<tr>
+<td class="org-right">81</td>
+<td class="org-left">sklearn.dummy.DummyClassifier</td>
+<td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
+<td class="org-left">{inspection}</td>
+<td class="org-left">{243,207,171}</td>
+<td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
+<td class="org-left">{" 0.063"," 0.057"," 0.042"}</td>
 </tr>
 </tbody>
 </table>
@@ -10340,16 +10701,17 @@ We included a simple configuration file with some rules:
 <pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">CHOOSE MODEL GROUPS</span>
 <span style="font-weight: bold; font-style: italic;">model_groups</span>:
     <span style="font-weight: bold; font-style: italic;">query</span>: |
-        <span style="font-style: italic;">SELECT DISTINCT(model_group_id)</span>
-        <span style="font-style: italic;">FROM model_metadata.model_groups</span>
+        <span style="font-style: italic;">select distinct(model_group_id)</span>
+        <span style="font-style: italic;">from model_metadata.model_groups</span>
+        where model_config -&gt;&gt; <span style="font-style: italic;">'experiment_type'</span> ~ <span style="font-style: italic;">'eis'</span>
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">CHOOSE TIMESTAMPS/TRAIN END TIMES</span>
 <span style="font-weight: bold; font-style: italic;">time_stamps</span>:
     <span style="font-weight: bold; font-style: italic;">query</span>: |
-        <span style="font-style: italic;">SELECT DISTINCT train_end_time</span>
-        <span style="font-style: italic;">FROM model_metadata.models</span>
-        <span style="font-style: italic;">WHERE model_group_id IN ({})</span>
-        <span style="font-style: italic;">AND EXTRACT(DAY FROM train_end_time) IN (1)</span>
-        AND train_end_time &gt;= <span style="font-style: italic;">'2015-01-01'</span>
+        <span style="font-style: italic;">select distinct train_end_time</span>
+        <span style="font-style: italic;">from model_metadata.models</span>
+        <span style="font-style: italic;">where model_group_id in ({})</span>
+        <span style="font-style: italic;">and extract(day from train_end_time) in (1)</span>
+        and train_end_time &gt;= <span style="font-style: italic;">'2015-01-01'</span>
 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">FILTER</span>
 <span style="font-weight: bold; font-style: italic;">filter</span>:
     <span style="font-weight: bold; font-style: italic;">metric</span>: <span style="font-style: italic;">'precision@'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">metric of interest</span>
@@ -10484,7 +10846,7 @@ All this information will be stored in the file <code>results_model_group_ids.js
 </p>
 
 <div class="org-src-container">
-<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">13</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>, <span style="font-weight: bold; text-decoration: underline;">31</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">31</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>, <span style="font-weight: bold; text-decoration: underline;">13</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">21</span>, <span style="font-weight: bold; text-decoration: underline;">20</span>, <span style="font-weight: bold; text-decoration: underline;">30</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">10</span>, <span style="font-weight: bold; text-decoration: underline;">11</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>]}
+<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">52</span>, <span style="font-weight: bold; text-decoration: underline;">48</span>, <span style="font-weight: bold; text-decoration: underline;">64</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">52</span>, <span style="font-weight: bold; text-decoration: underline;">48</span>, <span style="font-weight: bold; text-decoration: underline;">64</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">49</span>, <span style="font-weight: bold; text-decoration: underline;">53</span>, <span style="font-weight: bold; text-decoration: underline;">57</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">48</span>, <span style="font-weight: bold; text-decoration: underline;">52</span>, <span style="font-weight: bold; text-decoration: underline;">56</span>]}
 </pre>
 </div>
 </div>
@@ -11346,7 +11708,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-03 Sun 22:21</p>
+<p class="date">Created: 2019-03-04 Mon 19:52</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
