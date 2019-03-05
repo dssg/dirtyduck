@@ -1,16 +1,17 @@
 # CHOOSE MODEL GROUPS
 model_groups:
     query: |
-        SELECT DISTINCT(model_group_id)
-        FROM model_metadata.model_groups
+        select distinct(model_group_id)
+        from model_metadata.model_groups
+        where model_config ->> 'experiment_type' ~ 'eis'
 # CHOOSE TIMESTAMPS/TRAIN END TIMES
 time_stamps:
     query: |
-        SELECT DISTINCT train_end_time
-        FROM model_metadata.models
-        WHERE model_group_id IN ({})
-        AND EXTRACT(DAY FROM train_end_time) IN (1)
-        AND train_end_time >= '2015-01-01'
+        select distinct train_end_time
+        from model_metadata.models
+        where model_group_id in ({})
+        and extract(day from train_end_time) in (1)
+        and train_end_time >= '2015-01-01'
 # FILTER
 filter:
     metric: 'precision@' # metric of interest

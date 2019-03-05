@@ -85,16 +85,17 @@ We included a simple configuration file with some rules:
 # CHOOSE MODEL GROUPS
 model_groups:
     query: |
-        SELECT DISTINCT(model_group_id)
-        FROM model_metadata.model_groups
+        select distinct(model_group_id)
+        from model_metadata.model_groups
+        where model_config ->> 'experiment_type' ~ 'eis'
 # CHOOSE TIMESTAMPS/TRAIN END TIMES
 time_stamps:
     query: |
-        SELECT DISTINCT train_end_time
-        FROM model_metadata.models
-        WHERE model_group_id IN ({})
-        AND EXTRACT(DAY FROM train_end_time) IN (1)
-        AND train_end_time >= '2015-01-01'
+        select distinct train_end_time
+        from model_metadata.models
+        where model_group_id in ({})
+        and extract(day from train_end_time) in (1)
+        and train_end_time >= '2015-01-01'
 # FILTER
 filter:
     metric: 'precision@' # metric of interest
@@ -146,18 +147,18 @@ triage --tb audition --directory audition/
   """)
 INFO:root:Validate!
 INFO:root:Checking if all model groups have the same train end times
-INFO:root:Found 45 total model groups
-INFO:root:Dropped 13 model groups which don't match the train end times
-INFO:root:Found 32 total model groups past the checker
+INFO:root:Found 36 total model groups
+INFO:root:Dropped 0 model groups which don't match the train end times
+INFO:root:Found 36 total model groups past the checker
 INFO:root:Polulating data to distance table
 INFO:root:Showing best distance plots for all metrics
-INFO:root:Found 32 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 32 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 32 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 32 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 31 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 31 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 31 total model groups past threshold
+INFO:root:Found 36 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 36 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 36 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 36 total model groups past threshold
 INFO:root:Building best distance plot for {'metric': 'precision@', 'parameter': '10_pct'} and [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
 INFO:root:Showing model group performance plots for all metrics
 INFO:root:Plotting model group performance for {'metric': 'precision@', 'parameter': '10_pct', 'max_from_best': 1.0, 'threshold_value': 0.0}, [Timestamp('2015-12-01 00:00:00'), Timestamp('2016-12-01 00:00:00'), Timestamp('2017-12-01 00:00:00')]
@@ -172,31 +173,31 @@ INFO:root:Found 1 new rules
 INFO:root:Expanding shared param set {'metric': 'precision@', 'parameter': '10_pct'} and selection rules {'name': 'most_frequent_best_dist', 'dist_from_best_case': [0.05], 'n': 3}
 INFO:root:Found 1 new rules
 INFO:root:Found 4 total selection rules. Full list: ['best_current_value_precision@_10_pct', 'best_average_value_precision@_10_pct', 'lowest_metric_variance_precision@_10_pct', 'most_frequent_best_dist_precision@_10_pct_0.05']
-INFO:root:Found 32 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 32 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 32 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 32 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 31 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 31 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 31 total model groups past threshold
+INFO:root:Found 36 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 36 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 36 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 36 total model groups past threshold
 INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
 INFO:root:Null metric variances for precision@ 10_pct at 2015-12-01 00:00:00; picking at random
 INFO:root:Calculating selection rule picks for all rules
-INFO:root:Found 32 model groups close to best for 2015-12-01 00:00:00
-INFO:root:Found 32 model groups above min for 2015-12-01 00:00:00
-INFO:root:Found 32 model groups close to best for 2016-12-01 00:00:00
-INFO:root:Found 32 model groups above min for 2016-12-01 00:00:00
-INFO:root:Found 31 model groups close to best for 2017-12-01 00:00:00
-INFO:root:Found 31 model groups above min for 2017-12-01 00:00:00
-INFO:root:Found 31 total model groups past threshold
+INFO:root:Found 36 model groups close to best for 2015-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2015-12-01 00:00:00
+INFO:root:Found 36 model groups close to best for 2016-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2016-12-01 00:00:00
+INFO:root:Found 36 model groups close to best for 2017-12-01 00:00:00
+INFO:root:Found 36 model groups above min for 2017-12-01 00:00:00
+INFO:root:Found 36 total model groups past threshold
 INFO:root:Calculating selection rule picks for best_current_value_precision@_10_pct
-INFO:root:For rule best_current_value_precision@_10_pct, model group [13, 12, 31] was picked
+INFO:root:For rule best_current_value_precision@_10_pct, model group [52, 48, 64] was picked
 INFO:root:Calculating selection rule picks for best_average_value_precision@_10_pct
-INFO:root:For rule best_average_value_precision@_10_pct, model group [31, 12, 13] was picked
+INFO:root:For rule best_average_value_precision@_10_pct, model group [52, 48, 64] was picked
 INFO:root:Calculating selection rule picks for lowest_metric_variance_precision@_10_pct
-INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [21, 20, 30] was picked
+INFO:root:For rule lowest_metric_variance_precision@_10_pct, model group [49, 53, 57] was picked
 INFO:root:Calculating selection rule picks for most_frequent_best_dist_precision@_10_pct_0.05
-INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [10, 11, 12] was picked
+INFO:root:For rule most_frequent_best_dist_precision@_10_pct_0.05, model group [48, 52, 56] was picked
 INFO:root:Audition ran! Results are stored in audition/.
 [0m
 #+END_SRC
