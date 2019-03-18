@@ -1,1 +1,22 @@
-{"best_current_value_precision@_10_pct": [52, 48, 64], "best_average_value_precision@_10_pct": [52, 48, 64], "lowest_metric_variance_precision@_10_pct": [49, 53, 57], "most_frequent_best_dist_precision@_10_pct_0.05": [48, 52, 56]}
+{
+  "best_average_value_precision@_10_pct": [
+    52,
+    48,
+    64
+  ],
+  "best_current_value_precision@_10_pct": [
+    52,
+    48,
+    64
+  ],
+  "lowest_metric_variance_precision@_10_pct": [
+    49,
+    53,
+    57
+  ],
+  "most_frequent_best_dist_precision@_10_pct_0.05": [
+    48,
+    52,
+    56
+  ]
+}

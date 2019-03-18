@@ -1,7 +1,9 @@
 # Postmodeling Configuration File
 
   project_path: '/triage' # Project path defined in triage with matrices and models
-  audition_output_path: '/triage/audition'
+  audition_output_path: '/triage/audition/results_model_group_ids.json'
+
+
 
   thresholds: # Thresholds for2 defining positive predictions
         rank_abs: [50, 100, 250]
@@ -20,7 +22,7 @@
        from test_results.evaluations m
        left join model_metadata.models g
        using(model_id)
-       where g.model_group_id = 1
+       where g.model_group_id = 65
              and metric = 'precision@'
              and parameter = '10_pct'
 

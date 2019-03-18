@@ -90,7 +90,7 @@ function status () {
 }
 
 function bastion () {
-    docker-compose --project-name ${PROJECT} run --rm --name tutorial_bastion bastion
+    docker-compose --project-name ${PROJECT} run --service-ports  --rm --name tutorial_bastion bastion
 }
 
 function triage () {
