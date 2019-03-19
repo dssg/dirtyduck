@@ -9,9 +9,9 @@ thresholds:
 #(optional): a list of entity_ids to subset on the crosstabs analysis
 entity_id_list: []
 
-models_list_query: "select unnest(ARRAY[44, 86]) :: int as model_id"
+models_list_query: "select unnest(ARRAY[174, 178]) :: int as model_id"
 
-as_of_dates_query: "select unnest(ARRAY['2017-12-01']) :: date as as_of_date"
+as_of_dates_query: "select unnest(ARRAY['2016-12-01']) :: date as as_of_date"
 
 #don't change this query unless strictly necessary. It is just validating pairs of (model_id,as_of_date)
 #it is just a join with distinct (model_id, as_of_date) in a predictions table
@@ -41,4 +41,4 @@ predictions_query: |
       from test_results.predictions
       join models_dates_join_query USING(model_id, as_of_date)
       where model_id IN (select model_id from models_list_query)
-      and as_of_date in (select as_of_date from as_of_dates_query)"
+      and as_of_date in (select as_of_date from as_of_dates_query)

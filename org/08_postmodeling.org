@@ -247,18 +247,11 @@ ls
 
 #+RESULTS:
 #+BEGIN_SRC org
-kernel-f8416bdd-d6d6-4d11-afad-5748353b4ba9.json  notebook_cookie_secret
+kernel-8d1fa610-fc02-4273-92ec-094f458667b7.json
 #+END_SRC
 
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/
-jupyter-kernel –debug −–KernelManager.control_port=56406
-#+END_SRC
-
-
-
-
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-f3c540d4-0f52-4d51-a01e-fb6e4ff3ea09.json
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
@@ -274,12 +267,9 @@ params = PostmodelParameters('../triage/eis_postmodeling_config.yaml')
 
 ** Over time
 
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-f8416bdd-d6d6-4d11-afad-5748353b4ba9.json
+#+BEGIN_SRC jupyter-python :session /docker:root@a2eb002339bd:/root/.local/share/jupyter/runtime/kernel-8d1fa610-fc02-4273-92ec-094f458667b7.json
 print("Hola")
 #+END_SRC
-
-#+RESULTS:
-: Hola
 
 
 ** Feature group importance
@@ -302,9 +292,9 @@ thresholds:
 #(optional): a list of entity_ids to subset on the crosstabs analysis
 entity_id_list: []
 
-models_list_query: "select unnest(ARRAY[44, 86]) :: int as model_id"
+models_list_query: "select unnest(ARRAY[174, 178]) :: int as model_id"
 
-as_of_dates_query: "select unnest(ARRAY['2017-12-01']) :: date as as_of_date"
+as_of_dates_query: "select unnest(ARRAY['2016-12-01']) :: date as as_of_date"
 
 #don't change this query unless strictly necessary. It is just validating pairs of (model_id,as_of_date)
 #it is just a join with distinct (model_id, as_of_date) in a predictions table
@@ -334,8 +324,42 @@ predictions_query: |
       from test_results.predictions
       join models_dates_join_query USING(model_id, as_of_date)
       where model_id IN (select model_id from models_list_query)
-      and as_of_date in (select as_of_date from as_of_dates_query)"
+      and as_of_date in (select as_of_date from as_of_dates_query)
 #+END_SRC
+
+
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports code
+triage --tb crosstabs eis_crosstabs_config.yaml
+:
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC org
+/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
+  """)
+Traceback (most recent call last):
+  File "/usr/local/bin/triage", line 11, in <module>
+    load_entry_point('triage==3.3.0', 'console_scripts', 'triage')()
+  File "/usr/local/lib/python3.6/site-packages/triage/cli.py", line 415, in execute
+    main(Triage)
+  File "/usr/local/lib/python3.6/site-packages/argcmdr.py", line 70, in main
+    command.call(args)
+  File "/usr/local/lib/python3.6/site-packages/argcmdr.py", line 310, in call
+    return target_callable(*call_args[:param_count])
+  File "/usr/local/lib/python3.6/site-packages/triage/cli.py", line 379, in __call__
+    config_store = Store.factory(args.config)
+  File "/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py", line 48, in factory
+    return FSStore(*pathparts)
+  File "/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py", line 144, in __init__
+    os.makedirs(dirname(self.path), exist_ok=True)
+  File "/usr/local/lib/python3.6/os.py", line 220, in makedirs
+    mkdir(name, mode)
+FileNotFoundError: [Errno 2] No such file or directory: ''
+[0m
+#+END_SRC
+
+
+
 
 * Footnotes
 

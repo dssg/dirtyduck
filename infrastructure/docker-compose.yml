@@ -28,7 +28,7 @@ services:
       - "../triage:/triage"
       - "../src/sql:/sql"
     ports:
-      - "56405:56405"
+      - "56406-56410:56406-56410"
 
   triage:
     build:
