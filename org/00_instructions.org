@@ -40,7 +40,8 @@ The last version of this tutorial is published in [[https://dssg.github.io/dirty
 *NOTE* This tutorial is in sync with the latest version of =triage=. At
 this moment [[https://github.com/dssg/triage/releases/tag/v3.3.0][v3.3.0 (Arepa)]].
 
-* What you need for this tutorial
+* Before you start
+** What you need for this tutorial
 
 Install [[http://www.docker.com][Docker CE]] and [[https://docs.docker.com/compose/][Docker Compose]]. That's it.
 Follow the links for installation instructions.
@@ -52,7 +53,7 @@ At the moment only operative systems with *nix-type command lines are
 supported, such as =GNU/Linux= and =MacOS=. Recent versions of
 =Windows= may also work.
 
-* How to use this tutorial
+** How to use this tutorial
 
 First, clone this repository on your laptop
 
@@ -69,6 +70,6 @@ Second, run
 This will take several minutes the first time you do it.
 
 
-* How you can help
+** How you can help to improve this tutorial
 
 If you want to contribute, please follow the suggestions in the [[file:~/projects/dsapp/dirtyduck/README.org::*How%20you%20can%20help][README]]
