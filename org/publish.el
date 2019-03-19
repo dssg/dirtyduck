@@ -35,7 +35,7 @@
 
         ("dirtyduck-static"
          :base-directory "~/projects/dsapp/dirtyduck/org/"
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|sql\\|svg"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|sql\\|svg\\|yaml"
          :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
          :recursive t
          :publishing-function org-publish-attachment

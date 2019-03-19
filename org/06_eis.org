@@ -185,7 +185,7 @@ triage experiment experiments/eis_01.yaml --show-timechop
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
-[[./images/eis_01.png]]
+[[file:triage/images/eis_01.png]]
 
 **** Features
 
@@ -455,7 +455,7 @@ order by
 |           66 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspections}                          | {192,156,228} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.101"," 0.102"," 0.075"} |
 |           67 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspections}                          | {193,229,157} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.109"," 0.108"," 0.087"} |
 |           68 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections}                          | {230,194,158} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.109"," 0.108"," 0.087"} |
-|           69 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                | {inspections}                          | {231,159,195} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.063"," 0.057"," 0.042"} |
+|           69 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspections}                          | {231,159,195} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.063"," 0.057"," 0.042"} |
 |           70 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {results}                              | {160,196,232} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.130"," 0.126"," 0.096"} |
 |           71 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {results}                              | {233,197,161} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.192"," 0.189"," 0.134"} |
 |           72 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {results}                              | {162,198,234} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.213"," 0.205"," 0.144"} |

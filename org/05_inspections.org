@@ -268,7 +268,7 @@ triage experiment experiments/inspections_baseline.yaml --show-timechop
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[file:../triage/images/inspections_baseline.png]]
+[[file:triage/images/inspections_baseline.png]]
 
 We need to specify our labels. For this first
 experiment we will use the label =failed=, using the same query from the
@@ -920,7 +920,7 @@ triage experiment experiments/inspections_dt.yaml --show-timechop
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[../triage/images/inspections_dt.png]]
+[[file:triage/images/inspections_dt.png]]
 
 
 You can execute the experiment like this:
@@ -1283,7 +1283,7 @@ triage experiment experiments/inspections_label_failed_01.yaml --show-timechop
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[../triage/images/inspections_label_failed_01.png]]
+[[file:triage/images/inspections_label_failed_01.png]]
 
 
 We want to use all the features groups

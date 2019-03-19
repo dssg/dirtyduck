@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-19 mar 14:13 -->
+<!-- 2019-03-19 mar 14:31 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -362,9 +362,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#orgd3a5f2f">7.1. Problem description</a></li>
+<li><a href="#org6ef55aa">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#orgdb5401d">7.3. Modeling Using Machine Learning</a>
+<li><a href="#org9dd3544">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -375,9 +375,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#org6ef55aa">8.1. Problem description</a></li>
+<li><a href="#orgf6c2651">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org9dd3544">8.3. Modeling Using Machine Learning</a>
+<li><a href="#org8003ce0">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -7058,8 +7058,8 @@ rm -r /triage/trained_models/*
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orgd3a5f2f" class="outline-3">
-<h3 id="orgd3a5f2f"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-org6ef55aa" class="outline-3">
+<h3 id="org6ef55aa"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7266,7 +7266,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org6dfe9ce" class="figure">
+<div id="orge91994b" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7276,8 +7276,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orgdb5401d" class="outline-3">
-<h3 id="orgdb5401d"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org9dd3544" class="outline-3">
+<h3 id="org9dd3544"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -7471,7 +7471,7 @@ triage experiment experiments/inspections_baseline.yaml --show-timechop
 
 
 <div class="figure">
-<p><img src="../triage/images/inspections_baseline.png" alt="inspections_baseline.png" width="800" height="800" />
+<p><img src="triage/images/inspections_baseline.png" alt="inspections_baseline.png" width="800" height="800" />
 </p>
 <p><span class="figure-number">Figure 19: </span>Temporal blocks for inspections<sub>dt</sub> experiment</p>
 </div>
@@ -8594,7 +8594,7 @@ triage experiment experiments/inspections_dt.yaml --show-timechop
 
 
 <div class="figure">
-<p><img src="../triage/images/inspections_dt.png" alt="inspections_dt.png" width="800" height="800" />
+<p><img src="triage/images/inspections_dt.png" alt="inspections_dt.png" width="800" height="800" />
 </p>
 <p><span class="figure-number">Figure 20: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
 </div>
@@ -9210,7 +9210,7 @@ triage experiment experiments/inspections_label_failed_01.yaml --show-timechop
 
 
 <div class="figure">
-<p><img src="../triage/images/inspections_label_failed_01.png" alt="inspections_label_failed_01.png" width="800" height="800" />
+<p><img src="triage/images/inspections_label_failed_01.png" alt="inspections_label_failed_01.png" width="800" height="800" />
 </p>
 <p><span class="figure-number">Figure 21: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
 </div>
@@ -9846,8 +9846,8 @@ solve this dilemma with the support of <code>audition</code>.
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-org6ef55aa" class="outline-3">
-<h3 id="org6ef55aa"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-orgf6c2651" class="outline-3">
+<h3 id="orgf6c2651"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9896,7 +9896,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orge91994b" class="figure">
+<div id="org1f2463a" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -10000,8 +10000,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org9dd3544" class="outline-3">
-<h3 id="org9dd3544"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org8003ce0" class="outline-3">
+<h3 id="org8003ce0"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -10045,7 +10045,7 @@ triage experiment experiments/eis_01.yaml --show-timechop
 
 
 <div class="figure">
-<p><img src="./images/eis_01.png" alt="eis_01.png" width="600" height="600" />
+<p><img src="triage/images/eis_01.png" alt="eis_01.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 23: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
 </div>
@@ -11881,7 +11881,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-19 mar 14:13</p>
+<p class="date">Created: 2019-03-19 mar 14:31</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
