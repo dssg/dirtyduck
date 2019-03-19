@@ -192,13 +192,20 @@ difference between the performance of the best model evaluated on the
 #+LABEL: fig:regret-over-time
 [[file:audition/regret_over_time_precision@10_pct.png]]
 
+It seems that the best strategy (the one with the lower “regret”) for selecting
+a /model_group/ is =most_frequent_best_dist_precision=
 
-All this information will be stored in the file =results_model_group_ids.json=:
+
+
+The best *3* /model groups/ per strategy will be stored in the file =[[file:audition/results_model_group_ids.json][results_model_group_ids.json]]=:
 
 #+INCLUDE: ../triage/audition/results_model_group_ids.json src json
 
-The best strategy (the one with the lower “regret”) for selecting
-a =model_group= is =most_frequent_best_dist_precision=
+In the next two sections, we will investigate further the three model
+groups in our best strategy using the /Postmodeling/ tool set, and then
+instead of using the feature importance to characterize the
+facilities, we will explore how the model is splitting the facilities using
+/crosstabs/.
 
 
 * WORKING Postmodeling: Inspecting the best models closely
@@ -282,6 +289,15 @@ print("Hola")
 ** Overlap
 
 * WORKING Crossvalidation: How are the entities classified?
+
+Model interpretation is a huge topic nowadays, the most obvious path
+is using the /features importance/ from the model. This could be useful,
+but we could do a lot better.
+
+=Triage= uses =crosstabs= as a different approach that complements the list of
+/features importance/. =crosstabs= will run statistical tests to compare
+the predicted positive and the predicted false facilities in /each/
+feature.
 
 #+BEGIN_SRC yaml :tangle ../triage/eis_crosstabs_config.yaml
 output:
