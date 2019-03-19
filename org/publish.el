@@ -44,7 +44,7 @@
         ("dirtyduck-triage"
          :base-directory "~/projects/dsapp/dirtyduck/triage/"
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|sql\\|svg"
-         :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
+         :publishing-directory "~/projects/dsapp/dirtyduck/docs/triage/"
          :recursive t
          :publishing-function org-publish-attachment
          )
