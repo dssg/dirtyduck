@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-19 mar 13:40 -->
+<!-- 2019-03-19 mar 14:13 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -362,9 +362,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#org678bae2">7.1. Problem description</a></li>
+<li><a href="#orgd3a5f2f">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#orga40cd39">7.3. Modeling Using Machine Learning</a>
+<li><a href="#orgdb5401d">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -375,9 +375,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#orga49a2d6">8.1. Problem description</a></li>
+<li><a href="#org6ef55aa">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org856570b">8.3. Modeling Using Machine Learning</a>
+<li><a href="#org9dd3544">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -7058,8 +7058,8 @@ rm -r /triage/trained_models/*
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-org678bae2" class="outline-3">
-<h3 id="org678bae2"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-orgd3a5f2f" class="outline-3">
+<h3 id="orgd3a5f2f"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7266,7 +7266,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org1dd217c" class="figure">
+<div id="org6dfe9ce" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7276,8 +7276,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orga40cd39" class="outline-3">
-<h3 id="orga40cd39"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgdb5401d" class="outline-3">
+<h3 id="orgdb5401d"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -9846,8 +9846,8 @@ solve this dilemma with the support of <code>audition</code>.
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-orga49a2d6" class="outline-3">
-<h3 id="orga49a2d6"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-org6ef55aa" class="outline-3">
+<h3 id="org6ef55aa"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9896,7 +9896,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org2445220" class="figure">
+<div id="orge91994b" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -10000,8 +10000,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org856570b" class="outline-3">
-<h3 id="org856570b"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org9dd3544" class="outline-3">
+<h3 id="org9dd3544"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -10890,7 +10890,7 @@ for selecting model groups.
 
 
 <div id="orga16d17a" class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
+<p><img src="audition/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
 </p>
 <p><span class="figure-number">Figure 24: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
 </div>
@@ -10898,7 +10898,7 @@ for selecting model groups.
 
 
 <div id="orgccec3ce" class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
+<p><img src="audition/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
 </p>
 <p><span class="figure-number">Figure 25: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
 </div>
@@ -10922,7 +10922,7 @@ difference between the performance of the best model evaluated on the
 
 
 <div id="org1dc334a" class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
+<p><img src="audition/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
 </p>
 <p><span class="figure-number">Figure 26: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
 </div>
@@ -10930,7 +10930,7 @@ difference between the performance of the best model evaluated on the
 
 
 <div id="orgadf0080" class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
+<p><img src="audition/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
 </p>
 <p><span class="figure-number">Figure 27: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
 </div>
@@ -10939,7 +10939,7 @@ difference between the performance of the best model evaluated on the
 
 
 <div id="org8d91c5d" class="figure">
-<p><img src="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/audition/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
+<p><img src="audition/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
 </p>
 <p><span class="figure-number">Figure 28: </span>Expected regret for the strategies. The less the better.</p>
 </div>
@@ -11881,7 +11881,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-19 mar 13:40</p>
+<p class="date">Created: 2019-03-19 mar 14:13</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
