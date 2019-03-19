@@ -1,9 +1,24 @@
-#+TITLE: Dirty Duck: A Guided Tour of Triage
-#+AUTHOR: Center for Data Science and Public Policy
-#+EMAIL: adolfo@uchicago.edu
 #+STARTUP: showeverything
 #+STARTUP: nohideblocks
-#+STARTUP: Indent
+#+STARTUP: indent
+#+STARTUP: align
+#+STARTUP: inlineimages
+#+STARTUP: latexpreview
+#+PROPERTY: header-args:sql :engine postgresql
+#+PROPERTY: header-args:sql+ :dbhost 0.0.0.0
+#+PROPERTY: header-args:sql+ :dbport 5434
+#+PROPERTY: header-args:sql+ :dbuser food_user
+#+PROPERTY: header-args:sql+ :dbpassword some_password
+#+PROPERTY: header-args:sql+ :database food
+#+PROPERTY: header-args:sql+ :results table drawer
+#+PROPERTY: header-args:sql+ :cmdline -q
+#+PROPERTY: header-args:sh  :results verbatim org
+#+PROPERTY: header-args:sh+ :prologue exec 2>&1 :epilogue :
+#+PROPERTY: header-args:ipython   :session Food_inspections
+#+PROPERTY: header-args:ipython+ :results raw drawer
+#+OPTIONS: broken-links:mark
+#+OPTIONS: tasks:todo
+#+OPTIONS: LaTeX:t
 
 
 * Welcome!
@@ -53,43 +68,7 @@ Second, run
 
 This will take several minutes the first time you do it.
 
+
 * How you can help
 
-Help is always welcome! You can report errors, improve
-the tutorial, or propose improvements to
-=triage=. These three cases are discussed below.
-
-** How to report errors
-
-There are almost surely errors. Please open an [[https://github.com/dssg/dirtyduck/issues][issue]] and
-we will try to issue a fix as soon as possible.
-
-** How to improve the tutorial
-
-This tutorial was created following the practices of [[https://www-cs-faculty.stanford.edu/~knuth/lp.html][Literate
-Programming]] using [[https://orgmode.org/][org-mode]][fn:1] in [[https://www.gnu.org/software/emacs/][GNU Emacs]][fn:2]. That means the tutorial is a /live/ document that mixes code and text.
-
-The steps to help are:
-
-- clone the repository
-- edit the source =org= files in the =org= folder
-- From your terminal run
-
-#+BEGIN_SRC shell
-emacs  --batch -l org/publish.el org/index.org --eval '(org-publish "dirtyduck" t)'
-#+END_SRC
-
-#+RESULTS:
-
-- create a *pull request*.
-
-
-** How to help develop =triage=
-
-Go to the [[https://github.com/dssg/triage][triage]] repository and follow the instructions there.
-
-* Footnotes
-
-[fn:2] But it is supported in =vim= if you install a plugin.
-
-[fn:1] It's similar to =markdown= so you won't have any problem.
+If you want to contribute, please follow the suggestions in the [[file:~/projects/dsapp/dirtyduck/README.org::*How%20you%20can%20help][README]]

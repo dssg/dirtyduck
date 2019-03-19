@@ -32,6 +32,7 @@
 #+OPTIONS: LaTeX:t
 #+SETUPFILE: tutorial.setup
 
+#+INCLUDE: 00_instructions.org :minlevel 1
 #+INCLUDE: 01_intro.org :minlevel 1
 #+INCLUDE: 02_infrastructure.org :minlevel 1
 #+INCLUDE: 03_data_preparation.org :minlevel 1
