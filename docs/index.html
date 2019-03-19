@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-19 mar 12:48 -->
+<!-- 2019-03-19 mar 13:18 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -354,9 +354,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">5. Inpection prioritization</a>
 <ul>
-<li><a href="#org67b9f62">5.1. Problem description</a></li>
+<li><a href="#org4583ac2">5.1. Problem description</a></li>
 <li><a href="#org9c81109">5.2. Creating the labels</a></li>
-<li><a href="#org72769b9">5.3. Modeling Using Machine Learning</a>
+<li><a href="#orga5c0ed5">5.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">5.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">5.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -367,9 +367,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">6. An Early Intervention System</a>
 <ul>
-<li><a href="#org7e65950">6.1. Problem description</a></li>
+<li><a href="#org1aab5ae">6.1. Problem description</a></li>
 <li><a href="#org71531dd">6.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org190f0f8">6.3. Modeling Using Machine Learning</a>
+<li><a href="#orgd3bf680">6.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -3232,7 +3232,7 @@ With this optic, the <i>boundaries</i> are:
 <dt>Label</dt><dd>What will you want to know about them?</dd>
 <dt>Label timespan</dt><dd>In what time period?</dd>
 <dt>Update frequency</dt><dd>How frequently do you want to intervene?</dd>
-<dt>(no term)</dt><dd>How many resources do you have to intervene?</dd>
+<dt>List size</dt><dd>How many resources do you have to intervene?</dd>
 </dl>
 
 <p>
@@ -3750,10 +3750,12 @@ Following the problem description template given in Section
 <b>Description of the problem to solve</b>, the question that we'll attempt to answer is:
 </p>
 
-<pre class="example">
-Which facility ($n=1$) is likely to violate some
-inspected condition in the following year ($X=1$)?
-</pre>
+<blockquote>
+<p>
+Which facility ( \(n=1\) ) is likely to violate some
+inspected condition in the following year ( \(X=1\ y\) )?
+</p>
+</blockquote>
 
 <p>
 The traditional approach in machine learning is splitting the data in
@@ -6901,8 +6903,8 @@ Triage's postmodeling capabilities include:
 </ul>
 
 <p>
-If you want to see <b>Audition</b> and <b>Postmodeling</b> in action, please see
-<a href="inspections.html">Inspections modeling</a> or to <a href="eis.html">EIS modeling</a> for practical examples.
+If you want to see <b>Audition</b> and <b>Postmodeling</b> in action, we will use them
+after <b>EIS modeling</b>.
 </p>
 </div>
 </div>
@@ -6956,8 +6958,8 @@ rm -r /triage/trained_models/*
 <h2 id="org2eeabab"><span class="section-number-2">5</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-5">
 </div>
-<div id="outline-container-org67b9f62" class="outline-3">
-<h3 id="org67b9f62"><span class="section-number-3">5.1</span> Problem description</h3>
+<div id="outline-container-org4583ac2" class="outline-3">
+<h3 id="org4583ac2"><span class="section-number-3">5.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-5-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7164,7 +7166,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="orgd1d7ea8" class="figure">
+<div id="org8ced5c1" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7174,8 +7176,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org72769b9" class="outline-3">
-<h3 id="org72769b9"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orga5c0ed5" class="outline-3">
+<h3 id="orga5c0ed5"><span class="section-number-3">5.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-5-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -7357,7 +7359,7 @@ year, so <code>model_update_frequency</code> = <code>1 year.</code>
 
 <p>
 We can visualize the splitting using the function <code>show-timechop</code>
-introduced in <a href="triage_intro.html">Introduction to triage</a>.
+introduced in <a href="04_triage_intro.html#org6fda492">Introduction to triage</a>
 </p>
 
 <div class="org-src-container">
@@ -9744,8 +9746,8 @@ solve this dilemma with the support of <code>audition</code>.
 <h2 id="org7a2499c"><span class="section-number-2">6</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-6">
 </div>
-<div id="outline-container-org7e65950" class="outline-3">
-<h3 id="org7e65950"><span class="section-number-3">6.1</span> Problem description</h3>
+<div id="outline-container-org1aab5ae" class="outline-3">
+<h3 id="org1aab5ae"><span class="section-number-3">6.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-6-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9794,7 +9796,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orgaf09926" class="figure">
+<div id="orge113437" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -9898,8 +9900,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org190f0f8" class="outline-3">
-<h3 id="org190f0f8"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgd3bf680" class="outline-3">
+<h3 id="orgd3bf680"><span class="section-number-3">6.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-6-3">
 <p>
 We need to specify the temporal configuration too
@@ -11779,7 +11781,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-19 mar 12:48</p>
+<p class="date">Created: 2019-03-19 mar 13:18</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

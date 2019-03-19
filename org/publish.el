@@ -28,7 +28,7 @@
          :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
          :recursive t
          :publishing-function org-html-publish-to-html
-         :headline-levels 4             ; Just the default for this project.
+         :headline-levels 4       ; Just the default for this project.
          :auto-preamble t
          :sitemap-title "Dirtyduck"
          )
@@ -41,6 +41,14 @@
          :publishing-function org-publish-attachment
          )
 
-        ("dirtyduck" :components ("dirtyduck-static" "dirtyduck-notes"))
+        ("dirtyduck-triage"
+         :base-directory "~/projects/dsapp/dirtyduck/triage/"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|sql\\|svg"
+         :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
+         :recursive t
+         :publishing-function org-publish-attachment
+         )
+
+        ("dirtyduck" :components ("dirtyduck-static" "dirtyduck-notes" "dirtyduck-triage"))
 
         ))

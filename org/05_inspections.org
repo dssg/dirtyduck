@@ -256,7 +256,7 @@ temporal_config:
 #+END_SRC
 
 We can visualize the splitting using the function =show-timechop=
-introduced in [[file:triage_intro.org][Introduction to triage]].
+introduced in [[file:04_triage_intro.org::*Temporal%20crossvalidation][Introduction to triage]]
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :results silent
 
