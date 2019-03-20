@@ -2059,15 +2059,13 @@ select nuke_triage();
 
 =triage= also creates a lot of files (we will see why in the next section). Let's remove them too.
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results raw drawer
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
 rm -r /triage/matrices/*
-rm -r /triage/trained_models/*
 #+END_SRC
 
-#+RESULTS:
-:RESULTS:
-:END:
-
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/ :results silent
+rm -r /triage/trained_models/*
+#+END_SRC
 
 * Footnotes
 

@@ -1314,6 +1314,7 @@ plt.xlim(0, n_months);
 
 [[./images/facilities_with_failed_inspections_severe_violations_over_time.png]]
 
+
 * Footnotes
 
 [fn:3] Almost. At least good for this tutorial. Look carefully.
