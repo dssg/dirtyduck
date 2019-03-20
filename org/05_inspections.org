@@ -92,7 +92,7 @@ from
 group by
     entity_id, event_id, date, result
 order by
-    date desc;
+   date desc;
 #+end_src
 
 #+RESULTS:
@@ -113,9 +113,9 @@ Remember from the section [[Cohorts, labels, event dates and as of dates][Cohort
 show the meaning of the /outcomes/ for the /inspection failed/ problem definition.
 
 #+NAME: fig:outcomes-inspections
-#+CAPTION: The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.
-#+ATTR_ORG: :width 600 :height 400
-#+ATTR_HTML: :width 600 :height 600
+#+CAPTION: The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the /outcome/ of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.
+#+ATTR_ORG: :width 600 :height 300
+#+ATTR_HTML: :width 600 :height 600 :alt Outcomes in the resource prioritazation problem.
 #+ATTR_LATEX: :width 400 :height 300
 [[./images/outcomes-inspections.png]]
 
@@ -124,7 +124,7 @@ show the meaning of the /outcomes/ for the /inspection failed/ problem definitio
 ** Modeling Using Machine Learning
 
 It is time to put these steps together. All the coding is complete
-(=triage= dev team did that for us); we just need to modify the =triage=
+(=triage= dev team did that for us); we just need to modify the =triage= experiment’s
 configuration file.
 
 *** Defining a baseline
@@ -293,10 +293,22 @@ We just want to include *active* facilities in our matrices, so we tell
 #+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
 cohort_config:
   query: |
-    select entity_id
-    from semantic.entities
+    with buckets as (
+    select *, ntile(5) over (order by number_of_inspections asc) as bucket
+    from (
+    select entity_id, count(*) as number_of_inspections
+    from semantic.events
+    group by entity_id
+    ) as t
+    )
+    select e.entity_id
+    from semantic.entities as e
+    inner join
+    buckets as b
+    using (entity_id)
     where
     daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
+    and bucket in (5)
   name: 'active_facilities'
 #+END_SRC
 
@@ -517,15 +529,15 @@ order by
 :RESULTS:
 | model_group_id | model_id | train_end_time        | model_hash | train_matrix_uuid | observations | feature_lookback_duration | feature_start_time    |
 |--------------+---------+---------------------+-----------+-----------------+--------------+-------------------------+---------------------|
-|            1 |       1 | 2015-12-01 00:00:00 | ff2f3     | a4455           |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
-|            1 |       4 | 2016-12-01 00:00:00 | faf2f     | bf455           |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
-|            1 |       7 | 2017-12-01 00:00:00 | faf19     | b0237           |        38677 | @ 5 years               | 2010-01-04 00:00:00 |
-|            2 |       2 | 2015-12-01 00:00:00 | 1435f     | a4455           |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
-|            2 |       5 | 2016-12-01 00:00:00 | 3ad95     | bf455           |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
-|            2 |       8 | 2017-12-01 00:00:00 | cc595     | b0237           |        38677 | @ 5 years               | 2010-01-04 00:00:00 |
-|            3 |       3 | 2015-12-01 00:00:00 | cdf77     | a4455           |        10763 | @ 5 years               | 2010-01-04 00:00:00 |
-|            3 |       6 | 2016-12-01 00:00:00 | 83ed9     | bf455           |        25036 | @ 5 years               | 2010-01-04 00:00:00 |
-|            3 |       9 | 2017-12-01 00:00:00 | 67a54     | b0237           |        38677 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       1 | 2015-12-01 00:00:00 | ff2f3     | a4455           |         6715 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       4 | 2016-12-01 00:00:00 | faf2f     | bf455           |        15104 | @ 5 years               | 2010-01-04 00:00:00 |
+|            1 |       7 | 2017-12-01 00:00:00 | faf19     | b0237           |        22860 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       2 | 2015-12-01 00:00:00 | 1435f     | a4455           |         6715 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       5 | 2016-12-01 00:00:00 | 3ad95     | bf455           |        15104 | @ 5 years               | 2010-01-04 00:00:00 |
+|            2 |       8 | 2017-12-01 00:00:00 | cc595     | b0237           |        22860 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       3 | 2015-12-01 00:00:00 | cdf77     | a4455           |         6715 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       6 | 2016-12-01 00:00:00 | 83ed9     | bf455           |        15104 | @ 5 years               | 2010-01-04 00:00:00 |
+|            3 |       9 | 2017-12-01 00:00:00 | 67a54     | b0237           |        22860 | @ 5 years               | 2010-01-04 00:00:00 |
 :END:
 
 As expected, we have three models per model group. Each model was trained
@@ -559,15 +571,15 @@ order by
 :RESULTS:
 | model_id | model_group_id | train_end_time        | model_hash | test_matrix_uuid | observations | feature_lookback_duration | feature_start_time    |
 |---------+--------------+---------------------+-----------+----------------+--------------+-------------------------+---------------------|
-|       1 |            1 | 2015-12-01 00:00:00 | ff2f3     | 865e3          |       228580 | @ 1 year                | 2010-01-04 00:00:00 |
-|       4 |            1 | 2016-12-01 00:00:00 | faf2f     | 3f3e1          |       236950 | @ 1 year                | 2010-01-04 00:00:00 |
-|       7 |            1 | 2017-12-01 00:00:00 | faf19     | 4203c          |       246622 | @ 1 year                | 2010-01-04 00:00:00 |
-|       2 |            2 | 2015-12-01 00:00:00 | 1435f     | 865e3          |       228580 | @ 1 year                | 2010-01-04 00:00:00 |
-|       5 |            2 | 2016-12-01 00:00:00 | 3ad95     | 3f3e1          |       236950 | @ 1 year                | 2010-01-04 00:00:00 |
-|       8 |            2 | 2017-12-01 00:00:00 | cc595     | 4203c          |       246622 | @ 1 year                | 2010-01-04 00:00:00 |
-|       3 |            3 | 2015-12-01 00:00:00 | cdf77     | 865e3          |       228580 | @ 1 year                | 2010-01-04 00:00:00 |
-|       6 |            3 | 2016-12-01 00:00:00 | 83ed9     | 3f3e1          |       236950 | @ 1 year                | 2010-01-04 00:00:00 |
-|       9 |            3 | 2017-12-01 00:00:00 | 67a54     | 4203c          |       246622 | @ 1 year                | 2010-01-04 00:00:00 |
+|       1 |            1 | 2015-12-01 00:00:00 | ff2f3     | 865e3          |        69472 | @ 1 year                | 2010-01-04 00:00:00 |
+|       4 |            1 | 2016-12-01 00:00:00 | faf2f     | 3f3e1          |        66275 | @ 1 year                | 2010-01-04 00:00:00 |
+|       7 |            1 | 2017-12-01 00:00:00 | faf19     | 4203c          |        62194 | @ 1 year                | 2010-01-04 00:00:00 |
+|       2 |            2 | 2015-12-01 00:00:00 | 1435f     | 865e3          |        69472 | @ 1 year                | 2010-01-04 00:00:00 |
+|       5 |            2 | 2016-12-01 00:00:00 | 3ad95     | 3f3e1          |        66275 | @ 1 year                | 2010-01-04 00:00:00 |
+|       8 |            2 | 2017-12-01 00:00:00 | cc595     | 4203c          |        62194 | @ 1 year                | 2010-01-04 00:00:00 |
+|       3 |            3 | 2015-12-01 00:00:00 | cdf77     | 865e3          |        69472 | @ 1 year                | 2010-01-04 00:00:00 |
+|       6 |            3 | 2016-12-01 00:00:00 | 83ed9     | 3f3e1          |        66275 | @ 1 year                | 2010-01-04 00:00:00 |
+|       9 |            3 | 2017-12-01 00:00:00 | 67a54     | 4203c          |        62194 | @ 1 year                | 2010-01-04 00:00:00 |
 :END:
 
 All the models were stored in
@@ -579,7 +591,7 @@ trained with the matrix =train_matrix_uuid=
 
 What's the performance of this model groups?
 
-#+BEGIN_SRC  sql :async
+#+BEGIN_SRC  sql
 select distinct
     model_group_id,
     model_id,
@@ -609,15 +621,15 @@ order by
 :RESULTS:
 | model_group_id | model_id | feature_start_time | train_end_time | evaluation_start_time | evaluation_end_time | observations | labeled_examples | labeled_above_threshold | total_positive_labels | baserate | precision@100% |
 |--------------+---------+------------------+--------------+---------------------+-------------------+--------------+-----------------+-----------------------+---------------------+----------+----------------|
-|            1 |       1 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,580      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
-|            2 |       2 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,580      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
-|            3 |       3 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 228,580      | 14,273          | 14,273                | 3,460               |    0.015 |          0.242 |
-|            1 |       4 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,950      | 13,641          | 13,641                | 3,204               |    0.014 |          0.235 |
-|            2 |       5 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,950      | 13,641          | 13,641                | 3,204               |    0.014 |          0.235 |
-|            3 |       6 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 236,950      | 13,641          | 13,641                | 3,204               |    0.014 |          0.235 |
-|            1 |       7 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,622      | 10,641          | 10,641                | 2,479               |    0.010 |          0.233 |
-|            2 |       8 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,622      | 10,641          | 10,641                | 2,479               |    0.010 |          0.233 |
-|            3 |       9 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 246,622      | 10,641          | 10,641                | 2,479               |    0.010 |          0.233 |
+|            1 |       1 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389           | 8,389                 | 2,326               |    0.033 |          0.277 |
+|            2 |       2 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389           | 8,389                 | 2,326               |    0.033 |          0.277 |
+|            3 |       3 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389           | 8,389                 | 2,326               |    0.033 |          0.277 |
+|            1 |       4 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756           | 7,756                 | 2,077               |    0.031 |          0.268 |
+|            2 |       5 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756           | 7,756                 | 2,077               |    0.031 |          0.268 |
+|            3 |       6 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756           | 7,756                 | 2,077               |    0.031 |          0.268 |
+|            1 |       7 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619           | 5,619                 | 1,462               |    0.024 |          0.260 |
+|            2 |       8 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619           | 5,619                 | 1,462               |    0.024 |          0.260 |
+|            3 |       9 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619           | 5,619                 | 1,462               |    0.024 |          0.260 |
 :END:
 
 The columns =num_labeled_examples, num_labeled_above_threshold,
@@ -711,10 +723,22 @@ label_config:
 
 cohort_config:
   query: |
-    select entity_id
-    from semantic.entities
+    with buckets as (
+    select *, ntile(5) over (order by number_of_inspections asc) as bucket
+    from (
+    select entity_id, count(*) as number_of_inspections
+    from semantic.events
+    group by entity_id
+    ) as t
+    )
+    select e.entity_id
+    from semantic.entities as e
+    inner join
+    buckets as b
+    using (entity_id)
     where
     daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
+    and bucket in (5)
   name: 'active_facilities'
 
 #+END_SRC
@@ -893,9 +917,9 @@ scoring:
           top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
 #+END_SRC
 
-In this experiment we will end with *5* model groups
+In this experiment we will end with *6* model groups
 (number of algorithms [1] $\times$ number of hyperparameter combinations [2
-$\times$ 3 = 5] $\times$ number of feature groups strategies [1]]). Also, we will create *15* models (3 per
+$\times$ 3 = 5] $\times$ number of feature groups strategies [1]]). Also, we will create *18* models (3 per
 model group) given that we have 3 temporal blocks (one model per temporal group).
 
 Before running the experiment, remember to validate that the
@@ -932,7 +956,7 @@ triage experiment --matrix-format hdf experiments/inspections_dt.yaml  --profile
 #+END_SRC
 
 
-After the experiment finishes, you will get *5* new =model_groups= (1 per
+After the experiment finishes, you will get *6* new =model_groups= (1 per
 combination in =grid_config=)
 
 #+BEGIN_SRC sql
@@ -958,7 +982,7 @@ where
 |            9 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "min_samples_split": 5} |
 :END:
 
-and *15* models
+and *18* models
 
 #+BEGIN_SRC sql
 select
@@ -989,11 +1013,10 @@ order by
 
 Let's see the performance over time of the models so far:
 
-#+BEGIN_SRC  sql :async
+#+BEGIN_SRC  sql
 select
     model_group_id,
     array_agg(model_id order by ev.evaluation_start_time asc) as models,
-    -- array_agg(train_end_time::date order by ev.evaluation_start_time asc),
     array_agg(ev.evaluation_start_time::date order by ev.evaluation_start_time asc) as evaluation_start_time,
     array_agg(ev.evaluation_end_time::date order by ev.evaluation_start_time asc) as evaluation_end_time,
     array_agg(to_char(ev.num_labeled_examples, '999,999') order by ev.evaluation_start_time asc) as labeled_examples,
@@ -1014,15 +1037,15 @@ group by
 :RESULTS:
 | model_group_id | models     | evaluation_start_time                | evaluation_end_time                  | labeled_examples                    | labeled_above_threshold              | total_positive_labels                | precision@10%                |
 |--------------+------------+------------------------------------+------------------------------------+------------------------------------+------------------------------------+------------------------------------+------------------------------|
-|            1 | {1,4,7}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,933","   2,765","   2,146"} | {"   3,460","   3,204","   2,479"} | {" 0.225"," 0.252"," 0.232"} |
-|            2 | {2,5,8}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,933","   2,765","   2,146"} | {"   3,460","   3,204","   2,479"} | {" 0.225"," 0.252"," 0.232"} |
-|            3 | {3,6,9}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,933","   2,765","   2,146"} | {"   3,460","   3,204","   2,479"} | {" 0.225"," 0.252"," 0.232"} |
-|            4 | {10,16,22} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   3,921","   2,620","   2,106"} | {"   3,460","   3,204","   2,479"} | {" 0.333"," 0.298"," 0.291"} |
-|            5 | {11,17,23} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   3,921","   2,620","   2,106"} | {"   3,460","   3,204","   2,479"} | {" 0.333"," 0.298"," 0.291"} |
-|            6 | {12,18,24} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,992","   3,161","   2,391"} | {"   3,460","   3,204","   2,479"} | {" 0.298"," 0.301"," 0.331"} |
-|            7 | {13,19,25} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   3,017","   3,143","   2,393"} | {"   3,460","   3,204","   2,479"} | {" 0.296"," 0.303"," 0.332"} |
-|            8 | {14,20,26} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,708","   2,545","   2,096"} | {"   3,460","   3,204","   2,479"} | {" 0.275"," 0.277"," 0.245"} |
-|            9 | {15,21,27} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"  14,273","  13,641","  10,641"} | {"   2,805","   2,578","   2,140"} | {"   3,460","   3,204","   2,479"} | {" 0.288"," 0.283"," 0.265"} |
+|            1 | {1,4,7}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     824","     811","     546"} | {"   2,326","   2,077","   1,462"} | {" 0.295"," 0.242"," 0.251"} |
+|            2 | {2,5,8}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     824","     811","     546"} | {"   2,326","   2,077","   1,462"} | {" 0.295"," 0.242"," 0.251"} |
+|            3 | {3,6,9}    | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     824","     811","     546"} | {"   2,326","   2,077","   1,462"} | {" 0.295"," 0.242"," 0.251"} |
+|            4 | {10,16,22} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     871","     702","     517"} | {"   2,326","   2,077","   1,462"} | {" 0.445"," 0.392"," 0.342"} |
+|            5 | {11,17,23} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     871","     702","     517"} | {"   2,326","   2,077","   1,462"} | {" 0.445"," 0.392"," 0.342"} |
+|            6 | {12,18,24} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     710","     795","     527"} | {"   2,326","   2,077","   1,462"} | {" 0.337"," 0.325"," 0.347"} |
+|            7 | {13,19,25} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     689","     798","     517"} | {"   2,326","   2,077","   1,462"} | {" 0.347"," 0.286"," 0.346"} |
+|            8 | {14,20,26} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     766","     743","     508"} | {"   2,326","   2,077","   1,462"} | {" 0.343"," 0.328"," 0.274"} |
+|            9 | {15,21,27} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     773","     809","     513"} | {"   2,326","   2,077","   1,462"} | {" 0.347"," 0.326"," 0.285"} |
 :END:
 
 
@@ -1049,26 +1072,26 @@ limit 20
 :RESULTS:
 | model_id | entity_id | as_of_date            | score | label |
 |---------+----------+---------------------+-------+-------|
-|      24 |       47 | 2018-06-01 00:00:00 |   1.0 | ¤     |
+|      24 |      151 | 2018-06-01 00:00:00 |   1.0 | ¤     |
+|      24 |       90 | 2018-05-01 00:00:00 |   1.0 | ¤     |
+|      24 |       81 | 2018-01-01 00:00:00 |   1.0 | ¤     |
+|      24 |      125 | 2018-05-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-09-01 00:00:00 |   1.0 | ¤     |
+|      24 |       63 | 2018-04-01 00:00:00 |   1.0 | ¤     |
+|      24 |       50 | 2018-01-01 00:00:00 |   1.0 | ¤     |
+|      24 |       50 | 2018-02-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-10-01 00:00:00 |   1.0 | 0     |
+|      24 |      116 | 2018-10-01 00:00:00 |   1.0 | ¤     |
+|      24 |        9 | 2018-01-01 00:00:00 |   1.0 | ¤     |
 |      24 |       41 | 2018-11-01 00:00:00 |   1.0 | ¤     |
-|      24 |       47 | 2018-05-01 00:00:00 |   1.0 | ¤     |
-|      24 |       39 | 2018-07-01 00:00:00 |   1.0 | ¤     |
-|      24 |       39 | 2018-10-01 00:00:00 |   1.0 | ¤     |
-|      24 |       41 | 2018-05-01 00:00:00 |   1.0 | ¤     |
-|      24 |       43 | 2018-06-01 00:00:00 |   1.0 | ¤     |
-|      24 |       47 | 2018-04-01 00:00:00 |   1.0 | ¤     |
-|      24 |       14 | 2018-02-01 00:00:00 |   1.0 | ¤     |
-|      24 |       14 | 2018-01-01 00:00:00 |   1.0 | ¤     |
-|      24 |       14 | 2018-05-01 00:00:00 |   1.0 | ¤     |
-|      24 |       39 | 2018-09-01 00:00:00 |   1.0 | ¤     |
-|      24 |       14 | 2018-04-01 00:00:00 |   1.0 | ¤     |
-|      24 |       18 | 2017-12-01 00:00:00 |   1.0 | ¤     |
-|      24 |       14 | 2018-06-01 00:00:00 |   1.0 | ¤     |
-|      24 |       14 | 2018-03-01 00:00:00 |   1.0 | ¤     |
-|      24 |       47 | 2018-01-01 00:00:00 |   1.0 | ¤     |
-|      24 |       47 | 2018-02-01 00:00:00 |   1.0 | 0     |
-|      24 |       14 | 2017-12-01 00:00:00 |   1.0 | ¤     |
 |      24 |       47 | 2018-07-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-08-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-06-01 00:00:00 |   1.0 | ¤     |
+|      24 |       50 | 2017-12-01 00:00:00 |   1.0 | ¤     |
+|      24 |       10 | 2018-03-01 00:00:00 |   1.0 | ¤     |
+|      24 |        9 | 2018-07-01 00:00:00 |   1.0 | ¤     |
+|      24 |       47 | 2018-05-01 00:00:00 |   1.0 | ¤     |
+|      24 |      154 | 2018-07-01 00:00:00 |   1.0 | ¤     |
 :END:
 
 Note that at the top of the list (sorted by =score=), the /labels/
@@ -1169,12 +1192,25 @@ label_config:
     group by entity_id
   name: 'failed_inspections'
 
+
 cohort_config:
   query: |
-    select entity_id
-    from semantic.entities
+    with buckets as (
+    select *, ntile(5) over (order by number_of_inspections asc) as bucket
+    from (
+    select entity_id, count(*) as number_of_inspections
+    from semantic.events
+    group by entity_id
+    ) as t
+    )
+    select e.entity_id
+    from semantic.entities as e
+    inner join
+    buckets as b
+    using (entity_id)
     where
     daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
+    and bucket in (5)
   name: 'active_facilities'
 
 feature_aggregations:
@@ -1269,6 +1305,7 @@ feature_aggregations:
       - 'zip_code'
 
 #+END_SRC
+
 
 
 As before, we can check the temporal structure of our crossvalidation:
@@ -1404,53 +1441,17 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                               | hyperparameters                                                                         | feature_groups                          | models      | times                              | precision@10%                |
-|--------------+-----------------------------------------+-----------------------------------------------------------------------------------------+----------------------------------------+-------------+------------------------------------+------------------------------|
-|            1 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                   | {inspections}                          | {4,1,7}     | {2015-12-01,2016-12-01,2017-12-01} | {" 0.234"," 0.270"," 0.245"} |
-|            2 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                 | {inspections}                          | {5,2,8}     | {2015-12-01,2016-12-01,2017-12-01} | {" 0.234"," 0.270"," 0.245"} |
-|            3 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                            | {inspections}                          | {3,9,6}     | {2015-12-01,2016-12-01,2017-12-01} | {" 0.234"," 0.270"," 0.245"} |
-|            4 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2, "min_samples_split": 2}                                                   | {inspection,inspections,results,risks} | {10,22,16}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.345"," 0.297"," 0.279"} |
-|            5 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2, "min_samples_split": 5}                                                   | {inspection,inspections,results,risks} | {11,23,17}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.345"," 0.297"," 0.279"} |
-|            6 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 10, "min_samples_split": 2}                                                  | {inspection,inspections,results,risks} | {24,18,12}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.304"," 0.321"," 0.344"} |
-|            7 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 10, "min_samples_split": 5}                                                  | {inspection,inspections,results,risks} | {19,13,25}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.327"," 0.346"} |
-|            8 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null, "min_samples_split": 2}                                                | {inspection,inspections,results,risks} | {20,26,14}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.274"," 0.284"," 0.240"} |
-|            9 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null, "min_samples_split": 5}                                                | {inspection,inspections,results,risks} | {21,15,27}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.311"," 0.292"," 0.255"} |
-|           10 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,results,risks} | {28,100,64} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.375"," 0.347"," 0.366"} |
-|           11 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,results,risks} | {101,65,29} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.367"," 0.351"," 0.360"} |
-|           12 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,results,risks} | {102,66,30} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.378"," 0.349"," 0.380"} |
-|           13 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,results,risks} | {103,31,67} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.370"," 0.344"," 0.386"} |
-|           14 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspections}                          | {104,32,68} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.266"," 0.270"," 0.292"} |
-|           15 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspections}                          | {105,69,33} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.266"," 0.268"," 0.294"} |
-|           16 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspections}                          | {106,70,34} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.266"," 0.269"," 0.292"} |
-|           17 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspections}                          | {71,107,35} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.266"," 0.269"," 0.295"} |
-|           18 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {results}                              | {108,72,36} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.329"," 0.313"," 0.316"} |
-|           19 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {results}                              | {37,73,109} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.327"," 0.313"," 0.319"} |
-|           20 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {results}                              | {38,74,110} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.336"," 0.332"," 0.337"} |
-|           21 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {results}                              | {39,111,75} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.335"," 0.332"," 0.336"} |
-|           22 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {risks}                                | {40,112,76} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.325"," 0.304"," 0.306"} |
-|           23 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {risks}                                | {113,77,41} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.337"," 0.306"," 0.281"} |
-|           24 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {risks}                                | {78,42,114} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.335"," 0.306"," 0.309"} |
-|           25 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {risks}                                | {43,79,115} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.338"," 0.299"," 0.305"} |
-|           26 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection}                           | {116,80,44} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.309"," 0.301"," 0.336"} |
-|           27 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection}                           | {81,117,45} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.318"," 0.325"," 0.338"} |
-|           28 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection}                           | {118,82,46} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.318"," 0.318"," 0.342"} |
-|           29 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection}                           | {119,47,83} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.320"," 0.306"," 0.354"} |
-|           30 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,results,risks}             | {48,120,84} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.365"," 0.357"," 0.365"} |
-|           31 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,results,risks}             | {85,49,121} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.379"," 0.352"," 0.378"} |
-|           32 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,results,risks}             | {86,122,50} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.378"," 0.360"," 0.364"} |
-|           33 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,results,risks}             | {87,51,123} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.393"," 0.347"," 0.384"} |
-|           34 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,risks}         | {52,88,124} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.344"," 0.321"," 0.304"} |
-|           35 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,risks}         | {53,89,125} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.362"," 0.317"," 0.304"} |
-|           36 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,risks}         | {126,90,54} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.330"," 0.313"," 0.313"} |
-|           37 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,risks}         | {55,91,127} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.337"," 0.320"," 0.308"} |
-|           38 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,results}       | {92,56,128} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.365"," 0.345"," 0.385"} |
-|           39 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,results}       | {57,93,129} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.371"," 0.360"," 0.385"} |
-|           40 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,results}       | {94,130,58} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.368"," 0.357"," 0.381"} |
-|           41 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,results}       | {131,59,95} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.376"," 0.360"," 0.391"} |
-|           42 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspections,results,risks}            | {60,132,96} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.358"," 0.354"," 0.358"} |
-|           43 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspections,results,risks}            | {133,61,97} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.374"," 0.342"," 0.376"} |
-|           44 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspections,results,risks}            | {98,134,62} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.367"," 0.333"," 0.367"} |
-|           45 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspections,results,risks}            | {135,99,63} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.378"," 0.350"," 0.381"} |
+| model_group_id | model_type                           | hyperparameters                          | feature_groups                          | models  | times                              | precision@10%                |
+|--------------+-------------------------------------+------------------------------------------+----------------------------------------+---------+------------------------------------+------------------------------|
+|            1 | sklearn.dummy.DummyClassifier       | {"strategy": "prior"}                    | {inspections}                          | {7,4,1} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.242"," 0.251"} |
+|            2 | sklearn.dummy.DummyClassifier       | {"strategy": "uniform"}                  | {inspections}                          | {8,5,2} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.242"," 0.251"} |
+|            3 | sklearn.dummy.DummyClassifier       | {"strategy": "most_frequent"}             | {inspections}                          | {9,6,3} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.242"," 0.251"} |
+|            4 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 2}    | {inspection,inspections,results,risks} | {16,10} | {2015-12-01,2016-12-01}            | {" 0.445"," 0.392"}          |
+|            5 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 2, "min_samples_split": 5}    | {inspection,inspections,results,risks} | {17,11} | {2015-12-01,2016-12-01}            | {" 0.445"," 0.392"}          |
+|            6 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 10, "min_samples_split": 2}   | {inspection,inspections,results,risks} | {18,12} | {2015-12-01,2016-12-01}            | {" 0.337"," 0.325"}          |
+|            7 | sklearn.tree.DecisionTreeClassifier | {"max_depth": 10, "min_samples_split": 5}   | {inspection,inspections,results,risks} | {19,13} | {2015-12-01,2016-12-01}            | {" 0.347"," 0.286"}          |
+|            8 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "min_samples_split": 2} | {inspection,inspections,results,risks} | {14}    | {2015-12-01}                       | {" 0.343"}                   |
+|            9 | sklearn.tree.DecisionTreeClassifier | {"max_depth": null, "min_samples_split": 5} | {inspection,inspections,results,risks} | {15}    | {2015-12-01}                       | {" 0.347"}                   |
 :END:
 
 This table summarizes all our experiments, but it is very difficult to

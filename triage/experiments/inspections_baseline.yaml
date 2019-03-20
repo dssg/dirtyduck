@@ -61,10 +61,22 @@ label_config:
 
 cohort_config:
   query: |
-    select entity_id
-    from semantic.entities
+    with buckets as (
+    select *, ntile(5) over (order by number_of_inspections asc) as bucket
+    from (
+    select entity_id, count(*) as number_of_inspections
+    from semantic.events
+    group by entity_id
+    ) as t
+    )
+    select e.entity_id
+    from semantic.entities as e
+    inner join
+    buckets as b
+    using (entity_id)
     where
     daterange(start_time, end_time, '[]') @> '{as_of_date}'::date
+    and bucket in (5)
   name: 'active_facilities'
 
 feature_aggregations:
@@ -106,7 +118,6 @@ scoring:
           thresholds:
             percentiles: [1.0, 2.0, 3.0, 4.0, 5.0, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
             top_n: [1, 5, 10, 25, 50, 100, 250, 500, 1000]
-
 
     training_metric_groups:
       -
