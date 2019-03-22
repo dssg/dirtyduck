@@ -33,6 +33,18 @@
          :sitemap-title "Dirtyduck"
          )
 
+        ("dirtyduck-notes-md"
+         :base-directory "~/projects/dsapp/dirtyduck/org/"
+         :base-extension "org"
+         :exclude "[[:digit:]][[:digit:]]_.*\.org"
+         :publishing-directory "~/projects/dsapp/dirtyduck/docs/"
+         :recursive t
+         :publishing-function org-gfm-export-to-markdown
+         :headline-levels 4       ; Just the default for this project.
+         :auto-preamble t
+         :sitemap-title "Dirtyduck"
+         )
+
         ("dirtyduck-static"
          :base-directory "~/projects/dsapp/dirtyduck/org/"
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|sql\\|svg\\|yaml"
@@ -42,6 +54,6 @@
          )
 
 
-        ("dirtyduck" :components ("dirtyduck-static" "dirtyduck-notes" ))
+        ("dirtyduck" :components ("dirtyduck-static" "dirtyduck-notes"  "dirtyduck-notes-md"))
 
         ))

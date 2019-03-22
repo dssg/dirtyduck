@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-19 mar 15:01 -->
+<!-- 2019-03-22 vie 15:49 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -362,22 +362,27 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#orgf6c2651">7.1. Problem description</a></li>
+<li><a href="#orge333699">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#org8003ce0">7.3. Modeling Using Machine Learning</a>
+<li><a href="#org3625a22">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
 <li><a href="#orgfc8f6c4">7.3.3. A more advanced experiment</a></li>
 </ul>
 </li>
+<li><a href="#org04d7cbb">7.4. Selecting the best model</a></li>
+<li><a href="#orga473d37">7.5. Filtering model groups</a></li>
+<li><a href="#orgb371505">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org892f895">7.7. WORKING Postmodeling: Inspecting the best models closely</a></li>
+<li><a href="#orgd3abba9">7.8. What else we can learn from this?</a></li>
 </ul>
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#org3de1fa4">8.1. Problem description</a></li>
+<li><a href="#orgee0f7eb">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#orga073d17">8.3. Modeling Using Machine Learning</a>
+<li><a href="#org26cfc5e">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -392,11 +397,11 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org6d38884">9. WORKING Audition: So many models, how can I choose the best one?</a>
 <ul>
-<li><a href="#orga473d37">9.1. Filtering model groups</a></li>
-<li><a href="#orgb371505">9.2. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org7c69e52">9.1. Filtering model groups</a></li>
+<li><a href="#org4bf73d5">9.2. Selecting the best rule or strategy for choosing model groups</a></li>
 </ul>
 </li>
-<li><a href="#org892f895">10. WORKING Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org868df7f">10. WORKING Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org60063a1">10.1. Setup</a></li>
 <li><a href="#org00df197">10.2. Over time</a></li>
@@ -3155,6 +3160,7 @@ violations (violation code in 15-29)
 </div>
 </div>
 </div>
+
 
 <div id="outline-container-org902ef33" class="outline-2">
 <h2 id="org902ef33"><span class="section-number-2">6</span> Triage</h2>
@@ -7046,20 +7052,23 @@ clean the <code>{test, train}_results</code> schemas and have a fresh start:
 
 <div class="org-src-container">
 <pre class="src src-sh">rm -r /triage/matrices/*
-rm -r /triage/trained_models/*
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sh">rm -r /triage/trained_models/*
 </pre>
 </div>
 </div>
 </div>
 </div>
 
-
 <div id="outline-container-org2eeabab" class="outline-2">
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orgf6c2651" class="outline-3">
-<h3 id="orgf6c2651"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-orge333699" class="outline-3">
+<h3 id="orge333699"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7153,7 +7162,7 @@ following code:
 <span style="font-weight: bold;">group</span> <span style="font-weight: bold;">by</span>
     entity_id, event_id, <span style="font-weight: bold; text-decoration: underline;">date</span>, <span style="font-weight: bold;">result</span>
 <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span>
-    <span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">desc</span>;
+   <span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">desc</span>;
 </pre>
 </div>
 
@@ -7266,22 +7275,22 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org1f2463a" class="figure">
-<p><img src="./images/outcomes-inspections.png" alt="outcomes-inspections.png" width="600" height="600" />
+<div id="orga5d4278" class="figure">
+<p><img src="./images/outcomes-inspections.png" alt="Outcomes in the resource prioritazation problem." width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
+<p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the <i>outcome</i> of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
 </div>
 </div>
 </div>
 
 
 
-<div id="outline-container-org8003ce0" class="outline-3">
-<h3 id="org8003ce0"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org3625a22" class="outline-3">
+<h3 id="org3625a22"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
-(<code>triage</code> dev team did that for us); we just need to modify the <code>triage</code>
+(<code>triage</code> dev team did that for us); we just need to modify the <code>triage</code> experiment’s
 configuration file.
 </p>
 </div>
@@ -7504,10 +7513,22 @@ We just want to include <b>active</b> facilities in our matrices, so we tell
 <div class="org-src-container">
 <pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;">cohort_config</span>:
   <span style="font-weight: bold; font-style: italic;">query</span>: |
-    <span style="font-style: italic;">select entity_id</span>
-<span style="font-style: italic;">    from semantic.entities</span>
+    <span style="font-style: italic;">with buckets as (</span>
+<span style="font-style: italic;">    select *, ntile(5) over (order by number_of_inspections asc) as bucket</span>
+<span style="font-style: italic;">    from (</span>
+<span style="font-style: italic;">    select entity_id, count(*) as number_of_inspections</span>
+<span style="font-style: italic;">    from semantic.events</span>
+<span style="font-style: italic;">    group by entity_id</span>
+<span style="font-style: italic;">    ) as t</span>
+<span style="font-style: italic;">    )</span>
+<span style="font-style: italic;">    select e.entity_id</span>
+<span style="font-style: italic;">    from semantic.entities as e</span>
+<span style="font-style: italic;">    inner join</span>
+<span style="font-style: italic;">    buckets as b</span>
+<span style="font-style: italic;">    using (entity_id)</span>
 <span style="font-style: italic;">    where</span>
     daterange(start_time, end_time, <span style="font-style: italic;">'[]'</span>) @&gt; <span style="font-style: italic;">'{as_of_date}'</span>::date
+<span style="font-style: italic;">    and bucket in (5)</span>
   <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'active_facilities'</span>
 </pre>
 </div>
@@ -7851,7 +7872,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2015-12-01 00:00:00</td>
 <td class="org-left">ff2f3</td>
 <td class="org-left">a4455</td>
-<td class="org-right">10763</td>
+<td class="org-right">6715</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7862,7 +7883,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2016-12-01 00:00:00</td>
 <td class="org-left">faf2f</td>
 <td class="org-left">bf455</td>
-<td class="org-right">25036</td>
+<td class="org-right">15104</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7873,7 +7894,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2017-12-01 00:00:00</td>
 <td class="org-left">faf19</td>
 <td class="org-left">b0237</td>
-<td class="org-right">38677</td>
+<td class="org-right">22860</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7884,7 +7905,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2015-12-01 00:00:00</td>
 <td class="org-left">1435f</td>
 <td class="org-left">a4455</td>
-<td class="org-right">10763</td>
+<td class="org-right">6715</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7895,7 +7916,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2016-12-01 00:00:00</td>
 <td class="org-left">3ad95</td>
 <td class="org-left">bf455</td>
-<td class="org-right">25036</td>
+<td class="org-right">15104</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7906,7 +7927,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2017-12-01 00:00:00</td>
 <td class="org-left">cc595</td>
 <td class="org-left">b0237</td>
-<td class="org-right">38677</td>
+<td class="org-right">22860</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7917,7 +7938,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2015-12-01 00:00:00</td>
 <td class="org-left">cdf77</td>
 <td class="org-left">a4455</td>
-<td class="org-right">10763</td>
+<td class="org-right">6715</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7928,7 +7949,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2016-12-01 00:00:00</td>
 <td class="org-left">83ed9</td>
 <td class="org-left">bf455</td>
-<td class="org-right">25036</td>
+<td class="org-right">15104</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -7939,7 +7960,7 @@ You can check with which matrix the models are trained:
 <td class="org-left">2017-12-01 00:00:00</td>
 <td class="org-left">67a54</td>
 <td class="org-left">b0237</td>
-<td class="org-right">38677</td>
+<td class="org-right">22860</td>
 <td class="org-left">@ 5 years</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8017,7 +8038,7 @@ run the following query
 <td class="org-left">2015-12-01 00:00:00</td>
 <td class="org-left">ff2f3</td>
 <td class="org-left">865e3</td>
-<td class="org-right">228580</td>
+<td class="org-right">69472</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8028,7 +8049,7 @@ run the following query
 <td class="org-left">2016-12-01 00:00:00</td>
 <td class="org-left">faf2f</td>
 <td class="org-left">3f3e1</td>
-<td class="org-right">236950</td>
+<td class="org-right">66275</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8039,7 +8060,7 @@ run the following query
 <td class="org-left">2017-12-01 00:00:00</td>
 <td class="org-left">faf19</td>
 <td class="org-left">4203c</td>
-<td class="org-right">246622</td>
+<td class="org-right">62194</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8050,7 +8071,7 @@ run the following query
 <td class="org-left">2015-12-01 00:00:00</td>
 <td class="org-left">1435f</td>
 <td class="org-left">865e3</td>
-<td class="org-right">228580</td>
+<td class="org-right">69472</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8061,7 +8082,7 @@ run the following query
 <td class="org-left">2016-12-01 00:00:00</td>
 <td class="org-left">3ad95</td>
 <td class="org-left">3f3e1</td>
-<td class="org-right">236950</td>
+<td class="org-right">66275</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8072,7 +8093,7 @@ run the following query
 <td class="org-left">2017-12-01 00:00:00</td>
 <td class="org-left">cc595</td>
 <td class="org-left">4203c</td>
-<td class="org-right">246622</td>
+<td class="org-right">62194</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8083,7 +8104,7 @@ run the following query
 <td class="org-left">2015-12-01 00:00:00</td>
 <td class="org-left">cdf77</td>
 <td class="org-left">865e3</td>
-<td class="org-right">228580</td>
+<td class="org-right">69472</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8094,7 +8115,7 @@ run the following query
 <td class="org-left">2016-12-01 00:00:00</td>
 <td class="org-left">83ed9</td>
 <td class="org-left">3f3e1</td>
-<td class="org-right">236950</td>
+<td class="org-right">66275</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8105,7 +8126,7 @@ run the following query
 <td class="org-left">2017-12-01 00:00:00</td>
 <td class="org-left">67a54</td>
 <td class="org-left">4203c</td>
-<td class="org-right">246622</td>
+<td class="org-right">62194</td>
 <td class="org-left">@ 1 year</td>
 <td class="org-left">2010-01-04 00:00:00</td>
 </tr>
@@ -8204,12 +8225,12 @@ What's the performance of this model groups?
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2016-11-01</td>
-<td class="org-left">228,580</td>
-<td class="org-left">14,273</td>
-<td class="org-left">14,273</td>
-<td class="org-left">3,460</td>
-<td class="org-right">0.015</td>
-<td class="org-right">0.242</td>
+<td class="org-left">69,472</td>
+<td class="org-left">8,389</td>
+<td class="org-left">8,389</td>
+<td class="org-left">2,326</td>
+<td class="org-right">0.033</td>
+<td class="org-right">0.277</td>
 </tr>
 
 <tr>
@@ -8219,12 +8240,12 @@ What's the performance of this model groups?
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2016-11-01</td>
-<td class="org-left">228,580</td>
-<td class="org-left">14,273</td>
-<td class="org-left">14,273</td>
-<td class="org-left">3,460</td>
-<td class="org-right">0.015</td>
-<td class="org-right">0.242</td>
+<td class="org-left">69,472</td>
+<td class="org-left">8,389</td>
+<td class="org-left">8,389</td>
+<td class="org-left">2,326</td>
+<td class="org-right">0.033</td>
+<td class="org-right">0.277</td>
 </tr>
 
 <tr>
@@ -8234,12 +8255,12 @@ What's the performance of this model groups?
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2015-12-01</td>
 <td class="org-right">2016-11-01</td>
-<td class="org-left">228,580</td>
-<td class="org-left">14,273</td>
-<td class="org-left">14,273</td>
-<td class="org-left">3,460</td>
-<td class="org-right">0.015</td>
-<td class="org-right">0.242</td>
+<td class="org-left">69,472</td>
+<td class="org-left">8,389</td>
+<td class="org-left">8,389</td>
+<td class="org-left">2,326</td>
+<td class="org-right">0.033</td>
+<td class="org-right">0.277</td>
 </tr>
 
 <tr>
@@ -8249,12 +8270,12 @@ What's the performance of this model groups?
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2017-11-01</td>
-<td class="org-left">236,950</td>
-<td class="org-left">13,641</td>
-<td class="org-left">13,641</td>
-<td class="org-left">3,204</td>
-<td class="org-right">0.014</td>
-<td class="org-right">0.235</td>
+<td class="org-left">66,275</td>
+<td class="org-left">7,756</td>
+<td class="org-left">7,756</td>
+<td class="org-left">2,077</td>
+<td class="org-right">0.031</td>
+<td class="org-right">0.268</td>
 </tr>
 
 <tr>
@@ -8264,12 +8285,12 @@ What's the performance of this model groups?
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2017-11-01</td>
-<td class="org-left">236,950</td>
-<td class="org-left">13,641</td>
-<td class="org-left">13,641</td>
-<td class="org-left">3,204</td>
-<td class="org-right">0.014</td>
-<td class="org-right">0.235</td>
+<td class="org-left">66,275</td>
+<td class="org-left">7,756</td>
+<td class="org-left">7,756</td>
+<td class="org-left">2,077</td>
+<td class="org-right">0.031</td>
+<td class="org-right">0.268</td>
 </tr>
 
 <tr>
@@ -8279,12 +8300,12 @@ What's the performance of this model groups?
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2016-12-01</td>
 <td class="org-right">2017-11-01</td>
-<td class="org-left">236,950</td>
-<td class="org-left">13,641</td>
-<td class="org-left">13,641</td>
-<td class="org-left">3,204</td>
-<td class="org-right">0.014</td>
-<td class="org-right">0.235</td>
+<td class="org-left">66,275</td>
+<td class="org-left">7,756</td>
+<td class="org-left">7,756</td>
+<td class="org-left">2,077</td>
+<td class="org-right">0.031</td>
+<td class="org-right">0.268</td>
 </tr>
 
 <tr>
@@ -8294,12 +8315,12 @@ What's the performance of this model groups?
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2018-11-01</td>
-<td class="org-left">246,622</td>
-<td class="org-left">10,641</td>
-<td class="org-left">10,641</td>
-<td class="org-left">2,479</td>
-<td class="org-right">0.010</td>
-<td class="org-right">0.233</td>
+<td class="org-left">62,194</td>
+<td class="org-left">5,619</td>
+<td class="org-left">5,619</td>
+<td class="org-left">1,462</td>
+<td class="org-right">0.024</td>
+<td class="org-right">0.260</td>
 </tr>
 
 <tr>
@@ -8309,12 +8330,12 @@ What's the performance of this model groups?
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2018-11-01</td>
-<td class="org-left">246,622</td>
-<td class="org-left">10,641</td>
-<td class="org-left">10,641</td>
-<td class="org-left">2,479</td>
-<td class="org-right">0.010</td>
-<td class="org-right">0.233</td>
+<td class="org-left">62,194</td>
+<td class="org-left">5,619</td>
+<td class="org-left">5,619</td>
+<td class="org-left">1,462</td>
+<td class="org-right">0.024</td>
+<td class="org-right">0.260</td>
 </tr>
 
 <tr>
@@ -8324,12 +8345,12 @@ What's the performance of this model groups?
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2017-12-01</td>
 <td class="org-right">2018-11-01</td>
-<td class="org-left">246,622</td>
-<td class="org-left">10,641</td>
-<td class="org-left">10,641</td>
-<td class="org-left">2,479</td>
-<td class="org-right">0.010</td>
-<td class="org-right">0.233</td>
+<td class="org-left">62,194</td>
+<td class="org-left">5,619</td>
+<td class="org-left">5,619</td>
+<td class="org-left">1,462</td>
+<td class="org-right">0.024</td>
+<td class="org-right">0.260</td>
 </tr>
 </tbody>
 </table>
@@ -8562,9 +8583,9 @@ Finally we will leave the <code>scoring</code> section as before.
 </p>
 
 <p>
-In this experiment we will end with <b>5</b> model groups
+In this experiment we will end with <b>6</b> model groups
 (number of algorithms [1] \(\times\) number of hyperparameter combinations [2
-\(\times\) 3 = 5] \(\times\) number of feature groups strategies [1]]). Also, we will create <b>15</b> models (3 per
+\(\times\) 3 = 5] \(\times\) number of feature groups strategies [1]]). Also, we will create <b>18</b> models (3 per
 model group) given that we have 3 temporal blocks (one model per temporal group).
 </p>
 
@@ -8613,7 +8634,7 @@ triage experiment --matrix-format hdf experiments/inspections_dt.yaml  --profile
 
 
 <p>
-After the experiment finishes, you will get <b>5</b> new <code>model_groups</code> (1 per
+After the experiment finishes, you will get <b>6</b> new <code>model_groups</code> (1 per
 combination in <code>grid_config</code>)
 </p>
 
@@ -8686,7 +8707,7 @@ combination in <code>grid_config</code>)
 </table>
 
 <p>
-and <b>15</b> models
+and <b>18</b> models
 </p>
 
 <div class="org-src-container">
@@ -8769,7 +8790,6 @@ Let's see the performance over time of the models so far:
 <pre class="src src-sql"><span style="font-weight: bold;">select</span>
     model_group_id,
     array_agg(model_id <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> models,
-    <span style="font-weight: bold; font-style: italic;">-- array_agg(train_end_time::date order by ev.evaluation_start_time asc),</span>
     array_agg(ev.evaluation_start_time::<span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> evaluation_start_time,
     array_agg(ev.evaluation_end_time::<span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> evaluation_end_time,
     array_agg(to_char(ev.num_labeled_examples, <span style="font-style: italic;">'999,999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> ev.evaluation_start_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> labeled_examples,
@@ -8825,10 +8845,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{1,4,7}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   2,933","   2,765","   2,146"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.225"," 0.252"," 0.232"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     824","     811","     546"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.295"," 0.242"," 0.251"}</td>
 </tr>
 
 <tr>
@@ -8836,10 +8856,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{2,5,8}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   2,933","   2,765","   2,146"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.225"," 0.252"," 0.232"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     824","     811","     546"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.295"," 0.242"," 0.251"}</td>
 </tr>
 
 <tr>
@@ -8847,10 +8867,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{3,6,9}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   2,933","   2,765","   2,146"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.225"," 0.252"," 0.232"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     824","     811","     546"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.295"," 0.242"," 0.251"}</td>
 </tr>
 
 <tr>
@@ -8858,10 +8878,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{10,16,22}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   3,921","   2,620","   2,106"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.333"," 0.298"," 0.291"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     871","     702","     517"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.445"," 0.392"," 0.342"}</td>
 </tr>
 
 <tr>
@@ -8869,10 +8889,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{11,17,23}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   3,921","   2,620","   2,106"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.333"," 0.298"," 0.291"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     871","     702","     517"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.445"," 0.392"," 0.342"}</td>
 </tr>
 
 <tr>
@@ -8880,10 +8900,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{12,18,24}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   2,992","   3,161","   2,391"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.298"," 0.301"," 0.331"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     710","     795","     527"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.337"," 0.325"," 0.347"}</td>
 </tr>
 
 <tr>
@@ -8891,10 +8911,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{13,19,25}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   3,017","   3,143","   2,393"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.296"," 0.303"," 0.332"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     689","     798","     517"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.347"," 0.286"," 0.346"}</td>
 </tr>
 
 <tr>
@@ -8902,10 +8922,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{14,20,26}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   2,708","   2,545","   2,096"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.275"," 0.277"," 0.245"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     766","     743","     508"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.343"," 0.328"," 0.274"}</td>
 </tr>
 
 <tr>
@@ -8913,10 +8933,10 @@ Let's see the performance over time of the models so far:
 <td class="org-left">{15,21,27}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
 <td class="org-left">{2016-11-01,2017-11-01,2018-11-01}</td>
-<td class="org-left">{"  14,273","  13,641","  10,641"}</td>
-<td class="org-left">{"   2,805","   2,578","   2,140"}</td>
-<td class="org-left">{"   3,460","   3,204","   2,479"}</td>
-<td class="org-left">{" 0.288"," 0.283"," 0.265"}</td>
+<td class="org-left">{"   8,389","   7,756","   5,619"}</td>
+<td class="org-left">{"     773","     809","     513"}</td>
+<td class="org-left">{"   2,326","   2,077","   1,462"}</td>
+<td class="org-left">{" 0.347"," 0.326"," 0.285"}</td>
 </tr>
 </tbody>
 </table>
@@ -8970,8 +8990,88 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 <tbody>
 <tr>
 <td class="org-right">24</td>
-<td class="org-right">47</td>
+<td class="org-right">151</td>
 <td class="org-left">2018-06-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">90</td>
+<td class="org-left">2018-05-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">81</td>
+<td class="org-left">2018-01-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">125</td>
+<td class="org-left">2018-05-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-09-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">63</td>
+<td class="org-left">2018-04-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">50</td>
+<td class="org-left">2018-01-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">50</td>
+<td class="org-left">2018-02-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-10-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">0</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">116</td>
+<td class="org-left">2018-10-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">9</td>
+<td class="org-left">2018-01-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
 </tr>
@@ -8987,14 +9087,6 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 <tr>
 <td class="org-right">24</td>
 <td class="org-right">47</td>
-<td class="org-left">2018-05-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">39</td>
 <td class="org-left">2018-07-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
@@ -9002,24 +9094,8 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 
 <tr>
 <td class="org-right">24</td>
-<td class="org-right">39</td>
-<td class="org-left">2018-10-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">41</td>
-<td class="org-left">2018-05-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">43</td>
-<td class="org-left">2018-06-01 00:00:00</td>
+<td class="org-right">47</td>
+<td class="org-left">2018-08-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
 </tr>
@@ -9027,62 +9103,6 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 <tr>
 <td class="org-right">24</td>
 <td class="org-right">47</td>
-<td class="org-left">2018-04-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">14</td>
-<td class="org-left">2018-02-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">14</td>
-<td class="org-left">2018-01-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">14</td>
-<td class="org-left">2018-05-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">39</td>
-<td class="org-left">2018-09-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">14</td>
-<td class="org-left">2018-04-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">18</td>
-<td class="org-left">2017-12-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">¤</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">14</td>
 <td class="org-left">2018-06-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
@@ -9090,7 +9110,15 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 
 <tr>
 <td class="org-right">24</td>
-<td class="org-right">14</td>
+<td class="org-right">50</td>
+<td class="org-left">2017-12-01 00:00:00</td>
+<td class="org-right">1.0</td>
+<td class="org-left">¤</td>
+</tr>
+
+<tr>
+<td class="org-right">24</td>
+<td class="org-right">10</td>
 <td class="org-left">2018-03-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
@@ -9098,8 +9126,8 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 
 <tr>
 <td class="org-right">24</td>
-<td class="org-right">47</td>
-<td class="org-left">2018-01-01 00:00:00</td>
+<td class="org-right">9</td>
+<td class="org-left">2018-07-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
 </tr>
@@ -9107,22 +9135,14 @@ review later, with <code>Audition</code>, but for now, let's choose the model gr
 <tr>
 <td class="org-right">24</td>
 <td class="org-right">47</td>
-<td class="org-left">2018-02-01 00:00:00</td>
-<td class="org-right">1.0</td>
-<td class="org-left">0</td>
-</tr>
-
-<tr>
-<td class="org-right">24</td>
-<td class="org-right">14</td>
-<td class="org-left">2017-12-01 00:00:00</td>
+<td class="org-left">2018-05-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
 </tr>
 
 <tr>
 <td class="org-right">24</td>
-<td class="org-right">47</td>
+<td class="org-right">154</td>
 <td class="org-left">2018-07-01 00:00:00</td>
 <td class="org-right">1.0</td>
 <td class="org-left">¤</td>
@@ -9287,7 +9307,7 @@ You can execute the experiment with
 
 <div class="org-src-container">
 <pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Remember to run this in bastion  NOT in your laptop shell!</span>
-triage experiment --matrix-format hdf experiments/inspections_label_failed_01.yaml --no-save-predictions --profile
+triage experiment --matrix-format hdf experiments/inspections_label_failed_01.yaml  --profile
 </pre>
 </div>
 
@@ -9326,7 +9346,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
     model_type,
     hyperparameters,
     feature_groups,
-    array_agg(model_id) <span style="font-weight: bold;">as</span> models,
+    array_agg(model_id <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> train_end_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> models,
     array_agg(train_end_time::<span style="font-weight: bold; text-decoration: underline;">date</span> <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> train_end_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> times,
     array_agg(to_char(<span style="font-weight: bold;">value</span>, <span style="font-style: italic;">'0.999'</span>) <span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> train_end_time <span style="font-weight: bold;">asc</span>) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold; text-decoration: underline;">precision</span>@10%"
 <span style="font-weight: bold;">from</span>
@@ -9384,9 +9404,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
 <td class="org-left">{"strategy": "prior"}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{4,1,7}</td>
+<td class="org-left">{1,4,7}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.234"," 0.270"," 0.245"}</td>
+<td class="org-left">{" 0.295"," 0.242"," 0.251"}</td>
 </tr>
 
 <tr>
@@ -9394,9 +9414,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
 <td class="org-left">{"strategy": "uniform"}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{5,2,8}</td>
+<td class="org-left">{2,5,8}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.234"," 0.270"," 0.245"}</td>
+<td class="org-left">{" 0.295"," 0.242"," 0.251"}</td>
 </tr>
 
 <tr>
@@ -9404,9 +9424,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.dummy.DummyClassifier</td>
 <td class="org-left">{"strategy": "most<sub>frequent</sub>"}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{3,9,6}</td>
+<td class="org-left">{3,6,9}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.234"," 0.270"," 0.245"}</td>
+<td class="org-left">{" 0.295"," 0.242"," 0.251"}</td>
 </tr>
 
 <tr>
@@ -9414,9 +9434,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": 2, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{10,22,16}</td>
+<td class="org-left">{10,16,22}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.345"," 0.297"," 0.279"}</td>
+<td class="org-left">{" 0.445"," 0.392"," 0.342"}</td>
 </tr>
 
 <tr>
@@ -9424,9 +9444,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": 2, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{11,23,17}</td>
+<td class="org-left">{11,17,23}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.345"," 0.297"," 0.279"}</td>
+<td class="org-left">{" 0.445"," 0.392"," 0.342"}</td>
 </tr>
 
 <tr>
@@ -9434,9 +9454,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": 10, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{24,18,12}</td>
+<td class="org-left">{12,18,24}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.304"," 0.321"," 0.344"}</td>
+<td class="org-left">{" 0.337"," 0.325"," 0.347"}</td>
 </tr>
 
 <tr>
@@ -9444,9 +9464,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": 10, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{19,13,25}</td>
+<td class="org-left">{13,19,25}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.295"," 0.327"," 0.346"}</td>
+<td class="org-left">{" 0.347"," 0.286"," 0.346"}</td>
 </tr>
 
 <tr>
@@ -9454,9 +9474,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": null, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{20,26,14}</td>
+<td class="org-left">{14,20,26}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.274"," 0.284"," 0.240"}</td>
+<td class="org-left">{" 0.343"," 0.328"," 0.274"}</td>
 </tr>
 
 <tr>
@@ -9464,9 +9484,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.tree.DecisionTreeClassifier</td>
 <td class="org-left">{"max<sub>depth</sub>": null, "min<sub>samples</sub><sub>split</sub>": 5}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{21,15,27}</td>
+<td class="org-left">{15,21,27}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.311"," 0.292"," 0.255"}</td>
+<td class="org-left">{" 0.347"," 0.326"," 0.285"}</td>
 </tr>
 
 <tr>
@@ -9474,9 +9494,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{28,100,64}</td>
+<td class="org-left">{28,64,100}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.375"," 0.347"," 0.366"}</td>
+<td class="org-left">{" 0.430"," 0.369"," 0.451"}</td>
 </tr>
 
 <tr>
@@ -9484,9 +9504,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{101,65,29}</td>
+<td class="org-left">{29,65,101}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.367"," 0.351"," 0.360"}</td>
+<td class="org-left">{" 0.453"," 0.403"," 0.470"}</td>
 </tr>
 
 <tr>
@@ -9494,9 +9514,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{102,66,30}</td>
+<td class="org-left">{30,66,102}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.378"," 0.349"," 0.380"}</td>
+<td class="org-left">{" 0.441"," 0.387"," 0.462"}</td>
 </tr>
 
 <tr>
@@ -9504,9 +9524,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results,risks}</td>
-<td class="org-left">{103,31,67}</td>
+<td class="org-left">{31,67,103}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.370"," 0.344"," 0.386"}</td>
+<td class="org-left">{" 0.456"," 0.383"," 0.469"}</td>
 </tr>
 
 <tr>
@@ -9514,9 +9534,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{104,32,68}</td>
+<td class="org-left">{32,68,104}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.266"," 0.270"," 0.292"}</td>
+<td class="org-left">{" 0.342"," 0.310"," 0.285"}</td>
 </tr>
 
 <tr>
@@ -9524,9 +9544,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{105,69,33}</td>
+<td class="org-left">{33,69,105}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.266"," 0.268"," 0.294"}</td>
+<td class="org-left">{" 0.342"," 0.310"," 0.283"}</td>
 </tr>
 
 <tr>
@@ -9534,9 +9554,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{106,70,34}</td>
+<td class="org-left">{34,70,106}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.266"," 0.269"," 0.292"}</td>
+<td class="org-left">{" 0.342"," 0.310"," 0.297"}</td>
 </tr>
 
 <tr>
@@ -9544,9 +9564,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections}</td>
-<td class="org-left">{71,107,35}</td>
+<td class="org-left">{35,71,107}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.266"," 0.269"," 0.295"}</td>
+<td class="org-left">{" 0.341"," 0.310"," 0.295"}</td>
 </tr>
 
 <tr>
@@ -9554,9 +9574,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{results}</td>
-<td class="org-left">{108,72,36}</td>
+<td class="org-left">{36,72,108}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.329"," 0.313"," 0.316"}</td>
+<td class="org-left">{" 0.359"," 0.330"," 0.389"}</td>
 </tr>
 
 <tr>
@@ -9566,7 +9586,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{results}</td>
 <td class="org-left">{37,73,109}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.327"," 0.313"," 0.319"}</td>
+<td class="org-left">{" 0.368"," 0.326"," 0.380"}</td>
 </tr>
 
 <tr>
@@ -9576,7 +9596,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{results}</td>
 <td class="org-left">{38,74,110}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.336"," 0.332"," 0.337"}</td>
+<td class="org-left">{" 0.390"," 0.361"," 0.395"}</td>
 </tr>
 
 <tr>
@@ -9584,9 +9604,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{results}</td>
-<td class="org-left">{39,111,75}</td>
+<td class="org-left">{39,75,111}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.335"," 0.332"," 0.336"}</td>
+<td class="org-left">{" 0.394"," 0.351"," 0.413"}</td>
 </tr>
 
 <tr>
@@ -9594,9 +9614,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{40,112,76}</td>
+<td class="org-left">{40,76,112}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.325"," 0.304"," 0.306"}</td>
+<td class="org-left">{" 0.389"," 0.325"," 0.325"}</td>
 </tr>
 
 <tr>
@@ -9604,9 +9624,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{113,77,41}</td>
+<td class="org-left">{41,77,113}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.337"," 0.306"," 0.281"}</td>
+<td class="org-left">{" 0.391"," 0.331"," 0.362"}</td>
 </tr>
 
 <tr>
@@ -9614,9 +9634,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{risks}</td>
-<td class="org-left">{78,42,114}</td>
+<td class="org-left">{42,78,114}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.335"," 0.306"," 0.309"}</td>
+<td class="org-left">{" 0.375"," 0.310"," 0.398"}</td>
 </tr>
 
 <tr>
@@ -9626,7 +9646,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{risks}</td>
 <td class="org-left">{43,79,115}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.338"," 0.299"," 0.305"}</td>
+<td class="org-left">{" 0.405"," 0.325"," 0.384"}</td>
 </tr>
 
 <tr>
@@ -9634,9 +9654,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{116,80,44}</td>
+<td class="org-left">{44,80,116}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.309"," 0.301"," 0.336"}</td>
+<td class="org-left">{" 0.394"," 0.334"," 0.351"}</td>
 </tr>
 
 <tr>
@@ -9644,9 +9664,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{81,117,45}</td>
+<td class="org-left">{45,81,117}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.318"," 0.325"," 0.338"}</td>
+<td class="org-left">{" 0.374"," 0.330"," 0.352"}</td>
 </tr>
 
 <tr>
@@ -9654,9 +9674,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{118,82,46}</td>
+<td class="org-left">{46,82,118}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.318"," 0.318"," 0.342"}</td>
+<td class="org-left">{" 0.405"," 0.327"," 0.367"}</td>
 </tr>
 
 <tr>
@@ -9664,9 +9684,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection}</td>
-<td class="org-left">{119,47,83}</td>
+<td class="org-left">{47,83,119}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.320"," 0.306"," 0.354"}</td>
+<td class="org-left">{" 0.416"," 0.319"," 0.384"}</td>
 </tr>
 
 <tr>
@@ -9674,9 +9694,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{48,120,84}</td>
+<td class="org-left">{48,84,120}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.365"," 0.357"," 0.365"}</td>
+<td class="org-left">{" 0.446"," 0.380"," 0.441"}</td>
 </tr>
 
 <tr>
@@ -9684,9 +9704,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{85,49,121}</td>
+<td class="org-left">{49,85,121}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.379"," 0.352"," 0.378"}</td>
+<td class="org-left">{" 0.448"," 0.385"," 0.433"}</td>
 </tr>
 
 <tr>
@@ -9694,9 +9714,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{86,122,50}</td>
+<td class="org-left">{50,86,122}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.378"," 0.360"," 0.364"}</td>
+<td class="org-left">{" 0.440"," 0.394"," 0.483"}</td>
 </tr>
 
 <tr>
@@ -9704,9 +9724,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,results,risks}</td>
-<td class="org-left">{87,51,123}</td>
+<td class="org-left">{51,87,123}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.393"," 0.347"," 0.384"}</td>
+<td class="org-left">{" 0.447"," 0.393"," 0.473"}</td>
 </tr>
 
 <tr>
@@ -9716,7 +9736,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{inspection,inspections,risks}</td>
 <td class="org-left">{52,88,124}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.344"," 0.321"," 0.304"}</td>
+<td class="org-left">{" 0.391"," 0.342"," 0.348"}</td>
 </tr>
 
 <tr>
@@ -9726,7 +9746,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{inspection,inspections,risks}</td>
 <td class="org-left">{53,89,125}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.362"," 0.317"," 0.304"}</td>
+<td class="org-left">{" 0.422"," 0.330"," 0.357"}</td>
 </tr>
 
 <tr>
@@ -9734,9 +9754,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,risks}</td>
-<td class="org-left">{126,90,54}</td>
+<td class="org-left">{54,90,126}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.330"," 0.313"," 0.313"}</td>
+<td class="org-left">{" 0.411"," 0.341"," 0.365"}</td>
 </tr>
 
 <tr>
@@ -9746,7 +9766,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{inspection,inspections,risks}</td>
 <td class="org-left">{55,91,127}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.337"," 0.320"," 0.308"}</td>
+<td class="org-left">{" 0.420"," 0.331"," 0.391"}</td>
 </tr>
 
 <tr>
@@ -9754,9 +9774,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{92,56,128}</td>
+<td class="org-left">{56,92,128}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.365"," 0.345"," 0.385"}</td>
+<td class="org-left">{" 0.444"," 0.389"," 0.453"}</td>
 </tr>
 
 <tr>
@@ -9766,7 +9786,7 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">{inspection,inspections,results}</td>
 <td class="org-left">{57,93,129}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.371"," 0.360"," 0.385"}</td>
+<td class="org-left">{" 0.443"," 0.407"," 0.466"}</td>
 </tr>
 
 <tr>
@@ -9774,9 +9794,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{94,130,58}</td>
+<td class="org-left">{58,94,130}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.368"," 0.357"," 0.381"}</td>
+<td class="org-left">{" 0.443"," 0.387"," 0.453"}</td>
 </tr>
 
 <tr>
@@ -9784,9 +9804,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspection,inspections,results}</td>
-<td class="org-left">{131,59,95}</td>
+<td class="org-left">{59,95,131}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.376"," 0.360"," 0.391"}</td>
+<td class="org-left">{" 0.456"," 0.391"," 0.484"}</td>
 </tr>
 
 <tr>
@@ -9794,9 +9814,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{60,132,96}</td>
+<td class="org-left">{60,96,132}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.358"," 0.354"," 0.358"}</td>
+<td class="org-left">{" 0.434"," 0.374"," 0.446"}</td>
 </tr>
 
 <tr>
@@ -9804,9 +9824,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 2}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{133,61,97}</td>
+<td class="org-left">{61,97,133}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.374"," 0.342"," 0.376"}</td>
+<td class="org-left">{" 0.436"," 0.384"," 0.459"}</td>
 </tr>
 
 <tr>
@@ -9814,9 +9834,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 100, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{98,134,62}</td>
+<td class="org-left">{62,98,134}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.367"," 0.333"," 0.367"}</td>
+<td class="org-left">{" 0.433"," 0.374"," 0.464"}</td>
 </tr>
 
 <tr>
@@ -9824,9 +9844,9 @@ features_arrays <span style="font-weight: bold;">as</span> (
 <td class="org-left">sklearn.ensemble.RandomForestClassifier</td>
 <td class="org-left">{"criterion": "gini", "max<sub>features</sub>": "sqrt", "n<sub>estimators</sub>": 250, "min<sub>samples</sub><sub>split</sub>": 10}</td>
 <td class="org-left">{inspections,results,risks}</td>
-<td class="org-left">{135,99,63}</td>
+<td class="org-left">{63,99,135}</td>
 <td class="org-left">{2015-12-01,2016-12-01,2017-12-01}</td>
-<td class="org-left">{" 0.378"," 0.350"," 0.381"}</td>
+<td class="org-left">{" 0.451"," 0.384"," 0.484"}</td>
 </tr>
 </tbody>
 </table>
@@ -9840,14 +9860,408 @@ solve this dilemma with the support of <code>audition</code>.
 </div>
 </div>
 </div>
+
+<div id="outline-container-org04d7cbb" class="outline-3">
+<h3 id="org04d7cbb"><span class="section-number-3">7.4</span> Selecting the best model</h3>
+<div class="outline-text-3" id="text-7-4">
+<p>
+<b>45</b> <i>model groups</i>! How to pick the best one and use it for making
+predictions with <i>new</i> data? What do you mean by “the best”? This is not
+as easy as it sounds, due to several factors:
+</p>
+
+<ul class="org-ul">
+<li>You can try to pick the best using a metric
+specified in the config file (<code>precision@</code> and <code>recall@</code>),
+but at what point of time? Maybe different model groups are best
+at different prediction times.</li>
+<li>You can just use the one that performs best on the last test set.</li>
+<li>You can value a model group that provides consistent results over time.
+It might not be the best on any test set, but you can feel more
+confident that it will continue to perform similarly.</li>
+<li>If there are several model groups that perform similarly and
+their lists are more or less similar, maybe it doesn't really
+matter which you pick.</li>
+</ul>
+
+<p>
+The answers to questions like these may not be obvious up front. Let’s
+discuss an imaginary example, that will help to clarify this<sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup>
+</p>
+
+<p width="800" height="800">
+<a href="images/sanjose-2.png" width="800" height="800">Imaginary example</a>
+</p>
+
+
+<p>
+The graphic above provides an imaginary example  with three three
+different <i>models groups</i> on how they performed against
+the actual results of inspections in 2014, 2015, and 2016. In the
+$x$-axis, the date of the predictions, inn the $y$-axes the metric of
+interest (e.g. <i>precision</i>, <i>recall</i>, etc). Recall that the <i>models groups</i>
+differ in a number of ways, for instance: including
+or excluding different types of <i>features</i>, employing different
+algorithms or hyperparameters, or focusing on more or less recent
+information, this comes from <i>timechop configuration</i>, (e.g <i>how much past data</i> do you want to include).
+</p>
+
+<p>
+We start by building a set of models that seek to predict what will happen in
+2014, using only information that would have been available to
+inspectors before January 1, 2014. We then evaluate the models based
+on what actually happened in 2014. Repeating this process for 2015 and
+2016 gives us an idea of how well — and how dependably — a given model
+is able to predict the future.
+</p>
+
+<p>
+Now, for the selection you could have a reasoning process as follows:
+</p>
+
+<ul class="org-ul">
+<li>You can probably eliminate the yellow triangle model right off the
+bat.</li>
+<li>If we only looked at 2016, we’d choose the light blue squares
+model, but although it does well in 2016, it performed the worst in
+2015, so we don’t know if we can trust its performance – what if it
+dips back down in 2017? Then again, what if 2015 was just some sort
+of anomaly? We don’t know the future (which is why we need analysis
+like this), but we want to give ourselves the best advantage we
+can.</li>
+<li>To balance consistency and performance, we choose a model that
+reliably performs well (blue circles), even if it’s not always the best.</li>
+</ul>
+
+<p>
+In this particular/imaginary example , the “selection process” was
+kind of easy. Of course,in real life we were choosing between more
+than three models; we just built and evaluated more than <b>46</b> <i>models groups</i>!
+</p>
+
+<p>
+Remember, this is only one way of choose! You could have (or better,
+the organization could have) a different opinion about what
+consists a <i>best</i> model.
+</p>
+
+<p>
+Triage provides this functionality in <code>audition</code> and in
+<code>postmodel</code>. At the moment of this writing, these two modules require
+more interaction (i.e. they aren't integrated with the <i>configuration
+file</i>).
+</p>
+
+<p>
+Audition is a tool for picking the best trained classifiers from a
+predictive analytics experiment.  Audition introduces
+a structured, semi-automated way of filtering models based on what you
+consider important.
+</p>
+
+<p>
+<code>Audition</code> formalizes this idea through <i>selection rules</i> that take in
+the data up to a given point in time, apply some rule to choose a
+model group, and then evaluate the performance (<b>regret</b>) of the chosen
+model group in the subsequent time window.
+</p>
+
+<p>
+<code>Audition</code> predefines 7 rules:
+</p>
+
+<ol class="org-ol">
+<li><code>best_current_value</code> :: Pick the model group with the best current metric Value.</li>
+<li><code>best_average_value</code> :: Pick the model with the highest average metric value so far.</li>
+<li><code>lowest_metric_variance</code> :: Pick the model with the lowest metric variance so far.</li>
+<li><code>most_frequent_best_dist</code> :: Pick the model that is most frequently
+within <code>dist_from_best_case</code> from the best-performing model group
+across test sets so far.</li>
+<li><code>best_average_two_metrics</code> :: Pick the model with the highest
+average combined value to date of two metrics weighted together
+using <code>metric1_weight</code>.</li>
+<li><code>best_avg_var_penalized</code> :: Pick the model with the highest average
+metric value so far, penalized for relative variance ss:
+<code>avg_value - (stdev_penalty) * (stdev - min_stdev)</code> where
+<code>min_stdev</code> is the minimum standard deviation of the metric
+across all model groups</li>
+<li><code>best_avg_recency_weight</code> :: Pick the model with the highest
+average metric value so far, penalized for relative variance as:
+<code>avg_value - (stdev_penalty) * (stdev - min_stdev)</code> where
+<code>min_stdev</code> is the minimum standard deviation of the metric
+across all  model groups</li>
+</ol>
+
+<p>
+We included a <a href="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/inspection_audition_config.yaml">simple configuration file</a> with some rules:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">CHOOSE MODEL GROUPS</span>
+<span style="font-weight: bold; font-style: italic;">model_groups</span>:
+    <span style="font-weight: bold; font-style: italic;">query</span>: |
+        <span style="font-style: italic;">select distinct(model_group_id)</span>
+        <span style="font-style: italic;">from model_metadata.model_groups</span>
+        where model_config -&gt;&gt; <span style="font-style: italic;">'experiment_type'</span> ~ <span style="font-style: italic;">'inspection'</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">CHOOSE TIMESTAMPS/TRAIN END TIMES</span>
+<span style="font-weight: bold; font-style: italic;">time_stamps</span>:
+    <span style="font-weight: bold; font-style: italic;">query</span>: |
+        <span style="font-style: italic;">select distinct train_end_time</span>
+        <span style="font-style: italic;">from model_metadata.models</span>
+        <span style="font-style: italic;">where model_group_id in ({})</span>
+        <span style="font-style: italic;">and extract(day from train_end_time) in (1)</span>
+        and train_end_time &gt;= <span style="font-style: italic;">'2015-01-01'</span>
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">FILTER</span>
+<span style="font-weight: bold; font-style: italic;">filter</span>:
+    <span style="font-weight: bold; font-style: italic;">metric</span>: <span style="font-style: italic;">'precision@'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">metric of interest</span>
+    <span style="font-weight: bold; font-style: italic;">parameter</span>: <span style="font-style: italic;">'10_pct'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">parameter of interest</span>
+    <span style="font-weight: bold; font-style: italic;">max_from_best</span>: 1.0 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">The maximum value that the given metric can be worse than the best model for a given train end time.</span>
+    <span style="font-weight: bold; font-style: italic;">threshold_value</span>: 0.0 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">The worst absolute value that the given metric should be.</span>
+    <span style="font-weight: bold; font-style: italic;">distance_table</span>: <span style="font-style: italic;">'distance_table'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">name of the distance table</span>
+    <span style="font-weight: bold; font-style: italic;">models_table</span>: <span style="font-style: italic;">'models'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">name of the models table</span>
+
+<span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">RULES</span>
+<span style="font-weight: bold; font-style: italic;">rules</span>:
+    <span style="font-weight: bold; font-style: italic;">-</span>
+        <span style="font-weight: bold; font-style: italic;">shared_parameters</span>:
+            -
+                <span style="font-weight: bold; font-style: italic;">metric</span>: <span style="font-style: italic;">'precision@'</span>
+                <span style="font-weight: bold; font-style: italic;">parameter</span>: <span style="font-style: italic;">'10_pct'</span>
+
+        <span style="font-weight: bold; font-style: italic;">selection_rules</span>:
+            -
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'best_current_value'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model group with the best current metric value</span>
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+            -
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'best_average_value'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model with the highest average metric value</span>
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+            -
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'lowest_metric_variance'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model with the lowest metric variance</span>
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+            -
+                <span style="font-weight: bold; font-style: italic;">name</span>: <span style="font-style: italic;">'most_frequent_best_dist'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Pick the model that is most frequently within `dist_from_best_case`</span>
+                <span style="font-weight: bold; font-style: italic;">dist_from_best_case</span>: [0.05]
+                <span style="font-weight: bold; font-style: italic;">n</span>: 3
+
+</pre>
+</div>
+
+<p>
+<code>Audition</code> will have each rule give you the best \(n\) <i>model groups</i>
+based on the metric and parameter following that rule for the most
+recent time period (in all the rules shown \(n\) = 3).
+</p>
+
+<p>
+We can run the simulation of the rules againts the experiment as:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sh"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Run this in bastion&#8230;</span>
+triage --tb audition -c inspection_audition_config.yaml --directory audition/inspections
+</pre>
+</div>
+
+<p>
+<code>Audition</code> will create several plots that will help you to sort out
+which is the <i>best<sup><a id="fnr.42.100" class="footref" href="#fn.42">42</a></sup></i> model group to use (like in a production setting or
+just to generate your predictions list).
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-orga473d37" class="outline-3">
+<h3 id="orga473d37"><span class="section-number-3">7.5</span> Filtering model groups</h3>
+<div class="outline-text-3" id="text-7-5">
+<p>
+Most of the time, <code>audition</code> should be used in a iterative fashion, the result of
+each iteration will be a reduced set of models groups and a best rule
+for selecting model groups.
+</p>
+
+<p>
+If you look again at the <a href="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/inspection_audition_config.yaml">audition coonfiguration file</a> you can filter
+the number of models to consider using the parameters <code>max_from_best</code>
+and <code>threshold_value</code>. The former will filter out <i>models groups</i> with
+<i>models</i> which performance in the <code>metric</code> is farther than the
+<code>max_from_best</code> (In this case we are allowing <b>all</b> the models, since
+<code>max_from_best = 1.0</code>, if you want less models you could choose <code>0.1</code> for
+example, and you will remove the <code>DummyClassifier</code> and some
+<code>DecisionTreeClassifiers</code>). <code>threshold_value</code> filter out all the <i>models
+groups</i> with <i>models</i> performing <i>below</i> that the specified value. This
+could be important if you <b>don’t</b> find acceptable models with metrics
+that are that low.
+</p>
+
+<p>
+<code>Audition</code> will generate two plots that are meant to be used together:
+<i>model performance over time</i> and <i>distance from best</i>.
+</p>
+
+
+<div id="orga16d17a" class="figure">
+<p><img src="audition/inspections/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 22: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. We didn’t filter out any model group, so the 45 model groups are shown. See discussion above to learn how to plot less model groups. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
+</div>
+
+
+
+<div id="orgccec3ce" class="figure">
+<p><img src="audition/inspections/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 23: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb371505" class="outline-3">
+<h3 id="orgb371505"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
+<div class="outline-text-3" id="text-7-6">
+<p>
+In this phase of the audition, you will see what will happen in the
+next time if you choose your model group with an specific strategy or
+rule. We call this the <b>regret</b> of the strategies.
+</p>
+
+<p>
+We define <b>regret</b> as
+</p>
+
+<blockquote>
+<p>
+<b>Regret</b> Is the difference in performance between the model group you
+ picked and the best one in the next time period.
+</p>
+</blockquote>
+
+<p>
+The plot [@fig:performance-next-time] show the <i>best</i> model group selected by the strategies
+specified in the configuration file:
+</p>
+
+
+<div id="org1dc334a" class="figure">
+<p><img src="audition/inspections/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
+</p>
+<p><span class="figure-number">Figure 24: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
+</div>
+
+<p>
+It seems that the strategies <i>best average</i> and <i>best current value</i> select the same <b>model group</b>.
+</p>
+
+
+<div id="orgadf0080" class="figure">
+<p><img src="audition/inspections/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 25: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
+</div>
+
+
+<p>
+Obviously, you don’t know the future, but with the available data, if
+you stick to an a particular strategy, How much you will <i>regret</i> about
+that decision? That’s what is represented in plot [@fig:regret-over-time]
+</p>
+
+
+<div id="org8d91c5d" class="figure">
+<p><img src="audition/inspections/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
+</p>
+<p><span class="figure-number">Figure 26: </span>Expected regret for the strategies. The less the better.</p>
+</div>
+
+<p>
+The best <b>3</b> <i>model groups</i> per strategy will be stored in the file <code>[[file:audition/results_model_group_ids.json][results_model_group_ids.json]]</code>:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">41</span>, <span style="font-weight: bold; text-decoration: underline;">45</span>, <span style="font-weight: bold; text-decoration: underline;">32</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">41</span>, <span style="font-weight: bold; text-decoration: underline;">11</span>, <span style="font-weight: bold; text-decoration: underline;">45</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">20</span>, <span style="font-weight: bold; text-decoration: underline;">27</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">10</span>, <span style="font-weight: bold; text-decoration: underline;">11</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>]}
+</pre>
+</div>
+
+<p>
+The analysis suggests that the best strategies are
+</p>
+<ul class="org-ul">
+<li>select the model groups (<code>41,45,32</code>) which have the best average precision@10% value or,</li>
+<li>select the best model group (<code>41,11,45</code>) using precision@10% today and use it for
+the next time period.</li>
+</ul>
+
+<p>
+You will note that both strategies share two models groups and differ
+in one. In the next two sections, we will investigate further those four model
+groups selected by <code>audition</code>, using the <i>Postmodeling</i> tool set, and then
+instead of using the feature importance to characterize the
+facilities, we will explore how the model is splitting the facilities using
+<i>crosstabs</i>.
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-org892f895" class="outline-3">
+<h3 id="org892f895"><span class="section-number-3">7.7</span> WORKING Postmodeling: Inspecting the best models closely</h3>
+<div class="outline-text-3" id="text-7-7">
+<p>
+<i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)
+</p>
+
+<p>
+Compared to the previous sections, <i>postmodeling</i> is not an automated process (yet).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-yaml"><span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Postmodeling Configuration File</span>
+
+  <span style="font-weight: bold; font-style: italic;">project_path</span>: <span style="font-style: italic;">'/triage'</span> <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Project path defined in triage with matrices and models</span>
+  <span style="font-weight: bold; font-style: italic;">audition_output_path</span>: <span style="font-style: italic;">'/triage/audition/inspections/results_model_group_ids.json'</span>
+
+    <span style="font-weight: bold; font-style: italic;">thresholds</span>: <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Thresholds for2 defining positive predictions</span>
+        <span style="font-weight: bold; font-style: italic;">rank_abs</span>: [50, 100, 250]
+        <span style="font-weight: bold; font-style: italic;">rank_pct</span>: [5, 10, 25]
+
+  <span style="font-weight: bold; font-style: italic;">baseline_query</span>: | <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">SQL query for defining a baseline for comparison in plots. It needs a metric and parameter</span>
+      select g.model_group_id,
+             m.model_id,
+             extract(<span style="font-style: italic;">'year'</span> from m.evaluation_end_time) as as_of_date_year,
+             m.metric,
+             m.parameter,
+             m.value,
+             m.num_labeled_examples,
+             m.num_labeled_above_threshold,
+             m.num_positive_labels
+       from test_results.evaluations m
+       left join model_metadata.models g
+       using(model_id)
+       where g.model_group_id = 1
+             and metric = <span style="font-style: italic;">'precision@'</span>
+             and parameter = <span style="font-style: italic;">'10_pct'</span>
+
+  <span style="font-weight: bold; font-style: italic;">max_depth_error_tree</span>: 5 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">For error trees, how depth the decision trees should go?</span>
+  <span style="font-weight: bold; font-style: italic;">n_features_plots</span>: 10 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Number of features for importances</span>
+  <span style="font-weight: bold; font-style: italic;">figsize</span>: [12, 12] <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Default size for plots</span>
+  <span style="font-weight: bold; font-style: italic;">fontsize</span>: 20 <span style="font-weight: bold; font-style: italic;"># </span><span style="font-weight: bold; font-style: italic;">Default fontsize for plots</span>
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-orgd3abba9" class="outline-3">
+<h3 id="orgd3abba9"><span class="section-number-3">7.8</span> What else we can learn from this?</h3>
+</div>
 </div>
 
 <div id="outline-container-org7a2499c" class="outline-2">
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-org3de1fa4" class="outline-3">
-<h3 id="org3de1fa4"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-orgee0f7eb" class="outline-3">
+<h3 id="orgee0f7eb"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -9896,10 +10310,10 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org79d0ee6" class="figure">
+<div id="org76501c0" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 22: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
+<p><span class="figure-number">Figure 27: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
 </div>
 
 <p>
@@ -10000,8 +10414,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-orga073d17" class="outline-3">
-<h3 id="orga073d17"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org26cfc5e" class="outline-3">
+<h3 id="org26cfc5e"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -10047,7 +10461,7 @@ triage experiment experiments/eis_01.yaml --show-timechop
 <div class="figure">
 <p><img src="triage/images/eis_01.png" alt="eis_01.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 23: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
+<p><span class="figure-number">Figure 28: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
 </div>
 </div>
 </div>
@@ -10869,7 +11283,7 @@ We can run the simulation of the rules againts the experiment as:
 
 <p>
 <code>Audition</code> will create several plots that will help you to sort out
-which is the <i>best<sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup></i> model group to use (like in a production setting or
+which is the <i>best<sup><a id="fnr.48" class="footref" href="#fn.48">48</a></sup></i> model group to use (like in a production setting or
 just to generate your list).
 </p>
 
@@ -10880,8 +11294,8 @@ for selecting model groups.
 </p>
 </div>
 
-<div id="outline-container-orga473d37" class="outline-3">
-<h3 id="orga473d37"><span class="section-number-3">9.1</span> Filtering model groups</h3>
+<div id="outline-container-org7c69e52" class="outline-3">
+<h3 id="org7c69e52"><span class="section-number-3">9.1</span> Filtering model groups</h3>
 <div class="outline-text-3" id="text-9-1">
 <p>
 <code>Audition</code> will generate two plots that are meant to be used together:
@@ -10889,24 +11303,24 @@ for selecting model groups.
 </p>
 
 
-<div id="orga16d17a" class="figure">
+<div id="orgf70fe98" class="figure">
 <p><img src="audition/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 24: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
+<p><span class="figure-number">Figure 29: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
 </div>
 
 
 
-<div id="orgccec3ce" class="figure">
+<div id="org06649a5" class="figure">
 <p><img src="audition/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 25: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
+<p><span class="figure-number">Figure 30: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-orgb371505" class="outline-3">
-<h3 id="orgb371505"><span class="section-number-3">9.2</span> Selecting the best rule or strategy for choosing model groups</h3>
+<div id="outline-container-org4bf73d5" class="outline-3">
+<h3 id="org4bf73d5"><span class="section-number-3">9.2</span> Selecting the best rule or strategy for choosing model groups</h3>
 <div class="outline-text-3" id="text-9-2">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -10921,27 +11335,27 @@ difference between the performance of the best model evaluated on the
 </p>
 
 
-<div id="org1dc334a" class="figure">
+<div id="orgcad3ade" class="figure">
 <p><img src="audition/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
 </p>
-<p><span class="figure-number">Figure 26: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
+<p><span class="figure-number">Figure 31: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
 </div>
 
 
 
-<div id="orgadf0080" class="figure">
+<div id="orgb52a5e8" class="figure">
 <p><img src="audition/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 27: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
+<p><span class="figure-number">Figure 32: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
 </div>
 
 
 
 
-<div id="org8d91c5d" class="figure">
+<div id="org572a28f" class="figure">
 <p><img src="audition/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 28: </span>Expected regret for the strategies. The less the better.</p>
+<p><span class="figure-number">Figure 33: </span>Expected regret for the strategies. The less the better.</p>
 </div>
 
 <p>
@@ -10956,28 +11370,7 @@ The best <b>3</b> <i>model groups</i> per strategy will be stored in the file <c
 </p>
 
 <div class="org-src-container">
-<pre class="src src-json">{
-  <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [
-    <span style="font-weight: bold; text-decoration: underline;">52</span>,
-    <span style="font-weight: bold; text-decoration: underline;">48</span>,
-    <span style="font-weight: bold; text-decoration: underline;">64</span>
-  ],
-  <span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [
-    <span style="font-weight: bold; text-decoration: underline;">52</span>,
-    <span style="font-weight: bold; text-decoration: underline;">48</span>,
-    <span style="font-weight: bold; text-decoration: underline;">64</span>
-  ],
-  <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [
-    <span style="font-weight: bold; text-decoration: underline;">49</span>,
-    <span style="font-weight: bold; text-decoration: underline;">53</span>,
-    <span style="font-weight: bold; text-decoration: underline;">57</span>
-  ],
-  <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [
-    <span style="font-weight: bold; text-decoration: underline;">48</span>,
-    <span style="font-weight: bold; text-decoration: underline;">52</span>,
-    <span style="font-weight: bold; text-decoration: underline;">56</span>
-  ]
-}
+<pre class="src src-json">{<span style="font-weight: bold;">"best_current_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">41</span>, <span style="font-weight: bold; text-decoration: underline;">45</span>, <span style="font-weight: bold; text-decoration: underline;">32</span>], <span style="font-weight: bold;">"best_average_value_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">41</span>, <span style="font-weight: bold; text-decoration: underline;">11</span>, <span style="font-weight: bold; text-decoration: underline;">45</span>], <span style="font-weight: bold;">"lowest_metric_variance_precision@_10_pct"</span>: [<span style="font-weight: bold; text-decoration: underline;">6</span>, <span style="font-weight: bold; text-decoration: underline;">20</span>, <span style="font-weight: bold; text-decoration: underline;">27</span>], <span style="font-weight: bold;">"most_frequent_best_dist_precision@_10_pct_0.05"</span>: [<span style="font-weight: bold; text-decoration: underline;">10</span>, <span style="font-weight: bold; text-decoration: underline;">11</span>, <span style="font-weight: bold; text-decoration: underline;">12</span>]}
 </pre>
 </div>
 
@@ -10993,8 +11386,8 @@ facilities, we will explore how the model is splitting the facilities using
 </div>
 
 
-<div id="outline-container-org892f895" class="outline-2">
-<h2 id="org892f895"><span class="section-number-2">10</span> WORKING Postmodeling: Inspecting the best models closely</h2>
+<div id="outline-container-org868df7f" class="outline-2">
+<h2 id="org868df7f"><span class="section-number-2">10</span> WORKING Postmodeling: Inspecting the best models closely</h2>
 <div class="outline-text-2" id="text-10">
 <p>
 <i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)
@@ -11200,7 +11593,7 @@ Batch to execute the task).
 <div class="figure">
 <p><img src="images/AWS_Batch_Architecture.png" alt="AWS_Batch_Architecture.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 29: </span>Diagram showing the AWS Batch main components and their relationships.</p>
+<p><span class="figure-number">Figure 34: </span>Diagram showing the AWS Batch main components and their relationships.</p>
 </div>
 
 <p>
@@ -11894,6 +12287,12 @@ settings, for example, crime prediction.
 </p></div></div>
 
 <div class="footdef"><sup><a id="fn.47" class="footnum" href="#fnr.47">47</a></sup> <div class="footpara"><p class="footpara">
+The discussion was <del>taken</del> stolen from <a href="https://dssg.uchicago.edu/2017/07/14/data-driven-inspections-for-safer-housing-in-san-jose-california/">Data-Driven Inspections for Safer
+Housing in San Jose, California</a> (Kit Rodolfa, Jane Zanzig 2016) Great
+read by the way!
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.48" class="footnum" href="#fnr.48">48</a></sup> <div class="footpara"><p class="footpara">
 <i>Best</i> in the sense of the rules that we defined in the <code>audition</code>
 config file.
 </p></div></div>
@@ -11903,7 +12302,7 @@ config file.
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-19 mar 15:01</p>
+<p class="date">Created: 2019-03-22 vie 15:49</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
