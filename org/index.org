@@ -39,7 +39,6 @@
 #+INCLUDE: 04_triage_intro.org :minlevel 1
 #+INCLUDE: 05_inspections.org :minlevel 1
 #+INCLUDE: 06_eis.org :minlevel 1
-#+INCLUDE: 08_postmodeling.org :minlevel 1
 #+INCLUDE: 09_aws_batch.org :minlevel 1
 #+INCLUDE: 100_whats_next.org :minlevel 1
 #+INCLUDE: 07_quick_setup.org :minlevel 1
