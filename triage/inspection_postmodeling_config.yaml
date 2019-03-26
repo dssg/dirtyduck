@@ -1,7 +1,12 @@
 # Postmodeling Configuration File
 
 project_path: '/triage' # Project path defined in triage with matrices and models
-audition_output_path: '/triage/audition/inspections/results_model_group_ids.json'
+#audition_output_path: '/triage/audition/inspections/results_model_group_ids.json'
+model_group_id:
+  - 41
+  - 32
+  - 45
+  - 11
 
 thresholds: # Thresholds for2 defining positive predictions
   rank_abs: [50, 100, 250]

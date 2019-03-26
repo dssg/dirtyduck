@@ -1672,7 +1672,7 @@ filter:
     parameter: '10_pct' # parameter of interest
     max_from_best: 1.0 # The maximum value that the given metric can be worse than the best model for a given train end time.
     threshold_value: 0.0 # The worst absolute value that the given metric should be.
-    distance_table: 'distance_table' # name of the distance table
+    distance_table: 'inspections_distance_table' # name of the distance table
     models_table: 'models' # name of the models table
 
 # RULES
@@ -1713,8 +1713,9 @@ We can run the simulation of the rules against the experiment as:
 triage --tb audition -c inspection_audition_config.yaml --directory audition/inspections
 #+END_SRC
 
+
 =Audition= will create several plots that will help you to sort out
-which is the /best[fn:1]/ model group to use (like in a production setting or
+which is the /best/ model group to use (like in a production setting or
 just to generate your predictions list).
 
 
@@ -1727,7 +1728,7 @@ Most of the time, =audition= should be used in a iterative fashion, the result o
 each iteration will be a reduced set of models groups and a best rule
 for selecting model groups.
 
-If you look again at the [[file:~/projects/dsapp/dirtyduck/triage/inspection_audition_config.yaml][audition coonfiguration file]] you can filter
+If you look again at the [[file:~/projects/dsapp/dirtyduck/triage/inspection_audition_config.yaml][audition configuration file]] you can filter
 the number of models to consider using the parameters =max_from_best=
 and =threshold_value=. The former will filter out /models groups/ with
 /models/ which performance in the =metric= is farther than the
@@ -1746,10 +1747,19 @@ that are that low.
 #+LABEL: fig:performance-over-time
 [[file:audition/inspections/metric_over_time_precision@10_pct.png]]
 
+Figure [@fig:distance-from-best] shows the proportion of /models/ that
+are behind the best model. The distance is measured in percentual
+points. You could use this plot to /filter out/ more model groups,
+changing the value of =max_from_best= in the configuration file. This
+plot is hard to read, but is very helpful since it shows you the
+/consistency/ of the model group: /How consistently are the model group in a specific range, let's say 20 points, from the best?/
 
-#+CAPTION: Proportion of /models/ in a /model group/ that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.
+#+CAPTION: Proportion of /models/ in a /model group/ that are separated from the best model. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.
 #+LABEL: fig:distance-from-best
 [[file:audition/inspections/distance_from_best_precision@10_pct.png]]
+
+In the figure, you can see that the ~60% of the =DummyClassifier= models
+are ~18 percentual points below of the best.
 
 ** Selecting the best rule or strategy for choosing model groups
 
@@ -1767,7 +1777,7 @@ We define *regret* as
 The plot [@fig:performance-next-time] show the /best/ model group selected by the strategies
 specified in the configuration file:
 
-#+CAPTION: Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?
+#+CAPTION: Given a strategy for selecting model groups (in the figure, 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?
 #+LABEL: fig:performance-next-time
 [[file:audition/inspections/precision@10_pct_next_time.png]]
 
@@ -1786,13 +1796,13 @@ that decision? That’s what is represented in plot [@fig:regret-over-time]
 #+LABEL: fig:regret-over-time
 [[file:audition/inspections/regret_over_time_precision@10_pct.png]]
 
-The best *3* /model groups/ per strategy will be stored in the file =[[file:audition/results_model_group_ids.json][results_model_group_ids.json]]=:
+The best *3* /model groups/ per strategy will be stored in the file =[[file:audition/inspections/results_model_group_ids.json][results_model_group_ids.json]]=:
 
 #+INCLUDE: ../triage/audition/inspections/results_model_group_ids.json src json
 
 The analysis suggests that the best strategies are
-- select the model groups (=41,45,32=) which have the best average precision@10% value or,
-- select the best model group (=41,11,45=) using precision@10% today and use it for
+- select the model groups (=41,11,45=) which have the best average precision@10% value or,
+- select the best model group (=41,32,45=) using precision@10% today and use it for
   the next time period.
 
 You will note that both strategies share two models groups and differ
@@ -1805,88 +1815,35 @@ facilities, we will explore how the model is splitting the facilities using
 
 ** WORKING Postmodeling: Inspecting the best models closely
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/ :exports none
 ls $(jupyter --runtime-dir)
 #+END_SRC
 
 #+RESULTS:
 #+BEGIN_SRC org
-kernel-3298cf53-13fc-4c05-81df-431f43a6e64a.json
-#+END_SRC
-
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/
-cat kernel-3298cf53-13fc-4c05-81df-431f43a6e64a.json
-#+END_SRC
-
-#+RESULTS:
-#+BEGIN_SRC org
-{
-  "shell_port": 56409,
-  "iopub_port": 56408,
-  "stdin_port": 56410,
-  "control_port": 56406,
-  "hb_port": 56407,
-  "ip": "0.0.0.0",
-  "key": "4d957a1c-d3af8345cb72072e1644fe54",
-  "transport": "tcp",
-  "signature_scheme": "hmac-sha256",
-  "kernel_name": ""
-}
-#+END_SRC
-
-
-
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/conn.json
-print("Hola")
-#+END_SRC
-
-
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-3298cf53-13fc-4c05-81df-431f43a6e64a.json
-print("Hola")
-#+END_SRC
-
-
-
-#+BEGIN_SRC jupyter-python :session ~/docker-test-conn.json :results none
-import matplotlib
-matplotlib.use('Agg')
-
-import triage
-import pandas as pd
-import numpy as np
-
-from collections import OrderedDict
-from triage.component.postmodeling.contrast.utils.aux_funcs import create_pgconn, get_models_ids
-from triage.component.catwalk.storage import ProjectStorage, ModelStorageEngine, MatrixStorageEngine
-from triage.component.postmodeling.contrast.parameters import PostmodelParameters
-from triage.component.postmodeling.contrast.model_evaluator import ModelEvaluator
-from triage.component.postmodeling.contrast. model_group_evaluator import ModelGroupEvaluator
-#+END_SRC
-
-
-#+BEGIN_SRC jupyter-python :session ~/docker-test-conn.json :results none
-params = PostmodelParameters('inspection_postmodeling_config.yaml')
-engine = create_pgconn('database.yaml')
-#+END_SRC
-
-#+BEGIN_SRC jupyter-python :session ~/docker-test-conn.json :results none
-# List individual models
-list_tuple_models = get_models_ids(params.model_group_id, engine)
-l_t = [ModelEvaluator(i.model_group_id, i.model_id, engine) for i in list_tuple_models]
-
-# Model group object (useful to compare across model_groups and models in time)
-audited_models_class = ModelGroupEvaluator(tuple(params.model_group_id), engine)
+kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json
 #+END_SRC
 
 /Postmodeling/ will help you to understand the behaviour orf your selected models (from audition)
 
-Compared to the previous sections, /postmodeling/ is not an automated process (yet).
+As in =Audition=, we will split the postmodeling process in two
+parts. The first one is about exploring the /model groups/ filtered by
+audition, with the objective of select one. The second part is about learning about /models/ in the model
+group that was selected.
+
+We will setup some parameters in the  [[file:~/projects/dsapp/dirtyduck/triage/inspection_postmodeling_config.yaml][postmodeling configuration file]],
+mainly where is the audition’s output file located.
 
 #+BEGIN_SRC yaml :tangle ../triage/inspection_postmodeling_config.yaml
 # Postmodeling Configuration File
 
 project_path: '/triage' # Project path defined in triage with matrices and models
-audition_output_path: '/triage/audition/inspections/results_model_group_ids.json'
+#audition_output_path: '/triage/audition/inspections/results_model_group_ids.json'
+model_group_id:
+  - 41
+  - 32
+  - 45
+  - 11
 
 thresholds: # Thresholds for2 defining positive predictions
   rank_abs: [50, 100, 250]
@@ -1915,9 +1872,103 @@ figsize: [12, 12] # Default size for plots
 fontsize: 20 # Default fontsize for plots
 #+END_SRC
 
+Compared to the previous sections, /postmodeling/ is not an automated process (yet).
+Hence, to do the following part of the tutorial, you need to run
+=jupyter= inside =bastion= as follows:
 
+#+BEGIN_SRC shell :dir /docker:root@tutorial_bastion:/triage :exports none :results none
+jupyter-notebook –-ip=0.0.0.0  --port=56406
+#+END_SRC
+
+And then in your browser type[fn:10]: [[http://0.0.0.0:56406]]
+
+
+#+BEGIN_SRC shell :dir /docker:root@tutorial_bastion:/triage :exports none :results none
+
+# Or jupyter-kernel if you want to interact from org-mode
+
+jupyter-kernel   \
+    --ip=0.0.0.0 \
+    --KernelManager.control_port=56406 \
+    --KernelManager.hb_port=56407      \
+    --KernelManager.iopub_port=56408   \
+    --KernelManager.shell_port=56409   \
+    --KernelManager.stdin_port=56410   \
+    --debug --KernelManager.connection_file=conn.json
+
+#+END_SRC
+
+Now that you are in a jupyter notebook, type the following:
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json  :results none
+%matplotlib inline
+import matplotlib
+matplotlib.use('Agg')
+
+import triage
+import pandas as pd
+import numpy as np
+
+from collections import OrderedDict
+from triage.component.postmodeling.contrast.utils.aux_funcs import create_pgconn, get_models_ids
+from triage.component.catwalk.storage import ProjectStorage, ModelStorageEngine, MatrixStorageEngine
+from triage.component.postmodeling.contrast.parameters import PostmodelParameters
+from triage.component.postmodeling.contrast.model_evaluator import ModelEvaluator
+from triage.component.postmodeling.contrast. model_group_evaluator import ModelGroupEvaluator
+#+END_SRC
+
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json :results none
+params = PostmodelParameters('inspection_postmodeling_config.yaml')
+engine = create_pgconn('database.yaml')
+#+END_SRC
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json :results none
+# List individual models
+list_tuple_models = get_models_ids(params.model_group_id, engine)
+l_t = [ModelEvaluator(i.model_group_id, i.model_id, engine) for i in list_tuple_models]
+
+# Model group object (useful to compare across model_groups and models in time)
+audited_models_class = ModelGroupEvaluator(tuple(params.model_group_id), engine)
+#+END_SRC
+
+*** Comparing the audited model groups
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json
+audited_models_class.plot_prec_across_time(param_type='rank_pct',
+                                           param=10,
+                                           baseline=True,
+                                           baseline_query=params.baseline_query,
+                                           metric='precision@',
+                                           figsize=params.figsize)
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/9845d4c9475a8006e3fc2f2a845915e211ce5482.png]]
+
+
+All the selected model groups have a very similar performance. Let’s
+see if they are predicting similar lists of facilities that are at
+risk of fail an inspection.
+
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json
+audited_models_class.plot_jaccard_preds(param_type='rank_pct',
+                                        param=10,
+                                        temporal_comparison=True)
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/f9b5e906f9c75c58d054caf59819deb713e1b3e7.png]]
+
+The plot will shows the overlap of the predicted list containing the
+10% of the facilities between model groups at each /as of date/.
 
 * Footnotes
+
+[fn:10] This assumes that you are in a GNU/Linux machine, if not (you
+should reconsider what are you doing with your life) you should change
+the ip address (=0.0.0.0=) and use the one from the docker virtual machine.
 
 [fn:9] The formulas are, for =precision@k=, is the proportion of
 facilities correctly identified in the top-$k$ facilities ranked by risk:
@@ -1938,7 +1989,7 @@ $$
 /recall/ is a measure about the /coverage/ of your system, i.e. /how good is identifying in the top-$k$ the facilities at risk/.
 
 One possible variation of this is to *only* include in the denominator
-the /labeled/ rows in $k$.
+the /labeled/ rows in $k$. This the one used by =triage=.
 
 [fn:8] Think about it: we *can’t* learn the relationship between the
 /features/ and the /label/ if we *ignore* the label.
