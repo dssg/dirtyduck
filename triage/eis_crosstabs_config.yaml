@@ -9,7 +9,7 @@ thresholds:
 #(optional): a list of entity_ids to subset on the crosstabs analysis
 entity_id_list: []
 
-models_list_query: "select unnest(ARRAY[174, 178]) :: int as model_id"
+models_list_query: "select unnest(ARRAY[208, 210]) :: int as model_id"
 
 as_of_dates_query: "select unnest(ARRAY['2016-12-01']) :: date as as_of_date"
 
@@ -25,7 +25,7 @@ models_dates_join_query: |
 #features_query must join models_dates_join_query with 1 or more features table using as_of_date
 features_query: |
   select m.model_id, f1.*
-  from features.inspections_aggregation_imputed as f1 join
+  from features.inspection_types_aggregation_imputed as f1 join
   models_dates_join_query as m using (as_of_date)
 
 #the predictions query must return model_id, as_of_date, entity_id, score, label_value, rank_abs and rank_pct
@@ -39,6 +39,6 @@ predictions_query: |
       coalesce(rank_abs, row_number() over (partition by (model_id, as_of_date) order by score desc)) as rank_abs,
       coalesce(rank_pct*100, ntile(100) over (partition by (model_id, as_of_date) order by score desc)) as rank_pct
       from test_results.predictions
-      join models_dates_join_query USING(model_id, as_of_date)
-      where model_id IN (select model_id from models_list_query)
+      join models_dates_join_query using(model_id, as_of_date)
+      where model_id in (select model_id from models_list_query)
       and as_of_date in (select as_of_date from as_of_dates_query)

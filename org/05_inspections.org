@@ -1807,10 +1807,7 @@ The analysis suggests that the best strategies are
 
 You will note that both strategies share two models groups and differ
 in one. In the next two sections, we will investigate further those four model
-groups selected by =audition=, using the /Postmodeling/ tool set, and then
-instead of using the feature importance to characterize the
-facilities, we will explore how the model is splitting the facilities using
-/crosstabs/.
+groups selected by =audition=, using the /Postmodeling/ tool set.
 
 
 ** WORKING Postmodeling: Inspecting the best models closely

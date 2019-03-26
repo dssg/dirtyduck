@@ -418,7 +418,7 @@ select
     model_type,
     hyperparameters,
     feature_groups,
-    array_agg(model_id) as models,
+    array_agg(model_id order by train_end_time asc) as models,
     array_agg(train_end_time::date order by train_end_time asc) as times,
     array_agg(to_char(value, '0.999') order by train_end_time asc) as "precision@10%"
 from
@@ -444,45 +444,49 @@ order by
 :RESULTS:
 | model_group_id | model_type                               | hyperparameters                                                                                              | feature_groups                          | models        | times                              | precision@10%                |
 |--------------+-----------------------------------------+--------------------------------------------------------------------------------------------------------------+----------------------------------------+---------------+------------------------------------+------------------------------|
-|           46 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,inspections,results,risks} | {172,136,154} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
+|           46 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,inspections,results,risks} | {136,154,172} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
 |           47 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection,inspections,results,risks} | {137,155,173} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.200"," 0.211"," 0.138"} |
-|           48 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,results,risks}             | {156,138,174} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
-|           49 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection,results,risks}             | {175,139,157} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.197"," 0.213"," 0.138"} |
-|           50 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,inspections,risks}         | {158,140,176} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.253"," 0.224"," 0.142"} |
-|           51 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection,inspections,risks}         | {177,141,159} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.175"," 0.171"," 0.129"} |
-|           52 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,inspections,results}       | {178,142,160} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
+|           48 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,results,risks}             | {138,156,174} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
+|           49 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection,results,risks}             | {139,157,175} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.197"," 0.213"," 0.138"} |
+|           50 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,inspections,risks}         | {140,158,176} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.253"," 0.224"," 0.142"} |
+|           51 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection,inspections,risks}         | {141,159,177} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.175"," 0.171"," 0.129"} |
+|           52 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection,inspections,results}       | {142,160,178} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
 |           53 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection,inspections,results}       | {143,161,179} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.213"," 0.201"," 0.133"} |
-|           54 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspections,results,risks}            | {162,180,144} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
-|           55 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspections,results,risks}            | {163,145,181} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.204"," 0.205"," 0.146"} |
-|           56 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspections}                          | {164,182,146} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.171"," 0.145"," 0.113"} |
-|           57 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspections}                          | {165,183,147} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.168"," 0.168"," 0.131"} |
+|           54 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspections,results,risks}            | {144,162,180} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
+|           55 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspections,results,risks}            | {145,163,181} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.204"," 0.205"," 0.146"} |
+|           56 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspections}                          | {146,164,182} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.171"," 0.145"," 0.113"} |
+|           57 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspections}                          | {147,165,183} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.168"," 0.168"," 0.131"} |
 |           58 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {results}                              | {148,166,184} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.271"," 0.265"," 0.181"} |
-|           59 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {results}                              | {149,185,167} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.243"," 0.232"," 0.180"} |
-|           60 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {risks}                                | {168,150,186} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.253"," 0.224"," 0.142"} |
+|           59 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {results}                              | {149,167,185} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.243"," 0.232"," 0.180"} |
+|           60 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {risks}                                | {150,168,186} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.253"," 0.224"," 0.142"} |
 |           61 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {risks}                                | {151,169,187} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.174"," 0.158"," 0.122"} |
-|           62 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection}                           | {170,188,152} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.201"," 0.191"," 0.124"} |
-|           63 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection}                           | {171,153,189} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.166"," 0.165"," 0.124"} |
+|           62 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2}                                                                                              | {inspection}                           | {152,170,188} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.201"," 0.191"," 0.124"} |
+|           63 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null}                                                                                           | {inspection}                           | {153,171,189} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.166"," 0.165"," 0.124"} |
 |           64 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,inspections,results,risks} | {190,208,226} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.348"," 0.346"," 0.239"} |
-|           65 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,inspections,results,risks} | {227,191,209} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           66 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,results,risks}             | {192,228,210} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.350"," 0.348"," 0.244"} |
-|           67 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,results,risks}             | {229,211,193} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           68 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,inspections,risks}         | {212,230,194} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.283"," 0.271"," 0.186"} |
-|           69 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,inspections,risks}         | {231,195,213} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           70 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,inspections,results}       | {232,196,214} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.339"," 0.335"," 0.245"} |
+|           65 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,inspections,results,risks} | {191,209,227} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           66 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,results,risks}             | {192,210,228} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.350"," 0.348"," 0.244"} |
+|           67 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,results,risks}             | {193,211,229} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           68 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,inspections,risks}         | {194,212,230} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.283"," 0.271"," 0.186"} |
+|           69 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,inspections,risks}         | {195,213,231} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           70 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection,inspections,results}       | {196,214,232} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.339"," 0.335"," 0.245"} |
 |           71 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection,inspections,results}       | {197,215,233} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           72 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections,results,risks}            | {216,234,198} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.344"," 0.342"," 0.239"} |
+|           72 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections,results,risks}            | {198,216,234} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.344"," 0.342"," 0.239"} |
 |           73 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspections,results,risks}            | {199,217,235} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           74 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections}                          | {218,236,200} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.168"," 0.169"," 0.131"} |
-|           75 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspections}                          | {219,201,237} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           76 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {results}                              | {220,202,238} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.314"," 0.301"," 0.213"} |
-|           77 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {results}                              | {221,239,203} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           74 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspections}                          | {200,218,236} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.168"," 0.169"," 0.131"} |
+|           75 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspections}                          | {201,219,237} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           76 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {results}                              | {202,220,238} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.314"," 0.301"," 0.213"} |
+|           77 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {results}                              | {203,221,239} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
 |           78 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {risks}                                | {204,222,240} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.280"," 0.263"," 0.178"} |
-|           79 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {risks}                                | {223,241,205} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
-|           80 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection}                           | {242,206,224} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.272"," 0.259"," 0.179"} |
-|           81 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection}                           | {225,243,207} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           79 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {risks}                                | {205,223,241} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
+|           80 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {inspection}                           | {206,224,242} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.272"," 0.259"," 0.179"} |
+|           81 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                                                 | {inspection}                           | {207,225,243} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.121"," 0.119"," 0.088"} |
 :END:
 
+
 * WORKING Audition: So many models, how can I choose the best one?
+
+Let’s select the best model groups, using Audition. We need to make
+small changes to the [[file:~/projects/dsapp/dirtyduck/triage/eis_audition_config.yaml][configuration file]] compared to the inspection’s one:
 
 #+BEGIN_SRC yaml :tangle ../triage/eis_audition_config.yaml
 # CHOOSE MODEL GROUPS
@@ -505,7 +509,7 @@ filter:
     parameter: '10_pct' # parameter of interest
     max_from_best: 1.0 # The maximum value that the given metric can be worse than the best model for a given train end time.
     threshold_value: 0.0 # The worst absolute value that the given metric should be.
-    distance_table: 'distance_table' # name of the distance table
+    distance_table: 'eis_distance_table' # name of the distance table
     models_table: 'models' # name of the models table
 
 # RULES
@@ -533,11 +537,8 @@ rules:
 
 #+END_SRC
 
-=Audition= will have each rule give you the best $n$ model-group IDs
-based on the metric and parameter following that rule for the most
-recent time period (in all the rules shown $n$ = 3).
 
-We can run the simulation of the rules againts the experiment as:
+And then we run the simulation of the rules againts the experiment as:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports code :results none
 triage --tb audition -c eis_audition_config.yaml --directory audition/eis
@@ -556,12 +557,12 @@ just to generate your list).
 /model performance over time/ and /distance from best/.
 
 #+CAPTION: Model group performance over time. In this case the metric show is =precision@10%=. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.
-#+LABEL: fig:performance-over-time
+#+LABEL: fig:performance-over-time-2
 [[file:audition/eis/metric_over_time_precision@10_pct.png]]
 
 
-#+CAPTION: Proportion of /models/ in a /model group/ that are separated from the best model in an specific evaluation time. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.
-#+LABEL: fig:distance-from-best
+#+CAPTION: Proportion of *all* the /models/ in a /model group/ that are separated from the best model. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.
+#+LABEL: fig:distance-from-best-2
 [[file:audition/eis/distance_from_best_precision@10_pct.png]]
 
 ** Selecting the best rule or strategy for choosing model groups
@@ -575,49 +576,43 @@ difference between the performance of the best model evaluated on the
 "next time" and the performance of the model selected by a particular rule.
 
 #+CAPTION: Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?
-#+LABEL: fig:performance-next-time
+#+LABEL: fig:performance-next-time-2
 [[file:audition/eis/precision@10_pct_next_time.png]]
 
 
-#+CAPTION: Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (/regret/) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]
-#+LABEL: fig:regret-from-best-given-a-rule
+#+CAPTION: Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (/regret/) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best-2]
+#+LABEL: fig:regret-from-best-given-a-rule-2
 [[file:audition/eis/regret_distance_from_best_rules_precision@10_pct.png]]
 
 
 
 #+CAPTION: Expected regret for the strategies. The less the better.
-#+LABEL: fig:regret-over-time
+#+LABEL: fig:regret-over-time-2
 [[file:audition/eis/regret_over_time_precision@10_pct.png]]
 
-It seems that the best strategy (the one with the lower “regret”) for selecting
-a /model_group/ is =most_frequent_best_dist_precision=
-
-
-
-The best *3* /model groups/ per strategy will be stored in the file =[[file:audition/eis/results_model_group_ids.json][results_model_group_ids.json]]=:
-
-#+INCLUDE: ../triage/audition/eis/results_model_group_ids.json src json
-
-In the next two sections, we will investigate further the three model
-groups in our best strategy using the /Postmodeling/ tool set, and then
+It seems that the /worst/ strategy (the one with the bigger “regret”) for selecting
+a /model_group/ is =lowest_metric_variance_precision=. The other three
+seem almost indistinguishable. We will dig in using Postmodeling. And afterwards
 instead of using the feature importance to characterize the
 facilities, we will explore how the model is splitting the facilities using
 /crosstabs/.
 
+As before, the best *3* /model groups/ per strategy will be stored in the file =[[file:audition/eis/results_model_group_ids.json][results_model_group_ids.json]]=:
+
+#+INCLUDE: ../triage/audition/eis/results_model_group_ids.json src json
+
 
 * WORKING Postmodeling: Inspecting the best models closely
 
-/Postmodeling/ will help you to understand the behaviour orf your selected models (from audition)
-
-Compared to the previous sections, /postmodeling/ is not an automated process (yet).
+Given that almost all the strategies perform well, we will change the
+parameter =model_group_id= in the [[file:~/projects/dsapp/dirtyduck/triage/eis_postmodeling_config.yaml][postmodeling's configuration file]] and
+we will use the complete set of model groups selected by audition:
 
 #+BEGIN_SRC yaml :tangle ../triage/eis_postmodeling_config.yaml
 # Postmodeling Configuration File
 
   project_path: '/triage' # Project path defined in triage with matrices and models
-  audition_output_path: '/triage/audition/results_model_group_ids.json'
-
-
+  audition_output_path: '/triage/audition/eis/results_model_group_ids.json'
 
   thresholds: # Thresholds for2 defining positive predictions
         rank_abs: [50, 100, 250]
@@ -636,7 +631,7 @@ Compared to the previous sections, /postmodeling/ is not an automated process (y
        from test_results.evaluations m
        left join model_metadata.models g
        using(model_id)
-       where g.model_group_id = 65
+       where g.model_group_id = 81
              and metric = 'precision@'
              and parameter = '10_pct'
 
@@ -646,46 +641,262 @@ Compared to the previous sections, /postmodeling/ is not an automated process (y
   fontsize: 20 # Default fontsize for plots
 #+END_SRC
 
+Again launch jupyter in =bastion=:
+
+#+BEGIN_SRC shell :dir /docker:root@tutorial_bastion:/triage :exports none :results none
+jupyter-notebook –-ip=0.0.0.0  --port=56406
+#+END_SRC
+
+
 ** Setup
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/
-ls
-#+END_SRC
+The first lines of code are the same as in the inspection’s section
 
-#+RESULTS:
-#+BEGIN_SRC org
-kernel-8d1fa610-fc02-4273-92ec-094f458667b7.json
-#+END_SRC
-
-
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-f3c540d4-0f52-4d51-a01e-fb6e4ff3ea09.json
+#+BEGIN_SRC jupyter-python  :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json  :results none
+%matplotlib inline
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
-from utils.aux_funcs import create_pgconn, get_models_ids
+from triage.component.postmodeling.contrast.utils.aux_funcs import create_pgconn, get_models_ids
 from triage.component.catwalk.storage import ProjectStorage, ModelStorageEngine, MatrixStorageEngine
-from parameters import PostmodelParameters
-from model_evaluator import ModelEvaluator
-from model_group_evaluator import ModelGroupEvaluator
+from triage.component.postmodeling.contrast.parameters import PostmodelParameters
+from triage.component.postmodeling.contrast.model_evaluator import ModelEvaluator
+from triage.component.postmodeling.contrast.model_group_evaluator import ModelGroupEvaluator
 
 params = PostmodelParameters('../triage/eis_postmodeling_config.yaml')
+
+engine = create_pgconn('database.yaml')
+
+# List individual models
+list_tuple_models = get_models_ids(params.model_group_id, engine)
+l_t = [ModelEvaluator(i.model_group_id, i.model_id, engine) for i in list_tuple_models]
+
+# Model group object (useful to compare across model_groups and models in time)
+audited_models_class = ModelGroupEvaluator(tuple(params.model_group_id), engine)
 #+END_SRC
 
+** Model groups
 
-** Over time
+Let’s start with the behavior in time of the selected model groups
 
-#+BEGIN_SRC jupyter-python :session /docker:root@a2eb002339bd:/root/.local/share/jupyter/runtime/kernel-8d1fa610-fc02-4273-92ec-094f458667b7.json
-print("Hola")
+#+BEGIN_SRC jupyter-python  :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+audited_models_class.plot_prec_across_time(param_type='rank_pct',
+                                           param=10,
+                                           baseline=True,
+                                           baseline_query=params.baseline_query,
+                                           metric='precision@',
+                                           figsize=params.figsize)
 #+END_SRC
 
+#+RESULTS:
+[[file:./.ob-jupyter/736eb2949da7b589947cce9415e676fa0ec43982.png]]
 
-** Feature group importance
+Every model selected by audition has a very similar performance across
+time, and they are ~2.5 times above the baseline in precision@10%.
 
-** Higher ratio across labels from =crosstabs=
+#+BEGIN_SRC jupyter-python  :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+audited_models_class.plot_prec_across_time(param_type='rank_pct',
+                                           param=10,
+                                           baseline=True,
+                                           baseline_query=params.baseline_query,
+                                           metric='recall@',
+                                           figsize=params.figsize)
+#+END_SRC
 
-** Overlap
+That behavior is similar for the recall@10%, except for the model
+group *69*
 
-* WORKING Crossvalidation: How are the entities classified?
+#+RESULTS:
+[[file:./.ob-jupyter/b6e15ea8c1e077d0d70464257c39e2c631e0b89a.png]]
+
+
+#+BEGIN_SRC  jupyter-python  :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+audited_models_class.feature_loi_loo(param_type='rank_pct',
+                                     param=10,
+                                     metric='precision@',
+                                     baseline=True,
+                                     baseline_query=params.baseline_query);
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/79b5dbc13b72daa1367305d11ca292ff94d0a0fa.png]]
+
+
+#+BEGIN_SRC  jupyter-python  :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+audited_models_class.plot_jaccard_preds(param_type='rank_pct',
+                                        param=10,
+                                        temporal_comparison=True)
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/cc3b2558b6ba321d78baa57913c23332017a0b2b.png]]
+
+There are a high jaccard similarity between some model groups across
+time. This could be an indicator that they are so similar that you can
+choose any and it won’t matter. Let’s collect more evidence of this.
+
+Besides the overlap in the list, we can see if the /ranking/ is
+correlated. This means that the model groups share not only the
+facilities but also the relative rank risk.
+
+#+BEGIN_SRC  jupyter-python  :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+audited_models_class.plot_ranked_correlation_preds(param_type='rank_pct',
+                                                   param=10,
+                                                   temporal_comparison=True);
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/343964d2e40d09e4fd674d68ad176f928c9704c6.png]]
+
+
+** Going deeper with a model
+
+We will choose the model group *64* as the winner.
+
+#+BEGIN_SRC sql
+select
+    mg.model_group_id,
+    mg.model_type,
+    mg.hyperparameters,
+    array_agg(model_id order by train_end_time) as models
+from
+    model_metadata.model_groups as mg
+    inner join
+    model_metadata.models
+    using (model_group_id)
+where model_group_id = 64
+group by 1,2,3
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+| model_group_id | model_type                               | hyperparameters                                                                                              | models        |
+|--------------+-----------------------------------------+--------------------------------------------------------------------------------------------------------------+---------------|
+|           64 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 500, "min_samples_leaf": 1, "min_samples_split": 50} | {190,208,226} |
+:END:
+
+But before going to production and start making predictions in unseen
+data, let’s see what the particular models are doing
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+models_64 = { f'{model}': ModelEvaluator(64, model, engine) for model in [190,208,226] }
+#+END_SRC
+
+*** Feature importances
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+models_64['226'].plot_feature_importances(path=params.project_path,
+                                          n_features_plots=params.n_features_plots,
+                                          figsize=params.figsize)
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/27f4d846e0b3d96f8e2ce0b61ee086e4232e9aff.png]]
+
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+models_64['226'].plot_feature_group_average_importances()
+#+END_SRC
+
+#+RESULTS:
+[[file:./.ob-jupyter/0704bc064af73877081e0bce264f462a4f8e06ed.png]]
+
+
+*** Our /Policy menu/
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+models_64['226'].plot_precision_recall_n(figsize=(8,8))
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+: <matplotlib.figure.Figure at 0x7f043a3aa438>
+[[file:./.ob-jupyter/0c81e406fc3028ea51bfdf86746ec2bc09d850a2.png]]
+:END:
+
+
+*** Where are we making mistakes?
+
+#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
+models_64['226'].error_analysis(params.thresholds,
+                      depth=params.max_depth_error_tree,
+                      path=params.project_path,
+                      view_plots=True)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+: rank_abs 50
+# [goto error]
+#+BEGIN_EXAMPLE
+---------------------------------------------------------------------------
+FileNotFoundError                         Traceback (most recent call last)
+<ipython-input-25-42ffac78728d> in <module>
+      2                       depth=params.max_depth_error_tree,
+      3                       path=params.project_path,
+----> 4                       view_plots=True)
+
+/usr/local/lib/python3.6/site-packages/triage/component/postmodeling/contrast/model_evaluator.py in error_analysis(self, threshold, **kwargs)
+   1091                    print(threshold_type, threshold)
+   1092                    error_modeler(param_type = threshold_type,
+-> 1093                                  param = threshold)
+   1094         else:
+   1095            error_modeler(param_type=kwargs['param_type'],
+
+/usr/local/lib/python3.6/site-packages/triage/component/postmodeling/contrast/model_evaluator.py in _error_modeler(self, depth, view_plots, **kwargs)
+   1041        zip_data = self._error_labeler(param_type = kwargs['param_type'],
+   1042                                   param = kwargs['param'],
+-> 1043                                   path=kwargs['path'])
+   1044
+   1045        # Model tree and output tree plot
+
+/usr/local/lib/python3.6/site-packages/triage/component/postmodeling/contrast/model_evaluator.py in _error_labeler(self, path, param, param_type)
+    950         '''
+    951
+--> 952         test_matrix = self.preds_matrix(path)
+    953
+    954         if param_type == 'rank_abs':
+
+/usr/local/lib/python3.6/site-packages/triage/component/postmodeling/contrast/model_evaluator.py in preds_matrix(self, path)
+    302         storage = ProjectStorage(path)
+    303         matrix_storage = MatrixStorageEngine(storage).get_store(self.pred_matrix_uuid)
+--> 304         mat = matrix_storage.design_matrix
+    305
+    306         # Merge with predictions table and return complete matrix
+
+/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py in design_matrix(self)
+    392     def design_matrix(self):
+    393         """The matrix without the label vector, only the index and features"""
+--> 394         return self.matrix_label_tuple[0]
+    395
+    396     @property
+
+/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py in matrix_label_tuple(self)
+    380         if self._matrix_label_tuple:
+    381             return self._matrix_label_tuple
+--> 382         design_matrix, labels = self._preprocess_and_split_matrix(self._load())
+    383         if self.should_cache:
+    384             self._matrix_label_tuple = design_matrix, labels
+
+/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py in _load(self)
+    624
+    625     def _load(self):
+--> 626         with self.matrix_base_store.open("rb") as fd:
+    627             return pd.read_csv(fd, compression="gzip", parse_dates=["as_of_date"])
+    628
+
+/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py in open(self, *args, **kwargs)
+    151
+    152     def open(self, *args, **kwargs):
+--> 153         return open(self.path, *args, **kwargs)
+    154
+    155
+
+FileNotFoundError: [Errno 2] No such file or directory: '/triage/matrices/7c26b34566316f866687cb5c821f5064.csv.gz'
+#+END_EXAMPLE
+:END:
+
+* WORKING Crosstabs: How are the entities classified?
 
 Model interpretation is a huge topic nowadays, the most obvious path
 is using the /features importance/ from the model. This could be useful,
@@ -708,7 +919,7 @@ thresholds:
 #(optional): a list of entity_ids to subset on the crosstabs analysis
 entity_id_list: []
 
-models_list_query: "select unnest(ARRAY[174, 178]) :: int as model_id"
+models_list_query: "select unnest(ARRAY[208, 210]) :: int as model_id"
 
 as_of_dates_query: "select unnest(ARRAY['2016-12-01']) :: date as as_of_date"
 
@@ -724,7 +935,7 @@ models_dates_join_query: |
 #features_query must join models_dates_join_query with 1 or more features table using as_of_date
 features_query: |
   select m.model_id, f1.*
-  from features.inspections_aggregation_imputed as f1 join
+  from features.inspection_types_aggregation_imputed as f1 join
   models_dates_join_query as m using (as_of_date)
 
 #the predictions query must return model_id, as_of_date, entity_id, score, label_value, rank_abs and rank_pct
@@ -738,38 +949,12 @@ predictions_query: |
       coalesce(rank_abs, row_number() over (partition by (model_id, as_of_date) order by score desc)) as rank_abs,
       coalesce(rank_pct*100, ntile(100) over (partition by (model_id, as_of_date) order by score desc)) as rank_pct
       from test_results.predictions
-      join models_dates_join_query USING(model_id, as_of_date)
-      where model_id IN (select model_id from models_list_query)
+      join models_dates_join_query using(model_id, as_of_date)
+      where model_id in (select model_id from models_list_query)
       and as_of_date in (select as_of_date from as_of_dates_query)
 #+END_SRC
 
 
-#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports code
-triage --tb crosstabs eis_crosstabs_config.yaml
-:
-#+END_SRC
-
-#+RESULTS:
-#+BEGIN_SRC org
-/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py:144: UserWarning: The psycopg2 wheel package will be renamed from release 2.8; in order to keep installing from binary please use "pip install psycopg2-binary" instead. For details see: <http://initd.org/psycopg/docs/install.html#binary-install-from-pypi>.
-  """)
-Traceback (most recent call last):
-  File "/usr/local/bin/triage", line 11, in <module>
-    load_entry_point('triage==3.3.0', 'console_scripts', 'triage')()
-  File "/usr/local/lib/python3.6/site-packages/triage/cli.py", line 415, in execute
-    main(Triage)
-  File "/usr/local/lib/python3.6/site-packages/argcmdr.py", line 70, in main
-    command.call(args)
-  File "/usr/local/lib/python3.6/site-packages/argcmdr.py", line 310, in call
-    return target_callable(*call_args[:param_count])
-  File "/usr/local/lib/python3.6/site-packages/triage/cli.py", line 379, in __call__
-    config_store = Store.factory(args.config)
-  File "/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py", line 48, in factory
-    return FSStore(*pathparts)
-  File "/usr/local/lib/python3.6/site-packages/triage/component/catwalk/storage.py", line 144, in __init__
-    os.makedirs(dirname(self.path), exist_ok=True)
-  File "/usr/local/lib/python3.6/os.py", line 220, in makedirs
-    mkdir(name, mode)
-FileNotFoundError: [Errno 2] No such file or directory: ''
-[0m
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports code :results none
+triage --tb crosstabs /triage/eis_crosstabs_config.yaml
 #+END_SRC
