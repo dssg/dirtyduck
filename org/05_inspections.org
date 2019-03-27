@@ -1810,7 +1810,7 @@ in one. In the next two sections, we will investigate further those four model
 groups selected by =audition=, using the /Postmodeling/ tool set.
 
 
-** WORKING Postmodeling: Inspecting the best models closely
+** Postmodeling: Inspecting the best models closely
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/ :exports none
 ls $(jupyter --runtime-dir)

@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-26 mar 18:43 -->
+<!-- 2019-03-27 mié 10:50 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -362,9 +362,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#orgee0f7eb">7.1. Problem description</a></li>
+<li><a href="#org95ebb02">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#org26cfc5e">7.3. Modeling Using Machine Learning</a>
+<li><a href="#orgf5abfb6">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -372,9 +372,9 @@ for the JavaScript code in this tag.
 </ul>
 </li>
 <li><a href="#org04d7cbb">7.4. Selecting the best model</a></li>
-<li><a href="#org7c69e52">7.5. Filtering model groups</a></li>
-<li><a href="#org4bf73d5">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
-<li><a href="#org868df7f">7.7. WORKING Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org7650fe6">7.5. Filtering model groups</a></li>
+<li><a href="#org08ea672">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#orgbb419d6">7.7. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org2baf08f">7.7.1. Comparing the audited model groups</a></li>
 </ul>
@@ -383,9 +383,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#org95ebb02">8.1. Problem description</a></li>
+<li><a href="#org47bfae8">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#orgf5abfb6">8.3. Modeling Using Machine Learning</a>
+<li><a href="#org7bad1c4">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -396,51 +396,51 @@ for the JavaScript code in this tag.
 </li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#org6d38884">9. WORKING Audition: So many models, how can I choose the best one?</a>
+<li><a href="#org4604348">8.4. Audition: So many models, how can I choose the best one?</a>
 <ul>
-<li><a href="#org7650fe6">9.1. Filtering model groups</a></li>
-<li><a href="#org08ea672">9.2. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org647caea">8.4.1. Filtering model groups</a></li>
+<li><a href="#org8e03178">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
 </ul>
 </li>
-<li><a href="#orgf77a8d7">10. WORKING Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org3f1a0ea">8.5. Postmodeling: Inspecting the best models closely</a>
 <ul>
-<li><a href="#org60063a1">10.1. Setup</a></li>
-<li><a href="#org0092533">10.2. Model groups</a></li>
-<li><a href="#org8343202">10.3. Going deeper with a model</a>
+<li><a href="#org60063a1">8.5.1. Setup</a></li>
+<li><a href="#org0092533">8.5.2. Model groups</a></li>
+<li><a href="#org8343202">8.5.3. Going deeper with a model</a>
 <ul>
-<li><a href="#org5aa3952">10.3.1. Feature importances</a></li>
-<li><a href="#orgad5b345">10.3.2. Our <i>Policy menu</i></a></li>
-<li><a href="#org17b10e4">10.3.3. Where are we making mistakes?</a></li>
+<li><a href="#org5aa3952">8.5.3.1. Feature importances</a></li>
+<li><a href="#orgad5b345">8.5.3.2. Our <i>Policy menu</i></a></li>
+<li><a href="#org17b10e4">8.5.3.3. Where are we making mistakes?</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org878e147">11. WORKING Crosstabs: How are the entities classified?</a></li>
-<li><a href="#org29f3647">12. Scaling out: AWS Batch</a>
+<li><a href="#org68c704c">8.6. Crosstabs: How are the entities classified?</a></li>
+</ul>
+</li>
+<li><a href="#org29f3647">9. Scaling out: AWS Batch</a>
 <ul>
-<li><a href="#org09d0f4a">12.1. What do you need to setup?</a></li>
-<li><a href="#orgeb77cd9">12.2. Assumptions</a></li>
-<li><a href="#org70a3d06">12.3. Configuration</a>
+<li><a href="#org09d0f4a">9.1. What do you need to setup?</a></li>
+<li><a href="#orgeb77cd9">9.2. Assumptions</a></li>
+<li><a href="#org70a3d06">9.3. Configuration</a>
 <ul>
-<li><a href="#org13501f1">12.3.1. (Local) Environment variables</a></li>
-<li><a href="#org2e4436b">12.3.2. Job definition</a></li>
-<li><a href="#org28d129e">12.3.3. Environment variables overrides (for docker container inside the AWS EC2)</a></li>
-<li><a href="#org343d92a">12.3.4. <code>credentials-filter</code></a></li>
-<li><a href="#org704509c">12.3.5. Running an experiment</a></li>
-<li><a href="#org2f8f232">12.3.6. Suggested workflow</a>
+<li><a href="#org13501f1">9.3.1. (Local) Environment variables</a></li>
+<li><a href="#org2e4436b">9.3.2. Job definition</a></li>
+<li><a href="#org28d129e">9.3.3. Environment variables overrides (for docker container inside the AWS EC2)</a></li>
+<li><a href="#org343d92a">9.3.4. <code>credentials-filter</code></a></li>
+<li><a href="#org704509c">9.3.5. Running an experiment</a></li>
+<li><a href="#org2f8f232">9.3.6. Suggested workflow</a>
 <ul>
-<li><a href="#org5db4400">12.3.6.1. At the beginning of the project</a></li>
-<li><a href="#orgdafea0a">12.3.6.2. Every time that you have an idea about how to improve the results</a></li>
+<li><a href="#org5db4400">9.3.6.1. At the beginning of the project</a></li>
+<li><a href="#orgdafea0a">9.3.6.2. Every time that you have an idea about how to improve the results</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#orge0269c3">13. What's next?</a></li>
-<li><a href="#org41882da">14. Appendix: For the impatient</a></li>
+<li><a href="#orge0269c3">10. What's next?</a></li>
+<li><a href="#org41882da">11. Appendix: For the impatient</a></li>
 </ul>
 </div>
 </div>
@@ -7074,8 +7074,8 @@ clean the <code>{test, train}_results</code> schemas and have a fresh start:
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orgee0f7eb" class="outline-3">
-<h3 id="orgee0f7eb"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-org95ebb02" class="outline-3">
+<h3 id="org95ebb02"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7321,7 +7321,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org76501c0" class="figure">
+<div id="orgcc45343" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="Outcomes in the resource prioritazation problem." width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the <i>outcome</i> of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7331,8 +7331,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org26cfc5e" class="outline-3">
-<h3 id="org26cfc5e"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgf5abfb6" class="outline-3">
+<h3 id="orgf5abfb6"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -10157,8 +10157,8 @@ just to generate your predictions list).
 </div>
 
 
-<div id="outline-container-org7c69e52" class="outline-3">
-<h3 id="org7c69e52"><span class="section-number-3">7.5</span> Filtering model groups</h3>
+<div id="outline-container-org7650fe6" class="outline-3">
+<h3 id="org7650fe6"><span class="section-number-3">7.5</span> Filtering model groups</h3>
 <div class="outline-text-3" id="text-7-5">
 <p>
 Most of the time, <code>audition</code> should be used in a iterative fashion, the result of
@@ -10215,8 +10215,8 @@ are ~18 percentual points below of the best.
 </div>
 </div>
 
-<div id="outline-container-org4bf73d5" class="outline-3">
-<h3 id="org4bf73d5"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
+<div id="outline-container-org08ea672" class="outline-3">
+<h3 id="org08ea672"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
 <div class="outline-text-3" id="text-7-6">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -10299,8 +10299,8 @@ groups selected by <code>audition</code>, using the <i>Postmodeling</i> tool set
 </div>
 
 
-<div id="outline-container-org868df7f" class="outline-3">
-<h3 id="org868df7f"><span class="section-number-3">7.7</span> WORKING Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-orgbb419d6" class="outline-3">
+<h3 id="orgbb419d6"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-7-7">
 <p>
 <i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)
@@ -10449,8 +10449,8 @@ The plot will shows the overlap of the predicted list containing the
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-org95ebb02" class="outline-3">
-<h3 id="org95ebb02"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-org47bfae8" class="outline-3">
+<h3 id="org47bfae8"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -10499,7 +10499,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orgcc45343" class="figure">
+<div id="orgfab3847" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 27: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -10615,8 +10615,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-orgf5abfb6" class="outline-3">
-<h3 id="orgf5abfb6"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org7bad1c4" class="outline-3">
+<h3 id="org7bad1c4"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -11335,12 +11335,11 @@ features_arrays <span style="font-weight: bold;">as</span> (
 </div>
 </div>
 </div>
-</div>
 
 
-<div id="outline-container-org6d38884" class="outline-2">
-<h2 id="org6d38884"><span class="section-number-2">9</span> WORKING Audition: So many models, how can I choose the best one?</h2>
-<div class="outline-text-2" id="text-9">
+<div id="outline-container-org4604348" class="outline-3">
+<h3 id="org4604348"><span class="section-number-3">8.4</span> Audition: So many models, how can I choose the best one?</h3>
+<div class="outline-text-3" id="text-8-4">
 <p>
 Let’s select the best model groups, using Audition. We need to make
 small changes to the <a href="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/eis_audition_config.yaml">configuration file</a> compared to the inspection’s one:
@@ -11413,9 +11412,9 @@ just to generate your list).
 </p>
 </div>
 
-<div id="outline-container-org7650fe6" class="outline-3">
-<h3 id="org7650fe6"><span class="section-number-3">9.1</span> Filtering model groups</h3>
-<div class="outline-text-3" id="text-9-1">
+<div id="outline-container-org647caea" class="outline-4">
+<h4 id="org647caea"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
+<div class="outline-text-4" id="text-8-4-1">
 <p>
 <code>Audition</code> will generate two plots that are meant to be used together:
 <i>model performance over time</i> and <i>distance from best</i>.
@@ -11438,9 +11437,9 @@ just to generate your list).
 </div>
 </div>
 
-<div id="outline-container-org08ea672" class="outline-3">
-<h3 id="org08ea672"><span class="section-number-3">9.2</span> Selecting the best rule or strategy for choosing model groups</h3>
-<div class="outline-text-3" id="text-9-2">
+<div id="outline-container-org8e03178" class="outline-4">
+<h4 id="org8e03178"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
+<div class="outline-text-4" id="text-8-4-2">
 <p>
 In this phase of the audition, you will see what will happen in the
 next time if you choose your model group with an specific strategy or
@@ -11499,9 +11498,9 @@ As before, the best <b>3</b> <i>model groups</i> per strategy will be stored in 
 </div>
 
 
-<div id="outline-container-orgf77a8d7" class="outline-2">
-<h2 id="orgf77a8d7"><span class="section-number-2">10</span> WORKING Postmodeling: Inspecting the best models closely</h2>
-<div class="outline-text-2" id="text-10">
+<div id="outline-container-org3f1a0ea" class="outline-3">
+<h3 id="org3f1a0ea"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
+<div class="outline-text-3" id="text-8-5">
 <p>
 Given that almost all the strategies perform well, we will change the
 parameter <code>model_group_id</code> in the <a href="file:///home/nanounanue/projects/dsapp/dirtyduck/triage/eis_postmodeling_config.yaml">postmodeling's configuration file</a> and
@@ -11547,9 +11546,9 @@ Again launch jupyter in <code>bastion</code>:
 </p>
 </div>
 
-<div id="outline-container-org60063a1" class="outline-3">
-<h3 id="org60063a1"><span class="section-number-3">10.1</span> Setup</h3>
-<div class="outline-text-3" id="text-10-1">
+<div id="outline-container-org60063a1" class="outline-4">
+<h4 id="org60063a1"><span class="section-number-4">8.5.1</span> Setup</h4>
+<div class="outline-text-4" id="text-8-5-1">
 <p>
 The first lines of code are the same as in the inspection’s section
 </p>
@@ -11580,9 +11579,9 @@ audited_models_class = ModelGroupEvaluator(tuple(params.model_group_id), engine)
 </div>
 </div>
 
-<div id="outline-container-org0092533" class="outline-3">
-<h3 id="org0092533"><span class="section-number-3">10.2</span> Model groups</h3>
-<div class="outline-text-3" id="text-10-2">
+<div id="outline-container-org0092533" class="outline-4">
+<h4 id="org0092533"><span class="section-number-4">8.5.2</span> Model groups</h4>
+<div class="outline-text-4" id="text-8-5-2">
 <p>
 Let’s start with the behavior in time of the selected model groups
 </p>
@@ -11663,9 +11662,9 @@ facilities but also the relative rank risk.
 </div>
 
 
-<div id="outline-container-org8343202" class="outline-3">
-<h3 id="org8343202"><span class="section-number-3">10.3</span> Going deeper with a model</h3>
-<div class="outline-text-3" id="text-10-3">
+<div id="outline-container-org8343202" class="outline-4">
+<h4 id="org8343202"><span class="section-number-4">8.5.3</span> Going deeper with a model</h4>
+<div class="outline-text-4" id="text-8-5-3">
 <p>
 We will choose the model group <b>64</b> as the winner.
 </p>
@@ -11727,9 +11726,9 @@ data, let’s see what the particular models are doing
 </div>
 </div>
 
-<div id="outline-container-org5aa3952" class="outline-4">
-<h4 id="org5aa3952"><span class="section-number-4">10.3.1</span> Feature importances</h4>
-<div class="outline-text-4" id="text-10-3-1">
+<div id="outline-container-org5aa3952" class="outline-5">
+<h5 id="org5aa3952"><span class="section-number-5">8.5.3.1</span> Feature importances</h5>
+<div class="outline-text-5" id="text-8-5-3-1">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_64['226'].plot_feature_importances(path=params.project_path,
 					  n_features_plots=params.n_features_plots,
@@ -11746,9 +11745,9 @@ data, let’s see what the particular models are doing
 </div>
 
 
-<div id="outline-container-orgad5b345" class="outline-4">
-<h4 id="orgad5b345"><span class="section-number-4">10.3.2</span> Our <i>Policy menu</i></h4>
-<div class="outline-text-4" id="text-10-3-2">
+<div id="outline-container-orgad5b345" class="outline-5">
+<h5 id="orgad5b345"><span class="section-number-5">8.5.3.2</span> Our <i>Policy menu</i></h5>
+<div class="outline-text-5" id="text-8-5-3-2">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_64['226'].plot_precision_recall_n(figsize=(8,8))
 </pre>
@@ -11757,9 +11756,9 @@ data, let’s see what the particular models are doing
 </div>
 
 
-<div id="outline-container-org17b10e4" class="outline-4">
-<h4 id="org17b10e4"><span class="section-number-4">10.3.3</span> Where are we making mistakes?</h4>
-<div class="outline-text-4" id="text-10-3-3">
+<div id="outline-container-org17b10e4" class="outline-5">
+<h5 id="org17b10e4"><span class="section-number-5">8.5.3.3</span> Where are we making mistakes?</h5>
+<div class="outline-text-5" id="text-8-5-3-3">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_64['226'].error_analysis(params.thresholds,
 		      depth=params.max_depth_error_tree,
@@ -11772,9 +11771,9 @@ data, let’s see what the particular models are doing
 </div>
 </div>
 
-<div id="outline-container-org878e147" class="outline-2">
-<h2 id="org878e147"><span class="section-number-2">11</span> WORKING Crosstabs: How are the entities classified?</h2>
-<div class="outline-text-2" id="text-11">
+<div id="outline-container-org68c704c" class="outline-3">
+<h3 id="org68c704c"><span class="section-number-3">8.6</span> Crosstabs: How are the entities classified?</h3>
+<div class="outline-text-3" id="text-8-6">
 <p>
 Model interpretation is a huge topic nowadays, the most obvious path
 is using the <i>features importance</i> from the model. This could be useful,
@@ -11843,10 +11842,11 @@ feature.
 </div>
 </div>
 </div>
+</div>
 
 <div id="outline-container-org29f3647" class="outline-2">
-<h2 id="org29f3647"><span class="section-number-2">12</span> Scaling out: AWS Batch</h2>
-<div class="outline-text-2" id="text-12">
+<h2 id="org29f3647"><span class="section-number-2">9</span> Scaling out: AWS Batch</h2>
+<div class="outline-text-2" id="text-9">
 <blockquote>
 <p>
 If your laptop choked in the previous sections or if you can't afford
@@ -11890,8 +11890,8 @@ container.
 </div>
 
 <div id="outline-container-org09d0f4a" class="outline-3">
-<h3 id="org09d0f4a"><span class="section-number-3">12.1</span> What do you need to setup?</h3>
-<div class="outline-text-3" id="text-12-1">
+<h3 id="org09d0f4a"><span class="section-number-3">9.1</span> What do you need to setup?</h3>
+<div class="outline-text-3" id="text-9-1">
 <p>
 AWS Batch requires setup the following infrastructure:
 </p>
@@ -11906,8 +11906,8 @@ AWS Batch requires setup the following infrastructure:
 </div>
 
 <div id="outline-container-orgeb77cd9" class="outline-3">
-<h3 id="orgeb77cd9"><span class="section-number-3">12.2</span> Assumptions</h3>
-<div class="outline-text-3" id="text-12-2">
+<h3 id="orgeb77cd9"><span class="section-number-3">9.2</span> Assumptions</h3>
+<div class="outline-text-3" id="text-9-2">
 <ul class="org-ul">
 <li>You have <code>[[https://stedolan.github.io/jq/download/][jq]]</code> installed</li>
 <li>You have IAM credentials with permissions to run AWS Batch, read
@@ -11943,8 +11943,8 @@ And for the <code>AWS Batch</code> part:
 
 
 <div id="outline-container-org70a3d06" class="outline-3">
-<h3 id="org70a3d06"><span class="section-number-3">12.3</span> Configuration</h3>
-<div class="outline-text-3" id="text-12-3">
+<h3 id="org70a3d06"><span class="section-number-3">9.3</span> Configuration</h3>
+<div class="outline-text-3" id="text-9-3">
 <p>
 First we need to customize the file <code>.aws_env</code> (yes, another environment
 file).
@@ -11960,8 +11960,8 @@ Copy the file <code>aws_env.example</code> to <code>.aws_env</code> and fill the
 </div>
 
 <div id="outline-container-org13501f1" class="outline-4">
-<h4 id="org13501f1"><span class="section-number-4">12.3.1</span> (Local) Environment variables</h4>
-<div class="outline-text-4" id="text-12-3-1">
+<h4 id="org13501f1"><span class="section-number-4">9.3.1</span> (Local) Environment variables</h4>
+<div class="outline-text-4" id="text-9-3-1">
 <div class="org-src-container">
 <pre class="src src-text">#!/usr/bin/env bash
 
@@ -11991,8 +11991,8 @@ the <code>.example</code> extension and adapt them to your case:
 </div>
 
 <div id="outline-container-org2e4436b" class="outline-4">
-<h4 id="org2e4436b"><span class="section-number-4">12.3.2</span> Job definition</h4>
-<div class="outline-text-4" id="text-12-3-2">
+<h4 id="org2e4436b"><span class="section-number-4">9.3.2</span> Job definition</h4>
+<div class="outline-text-4" id="text-9-3-2">
 <p>
 Change the <code>PROJECT_NAME</code> and <code>AWS_ACCOUNT</code> for their real values
 </p>
@@ -12027,8 +12027,8 @@ Change the <code>PROJECT_NAME</code> and <code>AWS_ACCOUNT</code> for their real
 </div>
 
 <div id="outline-container-org28d129e" class="outline-4">
-<h4 id="org28d129e"><span class="section-number-4">12.3.3</span> Environment variables overrides (for docker container inside the AWS EC2)</h4>
-<div class="outline-text-4" id="text-12-3-3">
+<h4 id="org28d129e"><span class="section-number-4">9.3.3</span> Environment variables overrides (for docker container inside the AWS EC2)</h4>
+<div class="outline-text-4" id="text-9-3-3">
 <p>
 Fill out the missing values
 </p>
@@ -12072,8 +12072,8 @@ Fill out the missing values
 </div>
 
 <div id="outline-container-org343d92a" class="outline-4">
-<h4 id="org343d92a"><span class="section-number-4">12.3.4</span> <code>credentials-filter</code></h4>
-<div class="outline-text-4" id="text-12-3-4">
+<h4 id="org343d92a"><span class="section-number-4">9.3.4</span> <code>credentials-filter</code></h4>
+<div class="outline-text-4" id="text-9-3-4">
 <p>
 Leave this file as is (We will use it for storing the temporal token
 in <code>deploy.sh</code>)
@@ -12103,8 +12103,8 @@ in <code>deploy.sh</code>)
 
 
 <div id="outline-container-org704509c" class="outline-4">
-<h4 id="org704509c"><span class="section-number-4">12.3.5</span> Running an experiment</h4>
-<div class="outline-text-4" id="text-12-3-5">
+<h4 id="org704509c"><span class="section-number-4">9.3.5</span> Running an experiment</h4>
+<div class="outline-text-4" id="text-9-3-5">
 <p>
 We provided a simple bash file for creating the image,
 uploading/updating the job definition and running the experiment:
@@ -12146,16 +12146,16 @@ Where <code>your_profile</code> is the name of the profile in <code>~/.aws/crede
 </div>
 
 <div id="outline-container-org2f8f232" class="outline-4">
-<h4 id="org2f8f232"><span class="section-number-4">12.3.6</span> Suggested workflow</h4>
-<div class="outline-text-4" id="text-12-3-6">
+<h4 id="org2f8f232"><span class="section-number-4">9.3.6</span> Suggested workflow</h4>
+<div class="outline-text-4" id="text-9-3-6">
 <p>
 The workflow now is:
 </p>
 </div>
 
 <div id="outline-container-org5db4400" class="outline-5">
-<h5 id="org5db4400"><span class="section-number-5">12.3.6.1</span> At the beginning of the project</h5>
-<div class="outline-text-5" id="text-12-3-6-1">
+<h5 id="org5db4400"><span class="section-number-5">9.3.6.1</span> At the beginning of the project</h5>
+<div class="outline-text-5" id="text-9-3-6-1">
 <ul class="org-ul">
 <li>Set a <code>docker image</code> and publish it to the AWS ECR (if needed, or you
 can use the <code>triage</code> official one).</li>
@@ -12187,8 +12187,8 @@ resources for a big experiment)
 </div>
 
 <div id="outline-container-orgdafea0a" class="outline-5">
-<h5 id="orgdafea0a"><span class="section-number-5">12.3.6.2</span> Every time that you have an idea about how to improve the results</h5>
-<div class="outline-text-5" id="text-12-3-6-2">
+<h5 id="orgdafea0a"><span class="section-number-5">9.3.6.2</span> Every time that you have an idea about how to improve the results</h5>
+<div class="outline-text-5" id="text-9-3-6-2">
 <ul class="org-ul">
 <li>Create experiment files and publish them to the <code>s3</code> bucket:</li>
 </ul>
@@ -12211,8 +12211,8 @@ resources for a big experiment)
 </div>
 
 <div id="outline-container-orge0269c3" class="outline-2">
-<h2 id="orge0269c3"><span class="section-number-2">13</span> What's next?</h2>
-<div class="outline-text-2" id="text-13">
+<h2 id="orge0269c3"><span class="section-number-2">10</span> What's next?</h2>
+<div class="outline-text-2" id="text-10">
 <ul class="org-ul">
 <li>Add the shape file
 <a href="https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&amp;format=Shapefile">https://data.cityofchicago.org/api/geospatial/gdcf-axmw?method=export&amp;format=Shapefile</a>
@@ -12236,8 +12236,8 @@ new <i>outcomes</i> or <i>features</i>?</li>
 </div>
 
 <div id="outline-container-org41882da" class="outline-2">
-<h2 id="org41882da"><span class="section-number-2">14</span> Appendix: For the impatient</h2>
-<div class="outline-text-2" id="text-14">
+<h2 id="org41882da"><span class="section-number-2">11</span> Appendix: For the impatient</h2>
+<div class="outline-text-2" id="text-11">
 <p>
 If you want to skip all the cleansing and transformation and deep
 directly into <code>triage</code> you can
@@ -12632,7 +12632,7 @@ the ip address (<code>0.0.0.0</code>) and use the one from the docker virtual ma
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-26 mar 18:43</p>
+<p class="date">Created: 2019-03-27 mié 10:50</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

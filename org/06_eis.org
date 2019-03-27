@@ -483,7 +483,7 @@ order by
 :END:
 
 
-* WORKING Audition: So many models, how can I choose the best one?
+** Audition: So many models, how can I choose the best one?
 
 Let’s select the best model groups, using Audition. We need to make
 small changes to the [[file:~/projects/dsapp/dirtyduck/triage/eis_audition_config.yaml][configuration file]] compared to the inspection’s one:
@@ -548,7 +548,7 @@ triage --tb audition -c eis_audition_config.yaml --directory audition/eis
 which is the /best/ model group to use (like in a production setting or
 just to generate your list).
 
-** Filtering model groups
+*** Filtering model groups
 :PROPERTIES:
 :ORDERED:  t
 :END:
@@ -565,7 +565,7 @@ just to generate your list).
 #+LABEL: fig:distance-from-best-2
 [[file:audition/eis/distance_from_best_precision@10_pct.png]]
 
-** Selecting the best rule or strategy for choosing model groups
+*** Selecting the best rule or strategy for choosing model groups
 
 In this phase of the audition, you will see what will happen in the
 next time if you choose your model group with an specific strategy or
@@ -602,7 +602,7 @@ As before, the best *3* /model groups/ per strategy will be stored in the file =
 #+INCLUDE: ../triage/audition/eis/results_model_group_ids.json src json
 
 
-* WORKING Postmodeling: Inspecting the best models closely
+** Postmodeling: Inspecting the best models closely
 
 Given that almost all the strategies perform well, we will change the
 parameter =model_group_id= in the [[file:~/projects/dsapp/dirtyduck/triage/eis_postmodeling_config.yaml][postmodeling's configuration file]] and
@@ -648,7 +648,7 @@ jupyter-notebook –-ip=0.0.0.0  --port=56406
 #+END_SRC
 
 
-** Setup
+*** Setup
 
 The first lines of code are the same as in the inspection’s section
 
@@ -675,7 +675,7 @@ l_t = [ModelEvaluator(i.model_group_id, i.model_id, engine) for i in list_tuple_
 audited_models_class = ModelGroupEvaluator(tuple(params.model_group_id), engine)
 #+END_SRC
 
-** Model groups
+*** Model groups
 
 Let’s start with the behavior in time of the selected model groups
 
@@ -749,7 +749,7 @@ audited_models_class.plot_ranked_correlation_preds(param_type='rank_pct',
 [[file:./.ob-jupyter/343964d2e40d09e4fd674d68ad176f928c9704c6.png]]
 
 
-** Going deeper with a model
+*** Going deeper with a model
 
 We will choose the model group *64* as the winner.
 
@@ -782,7 +782,7 @@ data, let’s see what the particular models are doing
 models_64 = { f'{model}': ModelEvaluator(64, model, engine) for model in [190,208,226] }
 #+END_SRC
 
-*** Feature importances
+**** Feature importances
 
 #+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
 models_64['226'].plot_feature_importances(path=params.project_path,
@@ -802,7 +802,7 @@ models_64['226'].plot_feature_group_average_importances()
 [[file:./.ob-jupyter/0704bc064af73877081e0bce264f462a4f8e06ed.png]]
 
 
-*** Our /Policy menu/
+**** Our /Policy menu/
 
 #+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
 models_64['226'].plot_precision_recall_n(figsize=(8,8))
@@ -815,7 +815,7 @@ models_64['226'].plot_precision_recall_n(figsize=(8,8))
 :END:
 
 
-*** Where are we making mistakes?
+**** Where are we making mistakes?
 
 #+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-ba3d7896-a2bc-4982-83af-f5a056b38a69.json
 models_64['226'].error_analysis(params.thresholds,
@@ -896,7 +896,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '/triage/matrices/7c26b3
 #+END_EXAMPLE
 :END:
 
-* WORKING Crosstabs: How are the entities classified?
+** Crosstabs: How are the entities classified?
 
 Model interpretation is a huge topic nowadays, the most obvious path
 is using the /features importance/ from the model. This could be useful,
