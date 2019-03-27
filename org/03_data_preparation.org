@@ -1116,7 +1116,7 @@ We will generate a few plots, just to know:
 - how many entities/events ended in a failed state every month? and,
 - how many entities/events have in a critical violation in a failed inspection?
 
-#+BEGIN_SRC ipython :exports none
+#+BEGIN_SRC ipython :exports none :results none
 %matplotlib inline
 import numpy as np
 import pandas as pd
@@ -1133,10 +1133,6 @@ import sqlalchemy
 engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:5434/food')
 #+END_SRC
 
-#+RESULTS:
-:RESULTS:
-# Out[56]:
-:END:
 
 *** Inspections over time
 
@@ -1237,6 +1233,7 @@ plt.title("Failed inspections over time")
 plt.xlim(0, n_months);
 #+END_SRC
 
+#+CAPTION: Number of failed inspections every month.
 [[./images/failed_inspections_over_time.png]]
 
 *** Number of facilities with failed inspections over time
@@ -1303,6 +1300,7 @@ plt.title("Failed inspections with severe violations over time")
 plt.xlim(0, n_months);
 #+END_SRC
 
+#+CAPTION: Number of failed inspection with critical violation found
 [[./images/failed_inspections_severe_violations_over_time.png]]
 
 *** Number of facilities with severe violations found in a failed inspection over time
@@ -1333,6 +1331,7 @@ plt.title("Facilities with failed inspections with severe violations over time")
 plt.xlim(0, n_months);
 #+END_SRC
 
+#+CAPTION: Number of facilities which failed inspections with severe violations.
 [[./images/facilities_with_failed_inspections_severe_violations_over_time.png]]
 
 This few plots give us a sense of how the data behaves and will help
