@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-03-27 mié 10:50 -->
+<!-- 2019-03-27 mié 13:52 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -301,8 +301,8 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#org4000332">5.4.1. Inspections over time</a></li>
 <li><a href="#org60c5996">5.4.2. Number of facilities <i>inspected</i> over time</a></li>
-<li><a href="#org29984f3">5.4.3. Number of facilities with failed inspections over time</a></li>
-<li><a href="#org5ac60e4">5.4.4. Number of failed inspections over time</a></li>
+<li><a href="#org5ac60e4">5.4.3. Number of failed inspections over time</a></li>
+<li><a href="#org29984f3">5.4.4. Number of facilities with failed inspections over time</a></li>
 <li><a href="#orgf92e3d4">5.4.5. Number of severe violations found in a failed inspection over time</a></li>
 <li><a href="#org529298c">5.4.6. Number of facilities with severe violations found in a failed inspection over time</a></li>
 </ul>
@@ -362,9 +362,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#org95ebb02">7.1. Problem description</a></li>
+<li><a href="#org47bfae8">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#orgf5abfb6">7.3. Modeling Using Machine Learning</a>
+<li><a href="#org7bad1c4">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -372,9 +372,9 @@ for the JavaScript code in this tag.
 </ul>
 </li>
 <li><a href="#org04d7cbb">7.4. Selecting the best model</a></li>
-<li><a href="#org7650fe6">7.5. Filtering model groups</a></li>
-<li><a href="#org08ea672">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
-<li><a href="#orgbb419d6">7.7. Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org647caea">7.5. Filtering model groups</a></li>
+<li><a href="#org8e03178">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org3f1a0ea">7.7. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org2baf08f">7.7.1. Comparing the audited model groups</a></li>
 </ul>
@@ -383,9 +383,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#org47bfae8">8.1. Problem description</a></li>
+<li><a href="#orgd8de478">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org7bad1c4">8.3. Modeling Using Machine Learning</a>
+<li><a href="#orgf8cef19">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -398,11 +398,11 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org4604348">8.4. Audition: So many models, how can I choose the best one?</a>
 <ul>
-<li><a href="#org647caea">8.4.1. Filtering model groups</a></li>
-<li><a href="#org8e03178">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org9cf6317">8.4.1. Filtering model groups</a></li>
+<li><a href="#orgab639eb">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
 </ul>
 </li>
-<li><a href="#org3f1a0ea">8.5. Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org220643d">8.5. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org60063a1">8.5.1. Setup</a></li>
 <li><a href="#org0092533">8.5.2. Model groups</a></li>
@@ -799,7 +799,7 @@ food_db   docker-entrypoint.sh postgres   Up      0.0.0.0:5434-&gt;5432/tcp
 </div>
 
 <p>
-To access the <code>postgresql</code> client type:
+To access <code>bastion</code>, where the <code>postgresql</code> client is, type:
 </p>
 
 <div class="org-src-container">
@@ -829,7 +829,7 @@ Inside <code>bastion</code>, type the next command to connect to the database
 </div>
 
 <p>
-The prompt will change again to
+The prompt will change again to (or something <i>very</i> similar):
 </p>
 
 <pre class="example">
@@ -1445,7 +1445,7 @@ What about <code>types</code> of inspections?
 
 <div class="org-src-container">
 <pre class="src src-sql"><span style="font-weight: bold;">select</span>
-    <span style="font-weight: bold;">count</span>(<span style="font-weight: bold;">distinct</span> <span style="font-weight: bold;">type</span>) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold;">number</span> <span style="font-weight: bold;">of</span> inspections"
+    <span style="font-weight: bold;">count</span>(<span style="font-weight: bold;">distinct</span> <span style="font-weight: bold;">type</span>) <span style="font-weight: bold;">as</span> "types <span style="font-weight: bold;">of</span> inspections"
 <span style="font-weight: bold;">from</span>
     raw.inspections;
 </pre>
@@ -1459,7 +1459,7 @@ What about <code>types</code> of inspections?
 </colgroup>
 <thead>
 <tr>
-<th scope="col" class="org-right">number of inspections</th>
+<th scope="col" class="org-right">types of inspections</th>
 </tr>
 </thead>
 <tbody>
@@ -1470,7 +1470,7 @@ What about <code>types</code> of inspections?
 </table>
 
 <p>
-Wow, there are <b>108</b> types of inspections instead of the (expected) <b>5</b>!
+Wow, there are <b>108</b> types of inspections instead of the expected <b>5</b>!
 </p>
 
 <p>
@@ -1829,7 +1829,7 @@ Zip code has a similar <code>NULL</code> problem:
 
 <div class="org-src-container">
 <pre class="src src-sql"><span style="font-weight: bold;">select</span>
-    <span style="font-weight: bold;">count</span>(*) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold;">number</span> <span style="font-weight: bold;">of</span> inspections"
+    <span style="font-weight: bold;">count</span>(*) <span style="font-weight: bold;">as</span> "<span style="font-weight: bold;">number</span> <span style="font-weight: bold;">of</span> inspections w/o zip code"
 <span style="font-weight: bold;">from</span>
     raw.inspections
 <span style="font-weight: bold;">where</span>
@@ -1845,7 +1845,7 @@ Zip code has a similar <code>NULL</code> problem:
 </colgroup>
 <thead>
 <tr>
-<th scope="col" class="org-right">number of inspections</th>
+<th scope="col" class="org-right">number of inspections w/o zip code</th>
 </tr>
 </thead>
 <tbody>
@@ -1986,7 +1986,7 @@ The number of inspections now is:
 </table>
 
 <p>
-Note that  quantity is smaller  is smaller than the one from
+Note that  quantity is smaller than the one from
 <code>raw.inspections</code>,
 since we throw away some inspections.
 </p>
@@ -2116,7 +2116,7 @@ We will create a new table called <code>cleaned.violations</code> to store
 
 <p>
 This code is in <code>/sql/create_violations_table.sql</code>. You can execute
- it with psql's -f option, as before.
+ it with psql's <code>-f</code> option, as before.
 </p>
 
 <p>
@@ -2879,7 +2879,7 @@ you are interested in this powerful technique see this <a href="http://www.postg
 </table>
 
 <p>
-We will add some indexes to this table:
+We will add some indexes to this table<sup><a id="fnr.26" class="footref" href="#fn.26">26</a></sup>:
 </p>
 
 <div class="org-src-container">
@@ -2905,8 +2905,8 @@ We will add some indexes to this table:
 We are ready to create the events table. This table will describe
 the inspection, like the <i>type</i> of inspection, <i>when</i> and <i>where</i>
 the inspection happened, and the inspection <i>result</i>. We will add
-the violations as a <code>JSONB</code> column.<sup><a id="fnr.26" class="footref" href="#fn.26">26</a></sup> Finally, we'll rename
-<code>inspection</code> as <code>event_id</code>.<sup><a id="fnr.27" class="footref" href="#fn.27">27</a></sup>
+the violations as a <code>JSONB</code> column.<sup><a id="fnr.27" class="footref" href="#fn.27">27</a></sup> Finally, we'll rename
+<code>inspection</code> as <code>event_id</code>.<sup><a id="fnr.28" class="footref" href="#fn.28">28</a></sup>
 </p>
 
 <div class="org-src-container">
@@ -2927,9 +2927,9 @@ the violations as a <code>JSONB</code> column.<sup><a id="fnr.26" class="footref
                 jsonb_build_object(
                     <span style="font-style: italic;">'code'</span>, v.code,
                     <span style="font-style: italic;">'severity'</span>, v.severity,
-                        <span style="font-style: italic;">'description'</span>, v.description,
-                        <span style="font-style: italic;">'comment'</span>, v.comment
-                        )
+                    <span style="font-style: italic;">'description'</span>, v.description,
+                    <span style="font-style: italic;">'comment'</span>, v.comment
+                    )
             <span style="font-weight: bold;">order</span>  <span style="font-weight: bold;">by</span> code
                 ) <span style="font-weight: bold;">as</span> violations
         <span style="font-weight: bold;">from</span>
@@ -2976,7 +2976,7 @@ the violations as a <code>JSONB</code> column.<sup><a id="fnr.26" class="footref
 </div>
 
 <p>
-Success! We have one row per event.<sup><a id="fnr.28" class="footref" href="#fn.28">28</a></sup> Our semantic data looks like:
+Success! We have one row per event.<sup><a id="fnr.29" class="footref" href="#fn.29">29</a></sup> Our semantic data looks like:
 </p>
 
 <div class="org-src-container">
@@ -3079,23 +3079,52 @@ Now that we have our data in a good shape, we are ready to use <b>Triage</b>.
 <div id="outline-container-orga43251b" class="outline-3">
 <h3 id="orga43251b"><span class="section-number-3">5.4</span> Let's EDA &#x2026;</h3>
 <div class="outline-text-3" id="text-5-4">
+<p>
+It is always a good idea to do some <i>Exploratory Data Analysis<sup><a id="fnr.30" class="footref" href="#fn.30">30</a></sup></i> or <b>EDA</b>
+for short. This will help us to learn more about the dynamics of the
+entities or the inspections.
+</p>
+
+<p>
+We will generate a few plots, just to know:
+</p>
+<ul class="org-ul">
+<li>how many entities/events are every month?</li>
+<li>how many entities/events ended in a failed state every month? and,</li>
+<li>how many entities/events have in a critical violation in a failed inspection?</li>
+</ul>
 </div>
+
 <div id="outline-container-org4000332" class="outline-4">
 <h4 id="org4000332"><span class="section-number-4">5.4.1</span> Inspections over time</h4>
 <div class="outline-text-4" id="text-5-4-1">
+<p>
+First, we will try the answer the question: <i>how many inspections are realized every month?</i>
+</p>
+
 
 <div class="figure">
 <p><img src="./images/inspections_over_time.png" alt="inspections_over_time.png" />
 </p>
+<p><span class="figure-number">Figure 1: </span>Number of inspections per month across our whole dataset</p>
 </div>
 </div>
 </div>
-
 
 
 <div id="outline-container-org60c5996" class="outline-4">
 <h4 id="org60c5996"><span class="section-number-4">5.4.2</span> Number of facilities <i>inspected</i> over time</h4>
 <div class="outline-text-4" id="text-5-4-2">
+<p>
+The previous plot was about the number of <i>events</i> every month, now we
+will plot how many <i>entities</i> are acted every month.
+</p>
+
+<p>
+One question, that is useful to answer is: Are there facilities that
+are inspected more than once in a month?
+</p>
+
 <blockquote>
 <p>
 We are doing an emphasis in <i>inspected</i> since our data set doesn't
@@ -3108,33 +3137,40 @@ modeling stage.
 <div class="figure">
 <p><img src="./images/facilities_inspected_over_time.png" alt="facilities_inspected_over_time.png" />
 </p>
+<p><span class="figure-number">Figure 2: </span>Number of unique facilities inspected every month.</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org5ac60e4" class="outline-4">
+<h4 id="org5ac60e4"><span class="section-number-4">5.4.3</span> Number of failed inspections over time</h4>
+<div class="outline-text-4" id="text-5-4-3">
+<p>
+What is the proportion of inspections every month that actually end in
+a failed inspection?
+</p>
+
+
+<div class="figure">
+<p><img src="./images/failed_inspections_over_time.png" alt="failed_inspections_over_time.png" />
+</p>
 </div>
 </div>
 </div>
 
 <div id="outline-container-org29984f3" class="outline-4">
-<h4 id="org29984f3"><span class="section-number-4">5.4.3</span> Number of facilities with failed inspections over time</h4>
-<div class="outline-text-4" id="text-5-4-3">
+<h4 id="org29984f3"><span class="section-number-4">5.4.4</span> Number of facilities with failed inspections over time</h4>
+<div class="outline-text-4" id="text-5-4-4">
 <p>
 Now let's see the behavior of the <i>outcomes</i> of the inspection across
-time. First just if the inspection failed
+time. First just if the inspection failed.
 </p>
 
 
 <div class="figure">
 <p><img src="./images/facilities_with_inspections_failed_over_time.png" alt="facilities_with_inspections_failed_over_time.png" />
 </p>
-</div>
-</div>
-</div>
-
-<div id="outline-container-org5ac60e4" class="outline-4">
-<h4 id="org5ac60e4"><span class="section-number-4">5.4.4</span> Number of failed inspections over time</h4>
-<div class="outline-text-4" id="text-5-4-4">
-
-<div class="figure">
-<p><img src="./images/failed_inspections_over_time.png" alt="failed_inspections_over_time.png" />
-</p>
+<p><span class="figure-number">Figure 4: </span>Number of unique facilities with failed inspections every month.</p>
 </div>
 </div>
 </div>
@@ -3163,11 +3199,15 @@ violations (violation code in 15-29)
 <p><img src="./images/facilities_with_failed_inspections_severe_violations_over_time.png" alt="facilities_with_failed_inspections_severe_violations_over_time.png" />
 </p>
 </div>
-</div>
-</div>
-</div>
-</div>
 
+<p>
+This few plots give us a sense of how the data behaves and will help
+us in detect weird bugs or model-behavior later.
+</p>
+</div>
+</div>
+</div>
+</div>
 
 <div id="outline-container-org902ef33" class="outline-2">
 <h2 id="org902ef33"><span class="section-number-2">6</span> Triage</h2>
@@ -3455,19 +3495,19 @@ The first thing <code>triage</code> does when executes the experiment, is split 
 covers in blocks considering the time horizon for the <i>label</i>
 ( <i>Which facilities will
 fail an inspection in the following  month?</i>
-in this scenario of <b>inspection prioritization<sup><a id="fnr.29" class="footref" href="#fn.29">29</a></sup></b>) . This time
+in this scenario of <b>inspection prioritization<sup><a id="fnr.31" class="footref" href="#fn.31">31</a></sup></b>) . This time
 horizon is calculated from a set of specific dates (<code>as_of_date</code> in
 triage parlance) that divide the blocks in past (for training the
 model) and future (for testing the model). The set of <code>as_of_dates</code> is
 (<i>mainly</i>) calculated from the <i>label timespan</i> and the <i>update
-frequency</i><sup><a id="fnr.30" class="footref" href="#fn.30">30</a></sup>. The <i>as of date</i> is not the <i>event date</i>. The <i>event date</i>
+frequency</i><sup><a id="fnr.32" class="footref" href="#fn.32">32</a></sup>. The <i>as of date</i> is not the <i>event date</i>. The <i>event date</i>
 occurred  <i>when</i> the facility was inspected. The <i>as of date</i>
 is when the planning of the future facilities to be inspected happens.
 </p>
 
 <p>
 <code>triage</code> will create those <i>labels</i> using information about the <i>outcome</i> of
-the event<sup><a id="fnr.31" class="footref" href="#fn.31">31</a></sup>, taking into account the temporal structure of the data.
+the event<sup><a id="fnr.33" class="footref" href="#fn.33">33</a></sup>, taking into account the temporal structure of the data.
 In our example: if a facility is inspected
 is the event, and whether it fails the inspection (outcome
 <i>true</i>) or not (outcome <i>false</i>).
@@ -3688,7 +3728,7 @@ which facilities you want to predict on (i.e. include in the ML
 train/test matrices). The rationale of this comes
 from the need to only predict for entities in a particular state:
 <i>Is the restaurant new?</i>
-<i>Is this facility on this zip code</i>? <i>Is the facility "active"?</i><sup><a id="fnr.32" class="footref" href="#fn.32">32</a></sup>
+<i>Is this facility on this zip code</i>? <i>Is the facility "active"?</i><sup><a id="fnr.34" class="footref" href="#fn.34">34</a></sup>
 </p>
 
 <p>
@@ -3855,7 +3895,7 @@ Assume we want to
 select which restaurant (of two in our example dataset) we should inspect next
 year based on its higher risk of violating some condition. Also assume
 that the process of picking which facility is repeated every year on
-January 1st<sup><a id="fnr.33" class="footref" href="#fn.33">33</a></sup>
+January 1st<sup><a id="fnr.35" class="footref" href="#fn.35">35</a></sup>
 </p>
 
 <p>
@@ -3887,7 +3927,7 @@ predicted 2016; and so on. That way, we choose models that have
 historically performed best at our task, forecasting. It’s why this
 approach is sometimes called <i>evaluation on a rolling forecast
 origin</i> because the origin at which the prediction is made rolls
-forward in time. <sup><a id="fnr.34" class="footref" href="#fn.34">34</a></sup>
+forward in time. <sup><a id="fnr.36" class="footref" href="#fn.36">36</a></sup>
 </p>
 
 
@@ -3927,7 +3967,7 @@ test and train sets, plus the constraints just mentioned.
 </p>
 
 <p>
-In total <code>timechop</code> uses 11 configuration parameters<sup><a id="fnr.35" class="footref" href="#fn.35">35</a></sup>.
+In total <code>timechop</code> uses 11 configuration parameters<sup><a id="fnr.37" class="footref" href="#fn.37">37</a></sup>.
 </p>
 
 <ul class="org-ul">
@@ -4385,7 +4425,7 @@ temporal_config:
 </div>
 
 <p>
-That's it! Now you have the power to bend time!<sup><a id="fnr.36" class="footref" href="#fn.36">36</a></sup>
+That's it! Now you have the power to bend time!<sup><a id="fnr.38" class="footref" href="#fn.38">38</a></sup>
 </p>
 
 <p>
@@ -4402,7 +4442,7 @@ discuss <i>features</i> in the following section.
 <div class="outline-text-3" id="text-6-5">
 <p>
 We will show how to create features using the <i>experiments config
-file</i>. <code>triage</code> uses <code>collate</code> for this.<sup><a id="fnr.37" class="footref" href="#fn.37">37</a></sup> The <code>collate</code>
+file</i>. <code>triage</code> uses <code>collate</code> for this.<sup><a id="fnr.39" class="footref" href="#fn.39">39</a></sup> The <code>collate</code>
 library controls the generation of features (including the imputation rules
 for each feature generated) using the time blocks generated by
 <code>timechop</code>. <code>Collate</code> helps the modeler create features based on
@@ -4788,7 +4828,7 @@ feature_aggregations:
 
 
 <p>
-<code>feature_aggregations</code> is a <code>yaml</code> list<sup><a id="fnr.38" class="footref" href="#fn.38">38</a></sup> of <i>feature groups construction
+<code>feature_aggregations</code> is a <code>yaml</code> list<sup><a id="fnr.40" class="footref" href="#fn.40">40</a></sup> of <i>feature groups construction
 specification</i> or just <i>feature group</i>. A <i>feature group</i> is a way of grouping several features
 that share <code>intervals</code> and <code>groups</code>. <code>triage</code> requires the
 following configuration parameter for every <i>feature group</i>:
@@ -4831,7 +4871,7 @@ part of the query (<code>from_obj</code>) as well as the <code>GROUP BY</code> c
 
 <p>
 <code>triage</code> (<code>collate</code>) supports two types of objects to be aggregated:
-<code>aggregates</code> and <code>categoricals</code> (more on this one later)<sup><a id="fnr.39" class="footref" href="#fn.39">39</a></sup>. The
+<code>aggregates</code> and <code>categoricals</code> (more on this one later)<sup><a id="fnr.41" class="footref" href="#fn.41">41</a></sup>. The
 <code>aggregates</code> subsection represents a <code>yaml</code> list of <i>features</i> to be
 created. Each element on this represents a column (<code>quantity</code>, in the
 example, the whole row <code>*</code>) and an alias (<code>total</code>), defines the
@@ -4857,7 +4897,7 @@ group by
 
 <p>
 With the previous configuration <code>triage</code> will generate <b>1</b> feature
-with the following name:<sup><a id="fnr.40" class="footref" href="#fn.40">40</a></sup>
+with the following name:<sup><a id="fnr.42" class="footref" href="#fn.42">42</a></sup>
 </p>
 
 <ul class="org-ul">
@@ -5754,7 +5794,7 @@ This table has the two columns: <code>experiment_hash</code> and <code>config</c
 
 <p>
 <code>experiment_hash</code> contains the hash of the configuration file that we used for our
-<code>triage</code> run.<sup><a id="fnr.41" class="footref" href="#fn.41">41</a></sup> <code>config</code> that contains the configuration experiment file
+<code>triage</code> run.<sup><a id="fnr.43" class="footref" href="#fn.43">43</a></sup> <code>config</code> that contains the configuration experiment file
 that we used for our <code>triage</code> run, stored as <code>jsonb</code>.
 </p>
 
@@ -7074,8 +7114,8 @@ clean the <code>{test, train}_results</code> schemas and have a fresh start:
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-org95ebb02" class="outline-3">
-<h3 id="org95ebb02"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-org47bfae8" class="outline-3">
+<h3 id="org47bfae8"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7108,7 +7148,7 @@ these are all the facilities in Chicago.
 <p>
 What is the <i>probability distribution</i> of facilities that are at <b>risk</b> of
 fail a food inspection if they are inspected in the following period
-of time?<sup><a id="fnr.42" class="footref" href="#fn.42">42</a></sup>
+of time?<sup><a id="fnr.44" class="footref" href="#fn.44">44</a></sup>
 </p>
 
 <p>
@@ -7321,7 +7361,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="orgcc45343" class="figure">
+<div id="orgfab3847" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="Outcomes in the resource prioritazation problem." width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the <i>outcome</i> of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7331,8 +7371,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-orgf5abfb6" class="outline-3">
-<h3 id="orgf5abfb6"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org7bad1c4" class="outline-3">
+<h3 id="org7bad1c4"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -7489,7 +7529,7 @@ round in exactly one month (<code>test_durations = test_label_timespan =
 </p>
 
 <p>
-We will assume that the data is more or less stable<sup><a id="fnr.43" class="footref" href="#fn.43">43</a></sup>, at least for one
+We will assume that the data is more or less stable<sup><a id="fnr.45" class="footref" href="#fn.45">45</a></sup>, at least for one
 year, so <code>model_update_frequency</code> = <code>1 year.</code>
 </p>
 
@@ -7554,7 +7594,7 @@ experiment we will use the label <code>failed</code>, using the same query from 
 <p>
 It should be obvious, but let's state it anyway: We are only training
 in facilities that <b>were</b> inspected, but we will <b>test</b> our model in all
-the facilities in our cohort<sup><a id="fnr.44" class="footref" href="#fn.44">44</a></sup>. So, in the train matrices we will have
+the facilities in our cohort<sup><a id="fnr.46" class="footref" href="#fn.46">46</a></sup>. So, in the train matrices we will have
 only <code>0</code> and <code>1</code> as possible labels, but in the test matrices we will
 found <code>0</code>, <code>1</code> and <code>NULL</code>.
 </p>
@@ -7661,7 +7701,7 @@ requirement is that it respects the <code>sklearn</code> API.
 <p>
 Finally, we should define wich metrics we care about for evaluating our
 model. Here we will concentrate only in <code>precision</code> and <code>recall</code> at an
-specific value \(k\) <sup><a id="fnr.45" class="footref" href="#fn.45">45</a></sup>.
+specific value \(k\) <sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup>.
 </p>
 
 <p>
@@ -7694,7 +7734,7 @@ inspectors available.
 You should be warned that precision and recall at \(k\) in this setting
 is kind of ill-defined (because you will end with a lot of <code>NULL</code>
 labels, remember, only a few of facilities are inspected in each
-period)<sup><a id="fnr.46" class="footref" href="#fn.46">46</a></sup>.
+period)<sup><a id="fnr.48" class="footref" href="#fn.48">48</a></sup>.
 </p>
 
 <p>
@@ -7725,7 +7765,7 @@ If everything was ok, you should see an <code>Experiment validation ran to compl
 </p>
 
 <p>
-You can execute the experiment as<sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup>
+You can execute the experiment as<sup><a id="fnr.49" class="footref" href="#fn.49">49</a></sup>
 </p>
 
 <div class="org-src-container">
@@ -9231,7 +9271,7 @@ actually don't know if this is a correct prediction or not.
 
 <p>
 This is a <b>characteristic</b> of all the resource optimization problems:
-You do not have all the information about the elements in your system<sup><a id="fnr.48" class="footref" href="#fn.48">48</a></sup>.
+You do not have all the information about the elements in your system<sup><a id="fnr.50" class="footref" href="#fn.50">50</a></sup>.
 </p>
 
 <p>
@@ -9239,7 +9279,7 @@ So, how the precision/recall is calculated? The number that is show in
 the <code>evaluations</code> table is calculated using only the rows that have a
 non-null label. You could argue that this is fine, if you assume that
 the distribution of the label in the non-observed facilities is the
-same that the ones that were inspected that month<sup><a id="fnr.49" class="footref" href="#fn.49">49</a></sup>. We will come
+same that the ones that were inspected that month<sup><a id="fnr.51" class="footref" href="#fn.51">51</a></sup>. We will come
 back to this problem in the Early Warning problem.
 </p>
 
@@ -9958,7 +9998,7 @@ matter which you pick.</li>
 
 <p>
 The answers to questions like these may not be obvious up front. Let’s
-discuss an imaginary example, that will help to clarify this<sup><a id="fnr.50" class="footref" href="#fn.50">50</a></sup>
+discuss an imaginary example, that will help to clarify this<sup><a id="fnr.52" class="footref" href="#fn.52">52</a></sup>
 </p>
 
 <p width="800" height="800">
@@ -10157,8 +10197,8 @@ just to generate your predictions list).
 </div>
 
 
-<div id="outline-container-org7650fe6" class="outline-3">
-<h3 id="org7650fe6"><span class="section-number-3">7.5</span> Filtering model groups</h3>
+<div id="outline-container-org647caea" class="outline-3">
+<h3 id="org647caea"><span class="section-number-3">7.5</span> Filtering model groups</h3>
 <div class="outline-text-3" id="text-7-5">
 <p>
 Most of the time, <code>audition</code> should be used in a iterative fashion, the result of
@@ -10215,8 +10255,8 @@ are ~18 percentual points below of the best.
 </div>
 </div>
 
-<div id="outline-container-org08ea672" class="outline-3">
-<h3 id="org08ea672"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
+<div id="outline-container-org8e03178" class="outline-3">
+<h3 id="org8e03178"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
 <div class="outline-text-3" id="text-7-6">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -10299,8 +10339,8 @@ groups selected by <code>audition</code>, using the <i>Postmodeling</i> tool set
 </div>
 
 
-<div id="outline-container-orgbb419d6" class="outline-3">
-<h3 id="orgbb419d6"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-org3f1a0ea" class="outline-3">
+<h3 id="org3f1a0ea"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-7-7">
 <p>
 <i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)
@@ -10364,7 +10404,7 @@ Hence, to do the following part of the tutorial, you need to run
 </p>
 
 <p>
-And then in your browser type<sup><a id="fnr.51" class="footref" href="#fn.51">51</a></sup>: <a href="http://0.0.0.0:56406">http://0.0.0.0:56406</a>
+And then in your browser type<sup><a id="fnr.53" class="footref" href="#fn.53">53</a></sup>: <a href="http://0.0.0.0:56406">http://0.0.0.0:56406</a>
 </p>
 
 
@@ -10449,8 +10489,8 @@ The plot will shows the overlap of the predicted list containing the
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-org47bfae8" class="outline-3">
-<h3 id="org47bfae8"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-orgd8de478" class="outline-3">
+<h3 id="orgd8de478"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -10499,7 +10539,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orgfab3847" class="figure">
+<div id="org51d046a" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 27: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -10615,8 +10655,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org7bad1c4" class="outline-3">
-<h3 id="org7bad1c4"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgf8cef19" class="outline-3">
+<h3 id="orgf8cef19"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -11412,8 +11452,8 @@ just to generate your list).
 </p>
 </div>
 
-<div id="outline-container-org647caea" class="outline-4">
-<h4 id="org647caea"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
+<div id="outline-container-org9cf6317" class="outline-4">
+<h4 id="org9cf6317"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
 <div class="outline-text-4" id="text-8-4-1">
 <p>
 <code>Audition</code> will generate two plots that are meant to be used together:
@@ -11437,8 +11477,8 @@ just to generate your list).
 </div>
 </div>
 
-<div id="outline-container-org8e03178" class="outline-4">
-<h4 id="org8e03178"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
+<div id="outline-container-orgab639eb" class="outline-4">
+<h4 id="orgab639eb"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
 <div class="outline-text-4" id="text-8-4-2">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -11498,8 +11538,8 @@ As before, the best <b>3</b> <i>model groups</i> per strategy will be stored in 
 </div>
 
 
-<div id="outline-container-org3f1a0ea" class="outline-3">
-<h3 id="org3f1a0ea"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-org220643d" class="outline-3">
+<h3 id="org220643d"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-8-5">
 <p>
 Given that almost all the strategies perform well, we will change the
@@ -12390,11 +12430,11 @@ You'll probably get a different number because the data are updated every day.
 
 <div class="footdef"><sup><a id="fn.12" class="footnum" href="#fnr.12">12</a></sup> <div class="footpara"><p class="footpara">
 If you want to try different columns (or you don't remember
-which columns try <code>\d raw.inspectios</code>
+which columns try <code>\d raw.inspectios</code> first
 </p></div></div>
 
 <div class="footdef"><sup><a id="fn.13" class="footnum" href="#fnr.13">13</a></sup> <div class="footpara"><p class="footpara">
-We are following the <a href="https://en.wikipedia.org/wiki/Event_(relativity)">event's definition from /physics</a>/: "an event
+We are following the <a href="https://en.wikipedia.org/wiki/Event_(relativity)">event's definition from physics</a>: "an event
 is the instantaneous physical situation or occurrence associated with
 a point in spacetime"
 </p></div></div>
@@ -12455,69 +12495,77 @@ Almost. At least good for this tutorial. Look carefully.
 </p></div></div>
 
 <div class="footdef"><sup><a id="fn.26" class="footnum" href="#fnr.26">26</a></sup> <div class="footpara"><p class="footpara">
+<b>ALWAYS</b> add indexes to your tables!
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.27" class="footnum" href="#fnr.27">27</a></sup> <div class="footpara"><p class="footpara">
 If you want to have a deep explanation about why is this good
 check <a href="http://coussej.github.io/2016/01/14/Replacing-EAV-with-JSONB-in-PostgreSQL/">this blog post</a>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.27" class="footnum" href="#fnr.27">27</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.28" class="footnum" href="#fnr.28">28</a></sup> <div class="footpara"><p class="footpara">
 As a general rule I hate to add the suffix <code>_id</code>, I would
 rather prefer to name them as <code>event</code> and <code>entity</code> instead of
 <code>event_id</code> and <code>entity_id</code>. But <code>triage</code> named those columns in that
 way and for that we are stuck with that nomenclature.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.28" class="footnum" href="#fnr.28">28</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.29" class="footnum" href="#fnr.29">29</a></sup> <div class="footpara"><p class="footpara">
 This will simplify the creation of <i>features</i> for our machine learning models.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.29" class="footnum" href="#fnr.29">29</a></sup> <div class="footpara"><p class="footpara">
-<i>Would be my restaurant inspected in the following month?</i> in the case of an <b>early warning</b> case.
-</p></div></div>
-
 <div class="footdef"><sup><a id="fn.30" class="footnum" href="#fnr.30">30</a></sup> <div class="footpara"><p class="footpara">
-It's a little more complicated than that as we will see.
+<a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Defined</a> by John Tukey as: <i>Procedures for analyzing data, techniques for interpreting the results of such procedures, ways of planning the gathering of data to make its analysis easier, more precise or more accurate, and all the machinery and results of (mathematical) statistics which apply to analyzing data.</i>
 </p></div></div>
 
 <div class="footdef"><sup><a id="fn.31" class="footnum" href="#fnr.31">31</a></sup> <div class="footpara"><p class="footpara">
+<i>Would be my restaurant inspected in the following month?</i> in the case of an <b>early warning</b> case.
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.32" class="footnum" href="#fnr.32">32</a></sup> <div class="footpara"><p class="footpara">
+It's a little more complicated than that as we will see.
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.33" class="footnum" href="#fnr.33">33</a></sup> <div class="footpara"><p class="footpara">
 All events produce some <i>outcome</i>. In theory <b>every</b> event of
 interest in stored in a database. These events are <i>immutable</i>: you
 can't (shouldn't) change them (they already happen).
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.32" class="footnum" href="#fnr.32">32</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.34" class="footnum" href="#fnr.34">34</a></sup> <div class="footpara"><p class="footpara">
 We could consider different states, for example: we can use the column
 <code>risk</code> as an state. Another possibility is define a new state called
 <code>failed</code> that indicates if the facility failed in the last time it was
 inspected. One more: you could create cohorts based on the <code>facility_type.</code>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.33" class="footnum" href="#fnr.33">33</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.35" class="footnum" href="#fnr.35">35</a></sup> <div class="footpara"><p class="footpara">
 The city in this toy example has very low resources.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.34" class="footnum" href="#fnr.34">34</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.36" class="footnum" href="#fnr.36">36</a></sup> <div class="footpara"><p class="footpara">
 See for example: <a href="https://robjhyndman.com/hyndsight/tscv/">https://robjhyndman.com/hyndsight/tscv/</a>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.35" class="footnum" href="#fnr.35">35</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.37" class="footnum" href="#fnr.37">37</a></sup> <div class="footpara"><p class="footpara">
 I know, I know. And in order to cover all the cases, we are still
 missing one or two parameters, but we are working on it.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.36" class="footnum" href="#fnr.36">36</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.38" class="footnum" href="#fnr.38">38</a></sup> <div class="footpara"><p class="footpara">
 Obscure reference to the "The Last Airbender" cartoon series. I'm sorry.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.37" class="footnum" href="#fnr.37">37</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.39" class="footnum" href="#fnr.39">39</a></sup> <div class="footpara"><p class="footpara">
 <code>collate</code> is to <i>feature generation</i> what <code>timechop</code> is to
 <i>date temporal splitting</i>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.38" class="footnum" href="#fnr.38">38</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.40" class="footnum" href="#fnr.40">40</a></sup> <div class="footpara"><p class="footpara">
 <code>triage</code> uses <b>a lot</b> of <code>yaml</code>, <a href="https://github.com/Animosity/CraftIRC/wiki/Complete-idiot%27s-introduction-to-yaml">this guide</a> could be handy
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.39" class="footnum" href="#fnr.39">39</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.41" class="footnum" href="#fnr.41">41</a></sup> <div class="footpara"><p class="footpara">
 Note that the name <code>categoricals</code> is confusing here: The
 original variable (i.e. a column) is categorical, the aggregate of
 that column is not. The same with the <code>aggregates</code>: The original column
@@ -12527,32 +12575,32 @@ applies an aggregate that will be numeric. That is how triage named
 things, and yes, I know is confusing.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.40" class="footnum" href="#fnr.40">40</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.42" class="footnum" href="#fnr.42">42</a></sup> <div class="footpara"><p class="footpara">
 <code>triage</code> will generate also a new binary column that indicates if the
 value of the feature was imputed (<code>1</code>) or not (<code>0</code>): <code>inspections_entity_id_6month_total_count_imp</code>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.41" class="footnum" href="#fnr.41">41</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.43" class="footnum" href="#fnr.43">43</a></sup> <div class="footpara"><p class="footpara">
 Literally from the configuration file. If you modify something it will generate a new hash. Handle with care!
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.42" class="footnum" href="#fnr.42">42</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.44" class="footnum" href="#fnr.44">44</a></sup> <div class="footpara"><p class="footpara">
 If you assume a <i>uniform</i> distribution, it will make sense to
 select facilities at random.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.43" class="footnum" href="#fnr.43">43</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.45" class="footnum" href="#fnr.45">45</a></sup> <div class="footpara"><p class="footpara">
 You need to check this! Fortunately, <code>triage</code> allows you to try
 several options here, so, if you think that this is too high or too
 low you can change that and fit your needs.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.44" class="footnum" href="#fnr.44">44</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.46" class="footnum" href="#fnr.46">46</a></sup> <div class="footpara"><p class="footpara">
 Think about it: we <b>can’t</b> learn the relationship between the
 <i>features</i> and the <i>label</i> if we <b>ignore</b> the label.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.45" class="footnum" href="#fnr.45">45</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.47" class="footnum" href="#fnr.47">47</a></sup> <div class="footpara"><p class="footpara">
 The formulas are, for <code>precision@k</code>, is the proportion of
 facilities correctly identified in the top-\(k\) facilities ranked by risk:
 </p>
@@ -12587,11 +12635,11 @@ One possible variation of this is to <b>only</b> include in the denominator
 the <i>labeled</i> rows in \(k\). This the one used by <code>triage</code>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.46" class="footnum" href="#fnr.46">46</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.48" class="footnum" href="#fnr.48">48</a></sup> <div class="footpara"><p class="footpara">
 We will explore how to one way to tackle this in the advance part of this tutorial.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.47" class="footnum" href="#fnr.47">47</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.49" class="footnum" href="#fnr.49">49</a></sup> <div class="footpara"><p class="footpara">
 The flags <code>-no-save-predictions</code> and <code>profile</code> are not necessary
 but useful. The first one configure triage to not store the
 predictions (at this stage you don't need them, and you can always
@@ -12601,7 +12649,7 @@ in a file, so you can check which models or matrices are taking a lot
 of time on been built.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.48" class="footnum" href="#fnr.48">48</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.50" class="footnum" href="#fnr.50">50</a></sup> <div class="footpara"><p class="footpara">
 From a more mathematical point of view: Your data actually
 reflects the empirical probability: \(P(violation|inspected)\), i.e. the
 probability of find a violation given that the facility is
@@ -12610,18 +12658,18 @@ know that there are no such things as unconditional probabilities,
 please bare with me),i.e. the probability that the facility is in violation.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.49" class="footnum" href="#fnr.49">49</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.51" class="footnum" href="#fnr.51">51</a></sup> <div class="footpara"><p class="footpara">
 You should see that this assumption is very dangerous in other
 settings, for example, crime prediction.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.50" class="footnum" href="#fnr.50">50</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.52" class="footnum" href="#fnr.52">52</a></sup> <div class="footpara"><p class="footpara">
 The discussion was <del>taken</del> stolen from <a href="https://dssg.uchicago.edu/2017/07/14/data-driven-inspections-for-safer-housing-in-san-jose-california/">Data-Driven Inspections for Safer
 Housing in San Jose, California</a> (Kit Rodolfa, Jane Zanzig 2016) Great
 read by the way!
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.51" class="footnum" href="#fnr.51">51</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.53" class="footnum" href="#fnr.53">53</a></sup> <div class="footpara"><p class="footpara">
 This assumes that you are in a GNU/Linux machine, if not (you
 should reconsider what are you doing with your life) you should change
 the ip address (<code>0.0.0.0</code>) and use the one from the docker virtual machine.
@@ -12632,7 +12680,7 @@ the ip address (<code>0.0.0.0</code>) and use the one from the docker virtual ma
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-03-27 mié 10:50</p>
+<p class="date">Created: 2019-03-27 mié 13:52</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

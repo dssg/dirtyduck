@@ -139,7 +139,7 @@
    food_db   docker-entrypoint.sh postgres   Up      0.0.0.0:5434->5432/tcp
    #+END_SRC
 
-   To access the =postgresql= client type:
+   To access =bastion=, where the =postgresql= client is, type:
 
    #+BEGIN_SRC sh :eval never
    ./tutorial.sh bastion
@@ -159,7 +159,7 @@
    psql ${DATABASE_URL}
    #+END_SRC
 
-   The prompt will change again to
+   The prompt will change again to (or something /very/ similar):
 
 #+BEGIN_EXAMPLE shell
    psql (9.6.7, server 10.2 (Debian 10.2-1.pgdg90+1))

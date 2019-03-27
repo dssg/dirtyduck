@@ -270,19 +270,19 @@ What about =types= of inspections?
 
 #+BEGIN_SRC sql
   select
-      count(distinct type) as "number of inspections"
+      count(distinct type) as "types of inspections"
   from
       raw.inspections;
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| number of inspections |
-|-----------------------|
-|                   108 |
+| types of inspections |
+|----------------------|
+|                  108 |
 :END:
 
-Wow, there are *108* types of inspections instead of the (expected) *5*!
+Wow, there are *108* types of inspections instead of the expected *5*!
 
 What are those types? How bad is it?
 
@@ -445,7 +445,7 @@ Zip code has a similar =NULL= problem:
 
 #+BEGIN_SRC sql
 select
-    count(*) as "number of inspections"
+    count(*) as "number of inspections w/o zip code"
 from
     raw.inspections
 where
@@ -454,9 +454,9 @@ where
 
 #+RESULTS:
 :RESULTS:
-| number of inspections |
-|-----------------------|
-|                    75 |
+| number of inspections w/o zip code |
+|------------------------------------|
+|                                 75 |
 :END:
 
 We could attempt to replace these =NULL= values using the location point or
@@ -556,7 +556,7 @@ from cleaned.inspections;
 | 181,546               |
 :END:
 
-Note that  quantity is smaller  is smaller than the one from
+Note that  quantity is smaller than the one from
 =raw.inspections=,
 since we throw away some inspections.
 
@@ -651,7 +651,7 @@ We will create a new table called =cleaned.violations= to store
 #+RESULTS:
 
 This code is in =/sql/create_violations_table.sql=. You can execute
- it with psql's -f option, as before.
+ it with psql's =-f= option, as before.
 
 We can verify the result of the previous script
 
@@ -973,7 +973,7 @@ from
 | 36,910   |
 :END:
 
-We will add some indexes to this table:
+We will add some indexes to this table[fn:19]:
 
 #+BEGIN_SRC sql :tangle ./sql/create_semantic_tables.sql :async
 create index entities_ix on semantic.entities (entity_id);
@@ -1016,9 +1016,9 @@ create table semantic.events as (
                 jsonb_build_object(
                     'code', v.code,
                     'severity', v.severity,
-	                'description', v.description,
-	                'comment', v.comment
-	                )
+	            'description', v.description,
+	            'comment', v.comment
+	            )
             order  by code
                 ) as violations
         from
@@ -1107,6 +1107,15 @@ Now that we have our data in a good shape, we are ready to use *Triage*.
 
 ** Let's EDA ...
 
+It is always a good idea to do some /Exploratory Data Analysis[fn:20]/ or *EDA*
+for short. This will help us to learn more about the dynamics of the
+entities or the inspections.
+
+We will generate a few plots, just to know:
+- how many entities/events are every month?
+- how many entities/events ended in a failed state every month? and,
+- how many entities/events have in a critical violation in a failed inspection?
+
 #+BEGIN_SRC ipython :exports none
 %matplotlib inline
 import numpy as np
@@ -1131,6 +1140,8 @@ engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:
 
 *** Inspections over time
 
+First, we will try the answer the question: /how many inspections are realized every month?/
+
 #+BEGIN_SRC ipython :ipyfile ./images/inspections_over_time.png :results silent :exports none
 
 df = pd.read_sql("""
@@ -1154,11 +1165,17 @@ plt.title("Number of inspections over time")
 plt.xlim(0, n_months);
 #+END_SRC
 
+#+CAPTION: Number of inspections per month across our whole dataset
 [[./images/inspections_over_time.png]]
 
 
-
 *** Number of facilities /inspected/ over time
+
+The previous plot was about the number of /events/ every month, now we
+will plot how many /entities/ are acted every month.
+
+One question, that is useful to answer is: Are there facilities that
+are inspected more than once in a month?
 
 #+BEGIN_QUOTE
 We are doing an emphasis in /inspected/ since our data set doesn't
@@ -1187,42 +1204,13 @@ plt.title("Facilities inspected over time")
 plt.xlim(0, n_months);
 #+END_SRC
 
+#+CAPTION: Number of unique facilities inspected every month.
 [[./images/facilities_inspected_over_time.png]]
-
-*** Number of facilities with failed inspections over time
-
-Now let's see the behavior of the /outcomes/ of the inspection across
-time. First just if the inspection failed
-
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_inspections_failed_over_time.png :results silent :exports none
-df = pd.read_sql(
-    """
-    select
-    date_trunc('month', date) as month,
-    count(distinct entity_id) as cnt
-    from semantic.events
-    where
-    date > '2010-01-01'
-    and result = 'fail'
-    group by 1
-    order by 1 asc
-    """,
-    engine)
-
-plt.figure(figsize=(12.5, 3.5))
-
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count")
-plt.title("Facilities with failed inspections over time")
-plt.xlim(0, n_months);
-#+END_SRC
-
-[[./images/facilities_with_inspections_failed_over_time.png]]
 
 *** Number of failed inspections over time
 
+What is the proportion of inspections every month that actually end in
+a failed inspection?
 
 #+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_over_time.png :results silent :exports none
 df = pd.read_sql(
@@ -1250,6 +1238,39 @@ plt.xlim(0, n_months);
 #+END_SRC
 
 [[./images/failed_inspections_over_time.png]]
+
+*** Number of facilities with failed inspections over time
+
+Now let's see the behavior of the /outcomes/ of the inspection across
+time. First just if the inspection failed.
+
+#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_inspections_failed_over_time.png :results silent :exports none
+df = pd.read_sql(
+    """
+    select
+    date_trunc('month', date) as month,
+    count(distinct entity_id) as cnt
+    from semantic.events
+    where
+    date > '2010-01-01'
+    and result = 'fail'
+    group by 1
+    order by 1 asc
+    """,
+    engine)
+
+plt.figure(figsize=(12.5, 3.5))
+
+n_months = len(df.cnt)
+plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
+plt.xlabel("Time (months)")
+plt.ylabel("count")
+plt.title("Facilities with failed inspections over time")
+plt.xlim(0, n_months);
+#+END_SRC
+
+#+CAPTION: Number of unique facilities with failed inspections every month.
+[[./images/facilities_with_inspections_failed_over_time.png]]
 
 *** Number of severe violations found in a failed inspection over time
 
@@ -1291,7 +1312,7 @@ df = pd.read_sql(
     """
     select
     date_trunc('month', date) as month,
-    count(*) as cnt
+    count(distinct entity_id) as cnt
     from semantic.events
     where
     date > '2010-01-01'
@@ -1314,8 +1335,14 @@ plt.xlim(0, n_months);
 
 [[./images/facilities_with_failed_inspections_severe_violations_over_time.png]]
 
+This few plots give us a sense of how the data behaves and will help
+us in detect weird bugs or model-behavior later.
 
 * Footnotes
+
+[fn:20] [[https://en.wikipedia.org/wiki/Exploratory_data_analysis][Defined]] by John Tukey as: /Procedures for analyzing data, techniques for interpreting the results of such procedures, ways of planning the gathering of data to make its analysis easier, more precise or more accurate, and all the machinery and results of (mathematical) statistics which apply to analyzing data./
+
+[fn:19] *ALWAYS* add indexes to your tables!
 
 [fn:3] Almost. At least good for this tutorial. Look carefully.
 
@@ -1331,12 +1358,12 @@ postgresql: =point= (https://www.postgresql.org/docs/10/datatype-geometric.html)
 
 [fn:14] A controversial decision, I know.
 
-[fn:4] We are following the [[https://en.wikipedia.org/wiki/Event_(relativity)][event's definition from /physics]]/: "an event
+[fn:4] We are following the [[https://en.wikipedia.org/wiki/Event_(relativity)][event's definition from physics]]: "an event
 is the instantaneous physical situation or occurrence associated with
 a point in spacetime"
 
 [fn:2] If you want to try different columns (or you don't remember
-which columns try =\d raw.inspectios=
+which columns try =\d raw.inspectios= first
 
 [fn:13] As a general rule I hate to add the suffix =_id=, I would
 rather prefer to name them as =event= and =entity= instead of
