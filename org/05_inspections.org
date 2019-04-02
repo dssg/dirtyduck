@@ -37,30 +37,10 @@ Which X facilities are most likely to fail a food inspection in the
   following Y period of time?
 #+end_quote
 
-This situation is very common in governmental agencies that provide
-social services: /they need to prioritize their resources and use them in the facilities that are most likely to have problems/
-
-There are almost 40,000 entities in our database. Let’s assume that
-these are all the facilities in Chicago.
-
-What is the /probability distribution/ of facilities that are at *risk* of
+A more technical way of writing the question is: What is the
+/probability distribution/ of facilities that are at *risk* of
 fail a food inspection if they are inspected in the following period
 of time?[fn:7]
-
-We will use Machine Learning to accomplish this. This means that we
-will use /historical/ data to train our models, and we will use temporal
-cross validation to test the performance of them.
-
-Note that our data have bias: We only have data on facilities
-that /were/ inspected. That means that our data set contains information
-about the probability of have a violation ($V$) given that the
-facility was inspected ($I$), $P(V|I)$.
-
-But the probability that we try to find is $P(V)$.
-
-
-We will set this prediction task as a binary classification
-
 
 If you want to focus on major violations only, you can do that too:
 
@@ -68,6 +48,31 @@ If you want to focus on major violations only, you can do that too:
 Which X facilities are most likely to have a critical or serious
   violation in the following Y period of time?
 #+end_quote
+
+This situation is very common in governmental agencies that provide
+social services: /they need to prioritize their resources and use them in the facilities that are most likely to have problems/
+
+We will use Machine Learning to accomplish this. This means that we
+will use /historical/ data to train our models, and we will use temporal
+cross validation to test the performance of them.
+
+For the *resource prioritization* problems there are commonly two
+problems with the data: (a) bias and (b) incompleteness.
+
+First, note that our data have bias: We only have data on facilities
+that /were/ inspected. That means that our data set contains information
+about the probability of have a violation ($V$) given that the
+facility was inspected ($I$), $P(V|I)$. But the probability that we
+try to find is $P(V)$.
+
+A different problem that our data set could have is if our dataset
+contains *all* the facilities in Chicago, i.e. if our /entities/ table
+represents the Universe of facilities. There are almost 40,000
+entities in our database. We could make the
+case that *every* facility in Chicago is in the database, since *every*
+facility that opens will be subject to an inspection. We will assume
+that *all* the facilities are in our data.
+
 
 
 ** Creating the labels
@@ -157,10 +162,10 @@ configuration file.
 As a first step, lets do an experiment that defines our
 /baseline/. The rationale of this is that the knowing the /baseline/ will
 allow us to verify if our Machine Learning model is better than the
-baseline.  It is also very fast to train ( =DummyClassifier= is not
+baseline[fn:11].  It is also very fast to train ( =DummyClassifier= is not
 computationally expensive, so it will
 help us to verify that the experiment configuration is correct without
-waiting for a long time)
+waiting for a long time).
 
 We need to write the experiment config file for that. Let's break it
 down and explain the sections.
@@ -321,7 +326,7 @@ found =0=, =1= and =NULL=.
 In the section regarding to /Early Warning Systems/ we will learn how to
 incorporate /all/ the facilities of the cohort in the train matrices.
 
-We just want to include *active* facilities in our matrices, so we tell
+We just want to include *active* facilities[fn:12] in our matrices, so we tell
 =triage= to take that in account:
 
 #+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_baseline.yaml
@@ -438,10 +443,10 @@ period)[fn:2].
 
 We will want a *list* of facilities to
 be inspected. The length of our list is constrained by our inspection
-resources, i.e. the answer to the question /How many facilities can I
-inpect in a month?/ In this experiment we are assuming that the
-maximum capacity is *50* but we are testing also for a list of length
-*5*, and *10* (see =top_n= above).
+resources, i.e. the answer to the question /How many facilities can I inspect in a month?/
+In this experiment we are assuming that the
+maximum capacity is *10%* but we are evaluating for a larger space of
+possibilities (see =top_n=, =percentiles= above).
 
 The execution of the experiments can take a long time, so it is a
 good practice to /validate/ the configuration file /before/ running
@@ -631,6 +636,8 @@ trained with the matrix =train_matrix_uuid=
 What's the performance of this model groups?
 
 #+BEGIN_SRC  sql
+\set k 0.1
+
 select distinct
     model_group_id,
     model_id,
@@ -639,11 +646,14 @@ select distinct
     ev.evaluation_start_time::date,
     ev.evaluation_end_time::date,
     to_char(ma.num_observations, '999,999') as observations,
-    to_char(ev.num_labeled_examples, '999,999') as labeled_examples,
-    to_char(ev.num_labeled_above_threshold, '999,999') as labeled_above_threshold,
-    to_char(ev.num_positive_labels, '999,999') as total_positive_labels,
-    to_char(ev.num_positive_labels*1.0 / ma.num_observations, '0.999') as baserate,
-    to_char(ev.value, '0.999') as "precision@100%"
+    to_char(ev.num_labeled_examples, '999,999') as "total labeled examples",
+    to_char(ev.num_positive_labels, '999,999') as "total positive labels",
+    to_char(ev.num_positive_labels*1.0 / ev.num_labeled_examples, '0.999') as baserate,
+    :k * 100 as "k%",
+    to_char(ev.num_labeled_above_threshold, '999,999') as "labeled examples @ 10%",
+    to_char(:k * ma.num_observations, '999,999') as "predicted positive (PP) @ 10%",
+    to_char(ev.value * ev.num_labeled_above_threshold, '999,999') as "true positive (TP) @ 10%",
+    to_char(ev.value, '0.999') as "precision@10%"
 from
     model_metadata.models as mo
     join
@@ -651,25 +661,27 @@ from
     join
     model_metadata.matrices as ma on ev.matrix_uuid = ma.matrix_uuid
 where
-    ev.metric || ev.parameter = 'precision@100_pct'
+    ev.metric || ev.parameter = 'precision@10_pct'
 order by
-    train_end_time asc, model_group_id;
+    model_id, train_end_time asc;
+
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_id | feature_start_time | train_end_time | evaluation_start_time | evaluation_end_time | observations | labeled_examples | labeled_above_threshold | total_positive_labels | baserate | precision@100% |
-|--------------+---------+------------------+--------------+---------------------+-------------------+--------------+-----------------+-----------------------+---------------------+----------+----------------|
-|            1 |       1 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389           | 8,389                 | 2,326               |    0.033 |          0.277 |
-|            2 |       2 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389           | 8,389                 | 2,326               |    0.033 |          0.277 |
-|            3 |       3 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389           | 8,389                 | 2,326               |    0.033 |          0.277 |
-|            1 |       4 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756           | 7,756                 | 2,077               |    0.031 |          0.268 |
-|            2 |       5 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756           | 7,756                 | 2,077               |    0.031 |          0.268 |
-|            3 |       6 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756           | 7,756                 | 2,077               |    0.031 |          0.268 |
-|            1 |       7 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619           | 5,619                 | 1,462               |    0.024 |          0.260 |
-|            2 |       8 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619           | 5,619                 | 1,462               |    0.024 |          0.260 |
-|            3 |       9 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619           | 5,619                 | 1,462               |    0.024 |          0.260 |
+| model_group_id | model_id | feature_start_time | train_end_time | evaluation_start_time | evaluation_end_time | observations | total labeled examples | total positive labels | baserate |   k% | labeled examples @ 10% | predicted positive (PP) @ 10% | true positive (TP) @ 10% | precision@10% |
+|--------------+---------+------------------+--------------+---------------------+-------------------+--------------+------------------------+-----------------------+----------+------+------------------------+-------------------------------+--------------------------+---------------|
+|            1 |       1 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389                  | 2,326                 |    0.277 | 10.0 |                    824 | 6,947                         |                      243 |         0.295 |
+|            2 |       2 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389                  | 2,326                 |    0.277 | 10.0 |                    824 | 6,947                         |                      243 |         0.295 |
+|            3 |       3 |       2010-01-04 |   2015-12-01 |          2015-12-01 |        2016-11-01 | 69,472       | 8,389                  | 2,326                 |    0.277 | 10.0 |                    824 | 6,947                         |                      243 |         0.295 |
+|            1 |       4 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756                  | 2,077                 |    0.268 | 10.0 |                    811 | 6,628                         |                      196 |         0.242 |
+|            2 |       5 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756                  | 2,077                 |    0.268 | 10.0 |                    811 | 6,628                         |                      196 |         0.242 |
+|            3 |       6 |       2010-01-04 |   2016-12-01 |          2016-12-01 |        2017-11-01 | 66,275       | 7,756                  | 2,077                 |    0.268 | 10.0 |                    811 | 6,628                         |                      196 |         0.242 |
+|            1 |       7 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619                  | 1,462                 |    0.260 | 10.0 |                    546 | 6,219                         |                      137 |         0.251 |
+|            2 |       8 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619                  | 1,462                 |    0.260 | 10.0 |                    546 | 6,219                         |                      137 |         0.251 |
+|            3 |       9 |       2010-01-04 |   2017-12-01 |          2017-12-01 |        2018-11-01 | 62,194       | 5,619                  | 1,462                 |    0.260 | 10.0 |                    546 | 6,219                         |                      137 |         0.251 |
 :END:
+
 
 The columns =num_labeled_examples, num_labeled_above_threshold,
 num_positive_labels= represent the number of selected entities on the
@@ -678,11 +690,23 @@ number of entities with a positive label above the threshold, and the
 number of entities with positive labels among all the
 labeled entities  respectively.
 
+We added some extra columns: =baserate=, ==predicted positive (PP)= and
+=true positive (TP)=. /Baserate/ represents the proportion of the all the
+facilities that were inspected that failed the inspection,
+i.e. $P(V|I)$. The =PP= and =TP= are approximate since it were calculated
+using the value of $k$. But you could get the exact value of those
+from the =test_results.predictions= table.
+
+#+BEGIN_QUOTE
+Note that the /baserate/ should be equal to the /precision@100%/, if is
+not there is something wrong …
+#+END_QUOTE
+
 *** Creating a simple experiment: ML as a Data Mining technique
 
-For the first experiment we will try one of the simplest
-machine learning algorithms: a *Decision Tree Classifier* (/DT/)
-The rationale of this is that the DT is very fast to train (so it will
+We will try one of the simplest
+machine learning algorithms: a *Decision Tree Classifier* (/DT/) as a
+second experiment. The rationale of this is that the DT is very fast to train (so it will
 help us to verify that the experiment configuration is correct without
 waiting for a long time) and it helps you
 to understand the structure of your data.
@@ -900,8 +924,10 @@ feature_aggregations:
 
 #+END_SRC
 
-And as stated, we will train some Decision Trees
-
+And as stated, we will train some Decision Trees, in particular we
+are interested in a shallow tree, and in a full grown tree. Both trees
+will show you the structure of your data. We also we train a middle
+size tree.
 
 #+BEGIN_SRC yaml :tangle ../triage/experiments/inspections_dt.yaml
 grid_config:
@@ -1064,10 +1090,15 @@ select
     array_agg(to_char(ev.value, '0.999') order by ev.evaluation_start_time asc) as "precision@10%"
 from
     model_metadata.models as mo
-    join
-    test_results.evaluations as ev using(model_id)
+    inner join
+    model_metadata.model_groups as mg using(model_group_id)
+    inner join
+    test_results.evaluations  as ev using(model_id)
 where
-    ev.metric || ev.parameter = 'precision@10_pct'
+     mg.model_config ->> 'experiment_type' ~ 'inspection'
+     and
+     ev.metric||ev.parameter = 'precision@10_pct'
+     and model_group_id <= 9
 group by
     model_group_id
 #+END_SRC
@@ -1086,7 +1117,6 @@ group by
 |            8 | {14,20,26} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     766","     743","     508"} | {"   2,326","   2,077","   1,462"} | {" 0.343"," 0.328"," 0.274"} |
 |            9 | {15,21,27} | {2015-12-01,2016-12-01,2017-12-01} | {2016-11-01,2017-11-01,2018-11-01} | {"   8,389","   7,756","   5,619"} | {"     773","     809","     513"} | {"   2,326","   2,077","   1,462"} | {" 0.347"," 0.326"," 0.285"} |
 :END:
-
 
 Which model in production (/model selection/) is something that we will
 review later, with =Audition=, but for now, let's choose the model group
@@ -1460,9 +1490,8 @@ select
     model_type,
     hyperparameters,
     feature_groups,
-    array_agg(model_id order by train_end_time asc) as models,
-    array_agg(train_end_time::date order by train_end_time asc) as times,
-    array_agg(to_char(value, '0.999') order by train_end_time asc) as "precision@10%"
+     array_agg(to_char(value, '0.999') order by train_end_time asc) filter (where metric = 'precision@') as "precision@10%",
+    array_agg(to_char(value, '0.999') order by train_end_time asc) filter (where metric = 'recall@') as "recall@10%"
 from
     model_metadata.models
     join
@@ -1471,8 +1500,8 @@ from
     test_results.evaluations using(model_id)
 where
     model_comment ~ 'inspection'
-    and
-    metric || parameter = 'precision@10_pct'
+and
+    parameter = '10_pct'
 group by
     model_group_id,
     model_type,
@@ -1484,53 +1513,53 @@ order by
 
 #+RESULTS:
 :RESULTS:
-| model_group_id | model_type                               | hyperparameters                                                                         | feature_groups                          | models      | times                              | precision@10%                |
-|--------------+-----------------------------------------+-----------------------------------------------------------------------------------------+----------------------------------------+-------------+------------------------------------+------------------------------|
-|            1 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                   | {inspections}                          | {1,4,7}     | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.242"," 0.251"} |
-|            2 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                 | {inspections}                          | {2,5,8}     | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.242"," 0.251"} |
-|            3 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                            | {inspections}                          | {3,6,9}     | {2015-12-01,2016-12-01,2017-12-01} | {" 0.295"," 0.242"," 0.251"} |
-|            4 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2, "min_samples_split": 2}                                                   | {inspection,inspections,results,risks} | {10,16,22}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.445"," 0.392"," 0.342"} |
-|            5 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2, "min_samples_split": 5}                                                   | {inspection,inspections,results,risks} | {11,17,23}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.445"," 0.392"," 0.342"} |
-|            6 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 10, "min_samples_split": 2}                                                  | {inspection,inspections,results,risks} | {12,18,24}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.337"," 0.325"," 0.347"} |
-|            7 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 10, "min_samples_split": 5}                                                  | {inspection,inspections,results,risks} | {13,19,25}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.347"," 0.286"," 0.346"} |
-|            8 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null, "min_samples_split": 2}                                                | {inspection,inspections,results,risks} | {14,20,26}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.343"," 0.328"," 0.274"} |
-|            9 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null, "min_samples_split": 5}                                                | {inspection,inspections,results,risks} | {15,21,27}  | {2015-12-01,2016-12-01,2017-12-01} | {" 0.347"," 0.326"," 0.285"} |
-|           10 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,results,risks} | {28,64,100} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.430"," 0.369"," 0.451"} |
-|           11 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,results,risks} | {29,65,101} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.453"," 0.403"," 0.470"} |
-|           12 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,results,risks} | {30,66,102} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.441"," 0.387"," 0.462"} |
-|           13 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,results,risks} | {31,67,103} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.456"," 0.383"," 0.469"} |
-|           14 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspections}                          | {32,68,104} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.342"," 0.310"," 0.285"} |
-|           15 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspections}                          | {33,69,105} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.342"," 0.310"," 0.283"} |
-|           16 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspections}                          | {34,70,106} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.342"," 0.310"," 0.297"} |
-|           17 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspections}                          | {35,71,107} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.341"," 0.310"," 0.295"} |
-|           18 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {results}                              | {36,72,108} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.359"," 0.330"," 0.389"} |
-|           19 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {results}                              | {37,73,109} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.368"," 0.326"," 0.380"} |
-|           20 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {results}                              | {38,74,110} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.390"," 0.361"," 0.395"} |
-|           21 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {results}                              | {39,75,111} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.394"," 0.351"," 0.413"} |
-|           22 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {risks}                                | {40,76,112} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.389"," 0.325"," 0.325"} |
-|           23 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {risks}                                | {41,77,113} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.391"," 0.331"," 0.362"} |
-|           24 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {risks}                                | {42,78,114} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.375"," 0.310"," 0.398"} |
-|           25 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {risks}                                | {43,79,115} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.405"," 0.325"," 0.384"} |
-|           26 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection}                           | {44,80,116} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.394"," 0.334"," 0.351"} |
-|           27 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection}                           | {45,81,117} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.374"," 0.330"," 0.352"} |
-|           28 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection}                           | {46,82,118} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.405"," 0.327"," 0.367"} |
-|           29 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection}                           | {47,83,119} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.416"," 0.319"," 0.384"} |
-|           30 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,results,risks}             | {48,84,120} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.446"," 0.380"," 0.441"} |
-|           31 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,results,risks}             | {49,85,121} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.448"," 0.385"," 0.433"} |
-|           32 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,results,risks}             | {50,86,122} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.440"," 0.394"," 0.483"} |
-|           33 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,results,risks}             | {51,87,123} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.447"," 0.393"," 0.473"} |
-|           34 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,risks}         | {52,88,124} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.391"," 0.342"," 0.348"} |
-|           35 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,risks}         | {53,89,125} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.422"," 0.330"," 0.357"} |
-|           36 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,risks}         | {54,90,126} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.411"," 0.341"," 0.365"} |
-|           37 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,risks}         | {55,91,127} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.420"," 0.331"," 0.391"} |
-|           38 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,results}       | {56,92,128} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.444"," 0.389"," 0.453"} |
-|           39 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,results}       | {57,93,129} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.443"," 0.407"," 0.466"} |
-|           40 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,results}       | {58,94,130} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.443"," 0.387"," 0.453"} |
-|           41 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,results}       | {59,95,131} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.456"," 0.391"," 0.484"} |
-|           42 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspections,results,risks}            | {60,96,132} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.434"," 0.374"," 0.446"} |
-|           43 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspections,results,risks}            | {61,97,133} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.436"," 0.384"," 0.459"} |
-|           44 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspections,results,risks}            | {62,98,134} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.433"," 0.374"," 0.464"} |
-|           45 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspections,results,risks}            | {63,99,135} | {2015-12-01,2016-12-01,2017-12-01} | {" 0.451"," 0.384"," 0.484"} |
+| model_group_id | model_type                               | hyperparameters                                                                         | feature_groups                          | precision@10%                | recall@10%                   |
+|--------------+-----------------------------------------+-----------------------------------------------------------------------------------------+----------------------------------------+------------------------------+------------------------------|
+|            1 | sklearn.dummy.DummyClassifier           | {"strategy": "prior"}                                                                   | {inspections}                          | {" 0.295"," 0.242"," 0.251"} | {" 0.104"," 0.094"," 0.094"} |
+|            2 | sklearn.dummy.DummyClassifier           | {"strategy": "uniform"}                                                                 | {inspections}                          | {" 0.295"," 0.242"," 0.251"} | {" 0.104"," 0.094"," 0.094"} |
+|            3 | sklearn.dummy.DummyClassifier           | {"strategy": "most_frequent"}                                                            | {inspections}                          | {" 0.295"," 0.242"," 0.251"} | {" 0.104"," 0.094"," 0.094"} |
+|            4 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2, "min_samples_split": 2}                                                   | {inspection,inspections,results,risks} | {" 0.445"," 0.392"," 0.342"} | {" 0.167"," 0.132"," 0.121"} |
+|            5 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 2, "min_samples_split": 5}                                                   | {inspection,inspections,results,risks} | {" 0.445"," 0.392"," 0.342"} | {" 0.167"," 0.132"," 0.121"} |
+|            6 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 10, "min_samples_split": 2}                                                  | {inspection,inspections,results,risks} | {" 0.337"," 0.325"," 0.347"} | {" 0.103"," 0.124"," 0.125"} |
+|            7 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": 10, "min_samples_split": 5}                                                  | {inspection,inspections,results,risks} | {" 0.347"," 0.286"," 0.346"} | {" 0.103"," 0.110"," 0.122"} |
+|            8 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null, "min_samples_split": 2}                                                | {inspection,inspections,results,risks} | {" 0.343"," 0.328"," 0.274"} | {" 0.113"," 0.117"," 0.095"} |
+|            9 | sklearn.tree.DecisionTreeClassifier     | {"max_depth": null, "min_samples_split": 5}                                                | {inspection,inspections,results,risks} | {" 0.347"," 0.326"," 0.285"} | {" 0.115"," 0.127"," 0.100"} |
+|           10 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,results,risks} | {" 0.430"," 0.369"," 0.451"} | {" 0.159"," 0.158"," 0.159"} |
+|           11 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,results,risks} | {" 0.453"," 0.403"," 0.470"} | {" 0.177"," 0.160"," 0.169"} |
+|           12 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,results,risks} | {" 0.441"," 0.387"," 0.462"} | {" 0.162"," 0.162"," 0.166"} |
+|           13 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,results,risks} | {" 0.456"," 0.383"," 0.469"} | {" 0.172"," 0.158"," 0.170"} |
+|           14 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspections}                          | {" 0.342"," 0.310"," 0.285"} | {" 0.155"," 0.126"," 0.123"} |
+|           15 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspections}                          | {" 0.342"," 0.310"," 0.283"} | {" 0.155"," 0.126"," 0.121"} |
+|           16 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspections}                          | {" 0.342"," 0.310"," 0.297"} | {" 0.155"," 0.126"," 0.128"} |
+|           17 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspections}                          | {" 0.341"," 0.310"," 0.295"} | {" 0.154"," 0.126"," 0.131"} |
+|           18 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {results}                              | {" 0.359"," 0.330"," 0.389"} | {" 0.130"," 0.119"," 0.133"} |
+|           19 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {results}                              | {" 0.368"," 0.326"," 0.380"} | {" 0.132"," 0.115"," 0.129"} |
+|           20 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {results}                              | {" 0.390"," 0.361"," 0.395"} | {" 0.149"," 0.142"," 0.149"} |
+|           21 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {results}                              | {" 0.394"," 0.351"," 0.413"} | {" 0.147"," 0.134"," 0.154"} |
+|           22 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {risks}                                | {" 0.389"," 0.325"," 0.325"} | {" 0.141"," 0.129"," 0.142"} |
+|           23 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {risks}                                | {" 0.391"," 0.331"," 0.362"} | {" 0.144"," 0.128"," 0.154"} |
+|           24 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {risks}                                | {" 0.375"," 0.310"," 0.398"} | {" 0.139"," 0.127"," 0.165"} |
+|           25 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {risks}                                | {" 0.405"," 0.325"," 0.384"} | {" 0.141"," 0.113"," 0.158"} |
+|           26 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection}                           | {" 0.394"," 0.334"," 0.351"} | {" 0.154"," 0.147"," 0.143"} |
+|           27 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection}                           | {" 0.374"," 0.330"," 0.352"} | {" 0.142"," 0.142"," 0.138"} |
+|           28 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection}                           | {" 0.405"," 0.327"," 0.367"} | {" 0.154"," 0.143"," 0.150"} |
+|           29 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection}                           | {" 0.416"," 0.319"," 0.384"} | {" 0.160"," 0.135"," 0.159"} |
+|           30 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,results,risks}             | {" 0.446"," 0.380"," 0.441"} | {" 0.160"," 0.156"," 0.157"} |
+|           31 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,results,risks}             | {" 0.448"," 0.385"," 0.433"} | {" 0.167"," 0.164"," 0.161"} |
+|           32 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,results,risks}             | {" 0.440"," 0.394"," 0.483"} | {" 0.160"," 0.161"," 0.177"} |
+|           33 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,results,risks}             | {" 0.447"," 0.393"," 0.473"} | {" 0.168"," 0.162"," 0.171"} |
+|           34 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,risks}         | {" 0.391"," 0.342"," 0.348"} | {" 0.138"," 0.146"," 0.139"} |
+|           35 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,risks}         | {" 0.422"," 0.330"," 0.357"} | {" 0.146"," 0.140"," 0.146"} |
+|           36 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,risks}         | {" 0.411"," 0.341"," 0.365"} | {" 0.145"," 0.144"," 0.155"} |
+|           37 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,risks}         | {" 0.420"," 0.331"," 0.391"} | {" 0.142"," 0.138"," 0.150"} |
+|           38 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspection,inspections,results}       | {" 0.444"," 0.389"," 0.453"} | {" 0.168"," 0.164"," 0.159"} |
+|           39 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspection,inspections,results}       | {" 0.443"," 0.407"," 0.466"} | {" 0.165"," 0.167"," 0.166"} |
+|           40 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspection,inspections,results}       | {" 0.443"," 0.387"," 0.453"} | {" 0.165"," 0.162"," 0.162"} |
+|           41 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspection,inspections,results}       | {" 0.456"," 0.391"," 0.484"} | {" 0.177"," 0.170"," 0.173"} |
+|           42 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 2}  | {inspections,results,risks}            | {" 0.434"," 0.374"," 0.446"} | {" 0.156"," 0.153"," 0.169"} |
+|           43 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2}  | {inspections,results,risks}            | {" 0.436"," 0.384"," 0.459"} | {" 0.165"," 0.159"," 0.174"} |
+|           44 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 100, "min_samples_split": 10} | {inspections,results,risks}            | {" 0.433"," 0.374"," 0.464"} | {" 0.159"," 0.150"," 0.179"} |
+|           45 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 10} | {inspections,results,risks}            | {" 0.451"," 0.384"," 0.484"} | {" 0.172"," 0.161"," 0.181"} |
 :END:
 
 This table summarizes all our experiments, but it is very difficult to
@@ -1563,8 +1592,7 @@ discuss an imaginary example, that will help to clarify this[fn:6]
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 800 :height 800
 #+ATTR_LATEX: :width 400 :height 300
-[[file:images/sanjose-2.png][Imaginary example]]
-
+[[file:images/sanjose-2.png]]
 
 The graphic above provides an imaginary example  with three three
 different /models groups/ on how they performed against
@@ -1632,15 +1660,17 @@ model group in the subsequent time window.
      average combined value to date of two metrics weighted together
      using =metric1_weight=.
 6. =best_avg_var_penalized= :: Pick the model with the highest average
-     metric value so far, penalized for relative variance ss:
-     =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
-     =min_stdev= is the minimum standard deviation of the metric
+     metric value so far, penalized for relative variance as:
+     $$
+     =avg_value - (stdev_penalty) * (stdev - min_stdev)=
+     $$
+     where =min_stdev= is the minimum standard deviation of the metric
      across all model groups
 7.  =best_avg_recency_weight= :: Pick the model with the highest
-     average metric value so far, penalized for relative variance as:
-     =avg_value - (stdev_penalty) * (stdev - min_stdev)= where
-     =min_stdev= is the minimum standard deviation of the metric
-     across all  model groups
+     average metric value so far, placing less weight in older
+     results. You need to specify two parameters: the shape of how the
+     weight affects points (=decay_type=, linear or exponential) and the relative
+     weight of the most recent point (=curr_weight=).
 
 #+BEGIN_QUOTE
 Before move on, remember the two main /caveats/ for the value of the metric in this kind of ML problems:
@@ -1704,8 +1734,6 @@ rules:
 based on the metric and parameter following that rule for the most
 recent time period (in all the rules shown $n$ = 3).
 
-
-
 We can run the simulation of the rules against the experiment as:
 
 #+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports code :results none
@@ -1747,7 +1775,7 @@ that are that low.
 #+LABEL: fig:performance-over-time
 [[file:audition/inspections/metric_over_time_precision@10_pct.png]]
 
-Figure [@fig:distance-from-best] shows the proportion of /models/ that
+Next figure shows the proportion of /models/ that
 are behind the best model. The distance is measured in percentual
 points. You could use this plot to /filter out/ more model groups,
 changing the value of =max_from_best= in the configuration file. This
@@ -1774,7 +1802,7 @@ We define *regret* as
  picked and the best one in the next time period.
 #+END_QUOTE
 
-The plot [@fig:performance-next-time] show the /best/ model group selected by the strategies
+The next plot show the /best/ model group selected by the strategies
 specified in the configuration file:
 
 #+CAPTION: Given a strategy for selecting model groups (in the figure, 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?
@@ -1835,14 +1863,13 @@ mainly where is the audition’s output file located.
 # Postmodeling Configuration File
 
 project_path: '/triage' # Project path defined in triage with matrices and models
-#audition_output_path: '/triage/audition/inspections/results_model_group_ids.json'
 model_group_id:
   - 41
   - 32
   - 45
   - 11
 
-thresholds: # Thresholds for2 defining positive predictions
+thresholds: # Thresholds for defining positive predictions
   rank_abs: [50, 100, 250]
   rank_pct: [5, 10, 25]
 
@@ -1873,14 +1900,14 @@ Compared to the previous sections, /postmodeling/ is not an automated process (y
 Hence, to do the following part of the tutorial, you need to run
 =jupyter= inside =bastion= as follows:
 
-#+BEGIN_SRC shell :dir /docker:root@tutorial_bastion:/triage :exports none :results none
+#+BEGIN_SRC shell :dir /docker:root@tutorial_bastion:/triage :exports code :results none
 jupyter-notebook –-ip=0.0.0.0  --port=56406
 #+END_SRC
 
 And then in your browser type[fn:10]: [[http://0.0.0.0:56406]]
 
 
-#+BEGIN_SRC shell :dir /docker:root@tutorial_bastion:/triage :exports none :results none
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports none :results none
 
 # Or jupyter-kernel if you want to interact from org-mode
 
@@ -1891,13 +1918,13 @@ jupyter-kernel   \
     --KernelManager.iopub_port=56408   \
     --KernelManager.shell_port=56409   \
     --KernelManager.stdin_port=56410   \
-    --debug --KernelManager.connection_file=conn.json
-
+    --Session.keyfile=./session.key
+    --debug
 #+END_SRC
 
 Now that you are in a jupyter notebook, type the following:
 
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json  :results none
+#+BEGIN_SRC jupyter-python :session ./docker-kernel-connection.json :results none
 %matplotlib inline
 import matplotlib
 matplotlib.use('Agg')
@@ -1914,24 +1941,27 @@ from triage.component.postmodeling.contrast.model_evaluator import ModelEvaluato
 from triage.component.postmodeling.contrast. model_group_evaluator import ModelGroupEvaluator
 #+END_SRC
 
+After importing, we need to create an =sqlalchemy engine= for connecting
+to the database, and read the configuration file.
 
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json :results none
+#+BEGIN_SRC jupyter-python :session ./docker-kernel-connection.json :results none
 params = PostmodelParameters('inspection_postmodeling_config.yaml')
 engine = create_pgconn('database.yaml')
 #+END_SRC
 
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json :results none
-# List individual models
-list_tuple_models = get_models_ids(params.model_group_id, engine)
-l_t = [ModelEvaluator(i.model_group_id, i.model_id, engine) for i in list_tuple_models]
+Postmodeling provides the object =ModelGroupEvaluator= to compare
+different /model groups/.
 
-# Model group object (useful to compare across model_groups and models in time)
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :results none
 audited_models_class = ModelGroupEvaluator(tuple(params.model_group_id), engine)
 #+END_SRC
 
 *** Comparing the audited model groups
 
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json
+First we will compare the performance of the audited model groups and
+the baseline over time. First, we will plot =precision@10_pct=
+
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports code :file ./images/inspection_mg_prec_over_time.png :results none
 audited_models_class.plot_prec_across_time(param_type='rank_pct',
                                            param=10,
                                            baseline=True,
@@ -1940,28 +1970,157 @@ audited_models_class.plot_prec_across_time(param_type='rank_pct',
                                            figsize=params.figsize)
 #+END_SRC
 
-#+RESULTS:
-[[file:./.ob-jupyter/9845d4c9475a8006e3fc2f2a845915e211ce5482.png]]
+#+CAPTION: Precision@10% over time from the best performing model groups selected by Audition
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[file:images/inspection_mg_prec_over_time.png]]
 
+
+and now the =recall@10_pct=
+
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports both :file ./images/inspection_mg_recall_over_time.png :results none
+audited_models_class.plot_prec_across_time(param_type='rank_pct',
+                                           param=10,
+                                           metric='recall@',
+                                           figsize=params.figsize)
+#+END_SRC
+
+#+CAPTION: Recall@10% over time from the best performing model groups selected by Audition
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[file:images/inspection_mg_recall_over_time.png]]
 
 All the selected model groups have a very similar performance. Let’s
 see if they are predicting similar lists of facilities that are at
 risk of fail an inspection.
 
-
-#+BEGIN_SRC jupyter-python :session /docker:root@tutorial_bastion:/root/.local/share/jupyter/runtime/kernel-087d5f9e-461f-4425-982f-b39fe9df7758.json
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :results none :file ./images/inspection_jaccard_on_lists_over_time.png :results none
 audited_models_class.plot_jaccard_preds(param_type='rank_pct',
                                         param=10,
                                         temporal_comparison=True)
 #+END_SRC
 
-#+RESULTS:
-[[file:./.ob-jupyter/f9b5e906f9c75c58d054caf59819deb713e1b3e7.png]]
+#+CAPTION: How similar are the model groups’ generated list? We use Jaccard similarity on the predicted lists (length of list 10%) to asses the overlap between lists.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[file:images/inspection_jaccard_on_lists_over_time.png]]
 
 The plot will shows the overlap of the predicted list containing the
-10% of the facilities between model groups at each /as of date/.
+10% of the facilities between model groups at each /as of date/. The
+lists are at least 50% similar. You should investigate why is that
+so, i.e. /Why the models are not learning the same?/ This could lead you
+to defining new features or some another conclusion about your data,
+but for this tutorial we will move on.
+
+*** Going deeper with a model
+
+Imagine that after a deeper analysis, you decide to choose model group *11*
+
+#+BEGIN_SRC sql
+select
+    mg.model_group_id,
+    mg.model_type,
+    mg.hyperparameters,
+    array_agg(model_id order by train_end_time) as models
+from
+    model_metadata.model_groups as mg
+    inner join
+    model_metadata.models
+    using (model_group_id)
+where model_group_id = 11
+group by 1,2,3
+#+END_SRC
+
+#+RESULTS:
+:results:
+| model_group_id | model_type                               | hyperparameters                                                                        | models      |
+|--------------+-----------------------------------------+----------------------------------------------------------------------------------------+-------------|
+|           11 | sklearn.ensemble.RandomForestClassifier | {"criterion": "gini", "max_features": "sqrt", "n_estimators": 250, "min_samples_split": 2} | {29,65,101} |
+:end:
+
+We will investigate what the particular models are doing. /Postmodeling/
+created a =ModelEvaluator= (similar to the =ModelGroupEvaluator=) to do
+this exploration:
+
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :results none
+models_11 = { f'{model}': ModelEvaluator(11, model, engine) for model in [29,65,101] }
+#+END_SRC
+
+In this tutorial, we will just show some parts of the analysis in the
+most recent model, but feel free of exploring the behavior of all the
+models in this model group, and check if you can detect any pattern.
+
+**** Feature importances
+
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :results none :exports code :file ./images/inspection_model_group_11_feature_importances.png
+models_11['101'].plot_feature_importances(path=params.project_path,
+                                          n_features_plots=params.n_features_plots,
+                                          figsize=params.figsize)
+#+END_SRC
+
+#+CAPTION: Top 10 feature importances for de model group 11 at 2017-12-01 (i.e. model 101).
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[file:images/inspection_model_group_11_feature_importances.png]]
+
+
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :results none :exports code :file ./images/inspection_model_group_11_feature_group_importances.png
+models_11['101'].plot_feature_group_average_importances()
+#+END_SRC
+
+#+CAPTION: Feature group “importance” (we are basically taking the average of all the feature importances in a feature group) for the model group 11, model 101.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[file:images/inspection_model_group_11_feature_group_importances.png]]
+
+**** Our /Policy menu/
+
+The following plot depicts the behavior of the metrics if you change
+the length of the facilities predicted at risk (i.e. the $k$). This
+plot is important from the decision making point of view, since it
+could be used as a /policy menu/.
+
+
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json  :results none :exports code :file ./images/inspection_model_group_11_rayid_curve.png
+models_11['101'].plot_precision_recall_n(figsize=(8,8))
+#+END_SRC
+
+#+CAPTION: Plot of Precision and Recall over the proportion of the facilities. This plot is used as a "policy menu" since allows you to see how much you will gain if you invest more resources or how much you will sacrifice if you reduce your budget for resources. This is also known as “Rayid plot” at DSaPP.
+#+ATTR_ORG: :width 600 :height 400
+#+ATTR_HTML: :width 600 :height 400
+#+ATTR_LATEX: :width 400 :height 300
+[[file:images/inspection_model_group_11_rayid_curve.png]]
+
+
+We selected this model group because it was the best at precision at
+10% (i.e. the model group consistently chose facilities will fail
+inspections at the top 10% of the risk). With the plot above you could
+decide to double your resources (maybe hiring more inspectors so you
+could inspect 20% of the facilities) and with this model you will
+double the detection of facilities that will fail inspections (from
+~18% to ~30% in recall) with only a few percent points less of
+precision ~45% to ~40% (this means that 6 in 10 facilities that the
+inspectors visit will pass the inspection). You could also go the
+other way around: if you reduce the length of the list from 10% to 5%,
+well you will gain a little of precision, but your recall will be
+~5%.
 
 * Footnotes
+
+[fn:12] In order to reduce the computational time that takes running
+this tutorial, we sample the facilities. If you want to train in
+the complete set of *active* ones, please remove the =CTE= part of the
+query and the =WHERE= clause referring the =bucket=.
+
+[fn:11] The underlying assumption here is that the City of Chicago is
+/currently/ doing /random/ selection for the inspections. This is not
+true (and probably unfair). In a real project, you will setup a *real* baseline and you will
+compare your models against it. This baseline could be a rule  or a model.
 
 [fn:10] This assumes that you are in a GNU/Linux machine, if not (you
 should reconsider what are you doing with your life) you should change
@@ -1986,10 +2145,10 @@ $$
 /recall/ is a measure about the /coverage/ of your system, i.e. /how good is identifying in the top-$k$ the facilities at risk/.
 
 One possible variation of this is to *only* include in the denominator
-the /labeled/ rows in $k$. This the one used by =triage=.
+the /labeled/ rows in $k$. *This the approach*  used by =triage=.
 
 [fn:8] Think about it: we *can’t* learn the relationship between the
-/features/ and the /label/ if we *ignore* the label.
+/features/ and the /label/ if we *don't know* the label.
 
 [fn:7] If you assume a /uniform/ distribution, it will make sense to
 select facilities at random.

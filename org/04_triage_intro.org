@@ -40,7 +40,7 @@ The dataset's temporal component mainly affects two modeling steps:
 avoid /leaking/ information from the future through your /features/)
 and hyperparameter selection. =triage= solves both by
 splitting the data into temporal blocks and automating temporal
-cross-validation and the feature generation.
+cross-validation (TCC) and the feature generation.
 
 =triage= uses the concept of an /experiment/. An /experiment/ consists of a
 series of steps that aim to generate a good model for predicting the
@@ -50,7 +50,7 @@ time-splitting/, /label generation/, /feature generation/, /matrix creation/,
 will handle the temporal nuances of the data.
 
 Nowadays =triage= will
-help you to select the best model (/model selection/) and it allows you
+help you to select the best model (/model selection/)  and it allows you
 to explore and understand the behavior of your models using
 *post-modeling* techniques.
 
@@ -122,7 +122,7 @@ triage commands:
 - An /experiment config file/. This is where the magic happens. We will
   discuss this file at length in this section of the tutorial.
 
-We are providing a =docker= container that executes =triage= experiments.
+We are providing a =docker= container, =bastion=, that executes =triage= experiments.
 You already had the database (you were working on it the last two
 sections of this tutorial, remember?). So, like a real project, you just
 need to worry about the /experiment configuration file/.
@@ -238,7 +238,7 @@ is when the planning of the future facilities to be inspected happens.
 =triage= will create those /labels/ using information about the /outcome/ of
 the event[fn:11], taking into account the temporal structure of the data.
 In our example: if a facility is inspected
-is the event, and whether it fails the inspection (outcome
+is an event, and whether it fails the inspection (outcome
 /true/) or not (outcome /false/).
 
 For a given entity on a given /as of date/, =triage=
@@ -382,7 +382,7 @@ The configuration file is a =yaml= file with the following main sections:
      prediction stages. This will generate a table call
      =cohort_{experiment_hash}=
 
-- =label_config= :: Specify (using =sql=)how to generate /labels/ from the event's
+- =label_config= :: Specify (using =sql=) how to generate /labels/ from the event's
                     /outcome/. A table named =labels_{experiment_hash}=
                     will be created.
 
@@ -440,7 +440,7 @@ Following the problem description template given in Section
 
 #+BEGIN_QUOTE
   Which facility ( $n=1$ ) is likely to violate some
-  inspected condition in the following year ( $X=1\ y$ )?
+  inspected condition in the following year ( $X=1$ )?
 #+END_QUOTE
 
 The traditional approach in machine learning is splitting the data in
@@ -472,7 +472,7 @@ The data at which the model will do the predictions is denominated as
 example). The length of the prediction time window (1 year) is called
 /label span/. Training and predicting with a new model /as of date/ (every year) is the /model update frequency/.
 
-Because it's inefficient to calculate by hand all the /as-of dates/ or
+Because it's inefficient to calculate by hand all the /as of dates/ or
 prediction points, =timechop= will take care of that for us.
 To do so, we need to specify some more constraints besides the /label
 span/ and the /model update frequency/:
@@ -553,7 +553,7 @@ will change a parameter at a time so you could see how it
 affects the resulting blocks.
 
 If you want to try the modifications (or your own) and generate the
-temporal blocks images run the following (they'll be generated in [[../triage/images/]]):
+temporal blocks images run the following (they'll be generated in [[./images/]]):
 
 #+BEGIN_EXAMPLE sh
 # Remember to run this in bastion NOT in laptop's shell!
@@ -732,7 +732,7 @@ temporal_config:
 
 
 #+NAME: fig:timechop_5
-#+CAPTION: More rows per entity in the training block
+#+CAPTION: Less rows per entity in the training block
 #+ATTR_ORG: :width 100 :height 100
 #+ATTR_HTML: :width 600 :height 600
 #+ATTR_LATEX: :width 400 :height 300
@@ -1047,7 +1047,7 @@ feature_aggregations:
       -
         quantity:
           total: "*"
-        imputation:   # This is optional and overrides the aggregates_imputation section above!
+        imputation:
            count:
               type: 'zero_noflag'
         metrics:
@@ -2039,7 +2039,7 @@ Triage's postmodeling capabilities include:
 - Bias analysis
 
 If you want to see *Audition* and *Postmodeling* in action, we will use them
-after *EIS modeling*.
+after *Inspections* and *EIS modeling*.
 
 ** Final cleaning
 
@@ -2098,7 +2098,7 @@ value of the feature was imputed (=1=) or not (=0=): =inspections_entity_id_6mon
 [fn:5] =collate= is to /feature generation/ what =timechop= is to
 /date temporal splitting/
 
-[fn:4] Obscure reference to the "The Last Airbender" cartoon series. I'm sorry.
+[fn:4] Obscure reference to the "[[https://www.imdb.com/title/tt0417299/][Avatar: The Last Airbender]]" cartoon series. I'm sorry.
 
 [fn:3] See for example: https://robjhyndman.com/hyndsight/tscv/
 
