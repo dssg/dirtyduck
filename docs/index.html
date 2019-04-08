@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-04-02 mar 10:30 -->
+<!-- 2019-04-08 lun 15:11 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -375,9 +375,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#orgd8de478">7.1. Problem description</a></li>
+<li><a href="#orgbb2943f">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#orgf8cef19">7.3. Modeling Using Machine Learning</a>
+<li><a href="#orgf2cc854">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -385,14 +385,14 @@ for the JavaScript code in this tag.
 </ul>
 </li>
 <li><a href="#org04d7cbb">7.4. Selecting the best model</a></li>
-<li><a href="#org9cf6317">7.5. Filtering model groups</a></li>
-<li><a href="#orgab639eb">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
-<li><a href="#org220643d">7.7. Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org13fae6a">7.5. Filtering model groups</a></li>
+<li><a href="#org407dd59">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#orgc1ab6b3">7.7. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org2baf08f">7.7.1. Comparing the audited model groups</a></li>
-<li><a href="#org8343202">7.7.2. Going deeper with a model</a>
+<li><a href="#org19409db">7.7.2. Going deeper with a model</a>
 <ul>
-<li><a href="#org5aa3952">7.7.2.1. Feature importances</a></li>
+<li><a href="#org2d512b7">7.7.2.1. Feature importances</a></li>
 <li><a href="#orgad5b345">7.7.2.2. Our <i>Policy menu</i></a></li>
 </ul>
 </li>
@@ -402,9 +402,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#org6dc9cb6">8.1. Problem description</a></li>
+<li><a href="#org19b5abb">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org239d6f4">8.3. Modeling Using Machine Learning</a>
+<li><a href="#org789d53d">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -417,17 +417,17 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org4604348">8.4. Audition: So many models, how can I choose the best one?</a>
 <ul>
-<li><a href="#org5e5add9">8.4.1. Filtering model groups</a></li>
-<li><a href="#org962bee7">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org3473826">8.4.1. Filtering model groups</a></li>
+<li><a href="#org1e3db2d">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
 </ul>
 </li>
-<li><a href="#orgeb55bc1">8.5. Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org3044734">8.5. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org60063a1">8.5.1. Setup</a></li>
 <li><a href="#org0092533">8.5.2. Model groups</a></li>
-<li><a href="#org2fe2ad1">8.5.3. Going deeper with a model</a>
+<li><a href="#org9d77534">8.5.3. Going deeper with a model</a>
 <ul>
-<li><a href="#orgc0e3dd4">8.5.3.1. Feature importances</a></li>
+<li><a href="#orga8cb149">8.5.3.1. Feature importances</a></li>
 </ul>
 </li>
 </ul>
@@ -1115,7 +1115,7 @@ and the City of Chicago's data API:
 </div>
 
 <p>
-Now, you should have some data<sup><a id="fnr.11" class="footref" href="#fn.11">11</a></sup>:
+Now, you should have some data:
 </p>
 
 <div class="org-src-container">
@@ -1145,7 +1145,8 @@ Now, you should have some data<sup><a id="fnr.11" class="footref" href="#fn.11">
 </table>
 
 <p>
-Let's peek inside the table<sup><a id="fnr.12" class="footref" href="#fn.12">12</a></sup>
+You'll probably get a different number because the data are updated
+every day. Let's peek inside the table<sup><a id="fnr.11" class="footref" href="#fn.11">11</a></sup>
 </p>
 
 <div class="org-src-container">
@@ -1224,7 +1225,7 @@ the <b>inspections</b> on the facility.
 The <code>entities</code> table should contain a unique identifier for the entity and
 some data about that entity (like name, age, status). The
 <code>events</code> table will include data related to the inspection, including the
-two most important attributes: its spatial and temporal positions <sup><a id="fnr.13" class="footref" href="#fn.13">13</a></sup>.
+two most important attributes: its spatial and temporal positions <sup><a id="fnr.12" class="footref" href="#fn.12">12</a></sup>.
 </p>
 
 <p>
@@ -1256,14 +1257,19 @@ The transformation "road" that we will take in this tutorial is as follows:
 <li>Put a copy of the data in the <code>raw</code> schema. (We just did that.)</li>
 <li>Apply some simple transformations and store the resulting
 data in the <code>cleaned</code> schema.</li>
-<li>Organize the data in two <i>unnormalized</i><sup><a id="fnr.14" class="footref" href="#fn.14">14</a></sup> tables:
+<li>Organize the data in two <i>unnormalized</i><sup><a id="fnr.13" class="footref" href="#fn.13">13</a></sup> tables:
 <code>events</code> and <code>entities</code> in the <code>semantic</code> schema.</li>
 <li>Run <code>triage</code>. It will create several schemas (<code>model_metadata</code>,
 <code>test_results</code>, <code>train_results</code>).</li>
 </ol>
-</div>
-</div>
 
+
+<div class="figure">
+<p><img src="images/data_road.png" alt="data_road.png" width="600" height="800" />
+</p>
+</div>
+</div>
+</div>
 
 
 <div id="outline-container-orgd50cbcc" class="outline-4">
@@ -1280,7 +1286,7 @@ process that generates the data.
 </p>
 
 <p>
-Most columns are self-explanatory, but some are not:<sup><a id="fnr.15" class="footref" href="#fn.15">15</a></sup>
+Most columns are self-explanatory, but some are not:<sup><a id="fnr.14" class="footref" href="#fn.14">14</a></sup>
 </p>
 
 <dl class="org-dl">
@@ -1680,7 +1686,7 @@ expressions</i> and ignore <i>re-inspection</i>.
 
 <p>
 For the column <code>risk</code>, we will impute as <code>high</code> all the <code>NULL</code> and <code>All</code>
-values<sup><a id="fnr.16" class="footref" href="#fn.16">16</a></sup>.
+values<sup><a id="fnr.15" class="footref" href="#fn.15">15</a></sup>.
 </p>
 
 <p>
@@ -1693,7 +1699,7 @@ has several spellings for the same thing: <code>SUBWAY</code> and
 
 <p>
 We could use <a href="https://www.postgresql.org/docs/current/static/fuzzystrmatch.html">soundex</a>
-or machine learning <i>deduplication</i><sup><a id="fnr.17" class="footref" href="#fn.17">17</a></sup> to clean these names,
+or machine learning <i>deduplication</i><sup><a id="fnr.16" class="footref" href="#fn.16">16</a></sup> to clean these names,
 but we'll go with a very simple cleaning strategy: convert all the
 names to lowercase, remove the trailing spaces, remove the apostrophe,
 and remove the spaces around "<code>/</code>". It won't completely clean
@@ -1748,7 +1754,7 @@ data should be located in <b>Illinois</b>:
 Ok, almost correct, there are some <code>NULL</code> values. We will assume that
 the <code>NULL</code> values are actually <code>IL</code> (i.e. we will impute them). Moving to
 the next spatial column, we expect that all the values in the column
-<code>city</code> are Chicago:<sup><a id="fnr.18" class="footref" href="#fn.18">18</a></sup>
+<code>city</code> are Chicago:<sup><a id="fnr.17" class="footref" href="#fn.17">17</a></sup>
 </p>
 
 <div class="org-src-container">
@@ -1876,7 +1882,7 @@ Zip code has a similar <code>NULL</code> problem:
 We could attempt to replace these <code>NULL</code> values using the location point or
 using similar names of restaurants, but for this tutorial we will
 remove them. Also, we will convert the coordinates latitude and
-longitude to a Postgres <code>Point</code>.<sup><a id="fnr.19" class="footref" href="#fn.19">19</a></sup> <sup>, </sup><sup><a id="fnr.20" class="footref" href="#fn.20">20</a></sup> <sup>, </sup><sup><a id="fnr.21" class="footref" href="#fn.21">21</a></sup>
+longitude to a Postgres <code>Point</code>.<sup><a id="fnr.18" class="footref" href="#fn.18">18</a></sup> <sup>, </sup><sup><a id="fnr.19" class="footref" href="#fn.19">19</a></sup> <sup>, </sup><sup><a id="fnr.20" class="footref" href="#fn.20">20</a></sup>
 </p>
 
 <p>
@@ -1904,7 +1910,7 @@ Finally, we will improve the names of the columns
 
 <p>
 We will create a new <code>schema</code> called <code>cleaned</code>. The objective of this
-schema is twofold: to keep our raw data <i>as is <sup><a id="fnr.22" class="footref" href="#fn.22">22</a></sup></i> and to store our assumptions
+schema is twofold: to keep our raw data <i>as is <sup><a id="fnr.21" class="footref" href="#fn.21">21</a></sup></i> and to store our assumptions
 and cleaning decisions separate from the <i>raw</i> data in a schema that
 <i>semantically</i> transmits that "this is our cleaned data."
 </p>
@@ -2197,7 +2203,7 @@ We can verify the result of the previous script
 
 
 <p>
-If everything worked correctly you should be able to run the following code<sup><a id="fnr.23" class="footref" href="#fn.23">23</a></sup>:
+If everything worked correctly you should be able to run the following code<sup><a id="fnr.22" class="footref" href="#fn.22">22</a></sup>:
 </p>
 
 <div class="org-src-container">
@@ -2278,7 +2284,7 @@ and <code>events</code> tables.
 <p>
 The <code>entities</code> table should uniquely identify each facility and contain
 descriptive attributes. First, we should investigate how we can uniquely
-identify a facility. Let's hope it's easy<sup><a id="fnr.24" class="footref" href="#fn.24">24</a></sup>.
+identify a facility. Let's hope it's easy<sup><a id="fnr.23" class="footref" href="#fn.23">23</a></sup>.
 </p>
 
 <p>
@@ -2785,7 +2791,7 @@ We will try to use the combination of <code>license_num</code>, <code>facility</
 </table>
 
 <p>
-Yay, it looks like these columns enable us to identify a facility!<sup><a id="fnr.25" class="footref" href="#fn.25">25</a></sup>
+Yay, it looks like these columns enable us to identify a facility!<sup><a id="fnr.24" class="footref" href="#fn.24">24</a></sup>
 </p>
 
 <p>
@@ -2896,7 +2902,7 @@ you are interested in this powerful technique see this <a href="http://www.postg
 </table>
 
 <p>
-We will add some indexes to this table<sup><a id="fnr.26" class="footref" href="#fn.26">26</a></sup>:
+We will add some indexes to this table<sup><a id="fnr.25" class="footref" href="#fn.25">25</a></sup>:
 </p>
 
 <div class="org-src-container">
@@ -2922,8 +2928,8 @@ We will add some indexes to this table<sup><a id="fnr.26" class="footref" href="
 We are ready to create the events table. This table will describe
 the inspection, like the <i>type</i> of inspection, <i>when</i> and <i>where</i>
 the inspection happened, and the inspection <i>result</i>. We will add
-the violations as a <code>JSONB</code> column.<sup><a id="fnr.27" class="footref" href="#fn.27">27</a></sup> Finally, we'll rename
-<code>inspection</code> as <code>event_id</code>.<sup><a id="fnr.28" class="footref" href="#fn.28">28</a></sup>
+the violations as a <code>JSONB</code> column.<sup><a id="fnr.26" class="footref" href="#fn.26">26</a></sup> Finally, we'll rename
+<code>inspection</code> as <code>event_id</code>.<sup><a id="fnr.27" class="footref" href="#fn.27">27</a></sup>
 </p>
 
 <div class="org-src-container">
@@ -2993,7 +2999,7 @@ the violations as a <code>JSONB</code> column.<sup><a id="fnr.27" class="footref
 </div>
 
 <p>
-Success! We have one row per event.<sup><a id="fnr.29" class="footref" href="#fn.29">29</a></sup> Our semantic data looks like:
+Success! We have one row per event.<sup><a id="fnr.28" class="footref" href="#fn.28">28</a></sup> Our semantic data looks like:
 </p>
 
 <div class="org-src-container">
@@ -3097,7 +3103,7 @@ Now that we have our data in a good shape, we are ready to use <b>Triage</b>.
 <h3 id="orga43251b"><span class="section-number-3">5.4</span> Let's EDA &#x2026;</h3>
 <div class="outline-text-3" id="text-5-4">
 <p>
-It is always a good idea to do some <i>Exploratory Data Analysis<sup><a id="fnr.30" class="footref" href="#fn.30">30</a></sup></i> or <b>EDA</b>
+It is always a good idea to do some <i>Exploratory Data Analysis<sup><a id="fnr.29" class="footref" href="#fn.29">29</a></sup></i> or <b>EDA</b>
 for short. This will help us to learn more about the dynamics of the
 entities or the inspections.
 </p>
@@ -3123,7 +3129,7 @@ First, we will try the answer the question: <i>how many inspections are realized
 <div class="figure">
 <p><img src="./images/inspections_over_time.png" alt="inspections_over_time.png" />
 </p>
-<p><span class="figure-number">Figure 1: </span>Number of inspections per month across our whole dataset</p>
+<p><span class="figure-number">Figure 2: </span>Number of inspections per month across our whole dataset</p>
 </div>
 </div>
 </div>
@@ -3154,7 +3160,7 @@ modeling stage.
 <div class="figure">
 <p><img src="./images/facilities_inspected_over_time.png" alt="facilities_inspected_over_time.png" />
 </p>
-<p><span class="figure-number">Figure 2: </span>Number of unique facilities inspected every month.</p>
+<p><span class="figure-number">Figure 3: </span>Number of unique facilities inspected every month.</p>
 </div>
 </div>
 </div>
@@ -3171,7 +3177,7 @@ a failed inspection?
 <div class="figure">
 <p><img src="./images/failed_inspections_over_time.png" alt="failed_inspections_over_time.png" />
 </p>
-<p><span class="figure-number">Figure 3: </span>Number of failed inspections every month.</p>
+<p><span class="figure-number">Figure 4: </span>Number of failed inspections every month.</p>
 </div>
 </div>
 </div>
@@ -3188,7 +3194,7 @@ time. First just if the inspection failed.
 <div class="figure">
 <p><img src="./images/facilities_with_inspections_failed_over_time.png" alt="facilities_with_inspections_failed_over_time.png" />
 </p>
-<p><span class="figure-number">Figure 4: </span>Number of unique facilities with failed inspections every month.</p>
+<p><span class="figure-number">Figure 5: </span>Number of unique facilities with failed inspections every month.</p>
 </div>
 </div>
 </div>
@@ -3205,7 +3211,7 @@ violations (violation code in 15-29)
 <div class="figure">
 <p><img src="./images/failed_inspections_severe_violations_over_time.png" alt="failed_inspections_severe_violations_over_time.png" />
 </p>
-<p><span class="figure-number">Figure 5: </span>Number of failed inspection with critical violation found</p>
+<p><span class="figure-number">Figure 6: </span>Number of failed inspection with critical violation found</p>
 </div>
 </div>
 </div>
@@ -3217,7 +3223,7 @@ violations (violation code in 15-29)
 <div class="figure">
 <p><img src="./images/facilities_with_failed_inspections_severe_violations_over_time.png" alt="facilities_with_failed_inspections_severe_violations_over_time.png" />
 </p>
-<p><span class="figure-number">Figure 6: </span>Number of facilities which failed inspections with severe violations.</p>
+<p><span class="figure-number">Figure 7: </span>Number of facilities which failed inspections with severe violations.</p>
 </div>
 
 <p>
@@ -3515,19 +3521,19 @@ The first thing <code>triage</code> does when executes the experiment, is split 
 covers in blocks considering the time horizon for the <i>label</i>
 ( <i>Which facilities will
 fail an inspection in the following  month?</i>
-in this scenario of <b>inspection prioritization<sup><a id="fnr.31" class="footref" href="#fn.31">31</a></sup></b>) . This time
+in this scenario of <b>inspection prioritization<sup><a id="fnr.30" class="footref" href="#fn.30">30</a></sup></b>) . This time
 horizon is calculated from a set of specific dates (<code>as_of_date</code> in
 triage parlance) that divide the blocks in past (for training the
 model) and future (for testing the model). The set of <code>as_of_dates</code> is
 (<i>mainly</i>) calculated from the <i>label timespan</i> and the <i>update
-frequency</i><sup><a id="fnr.32" class="footref" href="#fn.32">32</a></sup>. The <i>as of date</i> is not the <i>event date</i>. The <i>event date</i>
+frequency</i><sup><a id="fnr.31" class="footref" href="#fn.31">31</a></sup>. The <i>as of date</i> is not the <i>event date</i>. The <i>event date</i>
 occurred  <i>when</i> the facility was inspected. The <i>as of date</i>
 is when the planning of the future facilities to be inspected happens.
 </p>
 
 <p>
 <code>triage</code> will create those <i>labels</i> using information about the <i>outcome</i> of
-the event<sup><a id="fnr.33" class="footref" href="#fn.33">33</a></sup>, taking into account the temporal structure of the data.
+the event<sup><a id="fnr.32" class="footref" href="#fn.32">32</a></sup>, taking into account the temporal structure of the data.
 In our example: if a facility is inspected
 is an event, and whether it fails the inspection (outcome
 <i>true</i>) or not (outcome <i>false</i>).
@@ -3748,7 +3754,7 @@ which facilities you want to predict on (i.e. include in the ML
 train/test matrices). The rationale of this comes
 from the need to only predict for entities in a particular state:
 <i>Is the restaurant new?</i>
-<i>Is this facility on this zip code</i>? <i>Is the facility "active"?</i><sup><a id="fnr.34" class="footref" href="#fn.34">34</a></sup>
+<i>Is this facility on this zip code</i>? <i>Is the facility "active"?</i><sup><a id="fnr.33" class="footref" href="#fn.33">33</a></sup>
 </p>
 
 <p>
@@ -3915,7 +3921,7 @@ Assume we want to
 select which restaurant (of two in our example dataset) we should inspect next
 year based on its higher risk of violating some condition. Also assume
 that the process of picking which facility is repeated every year on
-January 1st<sup><a id="fnr.35" class="footref" href="#fn.35">35</a></sup>
+January 1st<sup><a id="fnr.34" class="footref" href="#fn.34">34</a></sup>
 </p>
 
 <p>
@@ -3947,14 +3953,14 @@ predicted 2016; and so on. That way, we choose models that have
 historically performed best at our task, forecasting. It’s why this
 approach is sometimes called <i>evaluation on a rolling forecast
 origin</i> because the origin at which the prediction is made rolls
-forward in time. <sup><a id="fnr.36" class="footref" href="#fn.36">36</a></sup>
+forward in time. <sup><a id="fnr.35" class="footref" href="#fn.35">35</a></sup>
 </p>
 
 
 <div id="org37711cb" class="figure">
 <p><img src="./images/rolling-origin.png" alt="rolling-origin.png" width="600" height="800" />
 </p>
-<p><span class="figure-number">Figure 7: </span>Cartoonish view of temporal splitting for Machine Learning, each point represents an <i>as of date</i>, the orange area are the past of that <i>as of date</i> and is used for feature generation. The blue area is the label span, it lies in the future of the <i>as of date</i>.</p>
+<p><span class="figure-number">Figure 8: </span>Cartoonish view of temporal splitting for Machine Learning, each point represents an <i>as of date</i>, the orange area are the past of that <i>as of date</i> and is used for feature generation. The blue area is the label span, it lies in the future of the <i>as of date</i>.</p>
 </div>
 
 
@@ -3987,7 +3993,7 @@ test and train sets, plus the constraints just mentioned.
 </p>
 
 <p>
-In total <code>timechop</code> uses 11 configuration parameters<sup><a id="fnr.37" class="footref" href="#fn.37">37</a></sup>.
+In total <code>timechop</code> uses 11 configuration parameters<sup><a id="fnr.36" class="footref" href="#fn.36">36</a></sup>.
 </p>
 
 <ul class="org-ul">
@@ -4116,7 +4122,7 @@ to <code>2016</code> and <code>2017</code>.
 <div id="org633dd87" class="figure">
 <p><img src="./images/timechop_1.png" alt="timechop_1.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 8: </span>feature and label start, end time equal</p>
+<p><span class="figure-number">Figure 9: </span>feature and label start, end time equal</p>
 </div>
 
 
@@ -4167,7 +4173,7 @@ data for labels) as is shown in the following image and in their
 <div id="orgd5c73e1" class="figure">
 <p><img src="./images/timechop_2.png" alt="timechop_2.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 9: </span>feature<sub>start</sub><sub>time</sub> different different that label<sub>start</sub><sub>time</sub>.</p>
+<p><span class="figure-number">Figure 10: </span>feature<sub>start</sub><sub>time</sub> different different that label<sub>start</sub><sub>time</sub>.</p>
 </div>
 
 
@@ -4195,7 +4201,7 @@ temporal_config:
 <h5 id="org2a065ec"><span class="section-number-5">6.4.0.2</span> <code>model_update_frequency</code></h5>
 <div class="outline-text-5" id="text-6-4-0-2">
 <p>
-From our <b>baseline</b> <code>temporal_config</code> example (<a href="#org633dd87">8</a>), we will
+From our <b>baseline</b> <code>temporal_config</code> example (<a href="#org633dd87">9</a>), we will
 change how often we want a new model, which generates
 more time blocks (if there are time-constrained data, obviously).
 </p>
@@ -4222,7 +4228,7 @@ temporal_config:
 <div id="orgd7509c4" class="figure">
 <p><img src="./images/timechop_3.png" alt="timechop_3.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 10: </span>A smaller model<sub>update</sub><sub>frequency</sub> (from 1y to 6month) (The number of blocks grew)</p>
+<p><span class="figure-number">Figure 11: </span>A smaller model<sub>update</sub><sub>frequency</sub> (from 1y to 6month) (The number of blocks grew)</p>
 </div>
 </div>
 </div>
@@ -4233,7 +4239,7 @@ temporal_config:
 <div class="outline-text-5" id="text-6-4-0-3">
 <p>
 With this parameter you could get a <i>growing window</i> for training
-(depicted in <a href="#orgbfcd286">11</a>) or as in all the other examples,
+(depicted in <a href="#orgbfcd286">12</a>) or as in all the other examples,
 <i>fixed training windows</i>.
 </p>
 
@@ -4260,7 +4266,7 @@ temporal_config:
 <div id="orgbfcd286" class="figure">
 <p><img src="./images/timechop_4.png" alt="timechop_4.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 11: </span>The size of the block is bigger now</p>
+<p><span class="figure-number">Figure 12: </span>The size of the block is bigger now</p>
 </div>
 </div>
 </div>
@@ -4291,7 +4297,7 @@ temporal_config:
 <div id="org9e65a79" class="figure">
 <p><img src="./images/timechop_5.png" alt="timechop_5.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 12: </span>Less rows per entity in the training block</p>
+<p><span class="figure-number">Figure 13: </span>Less rows per entity in the training block</p>
 </div>
 
 <p>
@@ -4321,7 +4327,7 @@ temporal_config:
 <div id="orge8d4285" class="figure">
 <p><img src="./images/timechop_6.png" alt="timechop_6.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 13: </span>We should get more rows per entity in the test matrix, but that didn't happen. Why?</p>
+<p><span class="figure-number">Figure 14: </span>We should get more rows per entity in the test matrix, but that didn't happen. Why?</p>
 </div>
 
 <p>
@@ -4353,7 +4359,7 @@ temporal_config:
 <div id="orgfe35754" class="figure">
 <p><img src="./images/timechop_7.png" alt="timechop_7.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 14: </span>The test duration is bigger now, so we got 6 rows (since the "base" frequency is 1 month)</p>
+<p><span class="figure-number">Figure 15: </span>The test duration is bigger now, so we got 6 rows (since the "base" frequency is 1 month)</p>
 </div>
 
 <p>
@@ -4383,7 +4389,7 @@ temporal_config:
 <div id="org088b786" class="figure">
 <p><img src="./images/timechop_8.png" alt="timechop_8.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 15: </span>With more room in testing, now test<sub>as</sub><sub>of</sub><sub>date</sub><sub>frequencies</sub> has some effect.</p>
+<p><span class="figure-number">Figure 16: </span>With more room in testing, now test<sub>as</sub><sub>of</sub><sub>date</sub><sub>frequencies</sub> has some effect.</p>
 </div>
 </div>
 </div>
@@ -4414,7 +4420,7 @@ temporal_config:
 <div id="orgd5714a2" class="figure">
 <p><img src="./images/timechop_9.png" alt="timechop_9.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 16: </span>The label time horizon in the test dataset now is smaller</p>
+<p><span class="figure-number">Figure 17: </span>The label time horizon in the test dataset now is smaller</p>
 </div>
 
 
@@ -4441,11 +4447,11 @@ temporal_config:
 <div id="org1655128" class="figure">
 <p><img src="./images/timechop_10.png" alt="timechop_10.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 17: </span>The label time horizon is smaller in the trainning dataset. One effect is that now we have more room for more rows per entity.</p>
+<p><span class="figure-number">Figure 18: </span>The label time horizon is smaller in the trainning dataset. One effect is that now we have more room for more rows per entity.</p>
 </div>
 
 <p>
-That's it! Now you have the power to bend time!<sup><a id="fnr.38" class="footref" href="#fn.38">38</a></sup>
+That's it! Now you have the power to bend time!<sup><a id="fnr.37" class="footref" href="#fn.37">37</a></sup>
 </p>
 
 <p>
@@ -4462,7 +4468,7 @@ discuss <i>features</i> in the following section.
 <div class="outline-text-3" id="text-6-5">
 <p>
 We will show how to create features using the <i>experiments config
-file</i>. <code>triage</code> uses <code>collate</code> for this.<sup><a id="fnr.39" class="footref" href="#fn.39">39</a></sup> The <code>collate</code>
+file</i>. <code>triage</code> uses <code>collate</code> for this.<sup><a id="fnr.38" class="footref" href="#fn.38">38</a></sup> The <code>collate</code>
 library controls the generation of features (including the imputation rules
 for each feature generated) using the time blocks generated by
 <code>timechop</code>. <code>Collate</code> helps the modeler create features based on
@@ -4848,7 +4854,7 @@ feature_aggregations:
 
 
 <p>
-<code>feature_aggregations</code> is a <code>yaml</code> list<sup><a id="fnr.40" class="footref" href="#fn.40">40</a></sup> of <i>feature groups construction
+<code>feature_aggregations</code> is a <code>yaml</code> list<sup><a id="fnr.39" class="footref" href="#fn.39">39</a></sup> of <i>feature groups construction
 specification</i> or just <i>feature group</i>. A <i>feature group</i> is a way of grouping several features
 that share <code>intervals</code> and <code>groups</code>. <code>triage</code> requires the
 following configuration parameter for every <i>feature group</i>:
@@ -4891,7 +4897,7 @@ part of the query (<code>from_obj</code>) as well as the <code>GROUP BY</code> c
 
 <p>
 <code>triage</code> (<code>collate</code>) supports two types of objects to be aggregated:
-<code>aggregates</code> and <code>categoricals</code> (more on this one later)<sup><a id="fnr.41" class="footref" href="#fn.41">41</a></sup>. The
+<code>aggregates</code> and <code>categoricals</code> (more on this one later)<sup><a id="fnr.40" class="footref" href="#fn.40">40</a></sup>. The
 <code>aggregates</code> subsection represents a <code>yaml</code> list of <i>features</i> to be
 created. Each element on this represents a column (<code>quantity</code>, in the
 example, the whole row <code>*</code>) and an alias (<code>total</code>), defines the
@@ -4917,7 +4923,7 @@ group by
 
 <p>
 With the previous configuration <code>triage</code> will generate <b>1</b> feature
-with the following name:<sup><a id="fnr.42" class="footref" href="#fn.42">42</a></sup>
+with the following name:<sup><a id="fnr.41" class="footref" href="#fn.41">41</a></sup>
 </p>
 
 <ul class="org-ul">
@@ -5814,7 +5820,7 @@ This table has the two columns: <code>experiment_hash</code> and <code>config</c
 
 <p>
 <code>experiment_hash</code> contains the hash of the configuration file that we used for our
-<code>triage</code> run.<sup><a id="fnr.43" class="footref" href="#fn.43">43</a></sup> <code>config</code> that contains the configuration experiment file
+<code>triage</code> run.<sup><a id="fnr.42" class="footref" href="#fn.42">42</a></sup> <code>config</code> that contains the configuration experiment file
 that we used for our <code>triage</code> run, stored as <code>jsonb</code>.
 </p>
 
@@ -7134,8 +7140,8 @@ clean the <code>{test, train}_results</code> schemas and have a fresh start:
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-orgd8de478" class="outline-3">
-<h3 id="orgd8de478"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-orgbb2943f" class="outline-3">
+<h3 id="orgbb2943f"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7159,7 +7165,7 @@ Which X facilities are most likely to fail a food inspection in the
 A more technical way of writing the question is: What is the
 <i>probability distribution</i> of facilities that are at <b>risk</b> of
 fail a food inspection if they are inspected in the following period
-of time?<sup><a id="fnr.44" class="footref" href="#fn.44">44</a></sup>
+of time?<sup><a id="fnr.43" class="footref" href="#fn.43">43</a></sup>
 </p>
 
 <p>
@@ -7384,18 +7390,18 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org51d046a" class="figure">
+<div id="orge88147d" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="Outcomes in the resource prioritazation problem." width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 18: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the <i>outcome</i> of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
+<p><span class="figure-number">Figure 19: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the <i>outcome</i> of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
 </div>
 </div>
 </div>
 
 
 
-<div id="outline-container-orgf8cef19" class="outline-3">
-<h3 id="orgf8cef19"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-orgf2cc854" class="outline-3">
+<h3 id="orgf2cc854"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -7411,7 +7417,7 @@ configuration file.
 As a first step, lets do an experiment that defines our
 <i>baseline</i>. The rationale of this is that the knowing the <i>baseline</i> will
 allow us to verify if our Machine Learning model is better than the
-baseline<sup><a id="fnr.45" class="footref" href="#fn.45">45</a></sup>.  It is also very fast to train ( <code>DummyClassifier</code> is not
+baseline<sup><a id="fnr.44" class="footref" href="#fn.44">44</a></sup>.  It is also very fast to train ( <code>DummyClassifier</code> is not
 computationally expensive, so it will
 help us to verify that the experiment configuration is correct without
 waiting for a long time).
@@ -7552,7 +7558,7 @@ round in exactly one month (<code>test_durations = test_label_timespan =
 </p>
 
 <p>
-We will assume that the data is more or less stable<sup><a id="fnr.46" class="footref" href="#fn.46">46</a></sup>, at least for one
+We will assume that the data is more or less stable<sup><a id="fnr.45" class="footref" href="#fn.45">45</a></sup>, at least for one
 year, so <code>model_update_frequency</code> = <code>1 year.</code>
 </p>
 
@@ -7591,7 +7597,7 @@ triage experiment experiments/inspections_baseline.yaml --show-timechop
 <div class="figure">
 <p><img src="triage/images/inspections_baseline.png" alt="inspections_baseline.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 19: </span>Temporal blocks for inspections<sub>dt</sub> experiment</p>
+<p><span class="figure-number">Figure 20: </span>Temporal blocks for inspections<sub>dt</sub> experiment</p>
 </div>
 
 <p>
@@ -7617,7 +7623,7 @@ experiment we will use the label <code>failed</code>, using the same query from 
 <p>
 It should be obvious, but let's state it anyway: We are only training
 in facilities that <b>were</b> inspected, but we will <b>test</b> our model in all
-the facilities in our cohort<sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup>. So, in the train matrices we will have
+the facilities in our cohort<sup><a id="fnr.46" class="footref" href="#fn.46">46</a></sup>. So, in the train matrices we will have
 only <code>0</code> and <code>1</code> as possible labels, but in the test matrices we will
 found <code>0</code>, <code>1</code> and <code>NULL</code>.
 </p>
@@ -7628,7 +7634,7 @@ incorporate <i>all</i> the facilities of the cohort in the train matrices.
 </p>
 
 <p>
-We just want to include <b>active</b> facilities<sup><a id="fnr.48" class="footref" href="#fn.48">48</a></sup> in our matrices, so we tell
+We just want to include <b>active</b> facilities<sup><a id="fnr.47" class="footref" href="#fn.47">47</a></sup> in our matrices, so we tell
 <code>triage</code> to take that in account:
 </p>
 
@@ -7724,7 +7730,7 @@ requirement is that it respects the <code>sklearn</code> API.
 <p>
 Finally, we should define wich metrics we care about for evaluating our
 model. Here we will concentrate only in <code>precision</code> and <code>recall</code> at an
-specific value \(k\) <sup><a id="fnr.49" class="footref" href="#fn.49">49</a></sup>.
+specific value \(k\) <sup><a id="fnr.48" class="footref" href="#fn.48">48</a></sup>.
 </p>
 
 <p>
@@ -7757,7 +7763,7 @@ inspectors available.
 You should be warned that precision and recall at \(k\) in this setting
 is kind of ill-defined (because you will end with a lot of <code>NULL</code>
 labels, remember, only a few of facilities are inspected in each
-period)<sup><a id="fnr.50" class="footref" href="#fn.50">50</a></sup>.
+period)<sup><a id="fnr.49" class="footref" href="#fn.49">49</a></sup>.
 </p>
 
 <p>
@@ -7788,7 +7794,7 @@ If everything was ok, you should see an <code>Experiment validation ran to compl
 </p>
 
 <p>
-You can execute the experiment as<sup><a id="fnr.51" class="footref" href="#fn.51">51</a></sup>
+You can execute the experiment as<sup><a id="fnr.50" class="footref" href="#fn.50">50</a></sup>
 </p>
 
 <div class="org-src-container">
@@ -8807,7 +8813,7 @@ triage experiment experiments/inspections_dt.yaml --show-timechop
 <div class="figure">
 <p><img src="triage/images/inspections_dt.png" alt="inspections_dt.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 20: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
+<p><span class="figure-number">Figure 21: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
 </div>
 
 
@@ -9359,7 +9365,7 @@ actually don't know if this is a correct prediction or not.
 
 <p>
 This is a <b>characteristic</b> of all the resource optimization problems:
-You do not have all the information about the elements in your system<sup><a id="fnr.52" class="footref" href="#fn.52">52</a></sup>.
+You do not have all the information about the elements in your system<sup><a id="fnr.51" class="footref" href="#fn.51">51</a></sup>.
 </p>
 
 <p>
@@ -9367,7 +9373,7 @@ So, how the precision/recall is calculated? The number that is show in
 the <code>evaluations</code> table is calculated using only the rows that have a
 non-null label. You could argue that this is fine, if you assume that
 the distribution of the label in the non-observed facilities is the
-same that the ones that were inspected that month<sup><a id="fnr.53" class="footref" href="#fn.53">53</a></sup>. We will come
+same that the ones that were inspected that month<sup><a id="fnr.52" class="footref" href="#fn.52">52</a></sup>. We will come
 back to this problem in the Early Warning problem.
 </p>
 
@@ -9432,7 +9438,7 @@ triage experiment experiments/inspections_label_failed_01.yaml --show-timechop
 <div class="figure">
 <p><img src="triage/images/inspections_label_failed_01.png" alt="inspections_label_failed_01.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 21: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
+<p><span class="figure-number">Figure 22: </span>Temporal blocks for inspections experiment. The label is a failed inspection in the next month.</p>
 </div>
 
 
@@ -10037,14 +10043,14 @@ matter which you pick.</li>
 
 <p>
 The answers to questions like these may not be obvious up front. Let’s
-discuss an imaginary example, that will help to clarify this<sup><a id="fnr.54" class="footref" href="#fn.54">54</a></sup>
+discuss an imaginary example, that will help to clarify this<sup><a id="fnr.53" class="footref" href="#fn.53">53</a></sup>
 </p>
 
 
 <div class="figure">
 <p><img src="images/sanjose-2.png" alt="sanjose-2.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 22: </span>A simplified example of our model evaluation process: three different models are trained using information prior to 2014, 2015, and 2016 and evaluated on what actually happened in those years. Looking at how each model performs over time allows us to balance stability and performance. (From Data-Driven Inspections for Safer Housing in San Jose, California)</p>
+<p><span class="figure-number">Figure 23: </span>A simplified example of our model evaluation process: three different models are trained using information prior to 2014, 2015, and 2016 and evaluated on what actually happened in those years. Looking at how each model performs over time allows us to balance stability and performance. (From Data-Driven Inspections for Safer Housing in San Jose, California)</p>
 </div>
 
 <p>
@@ -10238,8 +10244,8 @@ just to generate your predictions list).
 </div>
 
 
-<div id="outline-container-org9cf6317" class="outline-3">
-<h3 id="org9cf6317"><span class="section-number-3">7.5</span> Filtering model groups</h3>
+<div id="outline-container-org13fae6a" class="outline-3">
+<h3 id="org13fae6a"><span class="section-number-3">7.5</span> Filtering model groups</h3>
 <div class="outline-text-3" id="text-7-5">
 <p>
 Most of the time, <code>audition</code> should be used in a iterative fashion, the result of
@@ -10270,7 +10276,7 @@ that are that low.
 <div id="orgf70fe98" class="figure">
 <p><img src="audition/inspections/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 23: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. We didn’t filter out any model group, so the 45 model groups are shown. See discussion above to learn how to plot less model groups. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
+<p><span class="figure-number">Figure 24: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. We didn’t filter out any model group, so the 45 model groups are shown. See discussion above to learn how to plot less model groups. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
 </div>
 
 <p>
@@ -10286,7 +10292,7 @@ plot is hard to read, but is very helpful since it shows you the
 <div id="org06649a5" class="figure">
 <p><img src="audition/inspections/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 24: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
+<p><span class="figure-number">Figure 25: </span>Proportion of <i>models</i> in a <i>model group</i> that are separated from the best model. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
 </div>
 
 <p>
@@ -10296,8 +10302,8 @@ are ~18 percentual points below of the best.
 </div>
 </div>
 
-<div id="outline-container-orgab639eb" class="outline-3">
-<h3 id="orgab639eb"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
+<div id="outline-container-org407dd59" class="outline-3">
+<h3 id="org407dd59"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
 <div class="outline-text-3" id="text-7-6">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -10325,7 +10331,7 @@ specified in the configuration file:
 <div id="orgcad3ade" class="figure">
 <p><img src="audition/inspections/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
 </p>
-<p><span class="figure-number">Figure 25: </span>Given a strategy for selecting model groups (in the figure, 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
+<p><span class="figure-number">Figure 26: </span>Given a strategy for selecting model groups (in the figure, 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
 </div>
 
 <p>
@@ -10336,7 +10342,7 @@ It seems that the strategies <i>best average</i> and <i>best current value</i> s
 <div id="orgb52a5e8" class="figure">
 <p><img src="audition/inspections/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 26: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
+<p><span class="figure-number">Figure 27: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best]</p>
 </div>
 
 
@@ -10350,7 +10356,7 @@ that decision? That’s what is represented in plot [@fig:regret-over-time]
 <div id="org572a28f" class="figure">
 <p><img src="audition/inspections/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 27: </span>Expected regret for the strategies. The less the better.</p>
+<p><span class="figure-number">Figure 28: </span>Expected regret for the strategies. The less the better.</p>
 </div>
 
 <p>
@@ -10380,8 +10386,8 @@ groups selected by <code>audition</code>, using the <i>Postmodeling</i> tool set
 </div>
 
 
-<div id="outline-container-org220643d" class="outline-3">
-<h3 id="org220643d"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-orgc1ab6b3" class="outline-3">
+<h3 id="orgc1ab6b3"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-7-7">
 <p>
 <i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)
@@ -10449,7 +10455,7 @@ Hence, to do the following part of the tutorial, you need to run
 </div>
 
 <p>
-And then in your browser type<sup><a id="fnr.55" class="footref" href="#fn.55">55</a></sup>: <a href="http://0.0.0.0:56406">http://0.0.0.0:56406</a>
+And then in your browser type<sup><a id="fnr.54" class="footref" href="#fn.54">54</a></sup>: <a href="http://0.0.0.0:56406">http://0.0.0.0:56406</a>
 </p>
 
 
@@ -10519,7 +10525,7 @@ the baseline over time. First, we will plot <code>precision@10_pct</code>
 <div class="figure">
 <p><img src="images/inspection_mg_prec_over_time.png" alt="inspection_mg_prec_over_time.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 28: </span>Precision@10% over time from the best performing model groups selected by Audition</p>
+<p><span class="figure-number">Figure 29: </span>Precision@10% over time from the best performing model groups selected by Audition</p>
 </div>
 
 
@@ -10539,7 +10545,7 @@ and now the <code>recall@10_pct</code>
 <div class="figure">
 <p><img src="images/inspection_mg_recall_over_time.png" alt="inspection_mg_recall_over_time.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 29: </span>Recall@10% over time from the best performing model groups selected by Audition</p>
+<p><span class="figure-number">Figure 30: </span>Recall@10% over time from the best performing model groups selected by Audition</p>
 </div>
 
 <p>
@@ -10559,7 +10565,7 @@ risk of fail an inspection.
 <div class="figure">
 <p><img src="images/inspection_jaccard_on_lists_over_time.png" alt="inspection_jaccard_on_lists_over_time.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 30: </span>How similar are the model groups’ generated list? We use Jaccard similarity on the predicted lists (length of list 10%) to asses the overlap between lists.</p>
+<p><span class="figure-number">Figure 31: </span>How similar are the model groups’ generated list? We use Jaccard similarity on the predicted lists (length of list 10%) to asses the overlap between lists.</p>
 </div>
 
 <p>
@@ -10573,8 +10579,8 @@ but for this tutorial we will move on.
 </div>
 </div>
 
-<div id="outline-container-org8343202" class="outline-4">
-<h4 id="org8343202"><span class="section-number-4">7.7.2</span> Going deeper with a model</h4>
+<div id="outline-container-org19409db" class="outline-4">
+<h4 id="org19409db"><span class="section-number-4">7.7.2</span> Going deeper with a model</h4>
 <div class="outline-text-4" id="text-7-7-2">
 <p>
 Imagine that after a deeper analysis, you decide to choose model group <b>11</b>
@@ -10644,8 +10650,8 @@ models in this model group, and check if you can detect any pattern.
 </p>
 </div>
 
-<div id="outline-container-org5aa3952" class="outline-5">
-<h5 id="org5aa3952"><span class="section-number-5">7.7.2.1</span> Feature importances</h5>
+<div id="outline-container-org2d512b7" class="outline-5">
+<h5 id="org2d512b7"><span class="section-number-5">7.7.2.1</span> Feature importances</h5>
 <div class="outline-text-5" id="text-7-7-2-1">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_11['101'].plot_feature_importances(path=params.project_path,
@@ -10658,7 +10664,7 @@ models in this model group, and check if you can detect any pattern.
 <div class="figure">
 <p><img src="images/inspection_model_group_11_feature_importances.png" alt="inspection_model_group_11_feature_importances.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 31: </span>Top 10 feature importances for de model group 11 at 2017-12-01 (i.e. model 101).</p>
+<p><span class="figure-number">Figure 32: </span>Top 10 feature importances for de model group 11 at 2017-12-01 (i.e. model 101).</p>
 </div>
 
 
@@ -10671,7 +10677,7 @@ models in this model group, and check if you can detect any pattern.
 <div class="figure">
 <p><img src="images/inspection_model_group_11_feature_group_importances.png" alt="inspection_model_group_11_feature_group_importances.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 32: </span>Feature group “importance” (we are basically taking the average of all the feature importances in a feature group) for the model group 11, model 101.</p>
+<p><span class="figure-number">Figure 33: </span>Feature group “importance” (we are basically taking the average of all the feature importances in a feature group) for the model group 11, model 101.</p>
 </div>
 </div>
 </div>
@@ -10696,7 +10702,7 @@ could be used as a <i>policy menu</i>.
 <div class="figure">
 <p><img src="images/inspection_model_group_11_rayid_curve.png" alt="inspection_model_group_11_rayid_curve.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 33: </span>Plot of Precision and Recall over the proportion of the facilities. This plot is used as a "policy menu" since allows you to see how much you will gain if you invest more resources or how much you will sacrifice if you reduce your budget for resources. This is also known as “Rayid plot” at DSaPP.</p>
+<p><span class="figure-number">Figure 34: </span>Plot of Precision and Recall over the proportion of the facilities. This plot is used as a "policy menu" since allows you to see how much you will gain if you invest more resources or how much you will sacrifice if you reduce your budget for resources. This is also known as “Rayid plot” at DSaPP.</p>
 </div>
 
 
@@ -10724,8 +10730,8 @@ well you will gain a little of precision, but your recall will be
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-org6dc9cb6" class="outline-3">
-<h3 id="org6dc9cb6"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-org19b5abb" class="outline-3">
+<h3 id="org19b5abb"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -10774,10 +10780,10 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="org841022c" class="figure">
+<div id="org042171b" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 34: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
+<p><span class="figure-number">Figure 35: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
 </div>
 
 <p>
@@ -10890,8 +10896,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org239d6f4" class="outline-3">
-<h3 id="org239d6f4"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org789d53d" class="outline-3">
+<h3 id="org789d53d"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -10937,7 +10943,7 @@ triage experiment experiments/eis_01.yaml --show-timechop
 <div class="figure">
 <p><img src="triage/images/eis_01.png" alt="eis_01.png" width="600" height="600" />
 </p>
-<p><span class="figure-number">Figure 35: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
+<p><span class="figure-number">Figure 36: </span>Temporal blocks for the Early Warning System. We want to predict the most likely facilities to be inspected in the following month.</p>
 </div>
 </div>
 </div>
@@ -11687,8 +11693,8 @@ just to generate your list).
 </p>
 </div>
 
-<div id="outline-container-org5e5add9" class="outline-4">
-<h4 id="org5e5add9"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
+<div id="outline-container-org3473826" class="outline-4">
+<h4 id="org3473826"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
 <div class="outline-text-4" id="text-8-4-1">
 <p>
 <code>Audition</code> will generate two plots that are meant to be used together:
@@ -11699,7 +11705,7 @@ just to generate your list).
 <div id="org2b05d38" class="figure">
 <p><img src="audition/eis/metric_over_time_precision@10_pct.png" alt="metric_over_time_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 36: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
+<p><span class="figure-number">Figure 37: </span>Model group performance over time. In this case the metric show is <code>precision@10%</code>. The black dashed line represents the (theoretical) system's performance if we select the best performant model in a every evaluation date. The colored lines represents different model groups. All the model groups that share an algorithm will be colored the same.</p>
 </div>
 
 
@@ -11707,13 +11713,13 @@ just to generate your list).
 <div id="org1ca0e64" class="figure">
 <p><img src="audition/eis/distance_from_best_precision@10_pct.png" alt="distance_from_best_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 37: </span>Proportion of <b>all</b> the <i>models</i> in a <i>model group</i> that are separated from the best model. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
+<p><span class="figure-number">Figure 38: </span>Proportion of <b>all</b> the <i>models</i> in a <i>model group</i> that are separated from the best model. The distance is measured in percentual points, i.e. How much less precision at 10 percent of the population compared to the best model in that date.</p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org962bee7" class="outline-4">
-<h4 id="org962bee7"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
+<div id="outline-container-org1e3db2d" class="outline-4">
+<h4 id="org1e3db2d"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
 <div class="outline-text-4" id="text-8-4-2">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -11731,7 +11737,7 @@ difference between the performance of the best model evaluated on the
 <div id="org4482e7c" class="figure">
 <p><img src="audition/eis/precision@10_pct_next_time.png" alt="precision@10_pct_next_time.png" />
 </p>
-<p><span class="figure-number">Figure 38: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
+<p><span class="figure-number">Figure 39: </span>Given a strategy for selecting model groups (in the plot 4 are shown), What will be the performace of the model group chosen by that strategy in the next evaluation date?</p>
 </div>
 
 
@@ -11739,7 +11745,7 @@ difference between the performance of the best model evaluated on the
 <div id="org678bb5c" class="figure">
 <p><img src="audition/eis/regret_distance_from_best_rules_precision@10_pct.png" alt="regret_distance_from_best_rules_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 39: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best-2]</p>
+<p><span class="figure-number">Figure 40: </span>Given a strategy for selecting model groups (in the plot 4 are shown). What will be the distance (<i>regret</i>) to the best theoretical model in the following evaluation date? This plot is similar to the [@fig:distance-from-best-2]</p>
 </div>
 
 
@@ -11748,7 +11754,7 @@ difference between the performance of the best model evaluated on the
 <div id="org223b2b2" class="figure">
 <p><img src="audition/eis/regret_over_time_precision@10_pct.png" alt="regret_over_time_precision@10_pct.png" />
 </p>
-<p><span class="figure-number">Figure 40: </span>Expected regret for the strategies. The less the better.</p>
+<p><span class="figure-number">Figure 41: </span>Expected regret for the strategies. The less the better.</p>
 </div>
 
 <p>
@@ -11774,8 +11780,8 @@ file <code>[[file:audition/eis/results_model_group_ids.json][results_model_group
 </div>
 
 
-<div id="outline-container-orgeb55bc1" class="outline-3">
-<h3 id="orgeb55bc1"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-org3044734" class="outline-3">
+<h3 id="org3044734"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-8-5">
 <p>
 Given that almost all the strategies perform well, we will change the
@@ -11872,7 +11878,7 @@ Let’s start with the behavior in time of the selected model groups
 <div class="figure">
 <p><img src="images/eis_mg_prec_over_time.png" alt="eis_mg_prec_over_time.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 41: </span>Precision@10% over time from the best performing model groups selected by Audition</p>
+<p><span class="figure-number">Figure 42: </span>Precision@10% over time from the best performing model groups selected by Audition</p>
 </div>
 
 <p>
@@ -11893,7 +11899,7 @@ precision@10%. We could also check the recall of the model groups.
 <div class="figure">
 <p><img src="images/eis_mg_recall_over_time.png" alt="eis_mg_recall_over_time.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 42: </span>Recall@10% over time from the best performing model groups selected by Audition</p>
+<p><span class="figure-number">Figure 43: </span>Recall@10% over time from the best performing model groups selected by Audition</p>
 </div>
 
 <p>
@@ -11912,7 +11918,7 @@ group <b>69</b>
 <div class="figure">
 <p><img src="images/eis_jaccard_on_lists_over_time.png" alt="eis_jaccard_on_lists_over_time.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 43: </span>How similar are the model groups’ generated list? We use Jaccard similarity on the predicted lists (length of list 10%) to asses the overlap between lists.</p>
+<p><span class="figure-number">Figure 44: </span>How similar are the model groups’ generated list? We use Jaccard similarity on the predicted lists (length of list 10%) to asses the overlap between lists.</p>
 </div>
 
 <p>
@@ -11923,8 +11929,8 @@ choose any and it won’t matter.
 </div>
 </div>
 
-<div id="outline-container-org2fe2ad1" class="outline-4">
-<h4 id="org2fe2ad1"><span class="section-number-4">8.5.3</span> Going deeper with a model</h4>
+<div id="outline-container-org9d77534" class="outline-4">
+<h4 id="org9d77534"><span class="section-number-4">8.5.3</span> Going deeper with a model</h4>
 <div class="outline-text-4" id="text-8-5-3">
 <p>
 We will choose the model group <b>64</b> as the winner.
@@ -11996,8 +12002,8 @@ models in this model group, and check if you can detect any pattern.
 </p>
 </div>
 
-<div id="outline-container-orgc0e3dd4" class="outline-5">
-<h5 id="orgc0e3dd4"><span class="section-number-5">8.5.3.1</span> Feature importances</h5>
+<div id="outline-container-orga8cb149" class="outline-5">
+<h5 id="orga8cb149"><span class="section-number-5">8.5.3.1</span> Feature importances</h5>
 <div class="outline-text-5" id="text-8-5-3-1">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_64['226'].plot_feature_importances(path=params.project_path,
@@ -12010,7 +12016,7 @@ models in this model group, and check if you can detect any pattern.
 <div class="figure">
 <p><img src="images/eis_model_group_64_feature_importances.png" alt="eis_model_group_64_feature_importances.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 44: </span>Top 10 feature importances for de model group 64 at 2017-12-01 (i.e. model 226).</p>
+<p><span class="figure-number">Figure 45: </span>Top 10 feature importances for de model group 64 at 2017-12-01 (i.e. model 226).</p>
 </div>
 
 <div class="org-src-container">
@@ -12022,7 +12028,7 @@ models in this model group, and check if you can detect any pattern.
 <div class="figure">
 <p><img src="images/eis_model_group_64_feature_group_importances.png" alt="eis_model_group_64_feature_group_importances.png" width="600" height="400" />
 </p>
-<p><span class="figure-number">Figure 45: </span>Feature group “importance” (we are basically taking the average of all the feature importances in a feature group) for the model group 64, model 226.</p>
+<p><span class="figure-number">Figure 46: </span>Feature group “importance” (we are basically taking the average of all the feature importances in a feature group) for the model group 64, model 226.</p>
 </div>
 </div>
 </div>
@@ -12146,7 +12152,7 @@ Batch to execute the task).
 <div class="figure">
 <p><img src="images/AWS_Batch_Architecture.png" alt="AWS_Batch_Architecture.png" width="800" height="800" />
 </p>
-<p><span class="figure-number">Figure 46: </span>Diagram showing the AWS Batch main components and their relationships.</p>
+<p><span class="figure-number">Figure 47: </span>Diagram showing the AWS Batch main components and their relationships.</p>
 </div>
 
 <p>
@@ -12654,147 +12660,143 @@ of the XXI century.
 </p></div></div>
 
 <div class="footdef"><sup><a id="fn.11" class="footnum" href="#fnr.11">11</a></sup> <div class="footpara"><p class="footpara">
-You'll probably get a different number because the data are updated every day.
-</p></div></div>
-
-<div class="footdef"><sup><a id="fn.12" class="footnum" href="#fnr.12">12</a></sup> <div class="footpara"><p class="footpara">
 If you want to try different columns (or you don't remember
 which columns try <code>\d raw.inspectios</code> first
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.13" class="footnum" href="#fnr.13">13</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.12" class="footnum" href="#fnr.12">12</a></sup> <div class="footpara"><p class="footpara">
 We are following the <a href="https://en.wikipedia.org/wiki/Event_(relativity)">event's definition from physics</a>: "an event
 is the instantaneous physical situation or occurrence associated with
 a point in spacetime"
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.14" class="footnum" href="#fnr.14">14</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.13" class="footnum" href="#fnr.13">13</a></sup> <div class="footpara"><p class="footpara">
 It will make your life easier and most of the Machine Learning
 algorithms only accept data in matrix form (i.e. one big table)
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.15" class="footnum" href="#fnr.15">15</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.14" class="footnum" href="#fnr.14">14</a></sup> <div class="footpara"><p class="footpara">
 Verbatim from the datasource documentation.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.16" class="footnum" href="#fnr.16">16</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.15" class="footnum" href="#fnr.15">15</a></sup> <div class="footpara"><p class="footpara">
 A controversial decision, I know.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.17" class="footnum" href="#fnr.17">17</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.16" class="footnum" href="#fnr.16">16</a></sup> <div class="footpara"><p class="footpara">
 This problem is related to the process of <i>deduplication</i> and
 there is another DSaPP tool for that: <a href="https://dssg.github.io/matching-tool/">matching-tool</a>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.18" class="footnum" href="#fnr.18">18</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.17" class="footnum" href="#fnr.17">17</a></sup> <div class="footpara"><p class="footpara">
 It is the <i>Chicago</i> Food Inspections dataset, after all.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.19" class="footnum" href="#fnr.19">19</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.18" class="footnum" href="#fnr.18">18</a></sup> <div class="footpara"><p class="footpara">
 We could also use the default geometric data type from
 postgresql: <code>point</code> (<a href="https://www.postgresql.org/docs/10/datatype-geometric.html">https://www.postgresql.org/docs/10/datatype-geometric.html</a>)
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.20" class="footnum" href="#fnr.20">20</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.19" class="footnum" href="#fnr.19">19</a></sup> <div class="footpara"><p class="footpara">
 We will store the <code>Point</code> as a <code>geography</code> object. As a result,
 spatial database operations (like calculating the distances between two
 facilities) will return answers in meters instead of degrees. See
 <a href="http://workshops.boundlessgeo.com/postgis-intro/geography.html">this</a>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.21" class="footnum" href="#fnr.21">21</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.20" class="footnum" href="#fnr.20">20</a></sup> <div class="footpara"><p class="footpara">
 As a real geographical object <a href="https://postgis.net/docs/ST_MakePoint.html">check the PostGIS documentation</a>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.22" class="footnum" href="#fnr.22">22</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.21" class="footnum" href="#fnr.21">21</a></sup> <div class="footpara"><p class="footpara">
 Remember our tip at the beginning of this section!
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.23" class="footnum" href="#fnr.23">23</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.22" class="footnum" href="#fnr.22">22</a></sup> <div class="footpara"><p class="footpara">
 If the code looks funny to you, it is because we are using
 <a href="https://www.postgresql.org/docs/devel/queries-table-expressions.html#QUERIES-GROUPING-SETS">grouping sets</a>, in particular <code>rollup</code>. See the docs.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.24" class="footnum" href="#fnr.24">24</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.23" class="footnum" href="#fnr.23">23</a></sup> <div class="footpara"><p class="footpara">
 Yeah, you wish
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.25" class="footnum" href="#fnr.25">25</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.24" class="footnum" href="#fnr.24">24</a></sup> <div class="footpara"><p class="footpara">
 Almost. At least good for this tutorial. Look carefully.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.26" class="footnum" href="#fnr.26">26</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.25" class="footnum" href="#fnr.25">25</a></sup> <div class="footpara"><p class="footpara">
 <b>ALWAYS</b> add indexes to your tables!
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.27" class="footnum" href="#fnr.27">27</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.26" class="footnum" href="#fnr.26">26</a></sup> <div class="footpara"><p class="footpara">
 If you want to have a deep explanation about why is this good
 check <a href="http://coussej.github.io/2016/01/14/Replacing-EAV-with-JSONB-in-PostgreSQL/">this blog post</a>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.28" class="footnum" href="#fnr.28">28</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.27" class="footnum" href="#fnr.27">27</a></sup> <div class="footpara"><p class="footpara">
 As a general rule I hate to add the suffix <code>_id</code>, I would
 rather prefer to name them as <code>event</code> and <code>entity</code> instead of
 <code>event_id</code> and <code>entity_id</code>. But <code>triage</code> named those columns in that
 way and for that we are stuck with that nomenclature.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.29" class="footnum" href="#fnr.29">29</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.28" class="footnum" href="#fnr.28">28</a></sup> <div class="footpara"><p class="footpara">
 This will simplify the creation of <i>features</i> for our machine learning models.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.30" class="footnum" href="#fnr.30">30</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.29" class="footnum" href="#fnr.29">29</a></sup> <div class="footpara"><p class="footpara">
 <a href="https://en.wikipedia.org/wiki/Exploratory_data_analysis">Defined</a> by John Tukey as: <i>Procedures for analyzing data, techniques for interpreting the results of such procedures, ways of planning the gathering of data to make its analysis easier, more precise or more accurate, and all the machinery and results of (mathematical) statistics which apply to analyzing data.</i>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.31" class="footnum" href="#fnr.31">31</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.30" class="footnum" href="#fnr.30">30</a></sup> <div class="footpara"><p class="footpara">
 <i>Would be my restaurant inspected in the following month?</i> in the case of an <b>early warning</b> case.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.32" class="footnum" href="#fnr.32">32</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.31" class="footnum" href="#fnr.31">31</a></sup> <div class="footpara"><p class="footpara">
 It's a little more complicated than that as we will see.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.33" class="footnum" href="#fnr.33">33</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.32" class="footnum" href="#fnr.32">32</a></sup> <div class="footpara"><p class="footpara">
 All events produce some <i>outcome</i>. In theory <b>every</b> event of
 interest in stored in a database. These events are <i>immutable</i>: you
 can't (shouldn't) change them (they already happen).
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.34" class="footnum" href="#fnr.34">34</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.33" class="footnum" href="#fnr.33">33</a></sup> <div class="footpara"><p class="footpara">
 We could consider different states, for example: we can use the column
 <code>risk</code> as an state. Another possibility is define a new state called
 <code>failed</code> that indicates if the facility failed in the last time it was
 inspected. One more: you could create cohorts based on the <code>facility_type.</code>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.35" class="footnum" href="#fnr.35">35</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.34" class="footnum" href="#fnr.34">34</a></sup> <div class="footpara"><p class="footpara">
 The city in this toy example has very low resources.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.36" class="footnum" href="#fnr.36">36</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.35" class="footnum" href="#fnr.35">35</a></sup> <div class="footpara"><p class="footpara">
 See for example: <a href="https://robjhyndman.com/hyndsight/tscv/">https://robjhyndman.com/hyndsight/tscv/</a>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.37" class="footnum" href="#fnr.37">37</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.36" class="footnum" href="#fnr.36">36</a></sup> <div class="footpara"><p class="footpara">
 I know, I know. And in order to cover all the cases, we are still
 missing one or two parameters, but we are working on it.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.38" class="footnum" href="#fnr.38">38</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.37" class="footnum" href="#fnr.37">37</a></sup> <div class="footpara"><p class="footpara">
 Obscure reference to the "<a href="https://www.imdb.com/title/tt0417299/">Avatar: The Last Airbender</a>" cartoon series. I'm sorry.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.39" class="footnum" href="#fnr.39">39</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.38" class="footnum" href="#fnr.38">38</a></sup> <div class="footpara"><p class="footpara">
 <code>collate</code> is to <i>feature generation</i> what <code>timechop</code> is to
 <i>date temporal splitting</i>
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.40" class="footnum" href="#fnr.40">40</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.39" class="footnum" href="#fnr.39">39</a></sup> <div class="footpara"><p class="footpara">
 <code>triage</code> uses <b>a lot</b> of <code>yaml</code>, <a href="https://github.com/Animosity/CraftIRC/wiki/Complete-idiot%27s-introduction-to-yaml">this guide</a> could be handy
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.41" class="footnum" href="#fnr.41">41</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.40" class="footnum" href="#fnr.40">40</a></sup> <div class="footpara"><p class="footpara">
 Note that the name <code>categoricals</code> is confusing here: The
 original variable (i.e. a column) is categorical, the aggregate of
 that column is not. The same with the <code>aggregates</code>: The original column
@@ -12804,46 +12806,46 @@ applies an aggregate that will be numeric. That is how triage named
 things, and yes, I know is confusing.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.42" class="footnum" href="#fnr.42">42</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.41" class="footnum" href="#fnr.41">41</a></sup> <div class="footpara"><p class="footpara">
 <code>triage</code> will generate also a new binary column that indicates if the
 value of the feature was imputed (<code>1</code>) or not (<code>0</code>): <code>inspections_entity_id_6month_total_count_imp</code>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.43" class="footnum" href="#fnr.43">43</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.42" class="footnum" href="#fnr.42">42</a></sup> <div class="footpara"><p class="footpara">
 Literally from the configuration file. If you modify something it will generate a new hash. Handle with care!
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.44" class="footnum" href="#fnr.44">44</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.43" class="footnum" href="#fnr.43">43</a></sup> <div class="footpara"><p class="footpara">
 If you assume a <i>uniform</i> distribution, it will make sense to
 select facilities at random.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.45" class="footnum" href="#fnr.45">45</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.44" class="footnum" href="#fnr.44">44</a></sup> <div class="footpara"><p class="footpara">
 The underlying assumption here is that the City of Chicago is
 <i>currently</i> doing <i>random</i> selection for the inspections. This is not
 true (and probably unfair). In a real project, you will setup a <b>real</b> baseline and you will
 compare your models against it. This baseline could be a rule  or a model.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.46" class="footnum" href="#fnr.46">46</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.45" class="footnum" href="#fnr.45">45</a></sup> <div class="footpara"><p class="footpara">
 You need to check this! Fortunately, <code>triage</code> allows you to try
 several options here, so, if you think that this is too high or too
 low you can change that and fit your needs.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.47" class="footnum" href="#fnr.47">47</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.46" class="footnum" href="#fnr.46">46</a></sup> <div class="footpara"><p class="footpara">
 Think about it: we <b>can’t</b> learn the relationship between the
 <i>features</i> and the <i>label</i> if we <b>don't know</b> the label.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.48" class="footnum" href="#fnr.48">48</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.47" class="footnum" href="#fnr.47">47</a></sup> <div class="footpara"><p class="footpara">
 In order to reduce the computational time that takes running
 this tutorial, we sample the facilities. If you want to train in
 the complete set of <b>active</b> ones, please remove the <code>CTE</code> part of the
 query and the <code>WHERE</code> clause referring the <code>bucket</code>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.49" class="footnum" href="#fnr.49">49</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.48" class="footnum" href="#fnr.48">48</a></sup> <div class="footpara"><p class="footpara">
 The formulas are, for <code>precision@k</code>, is the proportion of
 facilities correctly identified in the top-\(k\) facilities ranked by risk:
 </p>
@@ -12878,11 +12880,11 @@ One possible variation of this is to <b>only</b> include in the denominator
 the <i>labeled</i> rows in \(k\). <b>This the approach</b>  used by <code>triage</code>.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.50" class="footnum" href="#fnr.50">50</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.49" class="footnum" href="#fnr.49">49</a></sup> <div class="footpara"><p class="footpara">
 We will explore how to one way to tackle this in the advance part of this tutorial.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.51" class="footnum" href="#fnr.51">51</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.50" class="footnum" href="#fnr.50">50</a></sup> <div class="footpara"><p class="footpara">
 The flags <code>-no-save-predictions</code> and <code>profile</code> are not necessary
 but useful. The first one configure triage to not store the
 predictions (at this stage you don't need them, and you can always
@@ -12892,7 +12894,7 @@ in a file, so you can check which models or matrices are taking a lot
 of time on been built.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.52" class="footnum" href="#fnr.52">52</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.51" class="footnum" href="#fnr.51">51</a></sup> <div class="footpara"><p class="footpara">
 From a more mathematical point of view: Your data actually
 reflects the empirical probability: \(P(violation|inspected)\), i.e. the
 probability of find a violation given that the facility is
@@ -12901,18 +12903,18 @@ know that there are no such things as unconditional probabilities,
 please bare with me),i.e. the probability that the facility is in violation.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.53" class="footnum" href="#fnr.53">53</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.52" class="footnum" href="#fnr.52">52</a></sup> <div class="footpara"><p class="footpara">
 You should see that this assumption is very dangerous in other
 settings, for example, crime prediction.
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.54" class="footnum" href="#fnr.54">54</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.53" class="footnum" href="#fnr.53">53</a></sup> <div class="footpara"><p class="footpara">
 The discussion was <del>taken</del> stolen from <a href="https://dssg.uchicago.edu/2017/07/14/data-driven-inspections-for-safer-housing-in-san-jose-california/">Data-Driven Inspections for Safer
 Housing in San Jose, California</a> (Kit Rodolfa, Jane Zanzig 2016) Great
 read by the way!
 </p></div></div>
 
-<div class="footdef"><sup><a id="fn.55" class="footnum" href="#fnr.55">55</a></sup> <div class="footpara"><p class="footpara">
+<div class="footdef"><sup><a id="fn.54" class="footnum" href="#fnr.54">54</a></sup> <div class="footpara"><p class="footpara">
 This assumes that you are in a GNU/Linux machine, if not (you
 should reconsider what are you doing with your life) you should change
 the ip address (<code>0.0.0.0</code>) and use the one from the docker virtual machine.
@@ -12923,7 +12925,7 @@ the ip address (<code>0.0.0.0</code>) and use the one from the docker virtual ma
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-04-02 mar 10:30</p>
+<p class="date">Created: 2019-04-08 lun 15:11</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

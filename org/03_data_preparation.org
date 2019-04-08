@@ -58,7 +58,7 @@ and the City of Chicago's data API:
 
 #+RESULTS:
 
-Now, you should have some data[fn:1]:
+Now, you should have some data:
 
 #+BEGIN_SRC sql
 select
@@ -74,7 +74,8 @@ from
 | 182,419              |
 :END:
 
-Let's peek inside the table[fn:2]
+You'll probably get a different number because the data are updated
+every day. Let's peek inside the table[fn:2]
 
 #+BEGIN_SRC sql
 select
@@ -137,13 +138,10 @@ The transformation "road" that we will take in this tutorial is as follows:
 5. Run =triage=. It will create several schemas (=model_metadata=,
    =test_results=, =train_results=).
 
-
 #+ATTR_ORG: :width 600 :height 400
 #+ATTR_HTML: :width 600 :height 800
 #+ATTR_LATEX: :width 400 :height 500
-#+RESULTS: data_road
 [[file:images/data_road.png]]
-
 
 
 *** Dataset documentation
@@ -1391,10 +1389,9 @@ there is another DSaPP tool for that: [[https://dssg.github.io/matching-tool/][m
 [fn:5] It will make your life easier and most of the Machine Learning
 algorithms only accept data in matrix form (i.e. one big table)
 
-[fn:1] You'll probably get a different number because the data are updated every day.
 
+* Diagrama :noexport:
 
-* No export                                                        :noexport:
 
 #+NAME: data_road
 #+CAPTION: Data's transformation roadmap : from raw to triage
@@ -1480,3 +1477,7 @@ algorithms only accept data in matrix form (i.e. one big table)
        |  cRED         |
        +---------------+
 #+END_SRC
+
+
+#+RESULTS: data_road
+[[file:images/data_road.png]]
