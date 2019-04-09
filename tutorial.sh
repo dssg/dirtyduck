@@ -2,7 +2,7 @@
 
 set -e -u
 
-PROJECT="$(cat .project-name)"
+PROJECT="triage-dirtyduck"
 PROJECT_HOME="$( cd "$( dirname "$0" )" && pwd )"
 INFRASTRUCTURE_HOME="${PROJECT_HOME}/infrastructure"
 
