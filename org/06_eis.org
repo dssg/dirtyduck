@@ -879,7 +879,7 @@ where
 select
     distinct
     model_id,
-    as_of_date,
+    as_of_date::date as as_of_date,
     format('%s %s', threshold_value, t1.threshold_unit) as threshold,
     feature_column,
     value as "ratio PP / PN"
@@ -896,16 +896,16 @@ order by value desc
 
 #+RESULTS:
 :results:
-| model_id | as_of_date               | threshold | feature_column                              |      ratio PP / PN |
-|---------+------------------------+-----------+--------------------------------------------+--------------------|
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_1month_result_fail_avg         |   11.7306052855925 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_3month_result_fail_avg         |   3.49082798996376 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_6month_result_fail_avg         |   1.27344759545161 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | risks_zip_code_1month_risk_high_sum              |   1.17488357227451 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | inspection_types_entity_id_all_type_canvass_sum   |  0.946432281075976 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | inspection_types_zip_code_3month_type_canvass_sum |  0.888940127100436 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_6month_result_pass_sum         |  0.041806916457784 |
-|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_6month_result_pass_avg         | 0.0232523724927717 |
+| model_id |   as_of_date | threshold | feature_column                              |      ratio PP / PN |
+|---------+------------+-----------+--------------------------------------------+--------------------|
+|     226 | 2018-09-01 | 5 pct     | results_entity_id_1month_result_fail_avg         |   11.7306052855925 |
+|     226 | 2018-09-01 | 5 pct     | results_entity_id_3month_result_fail_avg         |   3.49082798996376 |
+|     226 | 2018-09-01 | 5 pct     | results_entity_id_6month_result_fail_avg         |   1.27344759545161 |
+|     226 | 2018-09-01 | 5 pct     | risks_zip_code_1month_risk_high_sum              |   1.17488357227451 |
+|     226 | 2018-09-01 | 5 pct     | inspection_types_entity_id_all_type_canvass_sum   |  0.946432281075976 |
+|     226 | 2018-09-01 | 5 pct     | inspection_types_zip_code_3month_type_canvass_sum |  0.888940127100436 |
+|     226 | 2018-09-01 | 5 pct     | results_entity_id_6month_result_pass_sum         |  0.041806916457784 |
+|     226 | 2018-09-01 | 5 pct     | results_entity_id_6month_result_pass_avg         | 0.0232523724927717 |
 :end:
 
 This table represents the ratio between the predicted positives at the
