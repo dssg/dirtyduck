@@ -332,7 +332,7 @@ The transformation "road" that we will take in this tutorial is as follows:
 ![img](images/data_road.png)
 
 
-<a id="org8a71aaf"></a>
+<a id="org78c25aa"></a>
 
 ### Dataset documentation
 
@@ -627,7 +627,7 @@ Note that quantity is smaller than the one from `raw.inspections`, since we thro
 
 With the `cleaned.inspections` table created, let's take a closer look at the `violations` column to figure out how to clean it.
 
-The first thing to note is that the column `violation` has a lot of information: it describes the code violation, what's required to address it (see [Dataset documentation](#org8a71aaf)), and the inspector's comments. The comments are free text, which means that they can contain line breaks, mispellings, etc. In particular, note that pipes (`|`) seperate multiple violations.
+The first thing to note is that the column `violation` has a lot of information: it describes the code violation, what's required to address it (see [Dataset documentation](#org78c25aa)), and the inspector's comments. The comments are free text, which means that they can contain line breaks, mispellings, etc. In particular, note that pipes (`|`) seperate multiple violations.
 
 The following `sql` code removes line breaks and multiple spaces and creates an array with all the violations for inspection number `2145736`:
 
@@ -1217,7 +1217,7 @@ With this optic, the *boundaries* are:
 Triage's experiment configuration file structures this information.
 
 
-<a id="org6f5f54b"></a>
+<a id="orgc9468a5"></a>
 
 ### Cohorts, labels, event dates and as of dates
 
@@ -1357,24 +1357,24 @@ The *experiment configuration file* is used to create the `experiment` object. H
 
 The configuration file is a `yaml` file with the following main sections:
 
--   **[`temporal_config`](#org6d05f2c):** Temporal specification of the data, used for creating the blocks for temporal crossvalidation.
+-   **[`temporal_config`](#org5493dda):** Temporal specification of the data, used for creating the blocks for temporal crossvalidation.
 
 -   **`cohort_config`:** Using the state of the entities, define (using `sql`) *cohorts* to filter out objects that shouldn't be included in the training and prediction stages. This will generate a table call `cohort_{experiment_hash}`
 
 -   **`label_config`:** Specify (using `sql`) how to generate *labels* from the event's *outcome*. A table named `labels_{experiment_hash}` will be created.
 
--   **[`feature_aggregation`](#org9c452a8):** Which spatio-temporal aggregations of the columns in the data set do you want to generate as features for the models?
+-   **[`feature_aggregation`](#org5c232e5):** Which spatio-temporal aggregations of the columns in the data set do you want to generate as features for the models?
 
 -   **`model_group_keys`:** How do you want to identify the `model_group` in the database (so you can run analysis on them)?
 
--   **[`grid_config`](#orga72ee08):** Which combination of hyperparameters and algorithms will be trained and evaluated in the data set?
+-   **[`grid_config`](#org7c6a715):** Which combination of hyperparameters and algorithms will be trained and evaluated in the data set?
 
 -   **`scoring`:** Which metrics will be calculated?
 
 Two of the more important (and potentially confusing) sections are `temporal_config` and `feature_generation`. We will explain them in detail in the next sections.
 
 
-<a id="org6d05f2c"></a>
+<a id="org5493dda"></a>
 
 ## Temporal crossvalidation
 
@@ -1500,7 +1500,7 @@ If you want to try the modifications (or your own) and generate the temporal blo
 
 -   `model_update_frequency`
 
-    From our **baseline** `temporal_config` example ([302](#orgc09419c)), we will change how often we want a new model, which generates more time blocks (if there are time-constrained data, obviously).
+    From our **baseline** `temporal_config` example ([302](#org5f5b808)), we will change how often we want a new model, which generates more time blocks (if there are time-constrained data, obviously).
 
         temporal_config:
             feature_start_time: '2014-01-01'
@@ -1522,7 +1522,7 @@ If you want to try the modifications (or your own) and generate the temporal blo
 
 -   `max_training_histories`
 
-    With this parameter you could get a *growing window* for training (depicted in [310](#org9c6857f)) or as in all the other examples, *fixed training windows*.
+    With this parameter you could get a *growing window* for training (depicted in [310](#org6baa6e1)) or as in all the other examples, *fixed training windows*.
 
         temporal_config:
             feature_start_time: '2014-01-01'
@@ -1665,7 +1665,7 @@ If you want to try the modifications (or your own) and generate the temporal blo
     With the time blocks defined, `triage` will create the *labels* and then the features for our train and test sets. We will discuss *features* in the following section.
 
 
-<a id="org9c452a8"></a>
+<a id="org5c232e5"></a>
 
 ## Feature engineering
 
@@ -2122,7 +2122,7 @@ If you are facing this difficulty, you can force `triage` to *cast* the column i
 ```
 
 
-<a id="orga72ee08"></a>
+<a id="org7c6a715"></a>
 
 ## The Grid
 
@@ -2140,10 +2140,10 @@ grid_config:
 
 Just one algorithm and one hyperparameter (also we have only one feature group strategy: `all`), and two time splits. So we will get 2 models, 1 model group.
 
-Keep in mind that the grid is providing more than way to select a model. You can use the tables generated by the grid (see next section, [Machine learning governance](#org3181a4d)) and *analyze* and *understand* your data. In other words, analyzing the results (evaluations, predictions, hyperparameter space, etc.) is like applying **Data mining** concepts to your data using Machine learning. We will return to this when we apply post modeling to our models.
+Keep in mind that the grid is providing more than way to select a model. You can use the tables generated by the grid (see next section, [Machine learning governance](#org6765a9a)) and *analyze* and *understand* your data. In other words, analyzing the results (evaluations, predictions, hyperparameter space, etc.) is like applying **Data mining** concepts to your data using Machine learning. We will return to this when we apply post modeling to our models.
 
 
-<a id="org3181a4d"></a>
+<a id="org6765a9a"></a>
 
 ## Machine learning governance
 
@@ -2635,7 +2635,7 @@ order by
 | 537439             | 13458               | 2011-06-10 | fail   | {NULL}                        | t      | f                                          |
 | 569377             | 5570                | 2011-06-01 | pass   | {NULL}                        | f      | f                                          |
 
-Remember from the section [Cohorts, labels, event dates and as of dates](#org6f5f54b) that the *outcome* will be used by `triage` to generate the labels. The following image tries to show the meaning of the *outcomes* for the *inspection failed* problem definition.
+Remember from the section [Cohorts, labels, event dates and as of dates](#orgc9468a5) that the *outcome* will be used by `triage` to generate the labels. The following image tries to show the meaning of the *outcomes* for the *inspection failed* problem definition.
 
 ![img](./images/outcomes-inspections.png "The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the *outcome* of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.")
 
@@ -4628,7 +4628,52 @@ predictions_query: |
 triage --tb crosstabs /triage/eis_crosstabs_config.yaml
 ```
 
-with significant<sub>features</sub> as (select feature<sub>column</sub>, threshold<sub>unit</sub> from test<sub>results.eis</sub><sub>crosstabs</sub> where metric = 'ttest<sub>p</sub>' and value < 0.05 and as<sub>of</sub><sub>date</sub> = '2018-09-01') select \* from test<sub>results.eis</sub><sub>crosstabs</sub> where metric = 'ratio<sub>predicted</sub><sub>positive</sub><sub>over</sub><sub>predicted</sub><sub>negative</sub>' and feature<sub>column</sub> in (select feature<sub>column</sub> from significant<sub>features</sub>);
+When it finish, you could explore the table with the following code:
+
+```sql
+with significant_features as (
+select
+    feature_column,
+    as_of_date,
+    threshold_unit
+from
+    test_results.eis_crosstabs
+where
+    metric = 'ttest_p'
+    and
+    value < 0.05 and as_of_date = '2018-09-01'
+    )
+
+select
+    distinct
+    model_id,
+    as_of_date,
+    format('%s %s', threshold_value, t1.threshold_unit) as threshold,
+    feature_column,
+    value as "ratio PP / PN"
+from
+    test_results.eis_crosstabs as t1
+    inner join
+    significant_features as t2 using(feature_column, as_of_date)
+where
+    metric = 'ratio_predicted_positive_over_predicted_negative'
+    and
+    t1.threshold_unit = 'pct'
+order by value desc
+```
+
+| model<sub>id</sub> | as<sub>of</sub><sub>date</sub> | threshold | feature<sub>column</sub>                                                                                                | ratio PP / PN      |
+|------------------ |------------------------------ |--------- |----------------------------------------------------------------------------------------------------------------------- |------------------ |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | results<sub>entity</sub><sub>id</sub><sub>1month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub>                    | 11.7306052855925   |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | results<sub>entity</sub><sub>id</sub><sub>3month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub>                    | 3.49082798996376   |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub>                    | 1.27344759545161   |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | risks<sub>zip</sub><sub>code</sub><sub>1month</sub><sub>risk</sub><sub>high</sub><sub>sum</sub>                         | 1.17488357227451   |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>all</sub><sub>type</sub><sub>canvass</sub><sub>sum</sub>   | 0.946432281075976  |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | inspection<sub>types</sub><sub>zip</sub><sub>code</sub><sub>3month</sub><sub>type</sub><sub>canvass</sub><sub>sum</sub> | 0.888940127100436  |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>pass</sub><sub>sum</sub>                    | 0.041806916457784  |
+| 226                | 2018-09-01 00:00:00+00         | 5 pct     | results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>pass</sub><sub>avg</sub>                    | 0.0232523724927717 |
+
+This table represents the ratio between the predicted positives at the top 5% and predicted negatives (the rest). For example, you can see that in PP are eleven times more inspected if they have a failed inspection in the last month, 3.5 times more if they have a failed inspection in the previous 3 months, etc.
 
 
 # Scaling out: AWS Batch

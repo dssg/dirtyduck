@@ -860,5 +860,56 @@ predictions_query: |
 triage --tb crosstabs /triage/eis_crosstabs_config.yaml
 #+END_SRC
 
+When it finish, you could explore the table with the following code:
 
-with significant_features as (select feature_column, threshold_unit from test_results.eis_crosstabs where metric = 'ttest_p' and value < 0.05 and as_of_date = '2018-09-01') select * from test_results.eis_crosstabs where metric = 'ratio_predicted_positive_over_predicted_negative' and feature_column in (select feature_column from significant_features);
+#+BEGIN_SRC sql
+with significant_features as (
+select
+    feature_column,
+    as_of_date,
+    threshold_unit
+from
+    test_results.eis_crosstabs
+where
+    metric = 'ttest_p'
+    and
+    value < 0.05 and as_of_date = '2018-09-01'
+    )
+
+select
+    distinct
+    model_id,
+    as_of_date,
+    format('%s %s', threshold_value, t1.threshold_unit) as threshold,
+    feature_column,
+    value as "ratio PP / PN"
+from
+    test_results.eis_crosstabs as t1
+    inner join
+    significant_features as t2 using(feature_column, as_of_date)
+where
+    metric = 'ratio_predicted_positive_over_predicted_negative'
+    and
+    t1.threshold_unit = 'pct'
+order by value desc
+#+END_SRC
+
+#+RESULTS:
+:results:
+| model_id | as_of_date               | threshold | feature_column                              |      ratio PP / PN |
+|---------+------------------------+-----------+--------------------------------------------+--------------------|
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_1month_result_fail_avg         |   11.7306052855925 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_3month_result_fail_avg         |   3.49082798996376 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_6month_result_fail_avg         |   1.27344759545161 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | risks_zip_code_1month_risk_high_sum              |   1.17488357227451 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | inspection_types_entity_id_all_type_canvass_sum   |  0.946432281075976 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | inspection_types_zip_code_3month_type_canvass_sum |  0.888940127100436 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_6month_result_pass_sum         |  0.041806916457784 |
+|     226 | 2018-09-01 00:00:00+00 | 5 pct     | results_entity_id_6month_result_pass_avg         | 0.0232523724927717 |
+:end:
+
+This table represents the ratio between the predicted positives at the
+top 5% and predicted negatives (the rest). For example, you can see
+that in PP are eleven times more inspected if they have a failed
+inspection in the last month, 3.5 times more if they have a failed
+inspection in the previous 3 months, etc.

@@ -1590,7 +1590,7 @@ discuss an imaginary example, that will help to clarify this[fn:6]
 
 #+CAPTION: A simplified example of our model evaluation process: three different models are trained using information prior to 2014, 2015, and 2016 and evaluated on what actually happened in those years. Looking at how each model performs over time allows us to balance stability and performance. (From Data-Driven Inspections for Safer Housing in San Jose, California)
 #+ATTR_ORG: :width 600 :height 400
-#+ATTR_HTML: :width 800 :height 800
+#+ATTR_HTML: :width 600 :height 400
 #+ATTR_LATEX: :width 400 :height 300
 [[file:images/sanjose-2.png]]
 

@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2019-04-09 mar 13:31 -->
+<!-- 2019-04-09 mar 13:58 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dirty Duck: A Guided Tour of Triage</title>
@@ -375,9 +375,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org2eeabab">7. Inpection prioritization</a>
 <ul>
-<li><a href="#org19b5abb">7.1. Problem description</a></li>
+<li><a href="#org8ec9d6a">7.1. Problem description</a></li>
 <li><a href="#org9c81109">7.2. Creating the labels</a></li>
-<li><a href="#org789d53d">7.3. Modeling Using Machine Learning</a>
+<li><a href="#org7f6c4f0">7.3. Modeling Using Machine Learning</a>
 <ul>
 <li><a href="#orgba99577">7.3.1. Defining a baseline</a></li>
 <li><a href="#org6ed10b0">7.3.2. Creating a simple experiment: ML as a Data Mining technique</a></li>
@@ -385,14 +385,14 @@ for the JavaScript code in this tag.
 </ul>
 </li>
 <li><a href="#org04d7cbb">7.4. Selecting the best model</a></li>
-<li><a href="#org3473826">7.5. Filtering model groups</a></li>
-<li><a href="#org1e3db2d">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
-<li><a href="#org3044734">7.7. Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org96b29dc">7.5. Filtering model groups</a></li>
+<li><a href="#org2072c33">7.6. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#org108bd9b">7.7. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org2baf08f">7.7.1. Comparing the audited model groups</a></li>
-<li><a href="#org9d77534">7.7.2. Going deeper with a model</a>
+<li><a href="#orgffd8a12">7.7.2. Going deeper with a model</a>
 <ul>
-<li><a href="#orga8cb149">7.7.2.1. Feature importances</a></li>
+<li><a href="#org510a5b2">7.7.2.1. Feature importances</a></li>
 <li><a href="#orgad5b345">7.7.2.2. Our <i>Policy menu</i></a></li>
 </ul>
 </li>
@@ -402,9 +402,9 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org7a2499c">8. An Early Intervention System</a>
 <ul>
-<li><a href="#org2be90f3">8.1. Problem description</a></li>
+<li><a href="#org5ad9d02">8.1. Problem description</a></li>
 <li><a href="#org71531dd">8.2. What are the labels? What are the outcomes?</a></li>
-<li><a href="#org378923a">8.3. Modeling Using Machine Learning</a>
+<li><a href="#org9895505">8.3. Modeling Using Machine Learning</a>
 <ul>
 <li>
 <ul>
@@ -417,17 +417,17 @@ for the JavaScript code in this tag.
 </li>
 <li><a href="#org4604348">8.4. Audition: So many models, how can I choose the best one?</a>
 <ul>
-<li><a href="#orgd9a14c1">8.4.1. Filtering model groups</a></li>
-<li><a href="#org258e9ca">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
+<li><a href="#orged9b049">8.4.1. Filtering model groups</a></li>
+<li><a href="#org5cfbea4">8.4.2. Selecting the best rule or strategy for choosing model groups</a></li>
 </ul>
 </li>
-<li><a href="#orgb2af002">8.5. Postmodeling: Inspecting the best models closely</a>
+<li><a href="#org9921ad2">8.5. Postmodeling: Inspecting the best models closely</a>
 <ul>
 <li><a href="#org60063a1">8.5.1. Setup</a></li>
 <li><a href="#org0092533">8.5.2. Model groups</a></li>
-<li><a href="#orgd4fcc76">8.5.3. Going deeper with a model</a>
+<li><a href="#org49efc85">8.5.3. Going deeper with a model</a>
 <ul>
-<li><a href="#org91e1113">8.5.3.1. Feature importances</a></li>
+<li><a href="#orge056e98">8.5.3.1. Feature importances</a></li>
 </ul>
 </li>
 </ul>
@@ -7140,8 +7140,8 @@ clean the <code>{test, train}_results</code> schemas and have a fresh start:
 <h2 id="org2eeabab"><span class="section-number-2">7</span> Inpection prioritization</h2>
 <div class="outline-text-2" id="text-7">
 </div>
-<div id="outline-container-org19b5abb" class="outline-3">
-<h3 id="org19b5abb"><span class="section-number-3">7.1</span> Problem description</h3>
+<div id="outline-container-org8ec9d6a" class="outline-3">
+<h3 id="org8ec9d6a"><span class="section-number-3">7.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-7-1">
 <p>
 We will begin with the <b>inspection prioritization</b> problem. We want to generate a list of
@@ -7390,7 +7390,7 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 </p>
 
 
-<div id="org042171b" class="figure">
+<div id="org52c6136" class="figure">
 <p><img src="./images/outcomes-inspections.png" alt="Outcomes in the resource prioritazation problem." width="600" height="600" />
 </p>
 <p><span class="figure-number">Figure 19: </span>The image shows three facilities and, next to each, a temporal line with 6 days (0-5). Each dot represents an inspection. Color is the <i>outcome</i> of the inspection. Green means the facility passed the inspection, and red means it failed. Each facility in the image had two inspections, but only the facility in the middle passed both.</p>
@@ -7400,8 +7400,8 @@ show the meaning of the <i>outcomes</i> for the <i>inspection failed</i> problem
 
 
 
-<div id="outline-container-org789d53d" class="outline-3">
-<h3 id="org789d53d"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org7f6c4f0" class="outline-3">
+<h3 id="org7f6c4f0"><span class="section-number-3">7.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-7-3">
 <p>
 It is time to put these steps together. All the coding is complete
@@ -10048,7 +10048,7 @@ discuss an imaginary example, that will help to clarify this<sup><a id="fnr.53" 
 
 
 <div class="figure">
-<p><img src="images/sanjose-2.png" alt="sanjose-2.png" width="800" height="800" />
+<p><img src="images/sanjose-2.png" alt="sanjose-2.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 23: </span>A simplified example of our model evaluation process: three different models are trained using information prior to 2014, 2015, and 2016 and evaluated on what actually happened in those years. Looking at how each model performs over time allows us to balance stability and performance. (From Data-Driven Inspections for Safer Housing in San Jose, California)</p>
 </div>
@@ -10244,8 +10244,8 @@ just to generate your predictions list).
 </div>
 
 
-<div id="outline-container-org3473826" class="outline-3">
-<h3 id="org3473826"><span class="section-number-3">7.5</span> Filtering model groups</h3>
+<div id="outline-container-org96b29dc" class="outline-3">
+<h3 id="org96b29dc"><span class="section-number-3">7.5</span> Filtering model groups</h3>
 <div class="outline-text-3" id="text-7-5">
 <p>
 Most of the time, <code>audition</code> should be used in a iterative fashion, the result of
@@ -10302,8 +10302,8 @@ are ~18 percentual points below of the best.
 </div>
 </div>
 
-<div id="outline-container-org1e3db2d" class="outline-3">
-<h3 id="org1e3db2d"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
+<div id="outline-container-org2072c33" class="outline-3">
+<h3 id="org2072c33"><span class="section-number-3">7.6</span> Selecting the best rule or strategy for choosing model groups</h3>
 <div class="outline-text-3" id="text-7-6">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -10386,8 +10386,8 @@ groups selected by <code>audition</code>, using the <i>Postmodeling</i> tool set
 </div>
 
 
-<div id="outline-container-org3044734" class="outline-3">
-<h3 id="org3044734"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-org108bd9b" class="outline-3">
+<h3 id="org108bd9b"><span class="section-number-3">7.7</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-7-7">
 <p>
 <i>Postmodeling</i> will help you to understand the behaviour orf your selected models (from audition)
@@ -10579,8 +10579,8 @@ but for this tutorial we will move on.
 </div>
 </div>
 
-<div id="outline-container-org9d77534" class="outline-4">
-<h4 id="org9d77534"><span class="section-number-4">7.7.2</span> Going deeper with a model</h4>
+<div id="outline-container-orgffd8a12" class="outline-4">
+<h4 id="orgffd8a12"><span class="section-number-4">7.7.2</span> Going deeper with a model</h4>
 <div class="outline-text-4" id="text-7-7-2">
 <p>
 Imagine that after a deeper analysis, you decide to choose model group <b>11</b>
@@ -10650,8 +10650,8 @@ models in this model group, and check if you can detect any pattern.
 </p>
 </div>
 
-<div id="outline-container-orga8cb149" class="outline-5">
-<h5 id="orga8cb149"><span class="section-number-5">7.7.2.1</span> Feature importances</h5>
+<div id="outline-container-org510a5b2" class="outline-5">
+<h5 id="org510a5b2"><span class="section-number-5">7.7.2.1</span> Feature importances</h5>
 <div class="outline-text-5" id="text-7-7-2-1">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_11['101'].plot_feature_importances(path=params.project_path,
@@ -10730,8 +10730,8 @@ well you will gain a little of precision, but your recall will be
 <h2 id="org7a2499c"><span class="section-number-2">8</span> An Early Intervention System</h2>
 <div class="outline-text-2" id="text-8">
 </div>
-<div id="outline-container-org2be90f3" class="outline-3">
-<h3 id="org2be90f3"><span class="section-number-3">8.1</span> Problem description</h3>
+<div id="outline-container-org5ad9d02" class="outline-3">
+<h3 id="org5ad9d02"><span class="section-number-3">8.1</span> Problem description</h3>
 <div class="outline-text-3" id="text-8-1">
 <p>
 <code>triage</code> is designed to also build early warning systems (also called early intervention, EIS).
@@ -10780,7 +10780,7 @@ The following image tries to exemplify this reasoning:
 
 
 
-<div id="orga30e770" class="figure">
+<div id="org3273ed8" class="figure">
 <p><img src="./images/outcomes-eis.png" alt="outcomes-eis.png" width="600" height="400" />
 </p>
 <p><span class="figure-number">Figure 35: </span>The image shows three facilities, and next to each, a temporal line with 6 days (0-5). Each dot represents the event (whether an inspection happened). Yellow means the inspection happened (<code>TRUE</code> outcome) and blue means it didn't (<code>FALSE</code> outcome). Each facility in the image had two inspections, six in total.</p>
@@ -10896,8 +10896,8 @@ used in inspections:
 </div>
 
 
-<div id="outline-container-org378923a" class="outline-3">
-<h3 id="org378923a"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
+<div id="outline-container-org9895505" class="outline-3">
+<h3 id="org9895505"><span class="section-number-3">8.3</span> Modeling Using Machine Learning</h3>
 <div class="outline-text-3" id="text-8-3">
 <p>
 We need to specify the temporal configuration too
@@ -11693,8 +11693,8 @@ just to generate your list).
 </p>
 </div>
 
-<div id="outline-container-orgd9a14c1" class="outline-4">
-<h4 id="orgd9a14c1"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
+<div id="outline-container-orged9b049" class="outline-4">
+<h4 id="orged9b049"><span class="section-number-4">8.4.1</span> Filtering model groups</h4>
 <div class="outline-text-4" id="text-8-4-1">
 <p>
 <code>Audition</code> will generate two plots that are meant to be used together:
@@ -11718,8 +11718,8 @@ just to generate your list).
 </div>
 </div>
 
-<div id="outline-container-org258e9ca" class="outline-4">
-<h4 id="org258e9ca"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
+<div id="outline-container-org5cfbea4" class="outline-4">
+<h4 id="org5cfbea4"><span class="section-number-4">8.4.2</span> Selecting the best rule or strategy for choosing model groups</h4>
 <div class="outline-text-4" id="text-8-4-2">
 <p>
 In this phase of the audition, you will see what will happen in the
@@ -11780,8 +11780,8 @@ file <code>[[file:audition/eis/results_model_group_ids.json][results_model_group
 </div>
 
 
-<div id="outline-container-orgb2af002" class="outline-3">
-<h3 id="orgb2af002"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
+<div id="outline-container-org9921ad2" class="outline-3">
+<h3 id="org9921ad2"><span class="section-number-3">8.5</span> Postmodeling: Inspecting the best models closely</h3>
 <div class="outline-text-3" id="text-8-5">
 <p>
 Given that almost all the strategies perform well, we will change the
@@ -11929,8 +11929,8 @@ choose any and it won’t matter.
 </div>
 </div>
 
-<div id="outline-container-orgd4fcc76" class="outline-4">
-<h4 id="orgd4fcc76"><span class="section-number-4">8.5.3</span> Going deeper with a model</h4>
+<div id="outline-container-org49efc85" class="outline-4">
+<h4 id="org49efc85"><span class="section-number-4">8.5.3</span> Going deeper with a model</h4>
 <div class="outline-text-4" id="text-8-5-3">
 <p>
 We will choose the model group <b>64</b> as the winner.
@@ -12002,8 +12002,8 @@ models in this model group, and check if you can detect any pattern.
 </p>
 </div>
 
-<div id="outline-container-org91e1113" class="outline-5">
-<h5 id="org91e1113"><span class="section-number-5">8.5.3.1</span> Feature importances</h5>
+<div id="outline-container-orge056e98" class="outline-5">
+<h5 id="orge056e98"><span class="section-number-5">8.5.3.1</span> Feature importances</h5>
 <div class="outline-text-5" id="text-8-5-3-1">
 <div class="org-src-container">
 <pre class="src src-jupyter-python">models_64['226'].plot_feature_importances(path=params.project_path,
@@ -12111,9 +12111,139 @@ feature.
 </pre>
 </div>
 
+<p>
+When it finish, you could explore the table with the following code:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql"><span style="font-weight: bold;">with</span> significant_features <span style="font-weight: bold;">as</span> (
+<span style="font-weight: bold;">select</span>
+    feature_column,
+    as_of_date,
+    threshold_unit
+<span style="font-weight: bold;">from</span>
+    test_results.eis_crosstabs
+<span style="font-weight: bold;">where</span>
+    metric = <span style="font-style: italic;">'ttest_p'</span>
+    <span style="font-weight: bold;">and</span>
+    <span style="font-weight: bold;">value</span> &lt; 0.05 <span style="font-weight: bold;">and</span> as_of_date = <span style="font-style: italic;">'2018-09-01'</span>
+    )
+
+<span style="font-weight: bold;">select</span>
+    <span style="font-weight: bold;">distinct</span>
+    model_id,
+    as_of_date,
+    format(<span style="font-style: italic;">'%s %s'</span>, threshold_value, t1.threshold_unit) <span style="font-weight: bold;">as</span> threshold,
+    feature_column,
+    <span style="font-weight: bold;">value</span> <span style="font-weight: bold;">as</span> "ratio PP / PN"
+<span style="font-weight: bold;">from</span>
+    test_results.eis_crosstabs <span style="font-weight: bold;">as</span> t1
+    <span style="font-weight: bold;">inner</span> <span style="font-weight: bold;">join</span>
+    significant_features <span style="font-weight: bold;">as</span> t2 <span style="font-weight: bold;">using</span>(feature_column, as_of_date)
+<span style="font-weight: bold;">where</span>
+    metric = <span style="font-style: italic;">'ratio_predicted_positive_over_predicted_negative'</span>
+    <span style="font-weight: bold;">and</span>
+    t1.threshold_unit = <span style="font-style: italic;">'pct'</span>
+<span style="font-weight: bold;">order</span> <span style="font-weight: bold;">by</span> <span style="font-weight: bold;">value</span> <span style="font-weight: bold;">desc</span>
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-right">model<sub>id</sub></th>
+<th scope="col" class="org-left">as<sub>of</sub><sub>date</sub></th>
+<th scope="col" class="org-left">threshold</th>
+<th scope="col" class="org-left">feature<sub>column</sub></th>
+<th scope="col" class="org-right">ratio PP / PN</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>1month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub></td>
+<td class="org-right">11.7306052855925</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>3month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub></td>
+<td class="org-right">3.49082798996376</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>fail</sub><sub>avg</sub></td>
+<td class="org-right">1.27344759545161</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">risks<sub>zip</sub><sub>code</sub><sub>1month</sub><sub>risk</sub><sub>high</sub><sub>sum</sub></td>
+<td class="org-right">1.17488357227451</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">inspection<sub>types</sub><sub>entity</sub><sub>id</sub><sub>all</sub><sub>type</sub><sub>canvass</sub><sub>sum</sub></td>
+<td class="org-right">0.946432281075976</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">inspection<sub>types</sub><sub>zip</sub><sub>code</sub><sub>3month</sub><sub>type</sub><sub>canvass</sub><sub>sum</sub></td>
+<td class="org-right">0.888940127100436</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>pass</sub><sub>sum</sub></td>
+<td class="org-right">0.041806916457784</td>
+</tr>
+
+<tr>
+<td class="org-right">226</td>
+<td class="org-left">2018-09-01 00:00:00+00</td>
+<td class="org-left">5 pct</td>
+<td class="org-left">results<sub>entity</sub><sub>id</sub><sub>6month</sub><sub>result</sub><sub>pass</sub><sub>avg</sub></td>
+<td class="org-right">0.0232523724927717</td>
+</tr>
+</tbody>
+</table>
 
 <p>
-with significant<sub>features</sub> as (select feature<sub>column</sub>, threshold<sub>unit</sub> from test<sub>results.eis</sub><sub>crosstabs</sub> where metric = 'ttest<sub>p</sub>' and value &lt; 0.05 and as<sub>of</sub><sub>date</sub> = '2018-09-01') select * from test<sub>results.eis</sub><sub>crosstabs</sub> where metric = 'ratio<sub>predicted</sub><sub>positive</sub><sub>over</sub><sub>predicted</sub><sub>negative</sub>' and feature<sub>column</sub> in (select feature<sub>column</sub> from significant<sub>features</sub>);
+This table represents the ratio between the predicted positives at the
+top 5% and predicted negatives (the rest). For example, you can see
+that in PP are eleven times more inspected if they have a failed
+inspection in the last month, 3.5 times more if they have a failed
+inspection in the previous 3 months, etc.
 </p>
 </div>
 </div>
@@ -12925,7 +13055,7 @@ the ip address (<code>0.0.0.0</code>) and use the one from the docker virtual ma
 </div></div>
 <div id="postamble" class="status">
 <p class="author">Author: Center of Data Science for Public Policy</p>
-<p class="date">Created: 2019-04-09 mar 13:31</p>
+<p class="date">Created: 2019-04-09 mar 13:58</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
