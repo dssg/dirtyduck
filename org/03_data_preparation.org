@@ -1114,7 +1114,23 @@ We will generate a few plots, just to know:
 - how many entities/events ended in a failed state every month? and,
 - how many entities/events have in a critical violation in a failed inspection?
 
-#+BEGIN_SRC ipython :exports none :results none
+#+BEGIN_SRC sh :dir /docker:root@tutorial_bastion:/triage :exports none :results none
+
+# Or jupyter-kernel if you want to interact from org-mode
+
+jupyter-kernel   \
+    --ip=0.0.0.0 \
+    --KernelManager.control_port=56406 \
+    --KernelManager.hb_port=56407      \
+    --KernelManager.iopub_port=56408   \
+    --KernelManager.shell_port=56409   \
+    --KernelManager.stdin_port=56410   \
+    --Session.keyfile=./session.key
+    --debug
+#+END_SRC
+
+
+#+BEGIN_SRC jupyter-python :session ./docker-kernel-connection.json :results none :exports none
 %matplotlib inline
 import numpy as np
 import pandas as pd
@@ -1128,7 +1144,7 @@ import json
 
 import sqlalchemy
 
-engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:5434/food')
+engine = sqlalchemy.create_engine('postgresql://food_user:some_password@food_db:5432/food')
 #+END_SRC
 
 
@@ -1136,8 +1152,7 @@ engine = sqlalchemy.create_engine('postgresql://food_user:some_password@0.0.0.0:
 
 First, we will try the answer the question: /how many inspections are realized every month?/
 
-#+BEGIN_SRC ipython :ipyfile ./images/inspections_over_time.png :results silent :exports none
-
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports none :file ./images/inspections_over_time.png :results none
 df = pd.read_sql("""
 select
 date_trunc('month', date) as month,
@@ -1149,14 +1164,15 @@ order by 1 asc
 """,
 engine)
 
-plt.figure(figsize=(12.5, 3.5))
+fig, ax = plt.subplots(figsize=(15.5, 4.5))
 
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count of inspections")
-plt.title("Number of inspections over time")
-plt.xlim(0, n_months);
+
+ax.bar(df.month, df.cnt, width=17, align='edge')
+ax.xaxis_date()
+ax.set_ylim(0)
+ax.set_xlabel("Time (months)")
+ax.set_ylabel("count of inspections")
+ax.set_title("Number of inspections over time")
 #+END_SRC
 
 #+CAPTION: Number of inspections per month across our whole dataset
@@ -1177,7 +1193,7 @@ contain *all* the facilities in Chicago. This will have an effect on the
 modeling stage.
 #+END_QUOTE
 
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_inspected_over_time.png :results silent :exports none
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports none :file ./images/facilities_inspected_over_time.png :results none
 df = pd.read_sql("""
 select
 date_trunc('month', date) as month,
@@ -1188,14 +1204,14 @@ group by 1 order by 1 asc
 """,
 engine)
 
-plt.figure(figsize=(12.5, 3.5))
+fig, ax = plt.subplots(figsize=(15.5, 4.5))
 
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count of facilities inspected")
-plt.title("Facilities inspected over time")
-plt.xlim(0, n_months);
+ax.bar(df.month, df.cnt, width=17, align='edge')
+ax.xaxis_date()
+ax.set_ylim(0)
+ax.set_xlabel("Time (months)")
+ax.set_ylabel("count of facilities inspected")
+ax.set_title("Facilities inspected over time")
 #+END_SRC
 
 #+CAPTION: Number of unique facilities inspected every month.
@@ -1206,7 +1222,7 @@ plt.xlim(0, n_months);
 What is the proportion of inspections every month that actually end in
 a failed inspection?
 
-#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_over_time.png :results silent :exports none
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports none :file ./images/failed_inspections_over_time.png :results none
 df = pd.read_sql(
     """
     select
@@ -1221,14 +1237,15 @@ df = pd.read_sql(
     """,
     engine)
 
-plt.figure(figsize=(12.5, 3.5))
+fig, ax = plt.subplots(figsize=(15.5, 4.5))
 
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count")
-plt.title("Failed inspections over time")
-plt.xlim(0, n_months);
+ax.bar(df.month, df.cnt, width=17, align='edge')
+ax.xaxis_date()
+ax.set_ylim(0)
+
+ax.set_xlabel("Time (months)")
+ax.set_ylabel("count")
+ax.set_title("Failed inspections over time")
 #+END_SRC
 
 #+CAPTION: Number of failed inspections every month.
@@ -1239,7 +1256,7 @@ plt.xlim(0, n_months);
 Now let's see the behavior of the /outcomes/ of the inspection across
 time. First just if the inspection failed.
 
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_inspections_failed_over_time.png :results silent :exports none
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports none :file ./images/facilities_with_inspections_failed_over_time.png :results none
 df = pd.read_sql(
     """
     select
@@ -1254,14 +1271,15 @@ df = pd.read_sql(
     """,
     engine)
 
-plt.figure(figsize=(12.5, 3.5))
+fig, ax = plt.subplots(figsize=(15.5, 4.5))
 
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count")
-plt.title("Facilities with failed inspections over time")
-plt.xlim(0, n_months);
+ax.bar(df.month, df.cnt, width=17, align='edge')
+ax.xaxis_date()
+ax.set_ylim(0)
+
+ax.set_xlabel("Time (months)")
+ax.set_ylabel("count")
+ax.set_title("Facilities with failed inspections over time")
 #+END_SRC
 
 #+CAPTION: Number of unique facilities with failed inspections every month.
@@ -1272,7 +1290,7 @@ plt.xlim(0, n_months);
 Finally let's analyze the evolution of failed inspections with severe
 violations (violation code in 15-29)
 
-#+BEGIN_SRC ipython :ipyfile ./images/failed_inspections_severe_violations_over_time.png :results silent :exports none
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports none :file ./images/failed_inspections_severe_violations_over_time.png :results none
 df = pd.read_sql(
     """
     select
@@ -1288,14 +1306,15 @@ df = pd.read_sql(
     """,
     engine)
 
-plt.figure(figsize=(12.5, 3.5))
+fig, ax = plt.subplots(figsize=(15.5, 4.5))
 
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count")
-plt.title("Failed inspections with severe violations over time")
-plt.xlim(0, n_months);
+ax.bar(df.month, df.cnt, width=17, align='edge')
+ax.xaxis_date()
+ax.set_ylim(0)
+
+ax.set_xlabel("Time (months)")
+ax.set_ylabel("count")
+ax.set_title("Failed inspections with severe violations over time")
 #+END_SRC
 
 #+CAPTION: Number of failed inspection with critical violation found
@@ -1303,7 +1322,7 @@ plt.xlim(0, n_months);
 
 *** Number of facilities with severe violations found in a failed inspection over time
 
-#+BEGIN_SRC ipython :ipyfile ./images/facilities_with_failed_inspections_severe_violations_over_time.png :results silent :exports none
+#+BEGIN_SRC jupyter-python :session  ./docker-kernel-connection.json :exports none :file ./images/facilities_with_failed_inspections_severe_violations_over_time.png :results none
 df = pd.read_sql(
     """
     select
@@ -1319,14 +1338,16 @@ df = pd.read_sql(
     """,
     engine)
 
-plt.figure(figsize=(12.5, 3.5))
+fig, ax = plt.subplots(figsize=(15.5, 4.5))
 
-n_months = len(df.cnt)
-plt.bar(np.arange(n_months), df.cnt, color="#348ABD")
-plt.xlabel("Time (months)")
-plt.ylabel("count")
-plt.title("Facilities with failed inspections with severe violations over time")
-plt.xlim(0, n_months);
+ax.bar(df.month, df.cnt, width=17, align='edge')
+ax.xaxis_date()
+ax.set_ylim(0)
+
+
+ax.set_xlabel("Time (months)")
+ax.set_ylabel("count")
+ax.set_title("Facilities with failed inspections with severe violations over time")
 #+END_SRC
 
 #+CAPTION: Number of facilities which failed inspections with severe violations.
